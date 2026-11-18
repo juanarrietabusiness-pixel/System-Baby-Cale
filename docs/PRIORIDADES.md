@@ -313,7 +313,7 @@ Lo que no es programación. Absorbe lo que seguía vigente de la lista vieja
   ([JUAN_ODOO.md](JUAN_ODOO.md) › El asistente aprende).
 - **Datos del inventario anterior** (lista del 2026-10-12): 23 precios que cambia el inventario, el código XXI070507
   repetido, las bases N-F10018 King y Twin como productos aparte y 11 lecturas dudosas
-  ([inventario-anterior-informe.md](inventario-anterior-informe.md)).
+  (el informe se retiró con el catálogo de D'CASA el 2026-11-18; está en el historial de git).
 - **Con el abogado:** los textos de la factura (garantía, cambios, términos; se editan en Ajustes › Empresas ›
   Documentos D'CASA), la ficha «Apartados» del conocimiento de Juan (inactiva hasta su revisión) y el canje de negocios
   externos del programa de vendedores (apagado, `CLAUDE.md`).

@@ -10,4 +10,3 @@ from . import test_carga
 from . import test_sin_datos_personales
 from . import test_reglas_combos
 from . import test_combos
-from . import test_combos_reales

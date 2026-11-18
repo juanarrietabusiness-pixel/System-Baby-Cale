@@ -26,8 +26,8 @@ export function seccionHistoria(e: Escena) {
     it("bienvenida y pregunta por camas queen: el bot busca en el catálogo REAL de Odoo y contesta con el precio «+ ITBMS»", async () => {
       const w = e.w;
       w.ia.guionar([
-        // Con el catálogo real cargado hay muchas camas queen con el mismo puntaje y se ordenan por nombre (desde F5,
-        // todos en MAYÚSCULAS): la de la prueba se busca por su nombre para que salga entre las primeras.
+        // La cama es un producto de prueba (scripts/integracion_juan_datos.py): el catálogo que instala dcasa_catalogo es
+        // el de Baby Caleb (pañales, toallitas y fulares; ver «2a»). Se busca por su nombre, que es único.
         { llamadas: [{ nombre: "buscar_productos", args: { consulta: "cama roble queen" } }] },
         (c) => {
           const p = producto(c, "Cama Roble Queen Integración");
@@ -234,6 +234,42 @@ export function seccionHistoria(e: Escena) {
       await w.cliente(celular, "¿Me ayudas con otra cosa?");
       await w.quieta(celular);
       expect(JSON.stringify(w.ia.peticiones.at(-1)!.cuerpo.system)).not.toContain("ya quedó la visita del sábado");
+    });
+  });
+
+  describe("2a. El catálogo de Baby Caleb que instala dcasa_catalogo: Juan lo lee de Odoo con los precios de la lista", () => {
+    const celular = celularNuevo();
+    // scripts/integracion_juan_datos.py lo publica con una foto (en una base nueva nada del catálogo se publica sin foto).
+    const NOMBRE = "Pañales Nateen Pants";
+
+    it("busca los pañales del catálogo real y ve cada talla con su precio (55.00 + ITBMS) y sin el número de existencias", async () => {
+      const w = e.w;
+      let tallas: any[] = [];
+      w.ia.guionar([
+        { llamadas: [{ nombre: "buscar_productos", args: { consulta: "pañales nateen pants" } }] },
+        (c) => {
+          const p = (c.resultado("buscar_productos")?.resultado?.productos ?? []).find((x: any) => x.nombre === NOMBRE);
+          return { llamadas: [{ nombre: "ver_producto", args: { codigo: p.codigo } }] };
+        },
+        (c) => {
+          const ficha = c.resultado("ver_producto")?.resultado;
+          tallas = ficha.variantes;
+          return { texto: `Sí, tenemos ${ficha.nombre}: ${tallas.map((v: any) => v.precio_texto).join(", ")}.` };
+        },
+      ]);
+      await w.cliente(celular, "Hola, ¿tienen pañales Nateen pants?", { nombre: "Lucía" });
+      await w.quieta(celular);
+      expect(w.ia.sinGuion).toEqual([]);
+
+      // Las tres tallas de la lista del dueño (L, XL y XXL), cada una a $55.00 con el ITBMS que se suma.
+      expect(tallas).toHaveLength(3);
+      expect(tallas.map((v: any) => v.precio)).toEqual([55, 55, 55]);
+      const texto = w.puente.textos().join("\n");
+      expect(texto).toContain(NOMBRE);
+      expect(texto).toContain("$55.00 + ITBMS");
+      // La disponibilidad llega como etiqueta (6, 2 y 9 cajas en la lista), nunca como número.
+      expect(tallas.map((v: any) => v.disponibilidad)).toEqual(["disponible", "pocas", "disponible"]);
+      expect(Object.keys(tallas[0])).not.toContain("existencias");
     });
   });
 

@@ -331,6 +331,16 @@ provocan a propósito: ruido). El resultado real está en la línea `✖ Fallaro
   instala `dcasa_catalogo`, que trae colchones publicados; apagar solo el producto de la prueba dejaba «Colchones» con
   productos y fallaba solo en el CI. Se apagan todos los publicados de la categoría (`child_of`). Se reproduce en una
   base con el catálogo (`dcasa_test_amplio`).
+- **Cambiar el catálogo por el de otro negocio (Baby Caleb, 2026-11-18)** rompe pruebas que contaban con el tamaño del
+  catálogo de D'CASA aunque no lo nombraran: «más de 100 productos en la base» (`test_codigo_publico`), la categoría
+  «Recámaras» que salía del nombre de una cama (importación de Brian, combos de `dcasa_migracion`) y el CSV del
+  inventario anterior leído como datos reales. Se buscan con `rg` por códigos, `leer_catalogo`, `inventario_anterior` y
+  `product_category_`, y se cambian por datos de prueba propios en el mismo commit. Y el formato nuevo de
+  `catalogo.json` obliga a apagar `scripts/importar_catalogo.py`: el flujo «up media» lo corre con cada subida y habría
+  escrito el formato viejo encima del archivo escrito a mano.
+- **No editar los archivos que la prueba lee mientras `scripts/test.sh` corre**: Odoo lee `data/*.json` y los CSV en
+  tiempo de prueba (no solo al instalar) y la corrida queda contaminada (una «línea base» de `dcasa_catalogo` dio 13
+  fallas que no eran del código). Para iterar, editar entre corridas.
 
 ### Integración Juan (Odoo real + Worker real)
 

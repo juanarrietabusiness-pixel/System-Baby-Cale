@@ -27,6 +27,50 @@
         </field>
     </record>
 
+    <!-- Presentación (el texto de la lista del dueño: unidades por caja, rango de peso…). Es de cada variante: en la
+         ficha del producto se ve cuando tiene una sola; con tallas, en cada variante y en su lista. -->
+    <record id="product_template_form_presentacion" model="ir.ui.view">
+        <field name="name">product.template.form.dcasa.presentacion</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_only_form_view"/>
+        <field name="arch" type="xml">
+            <field name="dcasa_medidas" position="after">
+                <field name="dcasa_presentacion" invisible="product_variant_count > 1"
+                       placeholder="Caja de 160 (4–11 lbs / 2–5 kg)"/>
+            </field>
+        </field>
+    </record>
+    <record id="product_variant_form_presentacion" model="ir.ui.view">
+        <field name="name">product.product.form.dcasa.presentacion</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_normal_form_view"/>
+        <field name="arch" type="xml">
+            <field name="dcasa_medidas" position="after">
+                <field name="dcasa_presentacion" placeholder="Caja de 160 (4–11 lbs / 2–5 kg)"/>
+            </field>
+        </field>
+    </record>
+    <record id="product_variant_easy_edit_presentacion" model="ir.ui.view">
+        <field name="name">product.product.easy.dcasa.presentacion</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_variant_easy_edit_view"/>
+        <field name="arch" type="xml">
+            <field name="default_code" position="after">
+                <field name="dcasa_presentacion" placeholder="Caja de 160 (4–11 lbs / 2–5 kg)"/>
+            </field>
+        </field>
+    </record>
+    <record id="product_variant_list_presentacion" model="ir.ui.view">
+        <field name="name">product.product.list.dcasa.presentacion</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_product_tree_view"/>
+        <field name="arch" type="xml">
+            <field name="product_template_variant_value_ids" position="after">
+                <field name="dcasa_presentacion" optional="show"/>
+            </field>
+        </field>
+    </record>
+
     <!-- Lista de productos: con foto, referencia, categoría de la tienda y si está publicado. -->
     <record id="product_template_list_dcasa" model="ir.ui.view">
         <field name="name">product.template.list.dcasa.catalogo</field>

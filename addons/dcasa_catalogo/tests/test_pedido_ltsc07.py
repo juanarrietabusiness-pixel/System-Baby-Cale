@@ -1,11 +1,4 @@
-from odoo.addons.dcasa_catalogo.catalogo import (
-    PARAM_STOCK_PRUEBA,
-    aplicar_stock_prueba,
-    cargar_catalogo,
-    leer_catalogo,
-    xmlid_de,
-)
-from odoo.addons.dcasa_catalogo.inventario_anterior import leer_inventario_anterior
+from odoo.addons.dcasa_catalogo.catalogo import PARAM_STOCK_PRUEBA, aplicar_stock_prueba
 from odoo.addons.dcasa_catalogo.reglas import (
     asignar_foto,
     codigo_del_pedido,
@@ -85,77 +78,8 @@ class TestReglasPedido(TransactionCase):
 
 
 @tagged('post_install', '-at_install')
-class TestPedidoLTSC07(TransactionCase):
-    """Productos del pedido LTSC-07 en el inventario y en la web."""
-
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        cls.pedido = [i for i in leer_catalogo() if i.get('pedido') == 'LTSC-07']
-        # El inventario del sistema anterior manda sobre el precio de los códigos que trae (regla de la dueña).
-        cls.precio_inventario = {f['codigo']: f['precio'] for f in leer_inventario_anterior() if f['codigo']}
-
-    def producto(self, codigo):
-        return self.env.ref(f'dcasa_catalogo.{xmlid_de(codigo)}')
-
-    def test_productos_creados_publicados_y_en_recamaras(self):
-        self.assertEqual(len(self.pedido), 35)
-        recamaras = self.env.ref('website_dcasa.public_category_recamaras')
-        for item in self.pedido:
-            producto = self.producto(item['codigo'])
-            self.assertEqual(producto.list_price, self.precio_inventario.get(item['codigo'], item['precios']['']))
-            self.assertEqual(round(item['precios'][''] * 100) % 100, 99, 'Todo precio del pedido termina en .99')
-            self.assertEqual(producto.is_published, bool(item['fotos']), 'Con foto se publica')
-            self.assertTrue(producto.image_1920)
-            self.assertEqual(producto.public_categ_ids, recamaras)
-            self.assertTrue(producto.is_storable)
-            self.assertEqual(producto.dcasa_combo, item['combo'])
-            self.assertTrue(producto.taxes_id and not producto.taxes_id.price_include, 'ITBMS que se suma')
-
-    def test_combo_con_nombre_del_colchon_y_a_99(self):
-        producto = self.producto('908Q')
-        self.assertEqual(producto.dcasa_combo, 'Combo con colchón Dulce Sueños $318.99')
-        self.assertEqual(self.producto('888K').dcasa_combo, 'Combo con colchón First Class $469.99')
-
-    def test_908k_una_ficha_con_variantes_de_color(self):
-        producto = self.producto('908K')
-        self.assertEqual(producto.product_variant_count, 3)
-        self.assertEqual(producto.list_price, 229.99)
-        por_color = {
-            v.product_template_attribute_value_ids.filtered(lambda a: a.attribute_id.name == 'Color').name: v
-            for v in producto.product_variant_ids
-        }
-        self.assertEqual(set(por_color), {'Beige', 'Negro', 'Gris'})
-        for color, variante in por_color.items():
-            self.assertEqual(variante.lst_price, 229.99, 'El mismo precio en cada color')
-            self.assertTrue(variante.image_variant_1920, f'{color} con su foto')
-            self.assertEqual(variante.default_code, f'908K-{color.upper()}')
-        self.assertEqual(len(por_color['Beige'].product_variant_image_ids), 2, 'El resto de fotos, a su galería')
-        self.assertNotEqual(por_color['Negro'].image_variant_1920, por_color['Gris'].image_variant_1920)
-        self.assertEqual(producto.attribute_line_ids.filtered(
-            lambda linea: linea.attribute_id.name == 'Tamaño').value_ids.name, 'King')
-        self.assertEqual(self.producto('908Q').product_variant_count, 2)
-
-    def test_codigo_existente_no_se_toca_y_va_aparte(self):
-        viejo = self.producto('Y0300300')
-        self.assertEqual(viejo.list_price, 159.99, 'El producto que ya estaba conserva su precio')
-        self.assertEqual(viejo.default_code, 'Y0300300')
-        nuevo = self.producto('Y0300300-LTSC07')
-        self.assertNotEqual(nuevo, viejo)
-        self.assertEqual(nuevo.list_price, 129.99)
-        self.assertEqual(nuevo.default_code, 'Y0300300-LTSC07')
-        self.assertNotEqual(nuevo.image_1920, viejo.image_1920)
-        self.assertNotIn('Y0300300', [i['codigo'] for i in self.pedido])
-        codigos = self.env['product.product'].search([('default_code', '=', 'Y0300300')])
-        self.assertEqual(codigos, viejo.product_variant_id, 'Una sola ficha con el código viejo')
-
-    def test_no_duplica_un_codigo_que_ya_esta_en_odoo(self):
-        """Si Brian ya creó el código desde el Excel del proveedor, la carga no lo duplica."""
-        self.producto('6220Q').unlink()
-        brian = self.env['product.template'].create({'name': 'Cama de Brian', 'default_code': '6220Q'})
-        self.assertEqual(cargar_catalogo(self.env), 0)
-        self.assertEqual(self.env['product.product'].search([('default_code', '=', '6220Q')]),
-                         brian.product_variant_id)
+class TestStockDePrueba(TransactionCase):
+    """Existencias de prueba (solo staging) para lo que nunca tuvo stock, también lo del catálogo."""
 
     def test_stock_de_prueba(self):
         Producto = self.env['product.product']
@@ -173,7 +97,9 @@ class TestPedidoLTSC07(TransactionCase):
         contar(contado, 3)
         contar(vendido, 2)
         contar(vendido, 0)
-        variante_908k = self.producto('908K').product_variant_ids[:1]
+        # Del catálogo, la talla que llegó en 0 (sin movimientos): NAT-XL.
+        del_catalogo = Producto.search([('default_code', '=', 'NAT-XL')])
+        self.assertFalse(self.env['stock.move'].search_count([('product_id', '=', del_catalogo.id)]))
 
         parametros = self.env['ir.config_parameter'].sudo()
         parametros.set_param(PARAM_STOCK_PRUEBA, '0')
@@ -184,7 +110,7 @@ class TestPedidoLTSC07(TransactionCase):
         self.assertGreater(aplicar_stock_prueba(self.env), 0)
         self.env.invalidate_all()
         self.assertEqual(sin_nada.qty_available, 10)
-        self.assertEqual(variante_908k.qty_available, 10, 'También los productos del catálogo')
+        self.assertEqual(del_catalogo.qty_available, 10, 'También los productos del catálogo')
         self.assertEqual(contado.qty_available, 3, 'Un conteo real no se pisa')
         self.assertEqual(vendido.qty_available, 0, 'Con movimientos no se toca')
         self.assertEqual(aplicar_stock_prueba(self.env), 0, 'Idempotente')

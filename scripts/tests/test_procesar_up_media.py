@@ -4,12 +4,14 @@ Prueban la clasificación (qué archivo va a dónde y por qué), los movimientos
 temporal, los LEEME históricos, el RESUMEN para la dueña y la búsqueda de originales
 (bandeja → fuentes/ → archivados en R2) del importador. No corren el importador real.
 """
+import re
 import shutil
 import subprocess
 import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import importar_catalogo as importador  # noqa: E402
@@ -64,7 +66,7 @@ class TestClasificar(unittest.TestCase):
         self.assertEqual((movs['Catalogo_LTSC-07.xlsm'].estado, movs['Catalogo_LTSC-07.xlsm'].destino),
                          ('cargado', 'fuentes/LTSC-07'))
         self.assertEqual(movs['otro.xlsx'].estado, 'pendiente')
-        self.assertIn('PEDIDOS', movs['otro.xlsx'].motivo)
+        self.assertIn('importar_catalogo.py', movs['otro.xlsx'].motivo)
 
     def test_fotos_cargadas(self):
         movs = self.clasificar(['ZQ063605_1.png', '908K - Cama tapizada King – negro.webp'])
@@ -82,8 +84,12 @@ class TestClasificar(unittest.TestCase):
         self.assertIn('tanto 809Q como 811Q', m.motivo)
         self.assertIn('LTSC-07', m.motivo)
 
-    def test_graficas_black_weekend_se_conservan(self):
-        movs = self.clasificar(['115.png', '153.png', '154.png', '114.png'])
+    def test_los_conocidos_se_conservan(self):
+        # Archivos que no son fotos de producto pero se guardan (en D'CASA, sus gráficas de Black Weekend 115 a 153).
+        conocidos = [(re.compile(r'^(11[5-9]|1[2-4]\d|15[0-3])\.png$', re.I), importador.CARPETA_GRAFICAS_BW,
+                      'gráfica de una campaña de prueba')]
+        with patch.object(proc, 'CONOCIDOS', conocidos):
+            movs = self.clasificar(['115.png', '153.png', '154.png', '114.png'])
         for n in ('115.png', '153.png'):
             self.assertEqual((movs[n].estado, movs[n].destino),
                              ('conservado', f'fuentes/{importador.CARPETA_GRAFICAS_BW}'))
@@ -108,12 +114,44 @@ class TestClasificar(unittest.TestCase):
         self.assertEqual([m.archivo for m in movs], ['a.pdf', 'b.pdf'])
 
 
+class TestBuzonDeBabyCaleb(unittest.TestCase):
+    """El catálogo se escribe a mano: el importador no carga nada y todo lo que llega a la bandeja queda pendiente."""
+
+    def test_el_importador_no_genera_ni_pisa_el_catalogo(self):
+        antes = importador.DESTINO_JSON.read_bytes()
+        resultado = importador.main()
+        self.assertEqual(resultado, {'excel_inicial': None, 'fotos_inicial': {}, 'pedidos': []})
+        self.assertEqual(importador.DESTINO_JSON.read_bytes(), antes, 'catalogo.json escrito a mano no se toca')
+        self.assertEqual(proc.CONOCIDOS, [], 'Las gráficas de Black Weekend de D’CASA no son de este negocio')
+
+    def test_fotos_y_excel_quedan_pendientes_con_su_motivo(self):
+        tmp = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, tmp)
+        bandeja = _bandeja(tmp, ['NAT-M.jpg', '115.png', 'lista.xlsx', 'LEEME.md'])
+        movs = {m.archivo: m for m in proc.clasificar(list(bandeja.iterdir()), importador.main(), FECHA)}
+        self.assertEqual(sorted(movs), ['115.png', 'NAT-M.jpg', 'lista.xlsx'])
+        self.assertEqual({m.estado for m in movs.values()}, {'pendiente'}, 'Nada se mueve ni se descarta')
+        self.assertIn('se ponen a mano en Odoo', movs['NAT-M.jpg'].motivo)
+        self.assertEqual(movs['lista.xlsx'].motivo, proc.MOTIVOS['excel_desconocido'])
+
+    def test_la_bandeja_y_fuentes_existen_con_su_leeme(self):
+        for carpeta in (importador.ORIGEN, importador.FUENTES):
+            self.assertTrue((carpeta / ('LEEME.md')).is_file(), carpeta)
+            self.assertIn('Baby Caleb', (carpeta / 'LEEME.md').read_text(encoding='utf-8'))
+        sueltos = [f.name for f in importador.FUENTES.rglob('*') if f.is_file() and f.name != 'LEEME.md']
+        self.assertEqual(sueltos, [], 'fuentes/ ya no guarda los originales de D’CASA')
+
+
 class TestEjecutar(unittest.TestCase):
 
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, self.tmp)
         self.bandeja = _bandeja(self.tmp, ['ZQ063605_1.png', '115.png', 'selfie.jpg', 'factura.pdf', 'otro.xlsx'])
+        conocidos = patch.object(proc, 'CONOCIDOS', [(re.compile(r'^115\.png$'), importador.CARPETA_GRAFICAS_BW,
+                                                       'gráfica de una campaña de prueba')])
+        conocidos.start()
+        self.addCleanup(conocidos.stop)
         self.movs = proc.clasificar(list(self.bandeja.iterdir()), RESULTADO, FECHA)
 
     def test_mueve_y_deja_lo_pendiente(self):
@@ -172,6 +210,8 @@ class TestEjecutar(unittest.TestCase):
 
 class TestResumen(unittest.TestCase):
 
+    @patch.object(proc, 'CONOCIDOS', [(re.compile(r'^115\.png$'), importador.CARPETA_GRAFICAS_BW,
+                                       'gráfica de una campaña de prueba')])
     def test_resumen_para_la_duena(self):
         tmp = tempfile.mkdtemp()
         self.addCleanup(shutil.rmtree, tmp)

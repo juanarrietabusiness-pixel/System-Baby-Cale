@@ -1,16 +1,16 @@
 """Procesa la bandeja «up media/»: python scripts/procesar_up_media.py [--simular] [--fecha AAAA-MM-DD]
 
-«up media/» es la bandeja de entrada de la dueña en GitHub (sube fotos y Excel desde el navegador,
-sin terminal). Este script la deja limpia y explicada:
+«up media/» es el buzón de entrada del dueño en GitHub (sube fotos y Excel desde el navegador, sin terminal). Este
+script la deja ordenada y explicada:
 
-  1. Corre scripts/importar_catalogo.py (catalogo.json, fotos optimizadas, docs/CATALOGO_REVISAR.md).
+  1. Pregunta a scripts/importar_catalogo.py qué originales cargó al catálogo. Hoy, ninguno: el catálogo de Baby Caleb
+     se escribe a mano (addons/dcasa_catalogo/data/catalogo.json) y las fotos se ponen en Odoo.
   2. Mueve con `git mv` cada archivo suelto de la bandeja según lo que pasó con él:
-       · cargado      → fuentes/<pedido-o-carga>/   (originales ya en el catálogo; no se borran)
-       · conservado   → fuentes/<carpeta>/          (archivos de la dueña que no son fotos de
-                                                     producto pero sirven, p. ej. las gráficas)
-       · descartado   → descartado/<fecha>/         (no es de ningún producto; motivo en LEEME.md)
-       · pendiente    → se queda en «up media/»      (foto dudosa, Excel sin registrar, PDF, carpetas
-                                                     de otros flujos) con su motivo en RESUMEN.md
+       · cargado      → fuentes/<carga>/           (originales ya en el catálogo; no se borran)
+       · conservado   → fuentes/<carpeta>/         (archivos que no son fotos de producto pero sirven; ``CONOCIDOS``)
+       · descartado   → descartado/<fecha>/        (no es de ningún producto; motivo en LEEME.md)
+       · pendiente    → se queda en «up media/»     (foto, Excel sin registrar, PDF, carpetas de otros flujos) con su
+                                                    motivo en RESUMEN.md
   3. Escribe «up media/RESUMEN.md»: qué foto fue a qué producto, qué no se asignó y por qué, qué
      Excel se cargó y qué sigue pendiente. Y un LEEME.md en cada carpeta destino (histórico).
 
@@ -19,7 +19,6 @@ ejecuta .github/workflows/up-media.yml con cada push que toque «up media/**».
 """
 import argparse
 import datetime
-import re
 import shutil
 import subprocess
 import sys
@@ -39,19 +38,17 @@ CARPETA_INICIAL = 'carga-inicial'
 EXTENSIONES_FOTO = ('.png', '.jpg', '.jpeg', '.webp')
 EXTENSIONES_EXCEL = ('.xlsx', '.xlsm')
 
-# Archivos de la dueña que no son fotos de producto pero se conservan: (patrón, carpeta, motivo).
-CONOCIDOS = [
-    (re.compile(r'^(11[5-9]|1[2-4]\d|15[0-3])\.png$', re.I), importador.CARPETA_GRAFICAS_BW,
-     'gráfica de Black Weekend de la dueña (texto incrustado): no es foto de producto; `115.png` es la '
-     'imagen para compartir de /black-weekend'),
-]
+# Archivos que no son fotos de producto pero se conservan: (patrón, carpeta, motivo). Vacío: las gráficas de Black
+# Weekend de D'CASA (115.png … 153.png) no son de este negocio.
+CONOCIDOS = []
 
 MOTIVOS = {
     'carpeta': 'carpeta: la procesa otro flujo (ver su LEEME); este script no la toca',
-    'excel_desconocido': 'Excel que el importador no conoce: hay que registrarlo en `PEDIDOS` de '
-                         '`scripts/importar_catalogo.py` (con sus decisiones) antes de cargarlo',
-    'sin_pedido': 'no es de la carga inicial (el nombre no es un código del Excel) y no hay ningún pedido '
-                  'registrado que la reclame',
+    'excel_desconocido': 'Excel que el importador no conoce: el catálogo se escribe a mano '
+                         '(`addons/dcasa_catalogo/data/catalogo.json`); para cargar un Excel, primero hay que '
+                         'enseñarle a `scripts/importar_catalogo.py` cómo se lee',
+    'sin_pedido': 'foto que ninguna carga reclama: por ahora las fotos de los productos se ponen a mano en Odoo '
+                  '(Inventario › Productos › la foto del producto); aquí queda guardada hasta que alguien la ponga',
     'ajena': 'no es de ningún producto: el nombre no trae un código del Excel ni describe una cama '
              '(tamaño, color o medidas)',
     'otro_tipo': 'tipo de archivo que este flujo no procesa; lo revisa una persona',
@@ -194,8 +191,8 @@ def resumen(movimientos, fecha):
         '`.github/workflows/up-media.yml`; cómo leer esto: `docs/OPERACION.md` › «Cómo subir fotos»).',
         '',
         'Cómo funciona esta carpeta: aquí solo queda lo **pendiente**. Lo que ya se cargó al catálogo está en '
-        '`fuentes/<pedido>/` y lo que no era de ningún producto, en `descartado/<fecha>/` (con el motivo en su '
-        'LEEME.md). Las dudas del catálogo (precios, fotos, medidas) están en `docs/CATALOGO_REVISAR.md`.',
+        '`fuentes/<carga>/` y lo que no era de ningún producto, en `descartado/<fecha>/` (con el motivo en su '
+        'LEEME.md). El catálogo se escribe a mano: cómo y qué preguntas siguen abiertas, en `docs/CATALOGO.md`.',
         '',
         '## Excel cargados',
         '',
@@ -224,10 +221,10 @@ def resumen(movimientos, fecha):
         '',
         '## Cómo subir más',
         '',
-        '- Foto de un producto que ya existe: el nombre es el código (`CODIGO.jpg`, `CODIGO_2.jpg`…).',
-        '- Pedido nuevo: el Excel del proveedor **y** sus fotos con el código al inicio del nombre '
-        '(`908K - Cama tapizada King – negro.jpg`). El programador registra el pedido antes de la carga.',
-        '- Si una foto queda «pendiente», basta renombrarla con el código y volver a subirla.',
+        '- Fotos de los productos: por ahora se ponen a mano en Odoo (Inventario › Productos › la foto del '
+        'producto). Si las subes aquí, con el código en el nombre (`NAT-M.jpg`, `NAT-M_2.jpg`…), quedan guardadas y '
+        'anotadas como pendientes.',
+        '- Un Excel nuevo queda pendiente hasta que el programador registre cómo se lee.',
         '',
     ]
     return '\n'.join(lineas)

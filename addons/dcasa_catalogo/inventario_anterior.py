@@ -1,19 +1,19 @@
-"""Carga del inventario del sistema anterior (capturas del 2026-10-02, 535 productos).
+"""Carga del inventario de un sistema anterior (``data/inventario_anterior.csv``): existencias y precio por código.
 
-El CSV es la transcripción de 7 capturas del sistema anterior (doble lectura; copia en
-``data/inventario_anterior.csv``). Las capturas y la columna de **costo** se retiraron del repositorio
-el 2026-11-06 porque es público: los costos viven solo en Odoo (ya cargados en producción). Sin columna
-de costo, la carga no toca el costo de lo que existe y crea lo nuevo en 0. Reglas de la dueña (LEEME
-del inventario):
+Lo usó D'CASA para traer su inventario anterior; en esta instalación (Baby Caleb) el CSV trae solo el encabezado: las
+existencias iniciales vienen en ``data/catalogo.json``, junto al precio de cada variante. El mecanismo queda para una
+migración futura (``dcasa_migracion`` lo usa con el CSV que se le sube). Reglas:
 
 * La llave es el **código** (``default_code``); sin código, el nombre exacto. Mismo código =
   mismo producto: solo se actualizan existencias, costo y precio si cambiaron; nombre y fotos no
-  se tocan. Código nuevo = producto nuevo (categoría por palabras del nombre, precio SIN ITBMS
-  como el resto del catálogo, publicado en la web solo si tiene foto).
+  se tocan. Código nuevo = producto nuevo (categoría por palabras del nombre, precio de lista con
+  el ITBMS que se suma, como el resto del catálogo; publicado en la web solo si tiene foto).
 * «A la mano» es el stock: entra como ajuste de inventario (``stock.quant._apply_inventory``).
   Negativo → 0 y a la lista para conteo físico.
 * «COMBO … + COLCHÓN» entra como producto sin publicar. «Descuento», «Propinas» y
   «X COLCHÓN … PARA COMBO» no se importan.
+* Sin columna de costo, la carga no toca el costo de lo que existe y crea lo nuevo en 0 (el repositorio es público:
+  los costos viven solo en Odoo).
 * Idempotente: la segunda corrida no crea nada ni deja movimientos de inventario.
 """
 import base64

@@ -1,16 +1,33 @@
-"""Carga del catálogo real (data/catalogo.json) en productos de Odoo.
+"""Carga del catálogo (data/catalogo.json) en productos de Odoo.
 
-El JSON y las fotos los genera ``scripts/importar_catalogo.py`` desde el Excel de la
-empresa: aquí no se escribe ni se calcula ningún precio, solo se copian. Los precios del
-Excel son SIN ITBMS («+ITBMS»): el producto lleva el ITBMS 7 % que se suma al precio.
+El JSON se escribe a mano con la lista que da el dueño (hoy, la de Baby Caleb del 2026-11-18): código, precio,
+existencias y su texto por cada variante. Aquí no se escribe ni se calcula ningún precio, solo se copian; un precio
+que falta no se rellena (el producto no se crea y queda en el registro). El producto lleva el ITBMS de venta de la
+empresa, que se suma al precio de lista (la misma regla que tenía la carga de D'CASA: ``itbms_de_venta``).
+
+Formato de ``data/catalogo.json``::
+
+    {"fuente": "…",                                  # de dónde salen las cifras (va en el motivo del ajuste)
+     "atributos": {"Talla": ["RN", "S", …]},          # cada atributo con sus valores, en el orden de la tienda
+     "productos": [{
+        "clave": "nateen-diapers",                    # su xmlid (producto_nateen_diapers): no cambia nunca
+        "nombre": "…", "categoria": "panales", "orden": 1,
+        "descripcion": "…" | null,                    # la de la web del negocio; null si no hay
+        "atributo": "Talla",                          # solo si tiene variantes
+        "variantes": [{"valor": "RN", "codigo": "NAT-RN", "precio": 50.0, "existencias": 4, "texto": "…"}]
+     }]}
+
+Sin fotos: el dueño las sube a mano en Odoo. Lo que no tiene foto no se publica en la tienda (la misma regla de
+siempre); se publica desde Odoo cuando ya tiene su foto.
 """
-import base64
 import json
 import logging
 import re
 
+from markupsafe import escape
+
 from odoo.addons.dcasa_base import archivar_itbms_incluido, itbms_de_venta
-from odoo.tools.image import base64_to_image
+from odoo.tools import float_compare
 from odoo.tools.misc import file_open
 
 from .reglas import (  # noqa: F401 (API del módulo)
@@ -24,45 +41,38 @@ _logger = logging.getLogger(__name__)
 
 MODULO = 'dcasa_catalogo'
 
-# Categoría del JSON → categoría interna (inventario/contabilidad).
+# Categoría del catálogo → categoría interna (inventario/contabilidad) y de la tienda web. Las claves son las de
+# ``reglas.CATEGORIAS`` (la importación del Excel de un proveedor con Brian usa las mismas).
 CATEGORIA_INTERNA = {
-    'salas': 'dcasa_base.product_category_salas',
-    'recamaras': 'dcasa_base.product_category_recamaras',
-    'colchones': 'dcasa_base.product_category_colchones',
-    'zapateras': 'dcasa_catalogo.product_category_zapateras',
-    'organizacion': 'dcasa_catalogo.product_category_organizacion',
-    'oficina': 'dcasa_catalogo.product_category_oficina',
-    'muebles_tv': 'dcasa_base.product_category_salas',
+    'panales': 'dcasa_catalogo.product_category_panales',
+    'toallitas': 'dcasa_catalogo.product_category_toallitas',
+    'fulares': 'dcasa_catalogo.product_category_fulares',
 }
-# Categoría del JSON → categoría de la tienda web (las demás son website_dcasa.public_category_<clave>).
 CATEGORIA_WEB = {
-    'muebles_tv': 'dcasa_catalogo.public_category_muebles_tv',
+    'panales': 'dcasa_catalogo.public_category_panales',
+    'toallitas': 'dcasa_catalogo.public_category_toallitas',
+    'fulares': 'dcasa_catalogo.public_category_fulares',
 }
 
 
 def leer_catalogo():
+    """``data/catalogo.json`` tal cual: ``{'fuente', 'atributos', 'productos'}``."""
     with file_open(f'{MODULO}/data/catalogo.json', 'rb') as archivo:
         return json.load(archivo)
 
 
-def xmlid_de(codigo):
-    """``1062010734/5/6N`` → ``producto_1062010734_5_6n``."""
-    return 'producto_' + re.sub(r'[^a-z0-9]+', '_', codigo.lower()).strip('_')
-
-
-def foto_b64(nombre):
-    with file_open(f'{MODULO}/static/img/productos/{nombre}', 'rb') as archivo:
-        return base64.b64encode(archivo.read())
+def xmlid_de(clave):
+    """``nateen-diapers`` → ``producto_nateen_diapers`` (también vale un código: ``1062010734/5/6N``)."""
+    return 'producto_' + re.sub(r'[^a-z0-9]+', '_', clave.lower()).strip('_')
 
 
 def pasar_a_itbms_que_se_suma(env):
-    """Bases cargadas antes del 2026-10-01: el catálogo pasa del «ITBMS incluido» al que se suma.
+    """Bases cargadas con el «ITBMS incluido»: los productos de esta carga pasan al ITBMS que se suma.
 
-    Los precios del Excel son sin ITBMS (decisión de la dueña): el ``list_price`` ya es la
-    cifra correcta y no se toca; solo cambia el impuesto. Un producto cuyo impuesto la
-    dueña cambió a mano (ya no es solo el «incluido» de la carga) se deja como está.
-    La tienda pasa a mostrar el precio sin ITBMS («+ ITBMS») y, si el impuesto incluido
-    queda sin uso, se archiva. Devuelve cuántos productos se corrigieron.
+    El ``list_price`` ya es la cifra correcta y no se toca; solo cambia el impuesto. Un producto cuyo impuesto
+    se cambió a mano (ya no es solo el «incluido» de la carga) se deja como está. La tienda pasa a mostrar el
+    precio sin ITBMS («+ ITBMS») y, si el impuesto incluido queda sin uso, se archiva. Devuelve cuántos
+    productos se corrigieron.
     """
     company = env.ref('base.main_company')
     venta = itbms_de_venta(env, company)
@@ -74,11 +84,12 @@ def pasar_a_itbms_que_se_suma(env):
         corregidos.taxes_id = [(6, 0, venta.ids)]
     env['website'].search([]).show_line_subtotals_tax_selection = 'tax_excluded'
     archivar_itbms_incluido(env, company)
-    _logger.info('Catálogo D\'CASA: %s productos pasan al ITBMS que se suma al precio.', len(corregidos))
+    _logger.info('Catálogo: %s productos pasan al ITBMS que se suma al precio.', len(corregidos))
     return len(corregidos)
 
 
 def atributo_tamano(env):
+    """Atributo «Tamaño» (Twin, Full, Queen, King): lo usan los combos cama + colchón y la importación de Brian."""
     Atributo = env['product.attribute']
     atributo = Atributo.search([('name', '=', 'Tamaño')], limit=1) or Atributo.create({
         'name': 'Tamaño', 'create_variant': 'always', 'display_type': 'radio',
@@ -92,54 +103,41 @@ def atributo_tamano(env):
     return atributo, valores
 
 
-def atributo_color(env, nombres):
-    """Atributo «Color» (crea variantes) con los valores pedidos: {nombre: valor}."""
+def atributo_con_valores(env, nombre, valores):
+    """Atributo que crea variantes (p. ej. «Talla») con sus valores en ese orden: ``(atributo, {valor: registro})``.
+
+    El atributo y los valores que ya existen se usan tal cual (sin importar mayúsculas); los que faltan se crean con
+    el orden de la lista (así la tienda muestra RN, S, M… y no el orden en que se crearon).
+    """
     Atributo = env['product.attribute']
-    atributo = Atributo.search([('name', '=', 'Color'), ('create_variant', '=', 'always')], limit=1)
-    atributo = atributo or Atributo.create({'name': 'Color', 'create_variant': 'always', 'display_type': 'radio'})
-    valores = {}
-    for nombre in nombres:
-        valor = atributo.value_ids.filtered(lambda v, n=nombre: v.name.lower() == n.lower())[:1]
-        valores[nombre] = valor or env['product.attribute.value'].create({
-            'name': nombre, 'attribute_id': atributo.id,
+    atributo = Atributo.search([('name', '=', nombre), ('create_variant', '=', 'always')], limit=1)
+    atributo = atributo or Atributo.create({'name': nombre, 'create_variant': 'always', 'display_type': 'radio'})
+    registros = {}
+    for orden, valor in enumerate(valores, start=1):
+        existente = atributo.value_ids.filtered(lambda v, n=valor: v.name.lower() == n.lower())[:1]
+        registros[valor] = existente or env['product.attribute.value'].create({
+            'name': valor, 'attribute_id': atributo.id, 'sequence': orden,
         })
-    return atributo, valores
-
-
-def _poner_fotos_de_color(producto, item, atributo):
-    """Cada variante de color con su foto (la primera) y su galería (las demás), y su referencia."""
-    por_color = {nombre.lower(): fotos for nombre, fotos in item['colores'].items()}
-    for variante in producto.product_variant_ids:
-        color = variante.product_template_attribute_value_ids.filtered(
-            lambda v: v.attribute_id == atributo).product_attribute_value_id.name
-        fotos = por_color.get(color.lower()) or []
-        vals = {'default_code': f"{item['codigo']}-{re.sub(r'[^A-Z0-9]+', '-', color.upper()).strip('-')}"}
-        if fotos:
-            vals['image_variant_1920'] = foto_b64(fotos[0])
-            vals['product_variant_image_ids'] = [
-                (0, 0, {'name': f"{item['nombre']} {color} ({i})", 'image_1920': foto_b64(foto)})
-                for i, foto in enumerate(fotos[1:], start=2)
-            ]
-        variante.write(vals)
+    return atributo, registros
 
 
 def categoria_web(env, clave):
-    return env.ref(CATEGORIA_WEB.get(clave, f'website_dcasa.public_category_{clave}'))
+    return env.ref(CATEGORIA_WEB[clave])
 
 
 def valores_producto_nuevo(env, nombre, precio, impuesto, clave_categoria=None, tamano=None):
-    """Lo que lleva un producto nuevo de D'CASA (lo usan esta carga y la importación de Brian).
+    """Lo que lleva un producto nuevo del catálogo (lo usan esta carga, el inventario anterior y la de Brian).
 
-    Inventariable, existencias sin confirmar (la web deja comprar igual), ``list_price`` SIN
-    ITBMS con el «ITBMS 7%» que se suma, categoría interna y de la tienda según la clave de
-    ``reglas.CATEGORIAS`` y, si es de un solo tamaño, la línea de atributo «Tamaño» (para el
-    filtro de la tienda). La publicación la decide quien llama.
+    Inventariable, ``allow_out_of_stock_order`` (la web deja pedir aunque no haya: se confirma por WhatsApp),
+    ``list_price`` = el precio que llega, con el ITBMS de venta que se suma, categoría interna y de la tienda según la
+    clave de ``reglas.CATEGORIAS`` y, si es de un solo tamaño de cama, la línea de atributo «Tamaño» (para el filtro de
+    la tienda y los combos). La publicación la decide quien llama.
     """
     vals = {
         'name': nombre,
         'type': 'consu',
         'is_storable': True,
-        'allow_out_of_stock_order': True,  # existencias sin confirmar: se confirma por WhatsApp
+        'allow_out_of_stock_order': True,
         'list_price': precio,
         'taxes_id': [(6, 0, impuesto.ids)],
     }
@@ -153,158 +151,156 @@ def valores_producto_nuevo(env, nombre, precio, impuesto, clave_categoria=None, 
     return vals
 
 
-def _ficha_y_fotos(item):
-    """Combo, medidas y fotos de la plantilla: la primera es la principal, el resto va a la galería."""
-    vals = {}
-    if item.get('combo'):
-        vals['dcasa_combo'] = item['combo']
-    if item.get('medidas'):
-        vals['dcasa_medidas'] = item['medidas']
-    fotos = item['fotos']
-    if fotos:
-        vals['image_1920'] = foto_b64(fotos[0])
-        vals['product_template_image_ids'] = [
-            (0, 0, {'name': f"{item['nombre']} ({i})", 'image_1920': foto_b64(foto)})
-            for i, foto in enumerate(fotos[1:], start=2)
-        ]
-    return vals
+def motivo_existencias(catalogo):
+    """El motivo del ajuste de inventario de la carga (la bitácora de bodega lo exige y lo muestra)."""
+    fuente = (catalogo.get('fuente') or '').strip()
+    return f'Existencias iniciales del catálogo ({fuente})' if fuente else 'Existencias iniciales del catálogo'
 
 
-def cargar_catalogo(env):
-    """Crea los productos que falten. Lo que ya existe (por su xmlid) no se toca.
+def _error(item, texto):
+    return ValueError(f"data/catalogo.json, producto «{item.get('clave')}»: {texto}")
 
-    Tampoco se crea un código que ya está en Odoo sin ser de esta carga (p. ej. lo cargó Brian
-    desde el Excel del proveedor): no se duplica ni se pisa; queda en el registro.
-    Los pedidos nuevos (``item['pedido']``) entran igual que la carga inicial; un código con
-    varios colores (``item['colores']``) es un producto con variantes de «Color», cada una con
-    su foto y el mismo precio.
+
+def _validar(item, atributos):
+    """Lo que el JSON tiene que traer para crear el producto sin adivinar nada (si no, la instalación se detiene)."""
+    for campo in ('clave', 'nombre', 'orden', 'variantes'):
+        if not item.get(campo):
+            raise _error(item, f'falta «{campo}»')
+    if item.get('categoria') and item['categoria'] not in CATEGORIA_INTERNA:
+        raise _error(item, f"la categoría «{item['categoria']}» no existe ({', '.join(CATEGORIA_INTERNA)})")
+    variantes = item['variantes']
+    codigos = [v.get('codigo') for v in variantes]
+    if not all(codigos) or len(set(codigos)) != len(codigos):
+        raise _error(item, 'cada variante necesita su código, y no se repiten')
+    nombre_atributo = item.get('atributo')
+    if not nombre_atributo:
+        if len(variantes) != 1:
+            raise _error(item, 'varias variantes necesitan su «atributo»')
+        return
+    if nombre_atributo not in atributos:
+        raise _error(item, f'el atributo «{nombre_atributo}» no está en «atributos»')
+    valores = [v.get('valor') for v in variantes]
+    faltan = [v for v in valores if v not in atributos[nombre_atributo]]
+    if faltan or len(set(valores)) != len(valores):
+        raise _error(item, f'valores de «{nombre_atributo}» fuera de «atributos» o repetidos: {faltan or valores}')
+
+
+def _poner_existencias(env, variante, ubicacion, cantidad, motivo):
+    """Ajuste de inventario a ``cantidad`` (el de Odoo, con su movimiento y el motivo en la bitácora de bodega)."""
+    env['stock.quant'].with_context(inventory_mode=True, inventory_name=motivo).create({
+        'product_id': variante.id,
+        'location_id': ubicacion.id,
+        'inventory_quantity': cantidad,
+    })._apply_inventory()
+
+
+def _crear_producto(env, item, atributos, impuesto, ubicacion, motivo):
+    """El producto de un ``item`` del JSON, con sus variantes (código, precio exacto, presentación) y existencias."""
+    variantes = item['variantes']
+    base = min(v['precio'] for v in variantes)
+    vals = valores_producto_nuevo(env, item['nombre'], base, impuesto, item.get('categoria'))
+    vals.update({
+        'website_sequence': item['orden'] * 10,
+        'is_published': False,  # sin foto todavía: se publica desde Odoo cuando la tenga
+    })
+    if item.get('descripcion'):
+        vals['description_ecommerce'] = f"<p>{escape(item['descripcion'])}</p>"
+    nombre_atributo = item.get('atributo')
+    if nombre_atributo:
+        atributo, valores = atributo_con_valores(env, nombre_atributo, atributos[nombre_atributo])
+        vals['attribute_line_ids'] = [(0, 0, {
+            'attribute_id': atributo.id,
+            'value_ids': [(6, 0, [valores[v['valor']].id for v in variantes])],
+        })]
+    else:
+        vals['default_code'] = variantes[0]['codigo']
+    producto = env['product.template'].create(vals)
+    if nombre_atributo:
+        por_valor = {v['valor'].lower(): v for v in variantes}
+
+        def datos_de(registro):
+            return por_valor[registro.product_attribute_value_id.name.lower()]
+
+        for ptav in producto.attribute_line_ids.product_template_value_ids:
+            ptav.price_extra = datos_de(ptav)['precio'] - base
+        pares = [(v, datos_de(v.product_template_attribute_value_ids)) for v in producto.product_variant_ids]
+    else:
+        pares = [(producto.product_variant_id, variantes[0])]
+    for variante, datos in pares:
+        variante.write({'default_code': datos['codigo'], 'dcasa_presentacion': datos.get('texto') or False})
+        if float_compare(variante.lst_price, datos['precio'], precision_digits=2):
+            raise _error(item, f"{datos['codigo']} quedó a {variante.lst_price}; el archivo dice {datos['precio']}")
+        if datos.get('existencias') and ubicacion:
+            _poner_existencias(env, variante, ubicacion, datos['existencias'], motivo)
+    return producto
+
+
+def cargar_catalogo(env, catalogo=None):
+    """Crea los productos que falten. Lo que ya existe (por su xmlid) no se toca: ni precio, ni nombre, ni existencias.
+
+    Tampoco se crea un producto si alguno de sus códigos ya está en Odoo sin ser de esta carga (lo cargó Brian o una
+    persona): no se duplica ni se pisa; queda en el registro. Un producto sin precio en alguna variante tampoco se crea
+    (no se inventa una cifra). Las existencias del JSON entran como ajuste de inventario solo al crear el producto.
+    Con «atributo», cada variante es un valor (``list_price`` = el precio más bajo y ``price_extra`` = lo que cada una
+    tiene de más: cada variante queda con su precio exacto); sin él, el producto tiene una sola variante.
+    Devuelve cuántos productos se crearon.
     """
     company = env.ref('base.main_company')
     env = env(context=dict(env.context, allowed_company_ids=company.ids, lang='es_419'))
+    catalogo = leer_catalogo() if catalogo is None else catalogo
+    atributos = catalogo.get('atributos') or {}
+    productos = catalogo.get('productos') or []
+    for item in productos:
+        _validar(item, atributos)
     impuesto = itbms_de_venta(env, company)
-    atributo, valores = atributo_tamano(env)
-    Template = env['product.template']
+    ubicacion = env['stock.warehouse'].search([('company_id', '=', company.id)], limit=1).lot_stock_id
+    motivo = motivo_existencias(catalogo)
     Variante = env['product.product'].with_context(active_test=False)
     creados = 0
-    for item in leer_catalogo():
-        xmlid = xmlid_de(item['codigo'])
+    for item in productos:
+        xmlid = xmlid_de(item['clave'])
         if env.ref(f'{MODULO}.{xmlid}', raise_if_not_found=False):
             continue
-        if Variante.search_count([('default_code', '=', item['codigo'])], limit=1):
-            _logger.warning('Catálogo D\'CASA: %s ya existe en Odoo (no es de esta carga): no se crea.',
-                            item['codigo'])
+        codigos = [v['codigo'] for v in item['variantes']]
+        if Variante.search_count([('default_code', 'in', codigos)], limit=1):
+            _logger.warning('Catálogo: %s ya está en Odoo (no es de esta carga): no se crea.', ', '.join(codigos))
             continue
-        precios = item['precios']
-        tamanos = [t for t in TAMANOS if t in precios]
-        unico = None if tamanos else tamano_del_nombre(item['nombre'])
-        base = min(precios.values())
-        fotos = item['fotos']
-        vals = valores_producto_nuevo(env, item.get('nombre_web') or item['nombre'], base, impuesto,
-                                      item['categoria'], unico)
-        vals.update({
-            'website_sequence': item['orden'] * 10,
-            'is_published': bool(fotos),
-        })
-        colores = item.get('colores') or {}
-        if not tamanos and not colores:
-            vals['default_code'] = item['codigo']
-        vals.update(_ficha_y_fotos(item))
-        if tamanos:
-            vals['attribute_line_ids'] = [(0, 0, {
-                'attribute_id': atributo.id,
-                'value_ids': [(6, 0, [valores[t].id for t in tamanos])],
-            })]
-        if colores:
-            color, valores_color = atributo_color(env, list(colores))
-            vals.setdefault('attribute_line_ids', []).append((0, 0, {
-                'attribute_id': color.id,
-                'value_ids': [(6, 0, [valores_color[c].id for c in colores])],
-            }))
-        producto = Template.create(vals)
-        if colores:
-            _poner_fotos_de_color(producto, item, color)
-        if tamanos:
-            for ptav in producto.attribute_line_ids.product_template_value_ids:
-                ptav.price_extra = precios[ptav.name] - base
-            for variante in producto.product_variant_ids:
-                tamano = variante.product_template_attribute_value_ids.name
-                variante.default_code = f"{item['codigo']}-{tamano.upper()}"
+        if any(v.get('precio') is None for v in item['variantes']):
+            _logger.warning('Catálogo: %s sin precio en el archivo: no se crea (el precio no se inventa).',
+                            item['clave'])
+            continue
+        producto = _crear_producto(env, item, atributos, impuesto, ubicacion, motivo)
         env['ir.model.data'].create({
             'module': MODULO, 'name': xmlid, 'model': 'product.template',
             'res_id': producto.id, 'noupdate': True,
         })
         creados += 1
 
-    # La tienda muestra la cifra del Excel (sin ITBMS) con «+ ITBMS»; el carrito suma el impuesto.
+    # La tienda muestra el precio de lista (sin ITBMS) con «+ ITBMS»; el carrito suma el impuesto.
     env['website'].search([]).show_line_subtotals_tax_selection = 'tax_excluded'
-    _logger.info('Catálogo D\'CASA: %s productos nuevos.', creados)
+    _logger.info('Catálogo: %s productos nuevos.', creados)
     return creados
-
-
-def actualizar_catalogo(env):
-    """Lleva los productos ya cargados a las fichas nuevas sin pisar lo que la dueña cambió.
-
-    Solo toca un dato si sigue como lo dejó la carga anterior: el nombre si es el del Excel,
-    las medidas y el combo si están vacíos, la categoría si sigue la original.
-    """
-    atributo, valores = atributo_tamano(env)
-    salas = env.ref('website_dcasa.public_category_salas')
-    for item in leer_catalogo():
-        producto = env.ref(f'{MODULO}.{xmlid_de(item["codigo"])}', raise_if_not_found=False)
-        if not producto:
-            continue
-        cambios = {}
-        # Desde F5 los nombres se guardan en MAYÚSCULAS: «sigue como lo dejó la carga» se mira sin mayúsculas.
-        if mismo_nombre(producto.name, item['nombre']) and item.get('nombre_web'):
-            cambios['name'] = item['nombre_web']
-        if item.get('medidas') and not producto.dcasa_medidas:
-            cambios['dcasa_medidas'] = item['medidas']
-        if item.get('combo') and not producto.dcasa_combo:
-            cambios['dcasa_combo'] = item['combo']
-            if str(producto.description_ecommerce or '') == f'<p>{item["combo"]}</p>':
-                cambios['description_ecommerce'] = False
-        if item['categoria'] in CATEGORIA_WEB and producto.public_categ_ids == salas:
-            cambios['public_categ_ids'] = [(6, 0, categoria_web(env, item['categoria']).ids)]
-        unico = tamano_del_nombre(item['nombre'])
-        if unico and len(item['precios']) == 1 and not producto.attribute_line_ids:
-            cambios['attribute_line_ids'] = [(0, 0, {
-                'attribute_id': atributo.id, 'value_ids': [(6, 0, valores[unico].ids)]})]
-        if cambios:
-            producto.write(cambios)
 
 
 # --- Black Weekend ------------------------------------------------------------------------------
 
-# Selección de la dueña (2026-10-02) entre sus 39 gráficas de «up media/115.png … 153.png»:
-# (código del producto o de la variante destacada, gráfica de la que salió). El orden es el de la
-# lista. Los precios NO están aquí: la web muestra los del catálogo (website_dcasa/models/black_weekend.py).
-BLACK_WEEKEND = [
-    ('888K', '115.png'),
-    ('908K-NEGRO', '118.png'),
-    ('803K', '122.png'),
-    ('809Q', '123.png'),
-    ('822F', '126.png'),
-    ('825K', '129.png'),
-    ('6220Q', '133.png'),
-    ('6877F', '132.png'),
-    ('Y0200100', '134.png'),
-    ('Y0300300-LTSC07', '141.png'),  # el producto aparte del pedido ($129.99), no el Y0300300 anterior
-    ('HK-BF-022-N-K-1-W', '153.png'),
-    ('N-F10018-Q-BK', '151.png'),
-]
+# Productos de la campaña: (código del producto o de la variante destacada, nota de dónde salió la selección), en el
+# orden de la lista. Los precios NO están aquí: la web muestra los del catálogo (website_dcasa/models/black_weekend.py).
+# Vacía: la selección de D'CASA no es de este negocio; la de Baby Caleb la decide su dueño.
+BLACK_WEEKEND = []
 
 
-def marcar_black_weekend(env):
+def marcar_black_weekend(env, seleccion=None):
     """Marca los productos de Black Weekend por su código (``default_code`` de la variante).
 
-    Idempotente: deja la marca, el orden (10, 20, …) y, si el código es de una variante de color
-    (908K-NEGRO), esa variante como la destacada. No quita la marca a otros productos (la dueña
-    puede sumar más desde Odoo). Un código que no está se anota en el registro y se sigue.
-    Devuelve cuántos productos quedaron marcados.
+    Idempotente: deja la marca, el orden (10, 20, …) y, si el código es de una variante de un producto con varias,
+    esa variante como la destacada. No quita la marca a otros productos (se pueden sumar más desde Odoo). Un código
+    que no está se anota en el registro y se sigue. Devuelve cuántos productos quedaron marcados.
     """
+    seleccion = BLACK_WEEKEND if seleccion is None else seleccion
     Variante = env['product.product'].with_context(active_test=False)
     marcados = 0
-    for orden, (codigo, _grafica) in enumerate(BLACK_WEEKEND, start=1):
+    for orden, (codigo, _nota) in enumerate(seleccion, start=1):
         variante = Variante.search([('default_code', '=', codigo)], limit=1)
         if not variante:
             _logger.warning('Black Weekend: el código %s no está en el catálogo: no se marca.', codigo)
@@ -324,74 +320,6 @@ def marcar_black_weekend(env):
 # --- Existencias de prueba (solo staging) ------------------------------------------------------
 
 PARAM_STOCK_PRUEBA = 'dcasa_catalogo.stock_prueba'
-
-
-# Nombres del Excel que la dueña corrigió después de cargarlos: (código, nombre anterior, tamaño
-# anterior, nombre nuevo, tamaño nuevo). El código y las medidas no cambian.
-CORRECCIONES_DE_NOMBRE = [
-    # 2026-10-02: es la Base Queen de su gráfica 153.png; el Excel LTSC-07 decía «King – blanco».
-    ('HK-BF-022-N-K-1-W', 'Cama tapizada King – blanco', 'King', 'Cama tapizada Queen – blanco', 'Queen'),
-]
-
-
-def mismo_nombre(uno, otro):
-    """¿El mismo nombre sin importar mayúsculas ni espacios repetidos? (Los nombres se guardan en MAYÚSCULAS.)"""
-    return ' '.join((uno or '').split()).upper() == ' '.join((otro or '').split()).upper()
-
-
-def corregir_nombres(env):
-    """Aplica ``CORRECCIONES_DE_NOMBRE`` a los productos ya cargados (idempotente).
-
-    El nombre solo se cambia si sigue como lo dejó la carga (si la dueña lo editó, se respeta). El
-    tamaño de la línea de atributo se cambia si sigue con el anterior: Odoo crea la variante nueva
-    y archiva la vieja, así que el código pasa a la nueva (las ventas viejas siguen apuntando a la
-    archivada).
-    """
-    _atributo, valores = atributo_tamano(env)
-    corregidos = 0
-    for codigo, nombre_viejo, tamano_viejo, nombre_nuevo, tamano_nuevo in CORRECCIONES_DE_NOMBRE:
-        producto = env.ref(f'{MODULO}.{xmlid_de(codigo)}', raise_if_not_found=False)
-        if not producto:
-            continue
-        if mismo_nombre(producto.name, nombre_viejo):
-            producto.name = nombre_nuevo
-            corregidos += 1
-        linea = producto.attribute_line_ids.filtered(
-            lambda lin, v=valores[tamano_viejo]: lin.attribute_id.name == 'Tamaño' and lin.value_ids == v)
-        if linea:
-            vieja = producto.product_variant_ids[:1]
-            linea.value_ids = [(6, 0, valores[tamano_nuevo].ids)]
-            nueva = producto.product_variant_ids[:1]
-            if vieja != nueva and vieja.default_code == codigo:
-                vieja.default_code = False
-                nueva.default_code = codigo
-    return corregidos
-
-
-# Lado máximo (px) de una foto sacada del Excel del proveedor: son miniaturas (888K: 243 × 324).
-LADO_FOTO_DEL_EXCEL = 400
-
-
-def cambiar_fotos_del_excel(env):
-    """Cambia la foto principal sacada del Excel por la foto real cuando la dueña la sube (idempotente).
-
-    Solo toca productos cuya foto actual es una miniatura del Excel (lado ≤ ``LADO_FOTO_DEL_EXCEL``)
-    y cuya ficha ya trae una foto que no es del Excel: una foto que la dueña subió a mano en Odoo
-    (más grande) no se pisa.
-    """
-    cambiados = 0
-    for item in leer_catalogo():
-        fotos = item.get('fotos') or []
-        if not fotos or fotos[0].endswith('_excel.jpg'):
-            continue
-        producto = env.ref(f'{MODULO}.{xmlid_de(item["codigo"])}', raise_if_not_found=False)
-        if not producto or not producto.image_1920:
-            continue
-        if max(base64_to_image(producto.image_1920).size) > LADO_FOTO_DEL_EXCEL:
-            continue
-        producto.image_1920 = foto_b64(fotos[0])
-        cambiados += 1
-    return cambiados
 
 
 def stock_de_prueba(env):

@@ -769,15 +769,15 @@ class TestPreciosAprobados(CombosCommon):
         self.assertFalse(otro_precio.dcasa_precio_combo)
         self.assertEqual(ya_tenia.dcasa_precio_combo, 150.0, 'Lo que puso Gerencia no se pisa')
 
-    def test_con_el_catalogo_real_quedan_los_cuatro_descuentos(self):
-        Variante = self.env['product.product'].with_context(active_test=False)
-        codigos = list(combo_armable.PRECIOS_COMBO_APROBADOS)
-        if Variante.search_count([('default_code', 'in', codigos)]) != len(codigos):
-            self.skipTest('Sin el catálogo del sistema anterior en esta base.')
-        resultado = Variante._dcasa_cargar_precios_combo_aprobados()
-        self.assertTrue(set(resultado.values()) <= {'cargado', 'ya_tenia'}, resultado)
-        ahorros = {codigo: Variante.search([('default_code', '=', codigo)]).dcasa_combo_ahorro for codigo in codigos}
-        self.assertEqual(ahorros, {'IM-2002': 9.99, 'IM-2001': 6.99, 'DSRSOQ': 25.99, 'CSOK-10': 33.99})
+    def test_sin_cifras_de_dcasa_no_se_carga_ningun_precio_en_combo(self):
+        """Los precios en combo aprobados por la dueña de D'CASA no son de este negocio: la lista viene vacía y la carga
+        no pone ninguno (los de Baby Caleb, si los hay, los pone Gerencia o los decide su dueño)."""
+        self.assertEqual(combo_armable.PRECIOS_COMBO_APROBADOS, {})
+        self.assertEqual(self.env['product.product']._dcasa_cargar_precios_combo_aprobados(), {})
+        del_catalogo = self.env['ir.model.data'].search([
+            ('module', '=', 'dcasa_catalogo'), ('model', '=', 'product.template')]).mapped('res_id')
+        self.assertFalse(self.env['product.product'].with_context(active_test=False).search_count(
+            [('product_tmpl_id', 'in', del_catalogo), ('dcasa_precio_combo', '!=', False)]))
 
 
 @tagged('post_install', '-at_install')

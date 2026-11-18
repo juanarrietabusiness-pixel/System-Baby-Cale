@@ -1,174 +1,98 @@
-import base64
-import io
-import json
 import re
 
-from PIL import Image
-
-from odoo.addons.dcasa_catalogo.catalogo import (
-    BLACK_WEEKEND,
-    atributo_tamano,
-    cambiar_fotos_del_excel,
-    corregir_nombres,
-    leer_catalogo,
-    marcar_black_weekend,
-)
+from odoo.addons.dcasa_catalogo.catalogo import BLACK_WEEKEND, atributo_con_valores, marcar_black_weekend
 from odoo.tests import HttpCase, TransactionCase, tagged
-from odoo.tools.image import base64_to_image
-from odoo.tools.misc import file_open
+
+# La selección de prueba: (código, de dónde salió). La de verdad (catalogo.BLACK_WEEKEND) la decide el dueño.
+SELECCION = [('ZZBW-SIMPLE', 'prueba'), ('ZZBW-MED', 'prueba: la variante destacada'), ('ZZBW-NO-ESTA', 'prueba')]
+
+
+class _ProductosDePrueba:
+
+    @classmethod
+    def crear_productos(cls, env):
+        """Un producto simple y uno con tallas (la variante «MED» es la destacada), publicados y con su precio."""
+        atributo, valores = atributo_con_valores(env, 'Talla de Black Weekend', ['CH', 'MED'])
+        Plantilla = env['product.template']
+        simple = Plantilla.create({'name': 'Producto BW simple', 'default_code': 'ZZBW-SIMPLE', 'list_price': 41.5,
+                                   'is_published': True, 'type': 'consu', 'is_storable': True})
+        tallas = Plantilla.create({
+            'name': 'Producto BW con tallas', 'list_price': 30.0, 'is_published': True, 'type': 'consu',
+            'is_storable': True, 'attribute_line_ids': [(0, 0, {
+                'attribute_id': atributo.id, 'value_ids': [(6, 0, [valores['CH'].id, valores['MED'].id])]})],
+        })
+        for variante in tallas.product_variant_ids:
+            variante.default_code = f"ZZBW-{variante.product_template_attribute_value_ids.name}"
+        return simple, tallas
 
 
 @tagged('post_install', '-at_install')
-class TestBlackWeekendCatalogo(TransactionCase):
-    """La carga marca los 12 productos de Black Weekend por su código, sin tocar precios."""
+class TestBlackWeekendCatalogo(_ProductosDePrueba, TransactionCase):
+    """La carga marca por su código los productos de la campaña, en su orden y sin tocar precios."""
 
-    def _producto(self, codigo):
-        variante = self.env['product.product'].with_context(active_test=False).search(
-            [('default_code', '=', codigo)], limit=1)
-        self.assertTrue(variante, f'{codigo} debe estar en el catálogo')
-        return variante
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.simple, cls.tallas = cls.crear_productos(cls.env)
 
-    def test_doce_codigos_marcados_en_su_orden(self):
-        self.assertEqual(len(BLACK_WEEKEND), 12)
-        marcar_black_weekend(self.env)
-        for orden, (codigo, _grafica) in enumerate(BLACK_WEEKEND, start=1):
-            producto = self._producto(codigo).product_tmpl_id
-            self.assertTrue(producto.dcasa_black_weekend, codigo)
-            self.assertEqual(producto.dcasa_bw_orden, orden * 10, codigo)
+    def variante(self, codigo):
+        return self.env['product.product'].with_context(active_test=False).search([('default_code', '=', codigo)])
 
-    def test_908k_con_la_variante_negra_destacada(self):
-        marcar_black_weekend(self.env)
-        negra = self._producto('908K-NEGRO')
-        self.assertEqual(negra.product_tmpl_id.dcasa_bw_variante_id, negra)
-        self.assertFalse(self._producto('888K').product_tmpl_id.dcasa_bw_variante_id,
-                         'Sin colores no hace falta variante destacada')
+    def test_la_seleccion_de_dcasa_ya_no_esta(self):
+        self.assertEqual(BLACK_WEEKEND, [])
+        self.assertEqual(marcar_black_weekend(self.env), 0)
+        self.assertFalse(self.env['product.template'].search_count([('dcasa_black_weekend', '=', True)]))
 
-    def test_y0300300_es_el_del_pedido_no_el_anterior(self):
-        marcar_black_weekend(self.env)
-        self.assertTrue(self._producto('Y0300300-LTSC07').product_tmpl_id.dcasa_black_weekend)
-        self.assertFalse(self._producto('Y0300300').product_tmpl_id.dcasa_black_weekend,
-                         'El Y0300300 de $159.99 no es el de la promoción')
+    def test_marcados_en_su_orden_y_el_que_falta_se_anota(self):
+        with self.assertLogs('odoo.addons.dcasa_catalogo.catalogo', 'WARNING') as registro:
+            self.assertEqual(marcar_black_weekend(self.env, SELECCION), 2)
+        self.assertIn('ZZBW-NO-ESTA no está en el catálogo', '\n'.join(registro.output))
+        self.assertEqual((self.simple.dcasa_black_weekend, self.simple.dcasa_bw_orden), (True, 10))
+        self.assertEqual((self.tallas.dcasa_black_weekend, self.tallas.dcasa_bw_orden), (True, 20))
 
-    def test_hk_bf_022_k_es_queen(self):
-        """La dueña (2026-10-02): la «Base Queen» de 153.png es Queen aunque el Excel dijera King."""
-        variante = self._producto('HK-BF-022-N-K-1-W')
-        producto = variante.product_tmpl_id
-        self.assertEqual(producto.name, 'CAMA TAPIZADA QUEEN – BLANCO')
-        self.assertEqual(variante.product_template_attribute_value_ids.name, 'Queen')
-        self.assertTrue(variante.active)
-
-    def test_corregir_nombres_lleva_lo_cargado_como_king_a_queen(self):
-        _atributo, valores = atributo_tamano(self.env)
-        producto = self._producto('HK-BF-022-N-K-1-W').product_tmpl_id
-        # Como lo dejó la carga anterior (19.0.1.3.0): King.
-        producto.name = 'Cama tapizada King – blanco'
-        linea = producto.attribute_line_ids.filtered(lambda lin: lin.attribute_id.name == 'Tamaño')
-        linea.value_ids = [(6, 0, valores['King'].ids)]
-        producto.product_variant_ids.default_code = 'HK-BF-022-N-K-1-W'
-        precio = producto.list_price
-
-        self.assertEqual(corregir_nombres(self.env), 1)
-        self.assertEqual(corregir_nombres(self.env), 0, 'Idempotente')
-        self.assertEqual(producto.name, 'CAMA TAPIZADA QUEEN – BLANCO')
-        activa = producto.product_variant_ids
-        self.assertEqual(len(activa), 1)
-        self.assertEqual(activa.product_template_attribute_value_ids.name, 'Queen')
-        self.assertEqual(activa.default_code, 'HK-BF-022-N-K-1-W')
-        self.assertEqual(producto.list_price, precio)
-
-    def test_corregir_nombres_respeta_lo_que_edito_la_duena(self):
-        producto = self._producto('HK-BF-022-N-K-1-W').product_tmpl_id
-        producto.name = 'Base Queen blanca'
-        corregir_nombres(self.env)
-        self.assertEqual(producto.name, 'BASE QUEEN BLANCA')
-
-    def test_888k_con_la_foto_real_y_no_la_miniatura_del_excel(self):
-        producto = self._producto('888K').product_tmpl_id
-        self.assertGreater(max(base64_to_image(producto.image_1920).size), 400)
-        # Como lo dejó la carga anterior: la miniatura del Excel (243 × 324).
-        miniatura = io.BytesIO()
-        Image.new('RGB', (243, 324), 'white').save(miniatura, 'JPEG')
-        producto.image_1920 = base64.b64encode(miniatura.getvalue())
-        self.assertEqual(cambiar_fotos_del_excel(self.env), 1)
-        self.assertEqual(cambiar_fotos_del_excel(self.env), 0, 'Idempotente')
-        self.assertGreater(max(base64_to_image(producto.image_1920).size), 400)
-
-    def test_cambiar_fotos_no_pisa_una_foto_subida_a_mano(self):
-        producto = self._producto('888K').product_tmpl_id
-        grande = io.BytesIO()
-        Image.new('RGB', (900, 900), 'blue').save(grande, 'JPEG')
-        producto.image_1920 = base64.b64encode(grande.getvalue())
-        antes = producto.image_1920
-        cambiar_fotos_del_excel(self.env)
-        self.assertEqual(producto.image_1920, antes)
+    def test_la_variante_destacada_solo_si_tiene_varias(self):
+        with self.assertLogs('odoo.addons.dcasa_catalogo.catalogo', 'WARNING'):
+            marcar_black_weekend(self.env, SELECCION)
+        self.assertEqual(self.tallas.dcasa_bw_variante_id, self.variante('ZZBW-MED'))
+        self.assertFalse(self.simple.dcasa_bw_variante_id, 'Sin variantes no hace falta destacada')
 
     def test_idempotente_y_sin_tocar_precios(self):
-        marcar_black_weekend(self.env)
-        Plantilla = self.env['product.template']
-        marcados = Plantilla.search([('dcasa_black_weekend', '=', True)])
+        seleccion = SELECCION[:2]
+        marcar_black_weekend(self.env, seleccion)
+        marcados = self.simple | self.tallas
+        self.env.flush_all()
         antes = {p.id: (p.list_price, p.write_date, p.dcasa_bw_orden) for p in marcados}
-        self.assertEqual(marcar_black_weekend(self.env), 12)
-        self.assertEqual(Plantilla.search([('dcasa_black_weekend', '=', True)]), marcados)
+        self.assertEqual(marcar_black_weekend(self.env, seleccion), 2)
+        self.assertEqual(self.env['product.template'].search([('dcasa_black_weekend', '=', True)]), marcados)
         self.assertEqual({p.id: (p.list_price, p.write_date, p.dcasa_bw_orden) for p in marcados}, antes,
                          'La segunda vez no escribe nada')
-
-    def test_precio_del_catalogo_igual_a_la_grafica(self):
-        """Las gráficas de la dueña traen el mismo precio que el Excel LTSC-07 (cama sola y combo)."""
-        graficas = {  # cifras leídas de up media/<gráfica> (revisión del 2026-10-02)
-            '888K': (259.99, 469.99), '908K-NEGRO': (229.99, 439.99), '803K': (179.99, 389.99),
-            '809Q': (139.99, 298.99), '822F': (99.99, 186.99), '825K': (159.99, 369.99),
-            '6220Q': (129.99, 288.99), '6877F': (99.99, 186.99), 'Y0200100': (129.99, 288.99),
-            'Y0300300-LTSC07': (129.99, 288.99), 'HK-BF-022-N-K-1-W': (159.99, 369.99),
-            'N-F10018-Q-BK': (69.99, 228.99),
-        }
-        catalogo = {i['codigo']: i for i in leer_catalogo()}
-        for codigo, (cama, combo) in graficas.items():
-            item = catalogo[codigo.removesuffix('-NEGRO')]
-            self.assertEqual(min(item['precios'].values()), cama, codigo)
-            self.assertTrue(item['combo'].endswith(f'${combo:.2f}'), codigo)
-            self.assertEqual(self._producto(codigo).lst_price, cama, codigo)
-
-    def test_las_graficas_no_van_en_la_imagen(self):
-        """Las gráficas originales se guardan en fuentes/graficas-black-weekend/: .dockerignore la excluye."""
-        with file_open('dcasa_catalogo/data/catalogo.json', 'rb') as archivo:
-            fotos = {f for i in json.load(archivo) for f in i['fotos']}
-        for _codigo, grafica in BLACK_WEEKEND:
-            self.assertNotIn(grafica, fotos)
+        self.assertEqual((self.simple.list_price, self.tallas.list_price), (41.5, 30.0))
 
 
 @tagged('post_install', '-at_install')
-class TestBlackWeekendWeb(HttpCase):
-    """/black-weekend con los productos reales: precio y combo del catálogo, código en WhatsApp."""
+class TestBlackWeekendWeb(_ProductosDePrueba, HttpCase):
+    """/black-weekend con lo que marcó la carga: el precio del catálogo y el código público en WhatsApp."""
 
     def setUp(self):
         super().setUp()
-        marcar_black_weekend(self.env)
+        self.simple, self.tallas = self.crear_productos(self.env)
+        marcar_black_weekend(self.env, SELECCION[:2])
         self.env['ir.config_parameter'].sudo().set_param('dcasa_black_weekend.activo', '1')
 
-    def test_pagina_con_precio_y_combo_del_catalogo(self):
+    def test_pagina_con_el_precio_del_catalogo(self):
         html = self.url_open('/black-weekend').text
-        self.assertRegex(html, r'259[.,]99')
-        self.assertIn('Combo con colchón First Class', html)
-        self.assertRegex(html, r'469[.,]99')
-        def codigo(referencia):
-            return self.env['product.product'].with_context(active_test=False).search(
-                [('default_code', '=', referencia)], limit=1).dcasa_codigo_publico
-
-        # La tarjeta muestra el código público del producto (el que ve el cliente), no la referencia del proveedor.
-        self.assertIn(f'Código {codigo("908K-NEGRO")}<', html, 'La 908K sale en negro, con su código público')
-        self.assertIn(f'c%C3%B3digo%20{codigo("888K")}', html)
-        self.assertIn(f'Código {codigo("Y0300300-LTSC07")}<', html)
-        self.assertNotIn(f'Código {codigo("Y0300300")}<', html, 'No el Y0300300 anterior de $159.99')
-        for referencia in ('908K-NEGRO', '888K', 'Y0300300-LTSC07'):
-            self.assertNotIn(f'c%C3%B3digo%20{referencia}', html, 'la referencia del proveedor no sale')
-            self.assertNotIn(f'Código {referencia}<', html, 'la referencia del proveedor no sale')
+        self.assertRegex(html, r'41[.,]50')
+        self.assertIn(f'Código {self.simple.dcasa_codigo_publico}<', html, 'La tarjeta lleva el código público')
+        self.assertIn(f'c%C3%B3digo%20{self.tallas.dcasa_codigo_publico}', html)
+        for referencia in ('ZZBW-SIMPLE', 'ZZBW-MED'):
+            self.assertNotIn(f'c%C3%B3digo%20{referencia}', html, 'la referencia interna no sale')
+            self.assertNotIn(f'Código {referencia}<', html, 'la referencia interna no sale')
         visible = re.sub(r'<script.*?</script>|<style.*?</style>', '', html, flags=re.S).lower()
         for palabra in ('tafi', 'tiempo limitado', 'remate', 'cuotas'):
             self.assertNotIn(palabra, visible)
 
     def test_cambio_de_precio_se_ve(self):
-        cama = self.env['product.product'].search([('default_code', '=', '888K')]).product_tmpl_id
-        cama.list_price = 249.5
+        self.simple.list_price = 39.25
         html = self.url_open('/black-weekend').text
-        self.assertRegex(html, r'249[.,]50')
-        self.assertNotRegex(html, r'259[.,]99')
+        self.assertRegex(html, r'39[.,]25')
+        self.assertNotRegex(html, r'41[.,]50')

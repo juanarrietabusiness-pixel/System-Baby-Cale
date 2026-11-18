@@ -1,18 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Categorías internas que trae el catálogo real (las demás están en dcasa_base). -->
+    <!-- Categorías internas del catálogo de Baby Caleb (inventario y contabilidad). Las de muebles de D'CASA que
+         trae dcasa_base siguen existiendo, vacías: las usan la portada y las pruebas de la web (docs/CATALOGO.md). -->
     <data noupdate="1">
-        <record id="product_category_zapateras" model="product.category">
-            <field name="name">Zapateras</field>
-            <field name="parent_id" ref="dcasa_base.product_category_muebles"/>
+        <record id="product_category_panales" model="product.category">
+            <field name="name">Pañales</field>
         </record>
-        <record id="product_category_organizacion" model="product.category">
-            <field name="name">Estantes y organización</field>
-            <field name="parent_id" ref="dcasa_base.product_category_muebles"/>
+        <record id="product_category_toallitas" model="product.category">
+            <field name="name">Toallitas húmedas</field>
         </record>
-        <record id="product_category_oficina" model="product.category">
-            <field name="name">Oficina</field>
-            <field name="parent_id" ref="dcasa_base.product_category_muebles"/>
+        <record id="product_category_fulares" model="product.category">
+            <field name="name">Fulares</field>
         </record>
     </data>
 </odoo>

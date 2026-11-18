@@ -313,21 +313,22 @@ Se reescribe con cada subida (lo corre `.github/workflows/up-media.yml`). Tiene 
   asignó (por código, por descripción, o decisión revisada a mano) y dónde quedó el original.
 - **Lo que no se asignó y por qué**: lo **pendiente** sigue en `up media/` con su motivo (foto dudosa
   entre dos productos, Excel que el programador aún no registró, PDF u otro tipo de archivo);
-  lo **conservado** son archivos de la dueña que no son fotos de producto pero sirven (las gráficas de
-  Black Weekend → `fuentes/graficas-black-weekend/`); lo **descartado** fue a `descartado/<fecha>/`
+  lo **conservado** son archivos que no son fotos de producto pero sirven (`CONOCIDOS` en el procesador; hoy
+  ninguno); lo **descartado** fue a `descartado/<fecha>/`
   con el motivo en su `LEEME.md`. **Nada se borra**: si algo era de un producto, se vuelve a subir
   con el código en el nombre.
 - **Cómo subir más**: las tres reglas de arriba.
 
-Las dudas del catálogo mismo (precios repetidos, medidas, fotos del Excel) están en
-`docs/CATALOGO_REVISAR.md`. Si la ejecución falla (Actions → *up media* en rojo), la bandeja queda
+**Baby Caleb (desde el 2026-11-18):** el catálogo se escribe a mano (`addons/dcasa_catalogo/data/catalogo.json`) y
+las fotos se ponen en Odoo, así que el buzón no carga nada: todo lo que se sube queda pendiente y anotado
+(`docs/CATALOGO.md` › «Actualizar»). Si la ejecución falla (Actions → *up media* en rojo), la bandeja queda
 tal cual se subió, no se publica nada y hay que avisar a quien mantiene el sistema: el RESUMEN que se
 habría escrito queda en el resumen de la ejecución.
 
 ### Qué pasa por detrás (para quien mantiene el sistema)
 
-- `scripts/procesar_up_media.py` corre `scripts/importar_catalogo.py` (regenera `catalogo.json`, las
-  fotos optimizadas y `docs/CATALOGO_REVISAR.md`), mueve con `git mv` lo procesado y escribe el
+- `scripts/procesar_up_media.py` pregunta a `scripts/importar_catalogo.py` qué cargó (hoy nada: no hay Excel
+  registrado y no toca `catalogo.json`), mueve con `git mv` lo procesado y escribe el
   RESUMEN y un `LEEME.md` histórico por carpeta destino. `--simular` imprime el RESUMEN sin mover nada.
 - El workflow prueba el resultado (tests del procesador: `python -m unittest discover -s scripts/tests`;
   `scripts/test.sh dcasa_catalogo` instala el módulo con el catálogo nuevo) y **solo si pasa** hace el
@@ -339,8 +340,7 @@ habría escrito queda en el resumen de la ejecución.
   secreto `UP_MEDIA_TOKEN`.
 - Una subida detrás de otra: las ejecuciones van en fila (`concurrency: up-media`) y cada una parte de
   la punta de `main`, así no se pisan.
-- `up media/inventario-anterior/` es otra carga (capturas del sistema anterior) y el procesador no la
-  toca: las subcarpetas de la bandeja quedan «pendientes, de otro flujo».
+- Las subcarpetas de la bandeja son de otros flujos y el procesador no las toca: quedan «pendientes, de otro flujo».
 
 ### Originales pesados: a R2 con `scripts/archivar_fuentes.sh`
 

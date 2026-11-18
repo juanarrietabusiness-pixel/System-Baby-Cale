@@ -1,8 +1,10 @@
-"""Reglas del catálogo de D'CASA sin dependencias de Odoo.
+"""Reglas del catálogo sin dependencias de Odoo.
 
-Las comparten la carga del catálogo (``catalogo.py``), el script que lee el Excel de la
-empresa (``scripts/importar_catalogo.py``) y la importación de Excel de proveedores de Brian
-(``dcasa_brian``): la misma categoría y el mismo tamaño salen del mismo nombre.
+Las comparten la carga del catálogo (``catalogo.py``), el inventario de un sistema anterior (``dcasa_migracion``) y la
+importación de Excel de proveedores de Brian (``dcasa_brian``): la misma categoría y el mismo tamaño salen del mismo
+nombre. Las de fotos de un pedido (``asignar_foto`` y compañía) las usaba el lector del Excel de D'CASA. Los tamaños
+de cama (``TAMANOS``) y lo de colores, medidas y combos cama + colchón son las reglas de esas funciones (los combos se
+arman en la venta): no son datos de un catálogo.
 """
 import re
 import unicodedata
@@ -10,22 +12,17 @@ from decimal import Decimal
 
 TAMANOS = ['Twin', 'Full', 'Queen', 'King']
 
-# Categoría de la tienda según el nombre del producto (primera regla que coincide).
+# Categoría del catálogo según el nombre del producto (primera regla que coincide): las claves de
+# ``catalogo.CATEGORIA_INTERNA`` (Baby Caleb: pañales, toallitas húmedas y fulares).
 CATEGORIAS = [
-    (r'colch', 'colchones'),
-    (r'mueble (de|para) tv|mueble tv', 'muebles_tv'),
-    (r'sof[aá]', 'salas'),
-    (r'zapatera', 'zapateras'),
-    (r'escritorio|mesa ajustable', 'oficina'),
-    (r'estante|librero|organizador|mueble de cocina|mueble type|biblioteca|despensa|mueble para jardin',
-     'organizacion'),
-    (r'cama|camarote|mesa de noche|peinadora|tocador|gavetero|c[oó]moda|box spring|box tapizado|cabecero|espejo'
-     r'|almohada', 'recamaras'),
+    (r'pa[ñn]al', 'panales'),
+    (r'toallit|wipes', 'toallitas'),
+    (r'fular|portabeb', 'fulares'),
 ]
 
 
 def categoria_de_nombre(nombre, defecto=None):
-    """«Cama tapizada King» → 'recamaras'. Sin coincidencia → ``defecto``."""
+    """«Pañal Nateen Talla M» → 'panales'. Sin coincidencia → ``defecto``."""
     for patron, clave in CATEGORIAS:
         if re.search(patron, nombre or '', re.I):
             return clave
