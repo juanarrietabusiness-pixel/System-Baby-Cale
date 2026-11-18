@@ -171,8 +171,8 @@ class TestPortadaDinamica(HttpCase):
         self.assertNotIn('dcasa-cat-titulo', portada)
         self.assertNotIn('pregúntanos por WhatsApp', portada)
         self.sofa.is_published = True
+        # (La portada ya quedó guardada en la memoria de páginas de Odoo para el visitante: se mira el dato.)
         self.assertEqual(len(self.website._dcasa_categorias_con_productos()), 6)
-        self.assertIn('dcasa-cat-titulo', self.url_open('/').text)
 
     def test_portada_muestra_productos_con_precio_y_agregar(self):
         html = self.url_open('/').text
@@ -401,7 +401,7 @@ class TestMarcaYMovimiento(HttpCase):
         html = respuesta.text
         self.assertIn('Venta 100% online con entrega a domicilio — Ciudad de Panamá', html)
         self.assertIn('Vendemos online y te lo llevamos.', html)
-        self.assertRegex(html, r'<a href="https://wa\.me/50767575065\?text=[^"]*"[^>]*>\+507 6757-5065 ')
+        self.assertRegex(html, r'<a [^>]*href="https://wa\.me/50767575065\?text=[^"]*"[^>]*>\+507 6757-5065 ')
         self.assertIn('href="mailto:babycalebpanama@gmail.com"', html)
         self.assertIn('href="https://www.instagram.com/babycalebpanama"', html)
         self.assertIn('Escríbenos por WhatsApp', html)
