@@ -210,13 +210,14 @@ POSE_EN_EL_INICIO = """(async () => {
     const res = { quieta: cambios.length, alLlegar: actual() };
     // Pasa rápido por dos secciones y se detiene en Socios: cuenta donde se detiene.
     await ir('.o_dcasa_beneficios', 200);
-    await ir('.o_dcasa_categorias .o_dcasa_section_head', 200);
+    await ir('.o_dcasa_rail .o_dcasa_section_head', 200);
     await ir('.o_dcasa_socios_band', 3200);
     res.trasPasarRapido = cambios.map((c) => c[1]);
-    // Dos seguidas: la segunda espera el mínimo entre cambios.
-    await ir('.o_dcasa_galeria', 900);
-    await ir('.o_dcasa_ayuda .o_dcasa_steps', 3400);
-    await ir('.o_dcasa_visita_franja', 3200);
+    // Dos seguidas: la segunda espera el mínimo entre cambios. (La portada de Baby Caleb, 2026-11-18: las preguntas
+    // frecuentes y la franja de contacto; la galería y la guía de medidas eran de muebles.)
+    await ir('.o_dcasa_ayuda .o_dcasa_faq', 900);
+    await ir('.o_dcasa_visita_franja', 3400);
+    await ir('#bottom, footer', 3200);
     res.cambios = cambios.map((c) => c[1]);
     res.minimo = minimo();
     res.sinScrollDeLado = document.documentElement.scrollWidth <= innerWidth;
@@ -483,7 +484,7 @@ class TestPoseAlBajar(NavegadorCase):
             r = self.evaluar(browser, POSE_EN_EL_INICIO)
         self.assertEqual((r['quieta'], r['alLlegar']), (0, 'asomado_burbuja'), 'sin moverse, la de la página')
         self.assertEqual(r['trasPasarRapido'], ['fidelidad'], 'al pasar rápido, cuenta donde se detiene')
-        self.assertEqual(r['cambios'], ['fidelidad', 'marco_foto', 'cinta_metrica', 'mapa'])
+        self.assertEqual(r['cambios'], ['fidelidad', 'burbuja_chat', 'mapa', 'saludando'])
         self.assertGreaterEqual(r['minimo'], 2400, 'nunca dos cambios en menos de 2,5 s')
         self.assertTrue(r['sinScrollDeLado'])
 
