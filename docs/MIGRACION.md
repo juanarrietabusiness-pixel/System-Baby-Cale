@@ -200,7 +200,7 @@ Mientras llega `combos.csv` se puede empezar a vender: la casilla **«Armar los 
   precio y existencias.
 - **Sin resolver:** no hay candidato. Tampoco se arma.
 
-Con los 49 combos del inventario anterior (los de una base limpia): **46 claros, 2 dudosos, 1 sin resolver**.
+Con los 49 combos del inventario anterior de D'CASA (que el repositorio ya no trae desde el 2026-11-18) salían **46 claros, 2 dudosos, 1 sin resolver**:
 - `COMBO CAMA BUTTERFLY UP TWIN + COLCHO IMPERIAL` (dudoso): el nombre no trae el código de la cama y hay dos camas
   parecidas (`HDSF-SF-T-BK` y `butterfly-bed-up-bed`).
 - `COMBO CAMA QUEEN W160969417 + COLCHÓN DULCES SUEÑOS` (dudoso): el código `W160969417` es de una cama **Full** y el
@@ -211,23 +211,16 @@ Si el mismo colchón o cama está dos veces en el catálogo (el del catálogo y 
 tiene el código escrito igual que en el nombre del combo y, si no hay forma de distinguirlos, el que viene del
 inventario anterior (el que usaban los combos). Los dudosos y sin resolver se resuelven con `combos.csv` o a mano.
 
-### Qué pasó con el `combos.csv` real de Cowork (71 combos)
+### El `combos.csv` real de D'CASA (71 combos)
 
-Contra el catálogo que trae el repositorio (base limpia): **69 de 71 se cargan** (47 convierten un producto que ya
-existía y 22 se crean sin publicar). Los **2 que no** se quedan sin cargar por una pieza que falta, a propósito:
-- `COMBO DE 2 SOFÁS BLANCOS DE 2 Y 3 PUESTOS 77090`: los sofás `77090-2` y `77090-3` no están en el catálogo.
-- `COMBO CAMA KING CON ESTANTES 1062010753-54N + COLCHON IMPERIAL`: su cama «CAMA KING CON ESTANTES 1062010753» no
-  tiene código y no existe con ese nombre. Además, el nombre dice colchón IMPERIAL y el archivo trae FIRST CLASS.
+Se probó contra el catálogo de D'CASA (69 de 71 cargaban; el detalle está en el historial de git de este documento).
+Desde el 2026-11-18 el repositorio trae el catálogo de Baby Caleb, sin camas ni colchones: el archivo real y su prueba
+(`test_combos_reales.py`) se quitaron con el resto de los datos de D'CASA, y lo que comprobaban quedó con productos de
+prueba.
 
-Avisos del informe (para que la dueña decida, nada se cambia solo): `COMBO CAMA KING COLOR BLACK 908KBK` y `… GREY
-908KGR` traen en el archivo la cama `908KBE` (beige): la casilla «Corregir la cama…» las cambia por la del nombre. Dos
-combos tienen en Odoo un precio mucho menor que el del archivo (`J02HF-BF-2208GF`: $119.99 en Odoo contra $206.99 en el
-archivo; `N-F12002-K-GR`: $139.99 contra $389.99, y $139.99 es menos que una sola de sus piezas): como ya tenían precio,
-no se cambió.
-
-**Pruebas:** `test_reglas_combos.py` (lectura y nombres, sin base de datos), `test_combos.py`,
-`test_combos_reales.py` (el archivo real, como texto dentro del test: es catálogo, no datos de personas) y, en
-`dcasa_catalogo`, `test_combos_venta.py` (cotización, entrega, factura, PDF, tope, Socios y comisión).
+**Pruebas:** `test_reglas_combos.py` (lectura y nombres, sin base de datos), `test_combos.py` (carga, armar desde el
+nombre y vender un combo armado de punta a punta) y, en `dcasa_catalogo`, `test_combos_venta.py` (cotización, entrega,
+factura, PDF, tope, Socios y comisión).
 
 ### Lo que hubo que ajustar en otros módulos para vender combos de punta a punta
 

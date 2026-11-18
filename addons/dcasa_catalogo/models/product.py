@@ -21,6 +21,12 @@ class ProductTemplate(models.Model):
     # por categoría. Este es el mismo número guardado en el producto: marketing ordena por mayor o menor stock, y
     # combinado con la categoría y el precio, elige qué empujar en una campaña. Se recalcula solo cuando cambia
     # una existencia (entrada, venta, ajuste) y vale 0 si el producto no controla inventario.
+    # La «Presentación» de cada variante (unidades por caja, rango de peso…) vive en ``product.product``; aquí se ve
+    # y se edita cuando el producto tiene una sola variante, como la referencia interna de Odoo.
+    dcasa_presentacion = fields.Char(
+        string='Presentación', compute='_compute_dcasa_presentacion', inverse='_inverse_dcasa_presentacion',
+        help='Cómo lo describe la lista del dueño, tal cual: unidades por caja, rango de peso, color. Con varias '
+             'tallas o medidas, cada variante tiene la suya.')
     dcasa_stock = fields.Float(
         string='Stock', compute='_compute_dcasa_stock', store=True, digits=(16, 0), aggregator='sum',
         help='Unidades en existencia (bodega y tienda) de todas sus medidas y colores. Se guarda en el producto para '
@@ -42,6 +48,22 @@ class ProductTemplate(models.Model):
         for plantilla in controlados:
             plantilla.dcasa_stock = sum(
                 por_variante.get(variante.id, 0.0) for variante in plantilla.product_variant_ids)
+
+    @api.depends('product_variant_ids.dcasa_presentacion')
+    def _compute_dcasa_presentacion(self):
+        for plantilla in self:
+            unica = plantilla.product_variant_ids if len(plantilla.product_variant_ids) == 1 else None
+            plantilla.dcasa_presentacion = unica.dcasa_presentacion if unica else False
+
+    def _inverse_dcasa_presentacion(self):
+        for plantilla in self:
+            if len(plantilla.product_variant_ids) == 1:
+                plantilla.product_variant_ids.dcasa_presentacion = plantilla.dcasa_presentacion
+
+    def _dcasa_presentaciones(self):
+        """``[(variante, texto)]`` de las variantes activas que tienen su presentación (para la ficha de la tienda)."""
+        self.ensure_one()
+        return [(v, v.dcasa_presentacion) for v in self.sudo().product_variant_ids if v.dcasa_presentacion]
 
     def _dcasa_disponibilidad(self, variante=None):
         """``disponible`` / ``pocas`` / ``agotado`` de este producto (o de una de sus medidas) para el cliente.
@@ -79,6 +101,11 @@ class ProductTemplate(models.Model):
 
 class ProductProduct(models.Model):
     _inherit = 'product.product'
+
+    dcasa_presentacion = fields.Char(
+        string='Presentación',
+        help='Cómo lo describe la lista del dueño, tal cual: unidades por caja, rango de peso, color '
+             '(p. ej. «Pañal Nateen Talla M de cierre — caja de 144 (8–19 lbs / 4–9 kg)»).')
 
     @api.model
     def _search_display_name(self, operator, value):

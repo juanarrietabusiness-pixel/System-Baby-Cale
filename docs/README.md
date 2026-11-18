@@ -54,7 +54,7 @@
 | `dcasa_socios` | [SOCIOS.md](SOCIOS.md) · programa de vendedores: [VENDEDORES.md](VENDEDORES.md) |
 | `dcasa_mi_cuenta` | [SOCIOS.md › Mi cuenta](SOCIOS.md#mi-cuenta): el panel del cliente en `/mi-cuenta` |
 | `dcasa_contactos` | [CONTACTOS.md](CONTACTOS.md) |
-| `dcasa_catalogo` | [CATALOGO.md](CATALOGO.md) · [CATALOGO_REVISAR.md](CATALOGO_REVISAR.md) *(generado)* |
+| `dcasa_catalogo` | [CATALOGO.md](CATALOGO.md) |
 | `dcasa_barras` | [BARRAS.md](BARRAS.md) |
 | `dcasa_existencias` | [EXISTENCIAS.md](EXISTENCIAS.md) |
 | `dcasa_contabilidad` | [CONTABILIDAD.md](CONTABILIDAD.md) · respuestas de la gerencia: [DECISIONES_CONTABLES.md](DECISIONES_CONTABLES.md) · preguntas abiertas para la contadora: [PRIORIDADES.md](PRIORIDADES.md#para-la-contadora-y-la-gerencia) · auditoría de los reportes (registro): [historico/AUDITORIA_CONTABLE.md](historico/AUDITORIA_CONTABLE.md) |
@@ -103,15 +103,14 @@ cambió, la fuente de verdad es el documento vigente de arriba.
 | [historico/](historico/README.md) | Lo archivado el 2026-11-06: la bitácora vieja, la lista vieja de pendientes de la dueña, el plan, la foto del 11 de octubre, el traslado del dominio, las auditorías contable y de experiencia de usuario, el rediseño del sitio y los documentos de Juan que se unieron (Worker, panel, CRM automático, plan B, Meta). Cada uno con su aviso y adónde pasó lo vigente. |
 | [auditoria/](auditoria/README.md) | Las auditorías por rondas, su bitácora y la decisión de arquitectura. |
 | `gerencia/` | Informes en PDF para la dueña (estado del sistema, cómo ver y probar a Juan) de octubre de 2026. La fuente del primero es `fuente-informe.html`. |
-| [inventario-anterior-informe.md](inventario-anterior-informe.md) y su `.xlsx` | Informe de la carga del inventario del sistema anterior (lo genera `scripts/inventario_anterior_informe.py`). |
 | `img/` | Capturas que usa el [README](../README.md) principal. |
 
 ## Cómo se mantiene
 
 - **Una sola fuente por tema.** Si un dato aparece en dos documentos, uno debe enlazar al otro (la receta de producción
   vive solo en DESPLIEGUE.md; el estado del día, solo en PRIORIDADES.md).
-- **Lo generado no se edita a mano:** `CATALOGO_REVISAR.md`, `inventario-anterior-informe.md` y `up media/RESUMEN.md` los
-  escriben scripts; se corrige la fuente y se vuelve a generar.
+- **Lo generado no se edita a mano:** `up media/RESUMEN.md` lo escribe un script; se corrige la fuente y se vuelve a
+  generar.
 - **Los datos de las personas** (nombres, correos y celulares del equipo y de los clientes) viven solo en Odoo, nunca aquí.
   El repositorio es público.
 - **Cifras con fecha.** Todo número que cambia (productos, pruebas, costos, tiempos) lleva su fecha o se dice dónde mirarlo.

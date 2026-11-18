@@ -1,176 +1,346 @@
+import os
+
+from odoo.addons.dcasa_base.nombres import nombre_en_mayusculas
+from odoo.addons.dcasa_catalogo import catalogo as C
 from odoo.addons.dcasa_catalogo.catalogo import cargar_catalogo, leer_catalogo, xmlid_de
-from odoo.addons.dcasa_catalogo.models.nombres_productos import nombre_en_mayusculas
-from odoo.tests import TransactionCase, tagged
+from odoo.addons.dcasa_catalogo.models import combo_armable
+from odoo.addons.dcasa_catalogo.reglas import categoria_de_nombre
+from odoo.modules.module import get_module_path
+from odoo.tests import HttpCase, TransactionCase, tagged
+from odoo.tools.misc import file_open
+
+# La lista del dueño de Baby Caleb (2026-11-18), tal como la dio: código, texto, precio en dólares y existencias (más
+# NAT-L, que el dueño decidió cargar después).
+# La prueba la repite aquí (y no la lee del JSON) para que un cambio en data/catalogo.json no pase sin que se vea.
+LISTA_DEL_DUENO = {
+    'MOON-FUL': ('Fular prearmado Moon de bambú color gris — unitalla ajustable XS a 3XL (RN hasta ~25 lbs)', 46.00, 2),
+    'NAT-P-L': ('Pañal Nateen Talla L de pants — caja de 160 (19-31 lbs) (9 kg - 14 kg)', 55.00, 6),
+    'NAT-M': ('Pañal Nateen Talla M de cierre — caja de 144 (8–19 lbs / 4–9 kg)', 50.00, 7),
+    # No venía en la lista: el dueño decidió cargarlo después ($45.00, sin existencias), con el texto de la web.
+    'NAT-L': ('Caja L — 15 a 39 lb — 128 uds', 45.00, 0),
+    'NAT-RN': ('Pañal Nateen Talla RN de cierre — caja de 160 (4–11 lbs / 2–5 kg)', 50.00, 4),
+    'NAT-S': ('Pañal Nateen Talla S de cierre — caja de 160 (6–13 lbs / 3–6 kg)', 50.00, 3),
+    'NAT-XL': ('Pañal Nateen Talla XL de cierre — caja de 112 (26–55 lbs / 12–25 kg)', 45.00, 0),
+    'NAT-P-XL': ('Pañal Nateen Talla XL de pants — caja de 160 (26-37.5 lbs) (12 kg - 17kg)', 55.00, 2),
+    'NAT-XXL': ('Pañal Nateen Talla XXL de cierre — caja de 112 (+55 lbs / +25 kg)', 45.00, 3),
+    'NAT-P-XXL': ('Pañal Nateen Talla XXL de pants — caja de 160 (+33 lbs) (+ de 15 kg)', 55.00, 9),
+    'VELVEE-P': ('Pañal Velvee Talla P (S): (7.5 - 13 lb) (3.5 - 6 kg) 150 pañales', 35.00, 2),
+    'VELVEE-L': ('Pañal Velvee Talla G (L): (20 - 27 lb) (9 - 12.5 kg) 126 pañales', 33.00, 3),
+    'VELVEE-M': ('Pañal Velvee Talla M (M): (12 - 21 lb) (5.5 - 9.5 kg) 132 pañales', 35.00, 1),
+    'DANY-AW600': ('Water wipes hipoalergénicas Dany Baby — caja de 600 toallitas (6 paquetes de 100)', 20.00, 26),
+    'WIPESNAT': ('Water wipes hipoalergénicas Nateen — Caja de 960 toallitas (12 paquetes de 80)', 45.00, 15),
+}
+# Cómo se agrupan: producto → (nombre, categoría, tallas en el orden de la tienda con su código; None = sin variantes).
+PRODUCTOS = {
+    'nateen-diapers': ('Pañales Nateen de cierre', 'panales',
+                       [('RN', 'NAT-RN'), ('S', 'NAT-S'), ('M', 'NAT-M'), ('L', 'NAT-L'), ('XL', 'NAT-XL'),
+                        ('XXL', 'NAT-XXL')]),
+    'nateen-pants': ('Pañales Nateen Pants', 'panales', [('L', 'NAT-P-L'), ('XL', 'NAT-P-XL'), ('XXL', 'NAT-P-XXL')]),
+    'velvee-diapers': ('Pañales Velvee', 'panales', [('P', 'VELVEE-P'), ('M', 'VELVEE-M'), ('G', 'VELVEE-L')]),
+    'nateen-wipes': ('Water wipes Nateen', 'toallitas', [(None, 'WIPESNAT')]),
+    'danybaby-aquawipes': ('Water wipes Dany Baby', 'toallitas', [(None, 'DANY-AW600')]),
+    'fular-moon': ('Fular Moon', 'fulares', [(None, 'MOON-FUL')]),
+}
+# Una muestra de las referencias del catálogo de D'CASA que ya no se cargan (camas, colchones, combos, inventario).
+CODIGOS_DE_DCASA = ('888K', '908K-NEGRO', 'XHT022-T-W', 'Y0300300-LTSC07', 'HK-BF-022-N-K-1-W', 'N-F10018-F-BK-FULL',
+                    'CSOK-10', 'IM-2001', 'YPN272102', 'ALMOHADA001', 'LXI100713')
+
+
+def _item(clave, variantes, atributo=None, **otros):
+    """Un producto del JSON para las pruebas de la carga (con datos de prueba, no los del negocio)."""
+    item = {'clave': clave, 'nombre': f'Producto de prueba {clave}', 'categoria': 'panales', 'orden': 99,
+            'descripcion': None, 'variantes': variantes}
+    if atributo:
+        item['atributo'] = atributo
+    item.update(otros)
+    return item
 
 
 @tagged('post_install', '-at_install')
-class TestCatalogo(TransactionCase):
+class TestCatalogoBabyCaleb(TransactionCase):
+    """El catálogo de Baby Caleb quedó cargado al instalar, tal como lo dio el dueño, y nada del de D'CASA."""
 
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.catalogo = leer_catalogo()
-        cls.por_codigo = {item['codigo']: item for item in cls.catalogo}
+        cls.company = cls.env.ref('base.main_company')
+        cls.ubicacion = cls.env['stock.warehouse'].search(
+            [('company_id', '=', cls.company.id)], limit=1).lot_stock_id
+        cls.Variante = cls.env['product.product'].with_context(active_test=False)
 
-    def producto(self, codigo):
-        return self.env.ref(f'dcasa_catalogo.{xmlid_de(codigo)}')
+    def producto(self, clave):
+        return self.env.ref(f'dcasa_catalogo.{xmlid_de(clave)}')
 
-    def test_todos_los_codigos_cargados(self):
-        for item in self.catalogo:
-            producto = self.producto(item['codigo'])
-            self.assertEqual(producto.name, nombre_en_mayusculas(item['nombre_web']))
-            self.assertTrue(producto.is_storable, 'Va al inventario')
-            self.assertTrue(producto.allow_out_of_stock_order, 'Existencias sin confirmar: se vende igual')
+    def variante(self, codigo):
+        variante = self.Variante.search([('default_code', '=', codigo)])
+        self.assertEqual(len(variante), 1, codigo)
+        return variante
 
-    def test_precio_del_excel_sin_itbms(self):
-        """El precio del Excel es SIN ITBMS («+ITBMS»): list_price = la cifra, y el 7 % se suma."""
-        item = next(i for i in self.catalogo if len(i['precios']) == 1)
-        producto = self.producto(item['codigo'])
-        precio = item['precios']['']
-        self.assertEqual(producto.list_price, precio)
-        self.assertEqual(producto.default_code, item['codigo'])
+    def test_las_quince_variantes_con_su_codigo_precio_existencias_y_texto(self):
+        impuesto = self.company.account_sale_tax_id
+        for codigo, (texto, precio, existencias) in LISTA_DEL_DUENO.items():
+            variante = self.variante(codigo)
+            self.assertTrue(variante.active, codigo)
+            self.assertEqual(variante.lst_price, precio, f'{codigo}: el precio exacto de la lista')
+            self.assertEqual(variante.with_context(location=self.ubicacion.id).qty_available, existencias, codigo)
+            self.assertEqual(variante.dcasa_presentacion, texto, f'{codigo}: el texto del dueño, tal cual')
+            self.assertEqual(variante.taxes_id, impuesto, f'{codigo}: el mismo ITBMS que llevaba la carga de D’CASA')
+            self.assertTrue(variante.is_storable and variante.sale_ok, codigo)
+        self.assertEqual(self.Variante.search_count([('product_tmpl_id', 'in', self.plantillas().ids)]), 15)
+
+    def plantillas(self):
+        return self.env['product.template'].with_context(active_test=False).browse(
+            self.env['ir.model.data'].search([('module', '=', 'dcasa_catalogo'), ('model', '=', 'product.template')])
+            .mapped('res_id'))
+
+    def test_agrupados_con_variantes_de_talla(self):
+        talla = self.env['product.attribute'].search([('name', '=', 'Talla')])
+        self.assertEqual(len(talla), 1)
+        self.assertEqual(talla.create_variant, 'always')
+        for clave, (nombre, _categoria, variantes) in PRODUCTOS.items():
+            producto = self.producto(clave)
+            self.assertEqual(producto.name, nombre_en_mayusculas(nombre))
+            self.assertEqual(producto.product_variant_count, len(variantes), clave)
+            if variantes[0][0] is None:
+                self.assertFalse(producto.attribute_line_ids, f'{clave}: producto simple')
+                self.assertEqual(producto.default_code, variantes[0][1])
+                continue
+            self.assertEqual(producto.attribute_line_ids.attribute_id, talla, clave)
+            # El orden de la tienda (el de los valores del atributo) y cada talla con su código.
+            self.assertEqual(producto.attribute_line_ids.product_template_value_ids.sorted().mapped('name'),
+                             [valor for valor, _codigo in variantes], clave)
+            for valor, codigo in variantes:
+                self.assertEqual(self.variante(codigo).product_template_attribute_value_ids.name, valor, codigo)
+
+    def test_precio_de_lista_y_el_itbms_que_se_suma(self):
+        """Como la carga de D'CASA: el precio de la lista es el de lista y el ITBMS de la empresa se suma."""
+        producto = self.producto('nateen-diapers')
+        self.assertEqual(producto.list_price, 45.0, 'El de la talla más barata; las demás, con su extra')
         impuesto = producto.taxes_id
-        self.assertEqual(impuesto, self.env.ref('base.main_company').account_sale_tax_id, 'El impuesto por defecto')
+        self.assertEqual(impuesto, self.company.account_sale_tax_id, 'El impuesto por defecto')
         self.assertFalse(impuesto.price_include)
         self.assertEqual(impuesto.amount, 7)
-        total = impuesto.compute_all(precio, product=producto.product_variant_id)
-        self.assertAlmostEqual(total['total_excluded'], precio, places=2)
-        self.assertAlmostEqual(total['total_included'], round(precio * 1.07, 2), places=2)
-        website = self.env['website'].get_current_website()
-        self.assertEqual(website.show_line_subtotals_tax_selection, 'tax_excluded')
-
-    def test_venta_de_39_99_suma_el_itbms(self):
-        """Producto del catálogo a $39.99 → subtotal 39.99, ITBMS 2.80, total 42.79."""
-        # El inventario del sistema anterior puede haber movido el precio de algunos: uno que siga a 39.99.
-        item = next(i for i in self.catalogo if i['precios'] == {'': 39.99}
-                    and self.producto(i['codigo']).list_price == 39.99)
         orden = self.env['sale.order'].create({
-            'partner_id': self.env['res.partner'].create({'name': 'Cliente'}).id,
-            'order_line': [(0, 0, {'product_id': self.producto(item['codigo']).product_variant_id.id})],
+            'partner_id': self.env['res.partner'].create({'name': 'Clienta'}).id,
+            'order_line': [(0, 0, {'product_id': self.variante('NAT-M').id}),
+                           (0, 0, {'product_id': self.variante('NAT-XL').id})],
         })
-        linea = orden.order_line
-        self.assertAlmostEqual(linea.price_unit, 39.99, places=2)
-        self.assertAlmostEqual(linea.price_subtotal, 39.99, places=2)
-        self.assertAlmostEqual(linea.price_tax, 2.80, places=2)
-        self.assertAlmostEqual(linea.price_total, 42.79, places=2)
-        self.assertAlmostEqual(orden.amount_total, 42.79, places=2)
+        self.assertEqual(orden.order_line.mapped('price_unit'), [50.0, 45.0])
+        self.assertAlmostEqual(orden.amount_untaxed, 95.0, places=2)
+        self.assertAlmostEqual(orden.amount_tax, 6.65, places=2)
+        self.assertAlmostEqual(orden.amount_total, 101.65, places=2)
+        self.assertEqual(self.env['website'].get_current_website().show_line_subtotals_tax_selection,
+                         'tax_excluded')
 
-    def test_migracion_pasa_del_incluido_al_que_se_suma(self):
-        """Bases cargadas con «ITBMS 7% incluido»: cambia el impuesto, no el precio."""
-        from odoo.addons.dcasa_catalogo.catalogo import pasar_a_itbms_que_se_suma
-        company = self.env.ref('base.main_company')
-        venta = company.account_sale_tax_id
-        incluido = venta.copy({'name': 'ITBMS 7% incluido', 'price_include_override': 'tax_included'})
-        con_variantes = next(i for i in self.catalogo if len(i['precios']) > 1)
-        viejo = self.producto(self.catalogo[0]['codigo']) | self.producto(con_variantes['codigo'])
-        a_mano = self.producto(self.catalogo[1]['codigo'])
-        exento = self.env['account.tax'].create({'name': 'Exento prueba', 'amount': 0, 'type_tax_use': 'sale'})
-        viejo.taxes_id = incluido
-        a_mano.taxes_id = exento  # la dueña le puso otro impuesto: no se toca
-        precios = {p: (p.list_price, p.product_variant_ids.mapped('lst_price')) for p in viejo | a_mano}
-        self.env['website'].search([]).show_line_subtotals_tax_selection = 'tax_included'
+    def test_categorias_de_baby_caleb(self):
+        for clave, (_nombre, categoria, _variantes) in PRODUCTOS.items():
+            producto = self.producto(clave)
+            self.assertEqual(producto.categ_id, self.env.ref(f'dcasa_catalogo.product_category_{categoria}'), clave)
+            self.assertEqual(producto.public_categ_ids, self.env.ref(f'dcasa_catalogo.public_category_{categoria}'),
+                             clave)
+        self.assertEqual(self.env.ref('dcasa_catalogo.public_category_toallitas').name, 'Toallitas húmedas')
+        for viejo in ('product_category_zapateras', 'product_category_organizacion', 'product_category_oficina',
+                      'public_category_muebles_tv'):
+            self.assertFalse(self.env.ref(f'dcasa_catalogo.{viejo}', raise_if_not_found=False), viejo)
 
-        self.assertEqual(pasar_a_itbms_que_se_suma(self.env), 2)
-        self.assertEqual(viejo.taxes_id, venta)
-        self.assertEqual(a_mano.taxes_id, exento)
-        for producto, (lista, variantes) in precios.items():
-            self.assertEqual(producto.list_price, lista, 'El precio del Excel no cambia')
-            self.assertEqual(producto.product_variant_ids.mapped('lst_price'), variantes)
-        self.assertFalse(incluido.active, 'Sin uso: archivado')
-        self.assertEqual(self.env['website'].get_current_website().show_line_subtotals_tax_selection, 'tax_excluded')
-        self.assertEqual(pasar_a_itbms_que_se_suma(self.env), 0, 'Se puede repetir')
+    def test_descripcion_de_la_web_y_presentacion_a_la_vista(self):
+        pants = self.producto('nateen-pants')
+        self.assertIn('Tipo pantaloncito (pull-ups)', str(pants.description_ecommerce))
+        self.assertFalse(self.producto('velvee-diapers').description_ecommerce, 'Velvee: solo el texto del dueño')
+        self.assertNotIn('12 paquetes de 50', str(self.producto('danybaby-aquawipes').description_ecommerce),
+                         'Lo que contradice la lista del dueño no se copia de la web')
+        moon = self.producto('fular-moon')
+        self.assertEqual(moon.dcasa_presentacion, LISTA_DEL_DUENO['MOON-FUL'][0], 'Una sola variante: en la ficha')
+        self.assertFalse(pants.dcasa_presentacion, 'Con tallas, cada variante tiene la suya')
+        moon.dcasa_presentacion = 'Fular Moon gris'
+        self.assertEqual(moon.product_variant_id.dcasa_presentacion, 'Fular Moon gris', 'Se edita desde la ficha')
+        self.assertEqual([texto for _v, texto in pants._dcasa_presentaciones()],
+                         [LISTA_DEL_DUENO[c][0] for c in ('NAT-P-L', 'NAT-P-XL', 'NAT-P-XXL')])
 
-    def test_tamanos_como_variantes(self):
-        item = next(i for i in self.catalogo if len(i['precios']) > 1)
-        producto = self.producto(item['codigo'])
-        self.assertEqual(producto.product_variant_count, len(item['precios']))
-        for variante in producto.product_variant_ids:
-            tamano = variante.product_template_attribute_value_ids.name
-            self.assertEqual(variante.lst_price, item['precios'][tamano])
-            self.assertEqual(variante.default_code, f"{item['codigo']}-{tamano.upper()}")
+    def test_las_vistas_muestran_la_presentacion(self):
+        for modelo, xmlid, tipo in (('product.template', 'product.product_template_only_form_view', 'form'),
+                                    ('product.product', 'product.product_normal_form_view', 'form'),
+                                    ('product.product', 'product.product_variant_easy_edit_view', 'form'),
+                                    ('product.product', 'product.product_product_tree_view', 'list')):
+            arch = self.env[modelo].get_view(self.env.ref(xmlid).id, tipo)['arch']
+            self.assertIn('name="dcasa_presentacion"', arch, xmlid)
 
-    def test_fotos_y_publicacion(self):
-        con_fotos = next(i for i in self.catalogo if len(i['fotos']) > 1)
-        producto = self.producto(con_fotos['codigo'])
-        self.assertTrue(producto.image_1920)
-        self.assertEqual(len(producto.product_template_image_ids), len(con_fotos['fotos']) - 1)
-        self.assertTrue(producto.is_published)
-        self.assertEqual(producto.public_categ_ids,
-                         self.env.ref(f"website_dcasa.public_category_{con_fotos['categoria']}"))
+    def test_sin_fotos_no_se_publica(self):
+        for producto in self.plantillas():
+            self.assertFalse(producto.image_1920, producto.name)
+            self.assertFalse(producto.is_published, f'{producto.name}: sin foto no sale en la web')
+            self.assertTrue(producto.allow_out_of_stock_order)
 
-        sin_fotos = next(i for i in self.catalogo if not i['fotos'])
-        producto = self.producto(sin_fotos['codigo'])
-        self.assertFalse(producto.is_published, 'Sin foto no sale en la web')
-        self.assertFalse(producto.image_1920)
+    def test_nada_del_catalogo_de_dcasa(self):
+        self.assertEqual(sorted(self.plantillas().mapped('product_variant_ids.default_code')), sorted(LISTA_DEL_DUENO))
+        self.assertEqual(sorted(self.env['ir.model.data'].search([
+            ('module', '=', 'dcasa_catalogo'), ('model', '=', 'product.template')]).mapped('name')),
+            sorted(xmlid_de(clave) for clave in PRODUCTOS))
+        self.assertFalse(self.Variante.search_count([('default_code', 'in', CODIGOS_DE_DCASA)]))
+        self.assertFalse(os.path.exists(os.path.join(get_module_path('dcasa_catalogo'), 'static', 'img', 'productos')),
+                         'Las fotos de D’CASA ya no viajan con el módulo')
+        catalogo = leer_catalogo()
+        self.assertFalse([i['clave'] for i in catalogo['productos'] if 'fotos' in i])
+        self.assertEqual(C.BLACK_WEEKEND, [], 'La selección de Black Weekend de D’CASA no es de este negocio')
+        self.assertEqual(combo_armable.PRECIOS_COMBO_APROBADOS, {}, 'Ni los precios en combo de D’CASA')
+        with file_open('dcasa_catalogo/data/inventario_anterior.csv', 'r') as archivo:
+            self.assertEqual(len(archivo.read().splitlines()), 1, 'Del inventario de D’CASA: solo el encabezado')
+        self.assertFalse(self.env['product.template'].search_count([('dcasa_black_weekend', '=', True)]))
 
-    def test_combo_y_medidas_con_su_etiqueta(self):
-        item = next(i for i in self.catalogo if i.get('combo') and i.get('medidas') and i['fotos'])
-        producto = self.producto(item['codigo'])
-        self.assertEqual(producto.dcasa_combo, item['combo'])
-        self.assertEqual(producto.dcasa_medidas, item['medidas'])
-        self.assertFalse(producto.description_ecommerce, 'El combo ya no se mezcla con la descripción')
+    def test_existencias_con_su_motivo_solo_al_crear(self):
+        movimientos = self.env['stock.move'].search([('product_id', '=', self.variante('NAT-M').id)])
+        self.assertEqual(movimientos.mapped('inventory_name'),
+                         ['Existencias iniciales del catálogo (lista del dueño de Baby Caleb, 2026-11-18)'])
+        self.assertFalse(self.env['stock.move'].search_count([('product_id', '=', self.variante('NAT-XL').id)]),
+                         'En 0 no hace falta ajuste')
+
+    def test_idempotente_y_respeta_cambios(self):
+        producto = self.producto('fular-moon')
+        producto.list_price = 1  # el dueño lo cambió en Odoo
+        variante = self.variante('NAT-M')
+        self.env['stock.quant'].with_context(inventory_mode=True, inventory_name='Conteo de prueba').create({
+            'product_id': variante.id, 'location_id': self.ubicacion.id, 'inventory_quantity': 1})._apply_inventory()
+        antes = self.env['product.template'].search_count([])
+        self.assertEqual(cargar_catalogo(self.env), 0)
+        self.assertEqual(self.env['product.template'].search_count([]), antes)
+        self.assertEqual(producto.list_price, 1)
+        self.assertEqual(variante.with_context(location=self.ubicacion.id).qty_available, 1, 'Un conteo no se pisa')
 
     def test_nombres_distintos(self):
-        """Ni el cliente ni la vendedora deben ver dos productos con el mismo nombre."""
-        nombres = [self.producto(i['codigo']).name.lower() for i in self.catalogo]
+        """Ni la clienta ni la vendedora deben ver dos productos con el mismo nombre."""
+        nombres = self.plantillas().mapped(lambda p: p.name.lower())
         self.assertEqual(len(nombres), len(set(nombres)))
 
-    def test_cama_de_un_tamano_filtra_por_tamano(self):
-        item = next(i for i in self.catalogo if i['nombre'] == 'Cama king' and len(i['precios']) == 1)
-        producto = self.producto(item['codigo'])
-        self.assertEqual(producto.product_variant_count, 1)
-        self.assertEqual(producto.attribute_line_ids.value_ids.name, 'King')
-        self.assertEqual(producto.default_code, item['codigo'])
-
-    def test_muebles_de_tv_en_su_categoria(self):
-        item = next(i for i in self.catalogo if i['nombre'] == 'Mueble de TV')
-        self.assertEqual(self.producto(item['codigo']).public_categ_ids,
-                         self.env.ref('dcasa_catalogo.public_category_muebles_tv'))
-
     def test_busqueda_por_varias_palabras(self):
-        item = next(i for i in self.catalogo if 'Queen' in i['precios'] and i['nombre'].lower().startswith('colch'))
-        encontrados = self.env['product.product'].search([('display_name', 'ilike', 'colchón queen')])
-        esperado = self.producto(item['codigo']).product_variant_ids.filtered(
-            lambda v: v.product_template_attribute_value_ids.name == 'Queen')
-        self.assertIn(esperado, encontrados)
-        tamanos = encontrados.product_template_attribute_value_ids.mapped('name')
-        self.assertNotIn('King', tamanos)
+        encontrados = self.env['product.product'].search([('display_name', 'ilike', 'nateen xxl')])
+        self.assertIn(self.variante('NAT-XXL'), encontrados)
+        self.assertIn(self.variante('NAT-P-XXL'), encontrados)
+        self.assertNotIn(self.variante('NAT-XL'), encontrados)
+        self.assertNotIn(self.variante('DANY-AW600'), encontrados)
 
     def test_cotizacion_por_whatsapp(self):
         cliente = self.env['res.partner'].create({'name': 'Ana Pérez', 'phone': '6123-4567'})
         orden = self.env['sale.order'].create({
             'partner_id': cliente.id,
-            'order_line': [(0, 0, {'product_id': self.producto(self.catalogo[0]['codigo']).product_variant_id.id})],
+            'order_line': [(0, 0, {'product_id': self.variante('DANY-AW600').id})],
         })
         accion = orden.action_dcasa_whatsapp()
         self.assertTrue(accion['url'].startswith('https://wa.me/50761234567?text='))
         self.assertIn(orden.name, accion['url'])
         self.assertEqual(orden.state, 'sent')
 
-    def test_actualizar_no_pisa_cambios(self):
-        from odoo.addons.dcasa_catalogo.catalogo import actualizar_catalogo
-        item = self.catalogo[0]
-        producto = self.producto(item['codigo'])
-        producto.name = 'Nombre de la dueña'
-        actualizar_catalogo(self.env)
-        self.assertEqual(producto.name, 'NOMBRE DE LA DUEÑA')
+    def test_migracion_pasa_del_incluido_al_que_se_suma(self):
+        """Bases cargadas con «ITBMS 7% incluido»: cambia el impuesto, no el precio."""
+        venta = self.company.account_sale_tax_id
+        incluido = venta.copy({'name': 'ITBMS 7% incluido', 'price_include_override': 'tax_included'})
+        viejo = self.producto('nateen-diapers') | self.producto('danybaby-aquawipes')
+        a_mano = self.producto('fular-moon')
+        exento = self.env['account.tax'].create({'name': 'Exento prueba', 'amount': 0, 'type_tax_use': 'sale'})
+        viejo.taxes_id = incluido
+        a_mano.taxes_id = exento  # el dueño le puso otro impuesto: no se toca
+        precios = {p: (p.list_price, p.product_variant_ids.mapped('lst_price')) for p in viejo | a_mano}
+        self.env['website'].search([]).show_line_subtotals_tax_selection = 'tax_included'
 
-    def test_idempotente_y_respeta_cambios(self):
-        item = self.catalogo[0]
-        producto = self.producto(item['codigo'])
-        producto.list_price = 1  # la dueña lo cambió en Odoo
-        antes = self.env['product.template'].search_count([])
-        self.assertEqual(cargar_catalogo(self.env), 0)
-        self.assertEqual(self.env['product.template'].search_count([]), antes)
-        self.assertEqual(producto.list_price, 1)
+        self.assertEqual(C.pasar_a_itbms_que_se_suma(self.env), 2)
+        self.assertEqual(viejo.taxes_id, venta)
+        self.assertEqual(a_mano.taxes_id, exento)
+        for producto, (lista, variantes) in precios.items():
+            self.assertEqual(producto.list_price, lista, 'El precio de la lista no cambia')
+            self.assertEqual(producto.product_variant_ids.mapped('lst_price'), variantes)
+        self.assertFalse(incluido.active, 'Sin uso: archivado')
+        self.assertEqual(self.env['website'].get_current_website().show_line_subtotals_tax_selection, 'tax_excluded')
+        self.assertEqual(C.pasar_a_itbms_que_se_suma(self.env), 0, 'Se puede repetir')
+
+
+@tagged('post_install', '-at_install')
+class TestCargaDelArchivo(TransactionCase):
+    """Las reglas de la carga, con productos de prueba (no los del negocio)."""
+
+    def catalogo(self, *productos, atributos=None):
+        return {'fuente': 'Lista de prueba', 'atributos': atributos or {'Talla de prueba': ['CH', 'MED', 'GR']},
+                'productos': list(productos)}
+
+    def variante(self, codigo):
+        return self.env['product.product'].with_context(active_test=False).search([('default_code', '=', codigo)])
+
+    def test_crea_lo_que_falta_con_cada_precio_exacto(self):
+        item = _item('zz-tallas', [
+            {'valor': 'GR', 'codigo': 'ZZ-GR', 'precio': 12.5, 'existencias': 2, 'texto': 'Grande'},
+            {'valor': 'CH', 'codigo': 'ZZ-CH', 'precio': 9.99, 'existencias': None, 'texto': 'Chica'},
+        ], atributo='Talla de prueba', descripcion='Para <probar> el texto')
+        self.assertEqual(cargar_catalogo(self.env, self.catalogo(item)), 1)
+        producto = self.env.ref(f'dcasa_catalogo.{xmlid_de("zz-tallas")}')
+        self.assertEqual(producto.list_price, 9.99)
+        self.assertEqual((self.variante('ZZ-GR').lst_price, self.variante('ZZ-CH').lst_price), (12.5, 9.99))
+        self.assertEqual(self.variante('ZZ-GR').qty_available, 2)
+        self.assertEqual(self.variante('ZZ-CH').qty_available, 0, 'Sin existencias en el archivo: no se ajusta')
+        self.assertFalse(self.env['stock.move'].search_count([('product_id', '=', self.variante('ZZ-CH').id)]))
+        self.assertEqual(producto.attribute_line_ids.product_template_value_ids.sorted().mapped('name'), ['CH', 'GR'],
+                         'El orden del atributo, no el del archivo')
+        self.assertIn('Para &lt;probar&gt; el texto', str(producto.description_ecommerce))
+        self.assertEqual(cargar_catalogo(self.env, self.catalogo(item)), 0, 'La segunda vez no crea nada')
 
     def test_vuelve_a_crear_lo_que_falta(self):
-        # Uno sin movimientos de inventario (el inventario anterior deja existencias en muchos).
-        item = next(i for i in self.catalogo if not self.env['stock.move'].search_count(
-            [('product_id.product_tmpl_id', '=', self.producto(i['codigo']).id)]))
-        self.producto(item['codigo']).unlink()
-        self.assertEqual(cargar_catalogo(self.env), 1)
-        self.assertEqual(self.producto(item['codigo']).name, nombre_en_mayusculas(item['nombre_web']))
+        item = _item('zz-simple', [{'codigo': 'ZZ-SIMPLE', 'precio': 7.0, 'existencias': 0, 'texto': 'Uno'}])
+        cargar_catalogo(self.env, self.catalogo(item))
+        self.env.ref(f'dcasa_catalogo.{xmlid_de("zz-simple")}').unlink()
+        self.assertEqual(cargar_catalogo(self.env, self.catalogo(item)), 1)
+        self.assertEqual(self.variante('ZZ-SIMPLE').dcasa_presentacion, 'Uno')
+
+    def test_un_precio_que_falta_no_se_inventa(self):
+        item = _item('zz-sin-precio', [{'codigo': 'ZZ-SIN-PRECIO', 'precio': None, 'existencias': 3}])
+        with self.assertLogs('odoo.addons.dcasa_catalogo.catalogo', 'WARNING') as registro:
+            self.assertEqual(cargar_catalogo(self.env, self.catalogo(item)), 0)
+        self.assertIn('el precio no se inventa', '\n'.join(registro.output))
+        self.assertFalse(self.variante('ZZ-SIN-PRECIO'))
+
+    def test_un_codigo_que_ya_esta_en_odoo_no_se_duplica(self):
+        """Si alguien (o Brian, con el Excel de un proveedor) ya creó el código, la carga no lo duplica ni lo pisa."""
+        a_mano = self.env['product.template'].create({'name': 'Hecho a mano', 'default_code': 'ZZ-MANO'})
+        item = _item('zz-mano', [{'codigo': 'ZZ-MANO', 'precio': 5.0, 'existencias': 1}])
+        with self.assertLogs('odoo.addons.dcasa_catalogo.catalogo', 'WARNING'):
+            self.assertEqual(cargar_catalogo(self.env, self.catalogo(item)), 0)
+        self.assertEqual(self.variante('ZZ-MANO'), a_mano.product_variant_id)
+
+    def test_la_categoria_sale_del_nombre_como_en_la_importacion_de_brian(self):
+        """Las reglas de ``reglas.CATEGORIAS`` (las de Baby Caleb) y los valores de un producto nuevo: lo mismo que usan
+        el inventario anterior y la importación del Excel de un proveedor con Brian."""
+        impuesto = self.env.ref('base.main_company').account_sale_tax_id
+        for nombre, clave in (('Pañal Nateen Talla M', 'panales'), ('Toallitas húmedas de agua', 'toallitas'),
+                              ('Water wipes Dany Baby', 'toallitas'), ('Fular Moon gris', 'fulares'),
+                              ('Portabebés ergonómico', 'fulares')):
+            self.assertEqual(categoria_de_nombre(nombre), clave, nombre)
+            vals = C.valores_producto_nuevo(self.env, nombre, 10.0, impuesto, categoria_de_nombre(nombre))
+            self.assertEqual(vals['categ_id'], self.env.ref(f'dcasa_catalogo.product_category_{clave}').id, nombre)
+        self.assertIsNone(categoria_de_nombre('Cama tapizada King'), 'Los muebles de D’CASA ya no tienen categoría')
+        self.assertNotIn('categ_id', C.valores_producto_nuevo(self.env, 'Cama', 1.0, impuesto, None))
+
+    def test_un_archivo_mal_escrito_detiene_la_carga(self):
+        malos = [
+            _item('zz-1', [{'valor': 'XS', 'codigo': 'ZZ-XS', 'precio': 1.0}], atributo='Talla de prueba'),
+            _item('zz-2', [{'valor': 'CH', 'codigo': 'ZZ-A', 'precio': 1.0}], atributo='Color que no está'),
+            _item('zz-3', [{'codigo': 'ZZ-B', 'precio': 1.0}, {'codigo': 'ZZ-C', 'precio': 2.0}]),
+            _item('zz-4', [{'codigo': 'ZZ-D', 'precio': 1.0}], categoria='muebles'),
+            _item('zz-5', [{'valor': 'CH', 'codigo': 'ZZ-E', 'precio': 1.0},
+                           {'valor': 'MED', 'codigo': 'ZZ-E', 'precio': 1.0}], atributo='Talla de prueba'),
+        ]
+        for item in malos:
+            with self.subTest(item['clave']), self.assertRaises(ValueError):
+                cargar_catalogo(self.env, self.catalogo(item))
+        self.assertFalse(self.variante('ZZ-B') | self.variante('ZZ-D'), 'No se creó nada a medias')
+
+
+@tagged('post_install', '-at_install')
+class TestFichaConPresentacion(HttpCase):
+    """La ficha de la tienda muestra la presentación de cada talla (unidades y rango de peso), aparte del precio."""
+
+    def test_la_ficha_dice_la_presentacion_de_cada_talla(self):
+        producto = self.env.ref(f'dcasa_catalogo.{xmlid_de("nateen-pants")}')
+        producto.is_published = True
+        html = self.url_open(producto.website_url).text
+        self.assertIn('<dt>Presentación</dt>', html)
+        for codigo in ('NAT-P-L', 'NAT-P-XL', 'NAT-P-XXL'):
+            self.assertIn(LISTA_DEL_DUENO[codigo][0], html, codigo)
 
 
 @tagged('post_install', '-at_install')
@@ -192,4 +362,3 @@ class TestBuscarProductos(TransactionCase):
         self.assertIn(barato, Producto.search([('list_price', '<=', 100)]))
         self.assertNotIn(caro, Producto.search([('list_price', '<=', 100)]))
         self.assertIn(caro, Producto.search([('is_storable', '=', True), ('qty_available', '<=', 0)]))
-

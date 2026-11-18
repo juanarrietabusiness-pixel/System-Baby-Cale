@@ -194,7 +194,10 @@ class TestImportacion(TransactionCase):
         self.assertFalse(king.is_published)
         self.assertTrue(king.allow_out_of_stock_order)
         self.assertEqual(king.dcasa_medidas, 'L × A × Alto: 228 × 223 × 120 cm')
-        self.assertEqual(king.categ_id, self.env.ref('dcasa_base.product_category_recamaras'))
+        # La categoría sale del nombre con las reglas del catálogo (Baby Caleb: pañales, toallitas, fulares): una cama
+        # no es de ninguna, así que queda en la categoría por defecto de Odoo (en Odoo 19, ninguna).
+        por_defecto = self.env['product.template'].default_get(['categ_id']).get('categ_id') or False
+        self.assertEqual(king.categ_id.id, por_defecto)
         self.assertEqual(king.attribute_line_ids.value_ids.name, 'King')
         self.assertTrue(king.image_1920)
         self.assertEqual(Image.open(io.BytesIO(base64.b64decode(king.image_1920))).format, 'JPEG')

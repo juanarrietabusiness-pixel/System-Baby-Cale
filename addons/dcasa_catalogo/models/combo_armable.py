@@ -65,16 +65,11 @@ _TOLERANCIA = 1e-6
 # (y lo que guarda el propio emparejamiento: si alguien lo escribe a mano, se vuelve a calcular).
 CAMPOS_DE_EMPAREJAR = {'sequence', 'dcasa_combo_cama_id', 'dcasa_combo_con_precio', 'dcasa_combo_ahorro_unitario',
                        'dcasa_combo_sin_campana'}
-# Lo que aprobó la dueña (2026-10-23, «si estamos en la misma pagina y si que sea 6.99»): el descuento de cada colchón
-# cuando va con una cama de su medida, sacado de los 73 combos del sistema anterior (cama sola + colchón solo − combo).
-# Referencia: (precio normal con que se aprobó, precio en combo). Los carga una sola vez la migración 19.0.1.12.0 y solo
-# si el colchón sigue a ese precio normal: si cambió, no se adivina (lo pone Gerencia).
-PRECIOS_COMBO_APROBADOS = {
-    'IM-2002': (96.99, 87.00),     # Colchón Imperial Full: descuento $9.99
-    'IM-2001': (81.99, 75.00),     # Colchón Imperial Twin: $6.99
-    'DSRSOQ': (184.99, 159.00),    # Colchón Dulces Sueños Queen: $25.99
-    'CSOK-10': (243.99, 210.00),   # Colchón First Class King: $33.99
-}
+# Precios en combo aprobados por la gerencia: {código del colchón: (precio normal con que se aprobó, precio en combo)}.
+# Se cargan una sola vez (``_dcasa_cargar_precios_combo_aprobados``) y solo si la pieza sigue a ese precio normal: si
+# cambió, no se adivina (lo pone Gerencia). Vacío: las cifras de D'CASA no son de este negocio; los combos de Baby Caleb
+# (si los hay) los decide su dueño.
+PRECIOS_COMBO_APROBADOS = {}
 MAX_CANTIDAD = 20
 MAX_RESULTADOS = 40
 MAX_BUSCAR = 300
@@ -302,7 +297,7 @@ class ProductProduct(models.Model):
 
     @api.model
     def _dcasa_cargar_precios_combo_aprobados(self):
-        """Pone los precios en combo de ``PRECIOS_COMBO_APROBADOS`` (una vez, desde la migración). ``{código:
+        """Pone los precios en combo de ``PRECIOS_COMBO_APROBADOS`` (una vez). ``{código:
         resultado}``: ``cargado``, ``ya_tenia`` (Gerencia ya puso uno: no se pisa), ``no_encontrado``, ``repetido``,
         ``no_es_colchon``, ``sin_medida`` o ``otro_precio`` (el precio normal cambió desde la aprobación)."""
         resultado = {}
