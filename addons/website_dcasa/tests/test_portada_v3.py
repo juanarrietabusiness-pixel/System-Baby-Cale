@@ -88,6 +88,10 @@ class TestPortadaV3(HttpCase):
         cls.con_colores = Plantilla.create({
             **base, 'name': 'ZZPORTADA V3 SOFÁ CON COLORES', 'website_sequence': -4990,
             'attribute_line_ids': [Command.create({'attribute_id': color.id, 'value_ids': [Command.set(color.value_ids.ids)]})]})
+        # «Para dormir mejor» solo sale con algo publicado en Recámaras o Colchones: el catálogo que se instala (Baby Caleb)
+        # no trae camas, así que la prueba pone la suya (después de los 8 de «Lo más buscado»).
+        Plantilla.create({**base, 'name': 'ZZPORTADA V3 CAMA', 'website_sequence': -4980,
+                          'public_categ_ids': [Command.set(cls.env.ref('website_dcasa.public_category_recamaras').ids)]})
 
     def _portada(self):
         return lhtml.fromstring(self.url_open('/').text)
