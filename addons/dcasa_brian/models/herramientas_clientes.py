@@ -219,13 +219,19 @@ class BrianHerramientasClientes(models.AbstractModel):
     def _h_saldo_puntos(self, cliente):
         partner = self._b_contacto(cliente, 'socio').commercial_partner_id
         movimientos = self.env['dcasa.movimiento'].search([('partner_id', '=', partner.id)], limit=10)
-        return {
+        resultado = {
             'socio': partner.display_name,
             'codigo': partner.dcasa_socio_codigo or 'todavía no está en el programa',
             'puntos': partner.dcasa_saldo,
             'ultimos_movimientos': [{'fecha': c.fecha(m.ocurrido_en), 'tipo': TIPOS_MOVIMIENTO.get(m.tipo, m.tipo),
                                      'puntos': m.puntos, 'motivo': m.motivo or ''} for m in movimientos],
         }
+        falta = R.falta_para_acreditar(R.cargar_reglas())
+        if falta:
+            # El saldo es la suma del libro, aunque sea 0; lo que no se hace es inventar por qué no sube.
+            resultado['aviso'] = ('El programa Socios todavía no da puntos: faltan sus cifras en puntos.json '
+                                  f'({" ".join(falta)}). Ninguna compra suma puntos hasta que el dueño las decida.')
+        return resultado
 
     # ------------------------------------------------------------------
     # Construcción

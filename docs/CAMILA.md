@@ -36,7 +36,7 @@ Las redes sociales las llevan la dueña y su compañero de marketing: Camila no 
 |---|---|
 | El tope de 15 días | **Es por cliente** (por correo), no global: a una misma persona le llega como mucho un correo de campaña cada 15 días. Puede haber **varias campañas y varios borradores** a la vez, cada una con su público. El servidor lo cumple al enviar (también por RPC) y queda **registrado quién recibió qué y cuándo** (`dcasa.camila.destinatario`). |
 | A quién va | **Chips del CRM** que se combinan, con su número en vivo: todos con permiso, compraron (90 días), compraron hace más de 6 meses, cotizaron o preguntaron y no compraron, tibios y calientes del CRM, recién agregados (30 días) y de hace más de un año. Siempre cruzados con el permiso, la baja y el tope por cliente; la pantalla dice cuántos quedan fuera y por qué. |
-| Juan | **Juan sabe que el cliente viene del correo y lo usa**: el mensaje de WhatsApp ya viene escrito con naturalidad («Hola, vi el correo de novedades de D'CASA y me interesa (DCN-0007)») y, cuando llega, Juan tiene en su contexto la campaña y sus productos (sin precios: los da Odoo). La conversación queda con la etiqueta «Vino del correo» y la cotización con «Vino del correo: DCN-0007 · asunto». |
+| Juan | **Juan sabe que el cliente viene del correo y lo usa**: el mensaje de WhatsApp ya viene escrito con naturalidad («Hola, vi el correo de novedades de <empresa> y me interesa (DCN-0007)», con el nombre de la empresa de Ajustes) y, cuando llega, Juan tiene en su contexto la campaña y sus productos (sin precios: los da Odoo). La conversación queda con la etiqueta «Vino del correo» y la cotización con «Vino del correo: DCN-0007 · asunto». |
 | Los botones del correo | **El correo puede llevar los dos botones**: «Escríbenos por WhatsApp» y «Visita nuestra tienda en línea» (a la tienda del sitio, `/shop`), o uno solo; se eligen en cada campaña. **Sin ningún botón no sale.** La regla «CTA único» de `CLAUDE.md` es del **sitio web**; para el correo la dueña decidió hoy, **2026-11-06**, que puede llevar los dos. |
 | Enlaces a la tienda | La foto y el nombre de cada producto pueden llevar a su página en la tienda (se elige). Todo enlace a la web lleva `utm_source=correo`, `utm_medium=email` y `utm_campaign=<código de la campaña>` para que Odoo cuente las visitas y ventas de la web con su seguimiento de siempre (UTM); los resultados lo muestran. |
 | Redes sociales | Al pie, **opcional** (se elige en cada campaña): solo las redes que el sitio tiene con enlace (Ajustes del sitio web › redes sociales), en pastillas planas azul marino con letra blanca sobre el fondo blanco. El amarillo nunca toca el blanco. |
@@ -228,7 +228,8 @@ casilla, el botón, el enlace y los crones.
   ni «precio de locura», sin usted («le va a encantar», «su familia») y sin direcciones web, correos ni teléfonos
   escritos. Antes, `reglas.limpiar` pasa el texto por NFKC y **quita** los
   caracteres invisibles (ancho cero, guion suave): «re·mate» con un invisible queda «remate» y no pasa. Al armar, lo
-  que no pasa o si la IA falla queda con el **texto fijo** y la pantalla lo dice. En el redactor, lo que no pasa **no
+  que no pasa o si la IA falla queda con el **texto fijo** y la pantalla lo dice (el asunto fijo es «Lo que hay en
+  <empresa> esta quincena», con el nombre de la empresa de Ajustes: `reglas.asunto_fijo`). En el redactor, lo que no pasa **no
   se guarda** y la pantalla dice por qué, con **«Reintentar»** (`ErrorIA`: «La IA no respondió (…)», «La IA no devolvió
   un texto que se pudiera leer», o el motivo de la revisión): nunca en silencio. Lo que edita una persona pasa por la
   misma revisión.
@@ -238,7 +239,7 @@ casilla, el botón, el enlace y los crones.
   todo correo; esa ruta solo sirve productos publicados), su nombre (Oswald → Arial Narrow), su línea y **el precio**;
   con «enlaces a cada producto», la foto y el nombre llevan a su página de la tienda. «Precios de la tienda en línea al
   dd/mm/aaaa»; **los botones elegidos** dentro de la banda azul: **«Escríbenos por WhatsApp»** amarillo (el amarillo
-  nunca toca el blanco), con el mensaje ya escrito «Hola, vi el correo de novedades de D'CASA y me interesa
+  nunca toca el blanco), con el mensaje ya escrito «Hola, vi el correo de novedades de <empresa> y me interesa
   (DCN-0007)», y/o **«Visita nuestra tienda en línea»** blanco con letra azul marino, a `<sitio>/shop`. Todo enlace a la
   web lleva `?utm_source=correo&utm_medium=email&utm_campaign=DCN-0007` (`_con_utm`; la dirección del sitio es la de
   `website.domain`, nunca escrita a mano). Al pie, si se eligió, **las redes del sitio** que tienen enlace
@@ -401,7 +402,7 @@ los contacten; sin un correo bien escrito); nunca sus nombres ni correos.
 
 ### 3.9 Juan sabe que el cliente viene del correo (etapa 2)
 
-- **El mensaje ya escrito** del botón de WhatsApp: «Hola, vi el correo de novedades de D'CASA y me interesa
+- **El mensaje ya escrito** del botón de WhatsApp: «Hola, vi el correo de novedades de <empresa> y me interesa
   (DCN-0007)» (`reglas.texto_whatsapp`): natural para el cliente y con la marca que Odoo reconoce.
 - **El contexto**: cuando entra ese chat (§3.5), Odoo anota la llegada. En los 3 días siguientes, cada respuesta de
   Odoo a Juan (`/dcasa/juan/v1/mensaje` y `/estado`, `dcasa.conversacion._estado_para_worker`) lleva

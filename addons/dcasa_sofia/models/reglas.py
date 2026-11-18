@@ -33,7 +33,7 @@ MAX_PALABRAS_DE_UN_NOMBRE = 5
 SOLO_EL_NOMBRE = 'solo tiene un nombre: falta el apellido'
 
 # Lo que se puede poner en una plantilla. Cualquier otra {clave} no se acepta al guardarla.
-CLAVES_DE_PLANTILLA = ('nombre', 'vendedora', 'interes', 'cotizacion', 'vence', 'para_cuando', 'que_falta')
+CLAVES_DE_PLANTILLA = ('nombre', 'vendedora', 'empresa', 'interes', 'cotizacion', 'vence', 'para_cuando', 'que_falta')
 _CLAVE = re.compile(r'\{([a-z_]+)\}')
 _CORREO = re.compile(r'[\w.+-]+@[\w-]+(?:\.[\w-]+)+')
 # Un monto o un precio (para que nunca se cuele una cifra en un mensaje desde lo que anotó Juan o dijo el cliente).

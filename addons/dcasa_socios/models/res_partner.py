@@ -321,6 +321,9 @@ class ResPartner(models.Model):
         ficha = self.commercial_partner_id.sudo()
         if not ficha or ficha._is_public():
             return None
+        # Sin las cifras de puntos.json (PENDIENTE) /my no habla de un programa que no da puntos.
+        if not R.programa_disponible(R.cargar_reglas()):
+            return None
         Canje = self.env['dcasa.canje'].sudo()
         return {
             'es_socio': bool(ficha.dcasa_reclamada and ficha.dcasa_socio_estado == 'activo'),

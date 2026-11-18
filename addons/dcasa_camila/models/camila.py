@@ -471,7 +471,7 @@ class DcasaCamila(models.AbstractModel):
     @api.model
     def _textos(self, filas, idea=None, tema=None):
         """``{asunto, entrada, lineas: {id: texto}, fuente, nota}``. Nunca falla: sin IA queda el texto fijo."""
-        fijos = {'asunto': R.ASUNTO_FIJO, 'entrada': R.ENTRADA_FIJA,
+        fijos = {'asunto': R.asunto_fijo(self.env.company.name), 'entrada': R.ENTRADA_FIJA,
                  'lineas': {dato['plantilla'].id: R.linea_fija(grupo) for dato, grupo in filas}}
         datos, nota = {}, ''
         try:
@@ -710,12 +710,14 @@ class DcasaCamila(models.AbstractModel):
             'asunto': R.limpiar(campana.asunto),
             'entrada': R.limpiar(campana.entrada),
             'productos': productos,
-            'whatsapp': correo._whatsapp(R.texto_whatsapp(campana.id)) if campana.boton_whatsapp else '',
+            'whatsapp': correo._whatsapp(R.texto_whatsapp(campana.id, self.env.company.name))
+            if campana.boton_whatsapp else '',
             'tienda': self._con_utm(f'{base}/shop', campana) if campana.boton_web else '',
             'redes': self._redes() if campana.redes else [],
             'logo': enlaces['logo'],
             'base': base,
             'pie': correo._pie(self.env.company),
+            'empresa': self.env.company.name or '',
             'correo_empresa': correo._config()['responder_a'],
             'baja': '{{{RESEND_UNSUBSCRIBE_URL}}}' if para_resend else '#',
             'fecha_precios': correo._fecha(self._dia_panama(campana.precios_del)),

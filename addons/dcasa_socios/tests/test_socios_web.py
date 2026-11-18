@@ -17,7 +17,7 @@ from odoo.tools import SQL
 
 from ..models import reglas as R
 from ..models.sale_order import PARAM_PUNTOS_EN_CARRITO
-from .common import SociosCommon
+from .common import ConReglasDePrueba, SociosCommon
 
 PIN = '482915'
 CLAVE = 'socia-web-2026'
@@ -41,7 +41,7 @@ class CarritoCommon(SociosCommon):
         super().setUp()
         self.socia._dcasa_guardar_pin(PIN)
         self.env['dcasa.movimiento']._asentar(self.socia, 'ajuste', 1500, 'test', motivo='Saldo de prueba')
-        self.diez = self.env.ref('dcasa_socios.premio_desc_10')  # 1,000 puntos = $10
+        self.diez = self.premios[10]  # 1,000 puntos = $10
 
     def modo(self, valor):
         self.env['ir.config_parameter'].sudo().set_param(PARAM_PUNTOS_EN_CARRITO, valor)
@@ -113,7 +113,7 @@ class TestPuntosEnCarrito(CarritoCommon):
     def test_nunca_saldo_negativo(self):
         orden = self.carrito(cantidad=3)
         with self.assertRaisesRegex(UserError, 'Te faltan'):
-            orden._dcasa_usar_puntos_web(premio=self.env.ref('dcasa_socios.premio_desc_25'))
+            orden._dcasa_usar_puntos_web(premio=self.premios[25])
         self.assertEqual(self.socia.dcasa_saldo, 1500)
 
     def test_pedir_escribe_la_ficha_para_serializar_el_saldo(self):
@@ -145,7 +145,7 @@ class TestPuntosEnCarrito(CarritoCommon):
         with self.reglas_con(canje__saldoMinimoParaCanjear=2000):
             ofrecidos = orden._dcasa_valores_puntos_web()['dcasa_premios']
             self.assertNotIn(self.diez, ofrecidos, 'Por debajo del mínimo el premio no se ofrece')
-            self.assertIn(self.env.ref('dcasa_socios.premio_desc_25'), ofrecidos)
+            self.assertIn(self.premios[25], ofrecidos)
             with self.assertRaisesRegex(UserError, 'canje mínimo'):
                 orden._dcasa_usar_puntos_web(premio=self.diez)
         self.assertEqual(self.socia.dcasa_saldo, 1500)
@@ -154,7 +154,7 @@ class TestPuntosEnCarrito(CarritoCommon):
         orden = self.carrito()
         orden._dcasa_usar_puntos_web(premio=self.diez)
         with self.assertRaisesRegex(UserError, 'Ya tienes un premio'):
-            orden._dcasa_usar_puntos_web(premio=self.env.ref('dcasa_socios.premio_desc_5'))
+            orden._dcasa_usar_puntos_web(premio=self.premios[5])
 
     def test_solo_el_socio_con_sesion_de_la_tienda(self):
         publico = self.website.user_id.partner_id
@@ -373,7 +373,7 @@ CUENTAS_DEL_SOCIO = ('/socios/cuenta', '/mi-cuenta/puntos')
 
 
 @tagged('post_install', '-at_install')
-class TestSociosWebHttp(HttpCase):
+class TestSociosWebHttp(ConReglasDePrueba, HttpCase):
     """De punta a punta, como el navegador: catálogo, carrito y la cuenta unificada."""
 
     def setUp(self):
@@ -395,7 +395,7 @@ class TestSociosWebHttp(HttpCase):
         self.socia._dcasa_asegurar_ficha()
         self.socia._dcasa_guardar_pin(PIN)
         self.env['dcasa.movimiento']._asentar(self.socia, 'ajuste', 1500, 'test', motivo='Saldo de prueba')
-        self.diez = self.env.ref('dcasa_socios.premio_desc_10')
+        self.diez = self.premios[10]
         self.authenticate(None, None)
 
     # --- Como el navegador ----------------------------------------------------------------

@@ -149,6 +149,11 @@ class DcasaCanje(models.Model):
         cuántos puntos quiere gastar el socio, y el descuento sale de ``canje.puntosPorDolar``.
         """
         reglas = R.cargar_reglas()
+        # Sin las cifras del canje en puntos.json (PENDIENTE) no se pide ningún premio, por ningún camino (la app, el
+        # carrito web, el mostrador o Brian): ni el código sabría cuándo vencer.
+        if R.falta_para_canjear(reglas):
+            raise UserError(self.env._('Los premios todavía no se pueden pedir: el programa de puntos no está '
+                                       'disponible.'))
         ficha = partner.commercial_partner_id.sudo()
         premio = premio.sudo()
         if premio.libre:

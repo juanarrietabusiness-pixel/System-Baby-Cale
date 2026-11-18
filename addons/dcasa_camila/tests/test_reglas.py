@@ -54,11 +54,20 @@ class TestRevisionDeMarca(BaseCase):
         self.assertEqual(R.elegir_texto(['no es texto'], 'Fijo', 70), ('Fijo', False))
 
     def test_los_textos_fijos_pasan_su_propia_revision(self):
-        self.assertEqual(R.problemas(R.ASUNTO_FIJO, R.MAX_ASUNTO), [])
+        self.assertEqual(R.problemas(R.asunto_fijo('Tienda de Prueba'), R.MAX_ASUNTO), [])
+        self.assertEqual(R.problemas(R.asunto_fijo(''), R.MAX_ASUNTO), [])
         self.assertEqual(R.problemas(R.ENTRADA_FIJA, R.MAX_ENTRADA), [])
         for grupo, texto in R.LINEAS_FIJAS.items():
             with self.subTest(grupo):
                 self.assertEqual(R.problemas(texto, R.MAX_LINEA), [])
+
+    def test_el_asunto_fijo_dice_el_nombre_de_la_empresa_y_no_el_de_otra(self):
+        """Decisión del dueño (2026-11-18): el nombre sale de Ajustes (res.company), nunca del código."""
+        self.assertEqual(R.asunto_fijo('Tienda de Prueba'), 'Lo que hay en Tienda de Prueba esta quincena')
+        self.assertEqual(R.asunto_fijo('  Tienda   de Prueba '), 'Lo que hay en Tienda de Prueba esta quincena')
+        self.assertEqual(R.asunto_fijo(None), 'Lo que hay esta quincena')
+        self.assertFalse(hasattr(R, 'ASUNTO_FIJO'), 'ya no hay un asunto con el nombre escrito a mano')
+        self.assertNotIn("D'CASA", R.texto_whatsapp(3, 'Tienda de Prueba'))
 
     def test_leer_json_de_la_ia(self):
         self.assertEqual(R.leer_json('```json\n{"asunto": "Hola"}\n```'), {'asunto': 'Hola'})
@@ -72,9 +81,11 @@ class TestMarcaYTope(BaseCase):
 
     def test_la_marca_de_la_campana_va_y_vuelve(self):
         self.assertEqual(R.marca(7), 'DCN-0007')
-        texto = R.texto_whatsapp(7)
-        self.assertEqual(texto, "Hola, vi el correo de novedades de D'CASA y me interesa (DCN-0007)",
-                         'Que suene a persona (decisión de la dueña, etapa 2)')
+        texto = R.texto_whatsapp(7, 'Tienda de Prueba')
+        self.assertEqual(texto, 'Hola, vi el correo de novedades de Tienda de Prueba y me interesa (DCN-0007)',
+                         'Que suene a persona (decisión de la dueña, etapa 2), con el nombre de la empresa de Ajustes')
+        self.assertEqual(R.texto_whatsapp(7), 'Hola, vi el correo de novedades y me interesa (DCN-0007)')
+        self.assertEqual(R.campana_de_la_marca(R.texto_whatsapp(7)), 7, 'Odoo la reconoce solo por la marca')
         self.assertEqual(R.campana_de_la_marca(texto), 7)
         self.assertEqual(R.campana_de_la_marca('hola, ref dcn 12 por favor'), 12)
         self.assertIsNone(R.campana_de_la_marca('Hola, quiero la cama de 2 plazas'))

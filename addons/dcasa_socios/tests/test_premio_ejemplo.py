@@ -1,9 +1,10 @@
-"""Premio de ejemplo de la dueña (03/10/2026): «Dos almohadas» por 400 puntos.
+"""El premio de ejemplo «Dos almohadas» (de la empresa de la que se copió el sistema, 03/10/2026).
 
-Las cifras viven en data/premios_data.xml (el catálogo es inventario, no economía del programa).
+Desde el 2026-11-18 una instalación nueva NO lo crea (ni ningún otro premio con cifras): el catálogo arranca vacío y los
+premios los pone el dueño. La función que lo creaba sigue y se prueba aquí con sus cifras de PRUEBA, llamándola a mano.
 """
 from odoo.exceptions import UserError
-from odoo.tests import tagged
+from odoo.tests import TransactionCase, tagged
 
 from .test_socios_web import CarritoCommon
 
@@ -11,16 +12,22 @@ from .test_socios_web import CarritoCommon
 @tagged('post_install', '-at_install')
 class TestPremioEjemploAlmohadas(CarritoCommon):
 
+    def setUp(self):
+        super().setUp()
+        self.recrear()
+
     def ejemplo(self):
         return self.env.ref('dcasa_socios.premio_ejemplo_almohadas')
 
     def recrear(self):
-        """Vuelve a correr la función de datos como en una base nueva."""
-        self.ejemplo().unlink()
+        """Corre la función como lo hacía una base nueva."""
+        anterior = self.env.ref('dcasa_socios.premio_ejemplo_almohadas', raise_if_not_found=False)
+        if anterior:
+            anterior.unlink()
         self.env['ir.config_parameter'].sudo().set_param('dcasa_socios.ejemplo_almohadas_creado', False)
         return self.env['dcasa.premio']._crear_ejemplo_almohadas('Dos almohadas', 400, 'ALMOHADA001', 2)
 
-    def test_se_crea_al_instalar_editable_y_en_el_catalogo(self):
+    def test_se_crea_editable_y_en_el_catalogo(self):
         premio = self.ejemplo()
         self.assertEqual((premio.name, premio.puntos, premio.tipo, premio.cantidad),
                          ('Dos almohadas', 400, 'producto', 2))
@@ -70,3 +77,20 @@ class TestPremioEjemploAlmohadas(CarritoCommon):
         orden = self.carrito()
         with self.assertRaisesRegex(UserError, 'no se puede usar en la tienda web'):
             orden._dcasa_usar_puntos_web(premio=self.ejemplo())
+
+
+@tagged('post_install', '-at_install')
+class TestCatalogoDeFabricaVacio(TransactionCase):
+    """Una instalación nueva no trae premios con cifras (decisión del dueño, 2026-11-18)."""
+
+    def test_no_trae_el_ejemplo_ni_la_escalera_de_descuentos(self):
+        Premio = self.env['dcasa.premio'].sudo().with_context(active_test=False)
+        self.assertFalse(Premio.search([('libre', '=', False)]), 'el catálogo arranca vacío')
+        self.assertFalse(self.env['ir.config_parameter'].sudo().get_param('dcasa_socios.ejemplo_almohadas_creado'))
+        for xmlid in ('premio_ejemplo_almohadas', 'premio_desc_5', 'premio_desc_10', 'premio_desc_25',
+                      'premio_desc_50', 'premio_desc_100'):
+            self.assertFalse(self.env.ref(f'dcasa_socios.{xmlid}', raise_if_not_found=False), xmlid)
+        # Solo queda el premio técnico del canje libre, que no sale en el catálogo.
+        libre = self.env.ref('dcasa_socios.premio_libre_web')
+        self.assertTrue(libre.libre)
+        self.assertNotIn(libre, Premio._catalogo())

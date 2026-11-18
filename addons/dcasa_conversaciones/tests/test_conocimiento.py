@@ -6,6 +6,7 @@ from unittest.mock import patch
 
 from odoo import fields
 from odoo.addons.dcasa_socios.models import reglas as R
+from odoo.addons.dcasa_socios.tests.common import parche_de_reglas_de_prueba
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import BaseCase, new_test_user, tagged
 
@@ -106,8 +107,12 @@ class TestBaseDeConocimiento(JuanCase):
     def test_socios_sale_de_puntos_json_y_nunca_se_guarda(self):
         entrada = self.socios()
         self.assertFalse(entrada.contenido, 'No hay texto guardado que se pueda quedar viejo')
-        self.assertEqual(entrada.contenido_vigente, '\n'.join(redactar(R.cargar_reglas())['resumen']))
-        cambiadas = R.cargar_reglas()
+        # Con puntos.json de fábrica (todo PENDIENTE): solo que el programa todavía no está disponible.
+        self.assertEqual(entrada.contenido_vigente, R.NO_DISPONIBLE)
+        with parche_de_reglas_de_prueba():
+            entrada.invalidate_recordset()
+            self.assertEqual(entrada.contenido_vigente, '\n'.join(redactar(R.cargar_reglas())['resumen']))
+            cambiadas = R.cargar_reglas()
         cambiadas['referido']['puntosAlPadrino'] = 777
         with patch.object(R, 'cargar_reglas', return_value=cambiadas):
             entrada.invalidate_recordset()

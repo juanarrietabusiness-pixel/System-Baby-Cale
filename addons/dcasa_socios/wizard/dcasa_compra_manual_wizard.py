@@ -24,6 +24,10 @@ class DcasaCompraManualWizard(models.TransientModel):
         centavos = R.a_centavos(self.monto)
         if centavos <= 0:
             raise UserError(self.env._('El monto tiene que ser mayor que cero.'))
+        falta = R.falta_para_acreditar(R.cargar_reglas())
+        if falta:
+            raise UserError(self.env._('El programa todavía no da puntos: faltan sus cifras en puntos.json (%s).',
+                                       ' '.join(falta)))
         if self.env['dcasa.compra'].sudo().search_count([('factura_normal', '=', R.factura_normal(self.factura))]):
             raise UserError(self.env._('Esa factura ya dio puntos. Una factura, una carga.'))
         compra = self.env['dcasa.compra']._registrar(

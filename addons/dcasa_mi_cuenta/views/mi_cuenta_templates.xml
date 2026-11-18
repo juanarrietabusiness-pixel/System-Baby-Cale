@@ -202,8 +202,10 @@
 
             <!-- 3. Los puntos (placa azul: el amarillo solo sobre azul) -->
             <section class="o_dcasa_mc_puntos" aria-labelledby="mc_puntos">
-                <h2 id="mc_puntos" class="o_dcasa_mc_kicker">Socios D'CASA · tus puntos</h2>
-                <t t-if="puntos['es_socio']">
+                <!-- Sin las cifras de puntos.json (PENDIENTE) no se promete nada: solo que todavía no está disponible. -->
+                <h2 id="mc_puntos" class="o_dcasa_mc_kicker"><t t-if="puntos['disponible']">Socios D'CASA · tus puntos</t><t t-else="">Tus puntos</t></h2>
+                <p t-if="not puntos['disponible']" class="mb-0 o_dcasa_mc_no_disponible" t-out="puntos['no_disponible']"/>
+                <t t-elif="puntos['es_socio']">
                     <p class="o_dcasa_mc_puntos_n" t-out="puntos['saldo_fmt']"/>
                     <p t-if="puntos['equivale']" class="mb-1">equivalen a <strong t-out="puntos['equivale']"/> en premios</p>
                     <p class="mb-1">Tu código: <strong class="o_dcasa_mc_codigo_claro" t-out="puntos['codigo']"/></p>
@@ -213,8 +215,8 @@
                         <t t-out="puntos['siguiente']['premio']"/>.</p>
                     <p t-if="puntos['alcanza']" class="mb-1">Ya te alcanza para <strong t-out="puntos['alcanza']"/>.</p>
                     <div class="o_dcasa_mc_puntos_ctas">
-                        <a href="/socios/premios" class="btn o_dcasa_mc_btn_amarillo o_dcasa_mc_btn">Ver premios</a>
-                        <a href="/mi-cuenta/puntos#invitar" class="btn o_dcasa_mc_btn_claro o_dcasa_mc_btn">Invitar a un amigo</a>
+                        <a t-if="puntos['canje_disponible']" href="/socios/premios" class="btn o_dcasa_mc_btn_amarillo o_dcasa_mc_btn">Ver premios</a>
+                        <a t-if="puntos['link']" href="/mi-cuenta/puntos#invitar" class="btn o_dcasa_mc_btn_claro o_dcasa_mc_btn">Invitar a un amigo</a>
                     </div>
                 </t>
                 <t t-elif="puntos['suspendido']">
@@ -382,7 +384,23 @@
         <t t-call="dcasa_mi_cuenta.marco">
             <t t-set="titulo">Mis puntos</t>
             <t t-set="pestana">Mis puntos · Mi cuenta</t>
-            <t t-if="not puntos['es_socio']">
+            <t t-if="not puntos['disponible']">
+                <section class="o_dcasa_mc_puntos" aria-labelledby="mc_saldo">
+                    <h2 id="mc_saldo" class="o_dcasa_mc_kicker">Tus puntos</h2>
+                    <p class="mb-0 o_dcasa_mc_no_disponible" t-out="puntos['no_disponible']"/>
+                </section>
+                <!-- Si el libro ya tuviera movimientos (un ajuste de Gerencia), se siguen viendo: son suyos. -->
+                <section t-if="puntos['movimientos']" class="o_dcasa_mc_bloque o_dcasa_mc_tarjeta" aria-labelledby="mc_actividad">
+                    <h2 id="mc_actividad" class="o_dcasa_mc_h2">Tu actividad</h2>
+                    <ul class="o_dcasa_mc_filas" role="list">
+                        <li t-foreach="puntos['movimientos']" t-as="m">
+                            <span><t t-out="m['motivo']"/><span class="o_dcasa_mc_nota d-block" t-out="m['fecha']"/></span>
+                            <strong t-attf-class="#{'o_dcasa_mc_mas' if m['positivo'] else 'o_dcasa_mc_menos'}" t-out="m['puntos']"/>
+                        </li>
+                    </ul>
+                </section>
+            </t>
+            <t t-elif="not puntos['es_socio']">
                 <section class="o_dcasa_mc_puntos">
                     <h2 class="o_dcasa_mc_kicker">Socios D'CASA</h2>
                     <t t-if="puntos['suspendido']">
@@ -433,7 +451,7 @@
                             <t t-out="puntos['siguiente']['premio']"/>.</p>
                     </t>
                     <p t-if="puntos['alcanza']" class="mb-1">Ya te alcanza para <strong t-out="puntos['alcanza']"/>.</p>
-                    <div class="o_dcasa_mc_puntos_ctas">
+                    <div t-if="puntos['canje_disponible']" class="o_dcasa_mc_puntos_ctas">
                         <a href="/socios/premios" class="btn o_dcasa_mc_btn_amarillo o_dcasa_mc_btn">Ver y pedir premios</a>
                     </div>
                 </section>
@@ -445,7 +463,7 @@
                 </section>
 
                 <!-- Invitar -->
-                <section id="invitar" class="o_dcasa_mc_bloque o_dcasa_mc_tarjeta" aria-labelledby="mc_invitar">
+                <section t-if="puntos['link']" id="invitar" class="o_dcasa_mc_bloque o_dcasa_mc_tarjeta" aria-labelledby="mc_invitar">
                     <h2 id="mc_invitar" class="o_dcasa_mc_h2">Invita y gana</h2>
                     <p>Cuando alguien se registra con tu enlace y hace su primera compra, tú ganas
                         <strong t-out="puntos['al_padrino']"/> puntos.</p>

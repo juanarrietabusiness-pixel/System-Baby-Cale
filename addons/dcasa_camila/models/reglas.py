@@ -79,8 +79,8 @@ def leer_chips(valor):
 PREFIJO_MARCA = 'DCN'
 _MARCA = re.compile(r'\bDCN[\s-]?0*(\d{1,7})\b', re.IGNORECASE)
 
-# Lo que se queda si la IA no responde o no pasa la revisión. Con la voz de la marca, sin cifras.
-ASUNTO_FIJO = "Lo que hay en D'CASA esta quincena"
+# Lo que se queda si la IA no responde o no pasa la revisión. Con la voz de la marca, sin cifras. El asunto lleva el
+# nombre de la empresa de Ajustes (``res.company``): ver ``asunto_fijo``.
 ENTRADA_FIJA = ('Te contamos lo que tenemos en la tienda estos días. Si algo te gusta, escríbenos por WhatsApp y te '
                 'ayudamos con medidas, colores y la entrega.')
 LINEAS_FIJAS = {
@@ -216,6 +216,13 @@ def linea_fija(grupo):
     return LINEAS_FIJAS.get(grupo) or LINEAS_FIJAS['tienda']
 
 
+def asunto_fijo(empresa):
+    """El asunto que queda si la IA no responde: «Lo que hay en <empresa> esta quincena». El nombre sale de Ajustes
+    (``res.company.name``), nunca del código; sin nombre, «Lo que hay esta quincena»."""
+    empresa = ' '.join(str(empresa or '').split())
+    return f'Lo que hay en {empresa} esta quincena' if empresa else 'Lo que hay esta quincena'
+
+
 def leer_json(texto):
     """El primer objeto JSON del texto que devolvió la IA (puede venir con ```json … ``` alrededor), o ``{}``."""
     texto = str(texto or '')
@@ -251,10 +258,13 @@ def campana_de_la_marca(texto):
     return int(encontrada.group(1)) if encontrada else None
 
 
-def texto_whatsapp(campana_id):
+def texto_whatsapp(campana_id, empresa=''):
     """El mensaje que llega escrito al WhatsApp de la tienda cuando el cliente toca el botón del correo: que suene a
-    persona (decisión de la dueña, etapa 2), con la marca entre paréntesis para que Odoo sepa de qué campaña vino."""
-    return f"Hola, vi el correo de novedades de D'CASA y me interesa ({marca(campana_id)})"
+    persona (decisión de la dueña, etapa 2), con la marca entre paréntesis para que Odoo sepa de qué campaña vino. El
+    nombre de la empresa sale de Ajustes (``res.company.name``); Odoo reconoce la campaña solo por la marca."""
+    empresa = ' '.join(str(empresa or '').split())
+    de = f' de {empresa}' if empresa else ''
+    return f'Hola, vi el correo de novedades{de} y me interesa ({marca(campana_id)})'
 
 
 # ----------------------------------------------------------------------

@@ -562,7 +562,8 @@ class TestPanelEnElNavegador(PanelUiCase):
     if (document.querySelector(".o_dcj_rapidas")) { throw new Error("el menú se cierra al elegir"); }
     // Esc cierra el menú y borra el atajo a medias.
     await escribir(caja, "/");
-    await esperar(() => document.querySelectorAll(".o_dcj_rapida").length >= 3, "todas las rápidas con solo /");
+    // La semilla trae dos (/ubicacion y /horario): /socios se quitó el 2026-11-18.
+    await esperar(() => document.querySelectorAll(".o_dcj_rapida").length >= 2, "todas las rápidas con solo /");
     tecla(caja, "Escape");
     await esperar(() => !document.querySelector(".o_dcj_rapidas"), "el menú cerrado con Esc");
     console.log("test successful");

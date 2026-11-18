@@ -688,7 +688,7 @@ class TestCanjeDeVendedores(VendedoresCommon):
     def test_los_socios_no_ven_los_premios_de_vendedores_y_viceversa(self):
         self.assertNotIn(self.premio, self.env['dcasa.premio']._catalogo())
         self.assertIn(self.premio, self.env['dcasa.premio']._catalogo_vendedores())
-        premio_socios = self.env.ref('dcasa_socios.premio_desc_10')
+        premio_socios = self.premios[10]
         self.assertNotIn(premio_socios, self.env['dcasa.premio']._catalogo_vendedores())
 
     def test_pedir_gasta_puntos_disponibles_y_da_codigo(self):
@@ -712,7 +712,7 @@ class TestCanjeDeVendedores(VendedoresCommon):
         self.dar_puntos_disponibles(self.ana, 5000)
         with self.assertRaisesRegex(UserError, 'mínimo es de 500'):
             self.env['dcasa.vend.canje']._pedir(self.ana, barato)
-        de_socios = self.env.ref('dcasa_socios.premio_desc_10')
+        de_socios = self.premios[10]
         with self.assertRaisesRegex(UserError, 'no está disponible para vendedores'):
             self.env['dcasa.vend.canje']._pedir(self.ana, de_socios)
 

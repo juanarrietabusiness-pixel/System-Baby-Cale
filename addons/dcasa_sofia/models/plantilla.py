@@ -1,4 +1,4 @@
-"""Los mensajes que Sofía propone, escritos con la voz de D'CASA y editables por Gerencia.
+"""Los mensajes que Sofía propone, escritos con la voz de la marca y editables por Gerencia.
 
 Sofía no inventa nada: arma cada mensaje con una de estas plantillas y los datos que Odoo ya sabe (el nombre de pila si
 la ficha trae uno de verdad, lo que le interesó, el número de su cotización y hasta cuándo vale). No llevan precios ni
@@ -30,6 +30,7 @@ class SofiaPlantilla(models.Model):
     texto = fields.Text(
         'Mensaje', required=True,
         help='Puedes usar: {nombre} (su nombre de pila, si su ficha lo tiene), {vendedora} (quien lo envía), '
+             '{empresa} (el nombre de la empresa, de Ajustes), '
              '{interes} (lo que le interesó), {cotizacion} (número), {vence} (hasta cuándo vale), {para_cuando} '
              '(lo que dijo) y {que_falta} (los datos que faltan). Sin precios ni cifras.')
 

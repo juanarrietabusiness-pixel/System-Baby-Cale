@@ -44,11 +44,11 @@
                 <field name="venia_activada" invisible="1"/>
                 <div class="o_camila_pregunta_cuerpo">
                     <p class="o_camila_pregunta_titulo" invisible="paso == 'casilla'">
-                        ¿<field name="nombre" readonly="1" class="oe_inline"/> quiere recibir novedades de D'CASA por correo?
+                        ¿<field name="nombre" readonly="1" class="oe_inline"/> quiere recibir novedades de <field name="empresa" readonly="1" class="oe_inline"/> por correo?
                     </p>
                     <div class="o_camila_pregunta_paso_casilla" invisible="paso != 'casilla'">
                         <p class="o_camila_pregunta_titulo">
-                            Novedades de D'CASA para <field name="nombre" readonly="1" class="oe_inline"/>
+                            Novedades de <field name="empresa" readonly="1" class="oe_inline"/> para <field name="nombre" readonly="1" class="oe_inline"/>
                         </p>
                         <div class="d-flex align-items-center o_camila_pregunta_casilla">
                             <field name="quiere" nolabel="1" widget="boolean_toggle" class="w-auto me-2"/>

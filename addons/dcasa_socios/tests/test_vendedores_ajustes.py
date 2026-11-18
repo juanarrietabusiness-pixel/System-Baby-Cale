@@ -1,5 +1,6 @@
 """Ajustes › Programa de vendedores: Gerencia cambia las cifras desde una pantalla y los cambios solo rigen hacia
-adelante. Se prueba con las cifras REALES de puntos.json (la capa de ajustes va encima de ellas), sin parches."""
+adelante. Se prueba con el programa completo de PRUEBA (``tests/common.py``) encima de puntos.json, que de fábrica está
+en PENDIENTE (lo que pasa con la fábrica tal cual lo prueba ``test_pendiente.py``)."""
 import json
 import os
 import re
@@ -17,7 +18,9 @@ from odoo.tools import mute_logger
 from ..models import reglas as R
 from ..models import reglas_ajustes as A
 from ..models import reglas_vendedores as RV
-from .common import SociosCommon
+from .common import ConReglasDePrueba, SociosCommon, reglas_de_fabrica
+
+VERSION = reglas_de_fabrica()['version']   # la de puntos.json (las cifras de prueba van encima, con la misma versión)
 
 LOGGER_REGLAS = 'odoo.addons.dcasa_socios.models.vend_reglas'
 PIN = '482915'
@@ -103,7 +106,8 @@ class TestVersionesDeReglas(AjustesCommon):
                                     '  subimos la base  ', R.cargar_reglas())
         v2 = self.Reglas._registrar('ajuste', {}, [], None, R.cargar_reglas())
         self.assertEqual((v1.numero, v2.numero), (1, 2))
-        self.assertEqual((v1.motivo, v2.motivo, v1.tipo, v1.fabrica_version), ('subimos la base', False, 'ajuste', 5))
+        self.assertEqual((v1.motivo, v2.motivo, v1.tipo, v1.fabrica_version),
+                         ('subimos la base', False, 'ajuste', VERSION))
         self.assertEqual(v1.autor, self.env.user.name)
         self.assertLessEqual(abs((v1.vigente_desde - fields.Datetime.now()).total_seconds()), 5)
         self.assertEqual(json.loads(v1.ajustes), {'comision.puntosPorDolarNeto': 4.5})
@@ -193,7 +197,7 @@ class TestLaPantallaDeGerencia(AjustesCommon):
         self.assertTrue(pantalla.dcasa_vend_cargado)
         self.assertEqual(pantalla.dcasa_vend_version_vista, 0)
         self.assertIn('Rigen los valores de fábrica', pantalla.dcasa_vend_estado)
-        self.assertIn('versión 5', pantalla.dcasa_vend_estado)
+        self.assertIn(f'versión {VERSION}', pantalla.dcasa_vend_estado)
 
     def test_los_interruptores_legales_se_ven_apagados(self):
         pantalla = self.abrir()
@@ -211,7 +215,7 @@ class TestLaPantallaDeGerencia(AjustesCommon):
             'antes': '4 %', 'despues': '4.5 %'}])
         self.assertEqual(json.loads(version.ajustes), {'comision.puntosPorDolarNeto': 4.5})
         self.assertEqual(self.vigentes()['comision']['puntosPorDolarNeto'], 4.5)
-        self.assertEqual(version.fabrica_version, 5)
+        self.assertEqual(version.fabrica_version, VERSION)
         # Lo demás sigue siendo de fábrica.
         self.assertEqual(self.vigentes()['comision']['escalones'],
                          RV.seccion(R.cargar_reglas())['comision']['escalones'])
@@ -247,7 +251,7 @@ class TestLaPantallaDeGerencia(AjustesCommon):
         self.guardar(comision_base=4.5, retencion_dias=10)
         self.guardar(comision_base=4.2)
         self.env.invalidate_all()
-        self.assertEqual((antes.puntos, antes.reglas_ajuste, antes.reglas_version), (400, 0, 5))
+        self.assertEqual((antes.puntos, antes.reglas_ajuste, antes.reglas_version), (400, 0, VERSION))
         self.assertEqual(self.ana.dcasa_vend_saldo, saldo_antes, 'El saldo del vendedor no se mueve con un cambio')
         self.assertEqual(asiento.disponible_desde, disponible_desde, 'La ventana de devoluciones tampoco')
         self.assertEqual(self.env['dcasa.vend.movimiento'].search_count([('partner_id', '=', self.ana.id)]), 1)
@@ -461,9 +465,9 @@ class TestLaPantallaDeGerencia(AjustesCommon):
     def test_si_puntos_json_cambia_despues_del_ajuste_la_pantalla_avisa(self):
         self.guardar(comision_base=4.5)
         reglas = R.cargar_reglas()
-        reglas['version'] = 6
+        reglas['version'] = VERSION + 1
         with patch('odoo.addons.dcasa_socios.models.reglas.cargar_reglas', return_value=reglas):
-            self.assertIn('cambiaron a la versión 6', self.abrir().dcasa_vend_estado)
+            self.assertIn(f'cambiaron a la versión {VERSION + 1}', self.abrir().dcasa_vend_estado)
 
     # --- Un fallo de las reglas no rompe una venta -------------------------------------------------------------------
 
@@ -684,7 +688,7 @@ class TestPantallasYVistas(AjustesCommon):
 
 
 @tagged('post_install', '-at_install')
-class TestAjustesEnLaWeb(HttpCase):
+class TestAjustesEnLaWeb(ConReglasDePrueba, HttpCase):
     """Lo que ve el vendedor (los términos y su panel) tiene que coincidir con lo que se le paga."""
 
     def setUp(self):
@@ -714,7 +718,7 @@ class TestAjustesEnLaWeb(HttpCase):
     def test_los_terminos_ensenan_las_cifras_de_fabrica_y_despues_las_ajustadas(self):
         antes = self.texto('/vendedores/terminos')
         self.assertIn('Ganas 4 puntos por cada dólar', antes)
-        self.assertIn('Reglas del programa, versión 5', antes)
+        self.assertIn(f'Reglas del programa, versión {VERSION}', antes)
         self.assertNotIn('ajustes de Gerencia', antes)
         self.ajustar({'comision.puntosPorDolarNeto': 4.5, 'vinculacion.meses': 6, 'retencion.dias': 15,
                       'techos.frenoGlobalPorcentajeDeLaVentaNeta': 2.5, 'canje.vigenciaDelCodigoHoras': 48,
@@ -730,8 +734,8 @@ class TestAjustesEnLaWeb(HttpCase):
         self.assertIn('no pasan del 2.5%', despues)
         self.assertIn('en 48 horas', despues)
         self.assertIn('hasta 4)', despues)
-        self.assertRegex(despues, r'Reglas del programa, versión 5 · con los ajustes de Gerencia número 1, vigentes '
-                                  r'desde el \d\d/\d\d/\d{4}')
+        self.assertRegex(despues, rf'Reglas del programa, versión {VERSION} · con los ajustes de Gerencia número 1, '
+                                  r'vigentes desde el \d\d/\d\d/\d{4}')
 
     def test_los_terminos_avisan_si_gerencia_apago_el_programa(self):
         self.assertNotIn('todavía no está encendido', self.texto('/vendedores/terminos'))

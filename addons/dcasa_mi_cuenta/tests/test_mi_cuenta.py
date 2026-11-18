@@ -238,7 +238,7 @@ class TestMiCuentaHttp(MiCuentaComun, HttpCase):
 
     def test_puntos_ordenados_para_el_mostrador(self):
         self.env['dcasa.movimiento']._asentar(self.socia, 'ajuste', 1500, 'test', motivo='Saldo de prueba')
-        canje = self.env['dcasa.canje']._pedir(self.socia, self.env.ref('dcasa_socios.premio_desc_5'))
+        canje = self.env['dcasa.canje']._pedir(self.socia, self.premios[5])
         self.entrar()
         html = self.url_open('/mi-cuenta/puntos').text
         saldo = self.socia.dcasa_saldo

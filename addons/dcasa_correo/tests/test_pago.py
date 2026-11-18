@@ -7,6 +7,7 @@ from unittest.mock import patch
 import requests
 
 from odoo import Command, fields
+from odoo.addons.dcasa_socios.tests.common import parche_de_reglas_de_prueba
 from odoo.tests import tagged
 
 from ..models.resend import PREFIJO_REINTENTAR
@@ -71,6 +72,8 @@ class TestPago(CorreoCase):
 
     def test_el_pago_no_falla_si_encolar_revienta(self):
         self.encender()
+        # Cifras de PRUEBA de Socios (puntos.json de fábrica está en PENDIENTE y ahí no se registra ninguna compra).
+        self.startPatcher(parche_de_reglas_de_prueba())
         factura = self.factura()
         ruta = 'odoo.addons.dcasa_correo.models.correo_envio.DcasaCorreoEnvio._encolar_pagos'
         with patch(ruta, side_effect=Exception('se cayó la cola')), \

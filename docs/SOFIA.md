@@ -10,7 +10,8 @@ proponga mensajes y seguimientos según el estado de cada cliente, mantenga el C
 * **Gerencia ve y aprueba todo; cada vendedora lo suyo**, con un resumen por Telegram cada mañana.
 * **Campaña de datos** (mismo día): a los tibios y calientes que llegaron por WhatsApp o redes con un emoji, una frase o
   una empresa como nombre, o sin correo, un mensaje profesional que les pide su nombre y apellido y su correo para
-  avisarles de promociones, del programa Socios y de los beneficios de cumpleaños.
+  avisarles de promociones (desde el 2026-11-18 sin ofrecer el programa Socios ni beneficios de cumpleaños: el
+  programa de esta copia no tiene cifras).
 
 ## Dónde está
 
@@ -130,7 +131,9 @@ puede corregir o borrar cualquier dato, y toca:
   aprobada en esa misma confirmación. Un doble clic, otra persona o Odoo repitiendo la petición la encuentran resuelta;
   si fue la misma persona hace un momento, contesta «ya quedó» en vez de un error.
 * **No inventa cifras.** Los mensajes salen de plantillas (CRM › Configuración › Sofía) con datos que Odoo ya sabe: el
-  nombre de pila, lo que le interesó, el número de su cotización y hasta cuándo vale. Una plantilla no acepta claves
+  nombre de pila, lo que le interesó, el número de su cotización y hasta cuándo vale. El nombre de la empresa sale de
+  Ajustes con `{empresa}` (`res.company.name`, 2026-11-18), igual que `{vendedora}`: ninguna plantilla de fábrica
+  escribe el nombre a mano. Son `noupdate`: una base que ya tenía las de antes las conserva (Gerencia las cambia ahí). Una plantilla no acepta claves
   que Sofía no sabe llenar. Sin precios ni cifras del programa Socios: eso lo confirma la vendedora. Si lo que anotó
   Juan («lo que le interesó») o lo que dijo el cliente («para cuándo») trae un monto, no se usa.
 * **No escribe a quien pidió que no lo contacten**, ni a empleados, usuarios o la empresa propia. Fuera de las 24 horas

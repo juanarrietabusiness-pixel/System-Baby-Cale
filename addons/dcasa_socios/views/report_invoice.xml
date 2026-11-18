@@ -27,7 +27,7 @@
                             Premio cobrado en este pedido: <strong t-out="canje.premio_nombre"/>
                             (código <t t-out="canje.codigo"/>, <t t-out="canje.puntos"/> puntos)
                         </div>
-                        <div>
+                        <div t-if="dcasa_socios['disponible']" name="dcasa_socios_donde">
                             Revísalos y canjéalos en
                             <t t-if="dcasa_socios['web']"><span t-out="dcasa_socios['web']"/>/socios</t>
                             <t t-else="">la sección Socios D'CASA de nuestra web</t>

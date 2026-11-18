@@ -69,10 +69,14 @@ class TestSofia(JuanCase):
         self.assertEqual(propuesta.usuario_id, self.vendedora)
         self.assertEqual(propuesta.prioridad, 3)
         texto = self.Sofia.with_user(self.vendedora)._texto(propuesta, self.vendedora)
-        self.assertTrue(texto.startswith("¡Hola! Soy Vendedora de D'CASA."), texto)
+        # El nombre de la empresa sale de Ajustes (res.company), no del texto de la plantilla.
+        self.assertTrue(texto.startswith(f"¡Hola! Soy Vendedora de {self.env.company.name}."), texto)
         self.assertIn('sofá gris', texto)
         self.assertIn('tu nombre y apellido y tu correo', texto)
-        self.assertIn('programa Socios', texto)
+        self.assertIn('Así te avisamos de promociones.', texto)
+        # Sin ofrecer el programa de puntos ni regalos de cumpleaños (decisión del dueño, 2026-11-18).
+        self.assertNotIn('Socios', texto)
+        self.assertNotIn('cumplea', texto)
         self.assertNotIn('{', texto)
         self.assertNotIn('$', texto, 'nunca cifras')
         self.assertNotIn('🙏', texto)

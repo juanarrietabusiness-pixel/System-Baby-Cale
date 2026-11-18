@@ -47,7 +47,7 @@ from .campana import ABIERTAS
 _logger = logging.getLogger(__name__)
 
 P_SEGMENTO = 'dcasa_camila.segmento_id'
-NOMBRE_SEGMENTO = "D'CASA: campaña que sale (Odoo)"
+NOMBRE_SEGMENTO = '{empresa}: campaña que sale (Odoo)'   # el nombre de la empresa sale de Ajustes (res.company)
 MAX_SUBIR_AL_ENVIAR = 300      # contactos que entran al segmento en un clic «Enviar» (el resto, al reintentar)
 MAX_SACAR_AL_ENVIAR = 300      # y los que salen: una vuelta corta no pasa la ventana de «enviándose»
 MINUTOS_ENVIANDO = 10          # «ya se está enviando» (otra persona o un doble clic)
@@ -91,7 +91,8 @@ class DcasaCamila(models.AbstractModel):
         ICP = self.env['ir.config_parameter'].sudo()
         segmento = (ICP.get_param(P_SEGMENTO) or '').strip()
         if not segmento:
-            segmento = cliente.buscar_o_crear_segmento(NOMBRE_SEGMENTO)
+            segmento = cliente.buscar_o_crear_segmento(
+                NOMBRE_SEGMENTO.format(empresa=(self.env.company.name or '').strip() or 'Odoo'))
             ICP.set_param(P_SEGMENTO, segmento)
         return segmento
 

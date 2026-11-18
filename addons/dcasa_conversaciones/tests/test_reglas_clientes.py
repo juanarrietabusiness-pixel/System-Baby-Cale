@@ -3,6 +3,7 @@ import copy
 import re
 
 from odoo.addons.dcasa_socios.models import reglas as R
+from odoo.addons.dcasa_socios.tests.common import reglas_de_prueba
 from odoo.tests import BaseCase, tagged
 
 from ..models.reglas_clientes import redactar
@@ -28,7 +29,8 @@ class TestReglasParaClientes(BaseCase):
 
     def setUp(self):
         super().setUp()
-        self.reglas = R.cargar_reglas()
+        # Cifras de PRUEBA encima de puntos.json (que de fábrica está todo en PENDIENTE: ver la última prueba).
+        self.reglas = reglas_de_prueba()
 
     def test_explica_el_programa_con_las_cifras_reales(self):
         texto = ' '.join(redactar(self.reglas, 'https://dcasapty.com')['resumen'])
@@ -72,18 +74,43 @@ class TestReglasParaClientes(BaseCase):
     def test_un_valor_null_no_se_rellena_a_ojo(self):
         pendientes = copy.deepcopy(self.reglas)
         pendientes['referido']['puntosAlPadrino'] = None
-        pendientes['acumulacion']['puntosPorDolar'] = None
+        pendientes['cumpleanos']['puntos'] = None
         pendientes['canje']['saldoMinimoParaCanjear'] = 'PENDIENTE DE CONFIRMAR'
         resultado = redactar(pendientes)
+        self.assertTrue(resultado['disponible'], 'con la acumulación decidida, el programa existe')
         texto = ' '.join(resultado['resumen'])
-        self.assertNotIn('por cada dólar', texto)
+        self.assertIn('por cada dólar', texto)
         self.assertNotIn('tú ganas', texto)
+        self.assertNotIn('cumpleaños', texto)
         self.assertNotIn('Para canjear necesitas', texto)
         self.assertNotIn('PENDIENTE', texto)
         self.assertEqual(sorted(resultado['pendientes']), [
-            'acumulacion.puntosPorDolar', 'canje.saldoMinimoParaCanjear', 'referido.puntosAlPadrino'])
-        for clave in ('puntos_por_dolar', 'puntos_al_padrino', 'saldo_minimo_para_canjear'):
+            'canje.saldoMinimoParaCanjear', 'cumpleanos.puntos', 'referido.puntosAlPadrino'])
+        for clave in ('puntos_al_padrino', 'saldo_minimo_para_canjear', 'puntos_de_cumpleanos'):
             self.assertNotIn(clave, resultado['cifras'])
+
+    def test_sin_puntos_por_dolar_el_programa_no_esta_disponible(self):
+        pendientes = copy.deepcopy(self.reglas)
+        pendientes['acumulacion']['puntosPorDolar'] = None
+        resultado = redactar(pendientes, 'https://tienda.example.com')
+        self.assertFalse(resultado['disponible'])
+        self.assertEqual(resultado['resumen'], [R.NO_DISPONIBLE])
+        self.assertEqual((resultado['cifras'], resultado['enlaces']), ({}, {}))
+        self.assertEqual(resultado['pendientes'], ['acumulacion.puntosPorDolar'])
+
+    def test_con_el_puntos_json_de_fabrica_dice_que_no_esta_disponible_y_no_da_cifras(self):
+        """Todo en PENDIENTE (decisión del dueño, 2026-11-18): el asistente dice que el programa todavía no está
+        disponible, no da ninguna cifra y sabe que no debe prometer puntos, premios ni cumpleaños."""
+        resultado = redactar(R.cargar_reglas(), 'https://tienda.example.com')
+        self.assertFalse(resultado['disponible'])
+        self.assertEqual(resultado['resumen'], [R.NO_DISPONIBLE])
+        self.assertEqual(resultado['cifras'], {})
+        self.assertEqual(resultado['enlaces'], {}, 'no manda a registrarse a un programa sin cifras')
+        self.assertIn('acumulacion.puntosPorDolar', resultado['pendientes'])
+        self.assertIn('referido.puntosAlPadrino', resultado['pendientes'])
+        for texto in (*resultado['resumen'], resultado['aviso']):
+            self.assertFalse(re.findall(r'\d', texto), texto)
+        self.assertIn('no prometas puntos', resultado['aviso'])
 
     def test_el_json_real_no_tiene_pendientes_de_cifras_que_se_expliquen(self):
         # El tope por compra («PENDIENTE DE CONFIRMAR POR MARCIAL») es un comentario interno, no una cifra pendiente.

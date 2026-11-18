@@ -568,6 +568,12 @@ class DcasaMiCuenta(models.AbstractModel):
         """Lo que antes enseñaba /socios/cuenta, para el mostrador. Cifras de reglas solo de puntos.json; el saldo es
         la suma del libro (dcasa_saldo)."""
         reglas = R.cargar_reglas()
+        # Sin las cifras de puntos.json (PENDIENTE) no se promete nada: ni puntos, ni premios, ni invitar. La plantilla
+        # dice que el programa todavía no está disponible.
+        disponible = R.programa_disponible(reglas)
+        canje_disponible = not R.falta_para_canjear(reglas)
+        al_padrino = reglas['referido'].get('puntosAlPadrino')
+        invita = disponible and al_padrino is not None
         ficha = ficha.commercial_partner_id.sudo()
         saldo = ficha.dcasa_saldo
         es_socio = bool(ficha.active and ficha.dcasa_reclamada and ficha.dcasa_socio_estado == 'activo')
@@ -592,7 +598,8 @@ class DcasaMiCuenta(models.AbstractModel):
             'estado': estados.get(canje.estado, canje.estado),
             'entregado': canje.estado == 'entregado',
         } for canje in Canje.search([('partner_id', '=', ficha.id), ('estado', '!=', 'solicitado')], limit=10)]
-        premios = self.env['dcasa.premio']._catalogo().sorted(lambda p: (p.puntos, p.id))
+        premios = self.env['dcasa.premio']._catalogo().sorted(lambda p: (p.puntos, p.id)) if canje_disponible \
+            else self.env['dcasa.premio']
         alcanzables = premios.filtered(lambda p: p.puntos <= saldo)
         siguiente = premios.filtered(lambda p: p.puntos > saldo)[:1]
         tipos = dict(self.env['dcasa.movimiento']._fields['tipo'].selection)
@@ -603,10 +610,13 @@ class DcasaMiCuenta(models.AbstractModel):
             'positivo': movimiento.puntos > 0,
         } for movimiento in self.env['dcasa.movimiento'].sudo().search([('partner_id', '=', ficha.id)], limit=30)]
         codigo = ficha.dcasa_socio_codigo or ''
-        link = f'{(base_url or "").rstrip("/")}/r/{codigo}' if codigo and es_socio else ''
-        texto = (f"Te invito a D'CASA Panamá: muebles, colchones y todo para tu casa. Regístrate con mi código "
+        link = f'{(base_url or "").rstrip("/")}/r/{codigo}' if codigo and es_socio and invita else ''
+        texto = (f"Te invito a {self.env.company.name}. Regístrate con mi código "
                  f"{codigo} y con tu primera compra ganamos los dos: {link}")
         return {
+            'disponible': disponible,
+            'canje_disponible': canje_disponible,
+            'no_disponible': R.NO_DISPONIBLE,
             'es_socio': es_socio,
             'suspendido': ficha.dcasa_socio_estado != 'activo',
             'saldo': saldo,
@@ -626,7 +636,7 @@ class DcasaMiCuenta(models.AbstractModel):
             'link': link,
             'invitar': f'https://wa.me/?text={quote(texto)}' if link else '',
             'qr': f'/report/barcode/?barcode_type=QR&value={quote(link, safe="")}&width=220&height=220' if link else '',
-            'al_padrino': R.como_puntos(reglas['referido']['puntosAlPadrino']),
+            'al_padrino': R.como_puntos(al_padrino) if invita else '',
             'horas': reglas['canje']['vigenciaDelCodigoHoras'],
             'vendedor': bool(ficha.dcasa_vendedor_codigo),
         }

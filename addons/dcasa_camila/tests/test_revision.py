@@ -473,8 +473,8 @@ class TestRevisionDeMarcaMasDura(BaseCase):
 
     def test_lo_de_siempre_sigue_pasando(self):
         for texto in ('Llegaron muebles nuevos para tu sala. Escríbenos por WhatsApp y te contamos.',
-                      'Una cama lista para tu recámara, con espacio para guardar.', R.ASUNTO_FIJO, R.ENTRADA_FIJA,
-                      *R.LINEAS_FIJAS.values()):
+                      'Una cama lista para tu recámara, con espacio para guardar.', R.asunto_fijo('Tienda de Prueba'),
+                      R.ENTRADA_FIJA, *R.LINEAS_FIJAS.values()):
             with self.subTest(texto):
                 self.assertEqual(R.problemas(texto, 300), [])
 

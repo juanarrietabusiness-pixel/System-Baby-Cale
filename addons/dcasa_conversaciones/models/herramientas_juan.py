@@ -517,6 +517,9 @@ class BrianHerramientasJuan(models.AbstractModel):
     )
     def _juan_saldo_puntos(self, celular, pin):
         conversacion = self._j_conversacion()
+        if not R.programa_disponible(R.cargar_reglas()):
+            # Sin las cifras de puntos.json (PENDIENTE) no hay puntos que consultar: ni se pide el PIN.
+            return self._j_no_verificado('programa_no_disponible', R.NO_DISPONIBLE)
         if conversacion.canal not in CANALES_CON_CELULAR:
             return self._j_no_verificado(
                 'canal_sin_celular', 'Por este canal no puedo comprobar tu número. Escríbenos por WhatsApp '

@@ -5,9 +5,11 @@ from unittest.mock import patch
 from odoo import Command
 from odoo.tests import HttpCase, TransactionCase, tagged
 
+from .common import ConReglasDePrueba
+
 
 @tagged('post_install', '-at_install')
-class TestAppSocio(HttpCase):
+class TestAppSocio(ConReglasDePrueba, HttpCase):
     """La app del socio de punta a punta: registro, entrar, candado, reclamar, canjear."""
 
     def setUp(self):
@@ -151,7 +153,7 @@ class TestAppSocio(HttpCase):
         self.registrar()
         socio = self.Partner.search([('dcasa_celular', '=', '61234567')])
         self.env['dcasa.movimiento']._asentar(socio, 'ajuste', 600, 'test', motivo='Saldo')
-        premio = self.env.ref('dcasa_socios.premio_desc_5')
+        premio = self.premios[5]
         cuenta = self.post('/socios/canjear', premio_id=premio.id)
         canje = self.env['dcasa.canje'].search([('partner_id', '=', socio.id)])
         self.assertIn(canje.codigo, cuenta.text)

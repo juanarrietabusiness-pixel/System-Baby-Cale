@@ -8,9 +8,11 @@ from unittest.mock import patch
 
 from odoo.tests import HttpCase, tagged
 
+from .common import ConReglasDePrueba
+
 
 @tagged('post_install', '-at_install')
-class TestRegistroCorreo(HttpCase):
+class TestRegistroCorreo(ConReglasDePrueba, HttpCase):
 
     def setUp(self):
         super().setUp()

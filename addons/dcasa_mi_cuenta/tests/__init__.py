@@ -2,3 +2,4 @@ from . import test_mi_cuenta
 from . import test_movil
 from . import test_ataques
 from . import test_opiniones
+from . import test_pendiente

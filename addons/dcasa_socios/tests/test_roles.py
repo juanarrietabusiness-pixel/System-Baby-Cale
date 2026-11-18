@@ -46,7 +46,7 @@ class TestRolesSocios(SociosCommon):
     def test_vendedora_cobra_premio_aunque_la_linea_sea_negativa(self):
         """El premio rebaja más que el tope de descuento, pero lo pagan los puntos: no cuenta."""
         self.env['dcasa.movimiento']._asentar(self.padrino, 'ajuste', 1500, 'test', motivo='Saldo de prueba')
-        canje = self.env['dcasa.canje']._pedir(self.padrino, self.env.ref('dcasa_socios.premio_desc_10'))
+        canje = self.env['dcasa.canje']._pedir(self.padrino, self.premios[10])
         orden = self.env['sale.order'].with_user(self.vendedora).create({
             'partner_id': self.padrino.id,
             'order_line': [Command.create({'product_id': self.producto.id, 'product_uom_qty': 1})],
@@ -60,7 +60,7 @@ class TestRolesSocios(SociosCommon):
         """La marca «premio cobrado» exime a la línea del tope de descuento: solo la pone el sistema al aplicar el
         canje. Si la vendedora la escribiera a mano, una rebaja cualquiera pasaría por premio (revisión adversarial)."""
         self.env['dcasa.movimiento']._asentar(self.padrino, 'ajuste', 1500, 'test', motivo='Saldo de prueba')
-        canje = self.env['dcasa.canje']._pedir(self.padrino, self.env.ref('dcasa_socios.premio_desc_10'))
+        canje = self.env['dcasa.canje']._pedir(self.padrino, self.premios[10])
         orden = self.env['sale.order'].with_user(self.vendedora).create({
             'partner_id': self.padrino.id,
             'order_line': [Command.create({'product_id': self.producto.id, 'product_uom_qty': 1})],

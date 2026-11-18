@@ -201,6 +201,9 @@ class TestAjustesSinDisenador(GuardarAjustesComoElNavegador):
     """
 
     def test_la_duena_guarda_el_programa_de_vendedores(self):
+        # Cifras de PRUEBA del programa (puntos.json de fábrica está en PENDIENTE y esa pantalla no guarda sin ellas).
+        from odoo.addons.dcasa_socios.tests.common import parche_de_reglas_de_prueba  # noqa: PLC0415
+        self.startPatcher(parche_de_reglas_de_prueba())
         for xmlid in GRUPOS_EDITOR:
             self.assertFalse(self.duena.has_group(xmlid), xmlid)
         Reglas = self.env['dcasa.vend.reglas']

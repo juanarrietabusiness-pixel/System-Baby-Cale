@@ -382,7 +382,7 @@ class TestRevision2Baja(Revision2Comun):
         self.assertFalse(pasan)
         # Lo de siempre sigue pasando (de tú, sin cifras ni promesas).
         for buena in ('Para tu sala, cómoda y firme.', 'Te va a encantar en tu recámara.',
-                      'Su tela es suave y fácil de limpiar.', R.ASUNTO_FIJO, R.ENTRADA_FIJA,
+                      'Su tela es suave y fácil de limpiar.', R.asunto_fijo('Tienda de Prueba'), R.ENTRADA_FIJA,
                       *R.LINEAS_FIJAS.values()):
             self.assertEqual(R.problemas(buena, R.MAX_ENTRADA), [], buena)
 

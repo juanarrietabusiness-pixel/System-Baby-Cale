@@ -116,6 +116,19 @@ def _vencimiento_y_cumpleanos(reglas):
 def redactar(reglas, base_url=''):
     """Reglas del programa en lenguaje de cliente: ``{version, resumen, cifras, pendientes, enlaces, aviso}``."""
     base = (base_url or '').rstrip('/')
+    if not R.programa_disponible(reglas):
+        # Sin las cifras de acumulación (PENDIENTE) no hay programa que explicar: ni puntos, ni premios, ni
+        # cumpleaños. El asistente lo dice así y no promete nada.
+        return {
+            'version': reglas.get('version'),
+            'disponible': False,
+            'resumen': [R.NO_DISPONIBLE],
+            'cifras': {},
+            'pendientes': [p for p in _pendientes(reglas) if p != 'vencimiento.meses'],
+            'enlaces': {},
+            'aviso': ('El programa de puntos todavía no está disponible: no prometas puntos, premios, invitaciones ni '
+                      'regalos de cumpleaños, ni digas cifras. Si el cliente insiste, una vendedora le confirma.'),
+        }
     resumen, cifras = [], {}
     for seccion in (_como_se_ganan, _como_se_usan, _referidos, _vencimiento_y_cumpleanos):
         lineas, valores = seccion(reglas)
@@ -125,6 +138,7 @@ def redactar(reglas, base_url=''):
     pendientes = [p for p in _pendientes(reglas) if p != 'vencimiento.meses']
     return {
         'version': reglas.get('version'),
+        'disponible': True,
         'resumen': resumen,
         'cifras': cifras,
         'pendientes': pendientes,

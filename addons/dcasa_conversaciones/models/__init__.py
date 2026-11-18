@@ -24,4 +24,3 @@ from . import herramientas_conversaciones
 # El horario de la tienda en el sitio (Visítanos y el pie), de estos mismos ajustes (2026-11-13).
 from . import horario_sitio
 # Solo para el entorno de prueba.
-from . import ejemplos

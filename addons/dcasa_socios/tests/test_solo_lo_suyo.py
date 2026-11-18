@@ -61,7 +61,7 @@ class TestSociosSoloLoSuyo(VendedoresCommon):
         self.assertEqual(compra.vendedor_id, self.b)
         self._cerrado(compra, self.a)
         self.env['dcasa.movimiento']._asentar(self.padrino, 'ajuste', 1500, 'test', motivo='Saldo de prueba')
-        canje = self.env['dcasa.canje']._pedir(self.padrino, self.env.ref('dcasa_socios.premio_desc_10'))
+        canje = self.env['dcasa.canje']._pedir(self.padrino, self.premios[10])
         orden = self.env['sale.order'].with_user(self.a).create({
             'partner_id': self.padrino.id,
             'order_line': [Command.create({'product_id': self.producto.id, 'product_uom_qty': 1})],

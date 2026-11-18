@@ -39,10 +39,6 @@
         <field name="texto">{nombre}, nuestro equipo atiende {horario}.</field>
         <field name="sequence">20</field>
     </record>
-    <record id="respuesta_socios" model="dcasa.respuesta.rapida">
-        <field name="atajo">/socios</field>
-        <field name="descripcion">Qué es Socios D'CASA (sin cifras)</field>
-        <field name="texto">{nombre}, con Socios D'CASA acumulas puntos en tus compras y los canjeas. Si quieres, te cuento cómo funciona y cómo registrarte.</field>
-        <field name="sequence">30</field>
-    </record>
+    <!-- Sin «/socios» (decisión del dueño, 2026-11-18): el programa de puntos no tiene cifras todavía y la respuesta
+         solo servía para ofrecerlo. Cuando el dueño lo encienda, la escribe él con su texto desde el menú. -->
 </odoo>

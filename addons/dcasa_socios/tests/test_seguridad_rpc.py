@@ -84,7 +84,7 @@ class TestSeguridadRpcSocios(SociosCommon):
 
     def canje(self):
         self.env['dcasa.movimiento']._asentar(self.padrino, 'ajuste', 1500, 'test', motivo='Saldo de prueba')
-        return self.env['dcasa.canje']._pedir(self.padrino, self.env.ref('dcasa_socios.premio_desc_10'))
+        return self.env['dcasa.canje']._pedir(self.padrino, self.premios[10])
 
     def test_portal_e_interno_no_tocan_canjes(self):
         canje = self.canje()
@@ -100,6 +100,6 @@ class TestSeguridadRpcSocios(SociosCommon):
         self.assertTrue(self.rpc(self.vendedora, 'dcasa.canje', 'action_entregar', canje.ids))
         self.assertEqual(canje.estado, 'entregado')
         self.assertEqual(canje.entregado_por, 'rpc_vendedora')
-        otro = self.env['dcasa.canje']._pedir(self.padrino, self.env.ref('dcasa_socios.premio_desc_5'))
+        otro = self.env['dcasa.canje']._pedir(self.padrino, self.premios[5])
         self.assertTrue(self.rpc(self.vendedora, 'dcasa.canje', 'action_cancelar', otro.ids))
         self.assertEqual(otro.estado, 'cancelado')

@@ -115,12 +115,19 @@ class DcasaVendAjustesMixin(models.AbstractModel):
         Reglas = self.env['dcasa.vend.reglas']
         Reglas._exigir_gerencia()
         _base, actuales, version = Reglas._estado()
-        valores = {f'dcasa_vend_{clave}': valor for clave, valor in A.valores_de_pantalla(actuales).items()}
         canje = RV.seccion(actuales).get('canje') or {}
-        valores.update(
-            dcasa_vend_externos=bool(canje.get('externosHabilitado')),
-            dcasa_vend_efectivo=bool(canje.get('efectivoHabilitado')),
-            dcasa_vend_cargado=True, dcasa_vend_version_vista=version.get('numero', 0))
+        valores = {'dcasa_vend_externos': bool(canje.get('externosHabilitado')),
+                   'dcasa_vend_efectivo': bool(canje.get('efectivoHabilitado')),
+                   'dcasa_vend_version_vista': version.get('numero', 0)}
+        try:
+            pantalla = A.valores_de_pantalla(actuales)
+        except R.FaltaConfigurar:
+            # Sin canje.puntosPorDolar (PENDIENTE en puntos.json) las cifras no se pueden decir en dólares: la pantalla
+            # se abre igual, el resumen dice qué falta y guardar no toca nada.
+            valores['dcasa_vend_cargado'] = False
+            return valores
+        valores.update({f'dcasa_vend_{clave}': valor for clave, valor in pantalla.items()})
+        valores['dcasa_vend_cargado'] = True
         return valores
 
     def _dcasa_vend_pantalla(self):
@@ -227,6 +234,10 @@ class DcasaVendAjustesMixin(models.AbstractModel):
         Reglas._exigir_gerencia()
         if not self.dcasa_vend_cargado:
             if estricto:
+                try:
+                    A.puntos_por_dolar(Reglas._estado()[1])
+                except R.FaltaConfigurar as error:
+                    raise UserError(self.env._('No se guardó nada: %s', str(error))) from error
                 raise UserError(self.env._('La pantalla no cargó las cifras del programa. Ciérrala, ábrela de nuevo '
                                            'y vuelve a intentar.'))
             return Reglas.browse()

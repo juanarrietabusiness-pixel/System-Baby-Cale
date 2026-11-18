@@ -6,6 +6,7 @@ from datetime import timedelta
 from unittest.mock import patch
 
 from odoo import Command, fields
+from odoo.addons.dcasa_socios.tests.common import parche_de_reglas_de_prueba, premios_de_prueba
 from odoo.tests import new_test_user
 
 PIN = '482915'
@@ -17,8 +18,13 @@ CALLE = 'Calle Secreta 123'
 
 class MiCuentaComun:
 
-    def preparar(self):
+    def preparar(self, con_cifras_de_prueba=True):
         self.startPatcher(patch.dict(os.environ, {'DCASA_PIN_PEPPER': 'pimienta-de-prueba'}))
+        # Las cifras de PRUEBA de Socios (puntos.json de fábrica está en PENDIENTE): así se sigue viendo cómo enseña
+        # Mi cuenta los puntos. Lo que pasa con la fábrica tal cual lo prueba ``test_pendiente.py``.
+        if con_cifras_de_prueba:
+            self.startPatcher(parche_de_reglas_de_prueba())
+            self.premios = premios_de_prueba(self.env)
         self.env = self.env(context=dict(self.env.context, tracking_disable=True))
         self.website = self.env.ref('website.default_website')
         itbms = self.env.ref('base.main_company').account_sale_tax_id

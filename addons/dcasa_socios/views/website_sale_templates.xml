@@ -5,7 +5,7 @@
          negativa de la orden (dcasa.canje._aplicar_en_venta): el resumen de Odoo la suma solo. -->
 
     <template id="carrito_puntos" name="Socios: usar mis puntos en el carrito">
-        <section t-if="website_sale_order and website_sale_order.website_order_line"
+        <section t-if="website_sale_order and website_sale_order.website_order_line and (dcasa_programa_disponible or dcasa_premio_aplicado)"
                  class="o_dcasa_carrito_puntos mb-4" aria-labelledby="dcasa_puntos_titulo">
             <div t-if="dcasa_aviso" t-attf-class="alert alert-#{dcasa_aviso.get('tipo', 'info')} mb-3" role="status"
                  t-out="dcasa_aviso['texto']"/>

@@ -178,10 +178,10 @@
                     dólar de venta (sin ITBMS y ya con los descuentos) de quien compra con tu código<t
                         t-if="com.get('pagaEn') == 'primera-compra'">, solo en su primera compra</t><t
                         t-elif="com.get('pagaEn') == 'cada-compra'">, en cada compra</t>.</p>
-                <t t-set="escalones" t-value="com.get('escalones') or []"/>
+                <t t-set="escalones" t-value="(com.get('escalones') or []) if com.get('diasParaEscalon') else []"/>
                 <t t-if="escalones">
                     <p>Esa es tu base. Cuanto más vendes, más ganas: según lo que hayas vendido en los últimos
-                        <t t-out="com.get('diasParaEscalon') or 90"/> días subes de escalón.</p>
+                        <t t-out="com.get('diasParaEscalon')"/> días subes de escalón.</p>
                     <ul>
                         <li t-foreach="escalones" t-as="escalon">Desde
                             <strong t-out="fmt_dolares(escalon['desdeVentasNetasCentavos'])"/> vendidos:
@@ -234,8 +234,8 @@
                 <p>Por ahora solo por mercancía del catálogo de premios para vendedores. No se cambian por efectivo,
                     no se transfieren y no se heredan.<t t-if="can.get('puntosMinimosParaCanjear')"> El canje mínimo es de
                     <t t-out="fmt_puntos(can['puntosMinimosParaCanjear'])"/> puntos.</t> Pides el premio desde tu panel,
-                    te sale un código y lo recoges en la tienda en
-                    <t t-out="can.get('vigenciaDelCodigoHoras') or 72"/> horas; si no, vence y te devolvemos los puntos.</p>
+                    te sale un código y lo recoges en la tienda<t t-if="can.get('vigenciaDelCodigoHoras')"> en
+                    <t t-out="can['vigenciaDelCodigoHoras']"/> horas</t>; si no, vence y te devolvemos los puntos.</p>
                 <h2>Tus responsabilidades</h2>
                 <p>Vendes por tu cuenta y no eres empleado de D’CASA por ser vendedor del programa (si ya lo eres, tu
                     relación laboral sigue siendo la misma). Eres responsable de lo que digas a tus clientes: no

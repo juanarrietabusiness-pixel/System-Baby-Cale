@@ -55,24 +55,29 @@
                                    autocomplete="current-password" class="form-control" required="required"/>
                             <button type="submit" class="btn btn-primary btn-lg w-100 mt-3">Entrar</button>
                         </form>
-                        <p class="mt-3 mb-0">¿Primera vez? <a href="/socios/registro">Regístrate con tu celular</a>.
-                            Si ya compraste en D'CASA, tus puntos te están esperando.</p>
+                        <p class="mt-3 mb-0">¿Primera vez? <a href="/socios/registro">Regístrate con tu celular</a>.<t
+                            t-if="programa_disponible"> Si ya compraste en D'CASA, tus puntos te están esperando.</t></p>
                     </div>
                 </div>
                 <div class="col-lg-7">
                     <div class="o_dcasa_socios_card o_dcasa_socios_como">
                         <h2 class="h4">Así funciona</h2>
+                        <!-- Sin las cifras de puntos.json (PENDIENTE) no se promete nada: ni puntos, ni premios. -->
+                        <p t-if="not programa_disponible" class="mb-0 o_dcasa_socios_no_disponible" t-out="no_disponible"/>
+                        <t t-else="">
                         <ol class="o_dcasa_steps">
                             <li><strong>Compras y sumas.</strong>
                                 <t t-out="reglas['acumulacion']['puntosPorDolar']"/> punto por cada dólar que pagas.</li>
-                            <li><strong>Invitas y ganas.</strong> Cuando alguien que invitaste hace su primera compra,
-                                tú ganas <t t-out="fmt_puntos(reglas['referido']['puntosAlPadrino'])"/> puntos y esa persona
-                                <t t-out="fmt_puntos(reglas['referido']['puntosAlAhijado'])"/>.</li>
-                            <li><strong>Cambias por premios.</strong>
+                            <li t-if="reglas['referido'].get('puntosAlPadrino')"><strong>Invitas y ganas.</strong> Cuando alguien que invitaste hace su primera compra,
+                                tú ganas <t t-out="fmt_puntos(reglas['referido']['puntosAlPadrino'])"/> puntos<t
+                                    t-if="reglas['referido'].get('puntosAlAhijado')"> y esa persona
+                                <t t-out="fmt_puntos(reglas['referido']['puntosAlAhijado'])"/></t>.</li>
+                            <li t-if="canje_disponible"><strong>Cambias por premios.</strong>
                                 <t t-if="reglas['canje'].get('puntosPorDolar')"><t t-out="fmt_puntos(reglas['canje']['puntosPorDolar'])"/> puntos = $1 en descuentos en la tienda.</t>
                                 <t t-else="">Mira el <a href="/socios/premios">catálogo de premios</a>.</t></li>
                         </ol>
                         <a href="/socios/terminos">Ver todas las reglas</a>
+                        </t>
                     </div>
                 </div>
             </div>
@@ -84,7 +89,8 @@
             <t t-set="titulo">Hazte socio</t>
             <div class="o_dcasa_socios_card mx-auto" style="max-width: 36rem;">
                 <p t-if="padrino" class="alert alert-info">
-                    Te invitó <strong t-out="padrino._dcasa_nombre_publico()"/>. Con tu primera compra ganan los dos.
+                    Te invitó <strong t-out="padrino._dcasa_nombre_publico()"/>.<t
+                        t-if="programa_disponible and reglas['referido'].get('puntosAlPadrino')"> Con tu primera compra ganan los dos.</t>
                 </p>
                 <form action="/socios/registro" method="post" class="o_dcasa_socios_form" data-captcha="socios_registro">
                     <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
@@ -116,7 +122,7 @@
                                    autocomplete="new-password" class="form-control" required="required"/>
                         </div>
                     </div>
-                    <label>Tu cumpleaños (opcional: te regalamos puntos)</label>
+                    <label>Tu cumpleaños (opcional<t t-if="programa_disponible and reglas['cumpleanos'].get('puntos')">: te regalamos puntos</t>)</label>
                     <div class="row g-2">
                         <div class="col-6">
                             <select name="cumple_dia" class="form-select" aria-label="Día">
@@ -161,10 +167,11 @@
                     <div class="o_dcasa_socios_saldo">
                         <div class="o_dcasa_kicker">Tus puntos</div>
                         <div class="o_dcasa_socios_saldo_n" t-out="fmt_puntos(saldo)"/>
-                        <div>equivalen a <strong t-out="fmt_dolares(saldo)"/> en premios</div>
+                        <div t-if="equivale">equivalen a <strong t-out="equivale"/> en premios</div>
+                        <div t-if="not programa_disponible" t-out="no_disponible"/>
                     </div>
 
-                    <div class="o_dcasa_socios_card mt-4">
+                    <div t-if="programa_disponible and reglas['referido'].get('puntosAlPadrino')" class="o_dcasa_socios_card mt-4">
                         <h2 class="h5">Invita y gana</h2>
                         <p class="mb-2">Tu código: <strong class="o_dcasa_socios_codigo" t-out="socio.dcasa_socio_codigo"/></p>
                         <p class="small text-muted">Cuando alguien se registra con tu link y hace su primera compra,
@@ -228,7 +235,8 @@
 
                     <div class="o_dcasa_socios_card">
                         <h2 class="h5">Tu actividad</h2>
-                        <p t-if="not movimientos" class="text-muted mb-0">Todavía no hay movimientos. Tu primera compra suma puntos.</p>
+                        <p t-if="not movimientos" class="text-muted mb-0">Todavía no hay movimientos.<t
+                            t-if="programa_disponible"> Tu primera compra suma puntos.</t></p>
                         <ul class="list-unstyled mb-0 o_dcasa_socios_lista">
                             <li t-foreach="movimientos" t-as="m" class="d-flex justify-content-between gap-3">
                                 <span>
@@ -260,10 +268,12 @@
         <t t-call="dcasa_socios.socios_layout">
             <t t-set="titulo">Activa tus puntos</t>
             <div class="o_dcasa_socios_card mx-auto" style="max-width: 36rem;">
-                <p>Hola, <strong t-out="(ficha.name or '').split(' ')[0]"/>. Tu cuenta de la tienda y tu cuenta de
+                <p t-if="programa_disponible">Hola, <strong t-out="(ficha.name or '').split(' ')[0]"/>. Tu cuenta de la tienda y tu cuenta de
                     socio son la misma: tus compras ya suman puntos a tu celular
                     <strong t-out="celular[:4] + '-' + celular[4:]"/>. Elige un PIN para ver tu saldo, invitar y pedir premios,
                     también de pie en la tienda.</p>
+                <p t-else="">Hola, <strong t-out="(ficha.name or '').split(' ')[0]"/>. <t t-out="no_disponible"/> Puedes
+                    elegir un PIN para entrar con tu celular <strong t-out="celular[:4] + '-' + celular[4:]"/>.</p>
                 <form action="/socios/activar" method="post" class="o_dcasa_socios_form">
                     <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
                     <div class="row g-2">
@@ -279,7 +289,7 @@
                         </div>
                     </div>
                     <t t-if="not ficha.dcasa_cumple">
-                        <label>Tu cumpleaños (opcional: te regalamos puntos)</label>
+                        <label>Tu cumpleaños (opcional<t t-if="programa_disponible and reglas['cumpleanos'].get('puntos')">: te regalamos puntos</t>)</label>
                         <div class="row g-2">
                             <div class="col-6">
                                 <select name="cumple_dia" class="form-select" aria-label="Día">
@@ -322,8 +332,9 @@
                     <div class="o_dcasa_socios_saldo">
                         <div class="o_dcasa_kicker">Tus puntos</div>
                         <div class="o_dcasa_socios_saldo_n" t-out="fmt_puntos(saldo)"/>
-                        <div>Pides aquí, te sale un código y lo enseñas en la tienda.
+                        <div t-if="canje_disponible">Pides aquí, te sale un código y lo enseñas en la tienda.
                             Tienes <t t-out="reglas['canje']['vigenciaDelCodigoHoras']"/> horas; si no, los puntos vuelven solos.</div>
+                        <div t-else="" t-out="no_disponible"/>
                     </div>
                     <div t-if="canjes" class="o_dcasa_socios_card mt-4">
                         <h2 class="h5">Por recoger</h2>
@@ -362,15 +373,17 @@
                 <div class="col-lg-4" t-else="">
                     <div class="o_dcasa_socios_card">
                         <h2 class="h5">¿Ya eres socio?</h2>
-                        <p>Entra con tu celular y tu PIN para pedir un premio. Si todavía no, regístrate: tus compras en
+                        <p t-if="canje_disponible">Entra con tu celular y tu PIN para pedir un premio. Si todavía no, regístrate: tus compras en
                             D'CASA ya pueden estar sumando puntos.</p>
+                        <p t-else="" t-out="no_disponible"/>
                         <a href="/socios" class="btn btn-primary w-100 o_dcasa_socios_btn_toque">Entrar</a>
                         <a href="/socios/registro" class="btn btn-outline-primary w-100 mt-2 o_dcasa_socios_btn_toque">Hazte socio</a>
                     </div>
                 </div>
                 <div class="col-lg-8">
-                    <p t-if="not premios" class="text-muted">Pronto habrá premios en el catálogo.</p>
-                    <div class="row g-3 o_dcasa_premios_grid">
+                    <p t-if="not canje_disponible" class="text-muted o_dcasa_socios_no_disponible" t-out="no_disponible"/>
+                    <p t-elif="not premios" class="text-muted">Pronto habrá premios en el catálogo.</p>
+                    <div t-if="canje_disponible" class="row g-3 o_dcasa_premios_grid">
                         <div t-foreach="premios" t-as="premio" class="col-6 col-md-4">
                             <article class="o_dcasa_premio h-100">
                                 <div class="o_dcasa_premio_foto">
@@ -432,7 +445,11 @@
             <t t-set="titulo">Cómo funciona</t>
             <t t-set="a" t-value="reglas['acumulacion']"/>
             <t t-set="ref" t-value="reglas['referido']"/>
-            <div class="o_dcasa_socios_card o_dcasa_socios_terminos mx-auto" style="max-width: 48rem;">
+            <!-- Sin las cifras de puntos.json (PENDIENTE) no hay reglas que explicar. -->
+            <div t-if="not programa_disponible" class="o_dcasa_socios_card o_dcasa_socios_terminos mx-auto" style="max-width: 48rem;">
+                <p class="mb-0 o_dcasa_socios_no_disponible" t-out="no_disponible"/>
+            </div>
+            <div t-else="" class="o_dcasa_socios_card o_dcasa_socios_terminos mx-auto" style="max-width: 48rem;">
                 <h2>Tus puntos no son dinero</h2>
                 <p>No se cambian por efectivo, no se transfieren a otra persona y no se heredan. Sirven para lo que
                     dice el catálogo de premios y para nada más.</p>
@@ -441,11 +458,13 @@
                     de tu factura con el ITBMS incluido, cuando la factura queda pagada.</p>
                 <p t-if="a.get('compraMinimaCentavos')">Las compras de menos de
                     <t t-out="fmt_dolares(a['compraMinimaCentavos'])"/> no suman puntos.</p>
+                <t t-if="ref.get('puntosAlPadrino')">
                 <h2>Cómo ganas invitando</h2>
                 <p>Cuando alguien se registra con tu código y hace su primera compra, tú ganas
                     <t t-out="fmt_puntos(ref['puntosAlPadrino'])"/> puntos<t t-if="ref.get('puntosAlAhijado')"> y esa
                     persona gana <t t-out="fmt_puntos(ref['puntosAlAhijado'])"/></t>. Se paga una sola vez por
                     persona, y solo cuando compra de verdad: registrarse no paga nada.</p>
+                </t>
                 <p t-if="ref.get('topeDePuntosPorPadrinoAlMes') and ref.get('puntosAlPadrino')">Hay un tope de
                     <t t-out="ref['topeDePuntosPorPadrinoAlMes'] // ref['puntosAlPadrino']"/> invitaciones cobrables al
                     mes<t t-if="ref.get('topeDeAhijadosPorPadrino')"> y de
@@ -456,9 +475,10 @@
                         puntos, una vez al año. Para eso hay que haber comprado alguna vez.</p>
                 </t>
                 <h2>Cómo los cambias</h2>
-                <p>Pides el premio desde tu cuenta, te sale un código y lo enseñas en la tienda. Los puntos salen de
+                <p t-if="canje_disponible">Pides el premio desde tu cuenta, te sale un código y lo enseñas en la tienda. Los puntos salen de
                     tu cuenta al pedirlo. Tienes <t t-out="reglas['canje']['vigenciaDelCodigoHoras']"/> horas para
                     pasar; si no, el código vence y te devolvemos los puntos enteros.</p>
+                <p t-else="">Los premios todavía no se pueden pedir.</p>
                 <h2>¿Vencen?</h2>
                 <p t-if="reglas['vencimiento'].get('meses')">Sí, a los <t t-out="reglas['vencimiento']['meses']"/>
                     meses. Te avisamos 30 días antes.</p>

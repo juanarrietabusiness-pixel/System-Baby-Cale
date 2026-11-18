@@ -22,7 +22,7 @@ from . import (
     test_cotizacion_automatica,
     test_crm_automatico,
     test_crm_reglas,
-    test_ejemplos,
+    test_sin_ejemplos,
     test_envios_juan,
     test_espera,
     test_etiquetas,

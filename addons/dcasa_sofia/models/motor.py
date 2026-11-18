@@ -11,7 +11,7 @@ Lo que mira, en este orden (una sola propuesta de mensaje por cliente y por revi
    persona, la conversación pasa a ella y ese seguimiento ya no sale (como siempre que una vendedora escribe).
 4. **Pedir sus datos** (pedido de la dueña, 2026-11-05): a los tibios y calientes cuya ficha no tiene nombre y apellido
    de verdad (un emoji, una frase, una empresa, solo un nombre) o no tiene correo, un mensaje profesional que se los
-   pide para avisarle de promociones, del programa Socios y de los beneficios de cumpleaños. Si ya toca escribirle, va
+   pide para avisarle de promociones (sin ofrecer puntos ni cumpleaños: 2026-11-18). Si ya toca escribirle, va
    al final del mismo mensaje. A quien ya se le pidió no se le vuelve a pedir en 30 días.
 5. **Guardar sus datos**: el cliente contestó su nombre y apellido, su correo o su cumpleaños (a Sofía, a una
    vendedora o a Juan) y su ficha no los tiene: una tarjeta con todo, que la vendedora revisa y guarda con un toque.
@@ -449,7 +449,7 @@ class Sofia(models.AbstractModel):
                     'pedir_datos', f'pedir_datos:partner:{partner.id}', ctx, plantilla='pedir_datos',
                     titulo=self.env._('Pídele sus datos: está %s', nivel),
                     motivo=self.env._('Está %(nivel)s y %(falta)s. Con su nombre y su correo se le puede avisar de '
-                                      'promociones, del programa Socios y de su cumpleaños.', nivel=nivel, falta=falta)
+                                      'promociones.', nivel=nivel, falta=falta)
                     + self._nota_de_juan(conv, ctx),
                     **comun))
         return salida
@@ -689,6 +689,12 @@ class Sofia(models.AbstractModel):
     # ------------------------------------------------------------------
 
     @api.model
+    def _nombre_de_la_empresa(self, propuesta):
+        """El nombre de la empresa de la oportunidad (o la del usuario, si no tiene), tal como está en Ajustes."""
+        compania = propuesta.sudo().lead_id.company_id or self.env.company
+        return (compania.name or '').strip()
+
+    @api.model
     def _texto(self, propuesta, quien, textos=None):
         """El mensaje de una propuesta, armado con las plantillas vigentes y el nombre de quien lo enviará."""
         if propuesta.tipo not in CON_MENSAJE or not propuesta.plantilla:
@@ -696,6 +702,9 @@ class Sofia(models.AbstractModel):
         textos = textos if textos is not None else self.env['dcasa.sofia.plantilla']._textos()
         valores = dict((propuesta.datos or {}).get('valores') or {})
         valores['vendedora'] = nombre_de_pila(quien)
+        # El nombre de la empresa sale de Ajustes (res.company), nunca del texto: así una plantilla sirve para cualquier
+        # empresa. Se lee al armar el mensaje, como {vendedora}: si la empresa cambia de nombre, el mensaje también.
+        valores['empresa'] = self._nombre_de_la_empresa(propuesta)
         texto = R.rellenar(textos.get(propuesta.plantilla, ''), valores)
         if propuesta.pide_datos and propuesta.tipo != 'pedir_datos' and textos.get('posdata_datos'):
             texto = f"{texto}\n\n{R.rellenar(textos['posdata_datos'], valores)}"
