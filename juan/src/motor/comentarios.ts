@@ -116,7 +116,7 @@ export function clasePorReglas(texto: string): "otro" | null {
   return null;
 }
 
-export const PROMPT_DE_CLASIFICACION = `Clasificas UN comentario que alguien dejó en una publicación de D'CASA (mueblería en Panamá) en Instagram o en Facebook. Respondes solo con una de tres palabras:
+export const PROMPT_DE_CLASIFICACION = `Clasificas UN comentario que alguien dejó en una publicación de D'CASA en Instagram o en Facebook. Respondes solo con una de tres palabras:
 - "pregunta": pregunta o pide algo que la tienda puede contestar (precio, medidas, colores, si hay o queda, envío o entrega, dónde están, horario, formas de pago) o muestra interés de compra ("lo quiero", "info", "me interesa", "precio porfa", "¿lo tienen en gris?").
 - "queja": un reclamo o una molestia con D'CASA (un pedido que no llegó, mala atención, un producto dañado, un cobro, "estafa", amenazas de denunciar).
 - "otro": todo lo demás: etiquetar a amigos, elogios ("qué lindo"), saludos, emojis, chistes, opiniones sin pregunta, spam o publicidad de otros.

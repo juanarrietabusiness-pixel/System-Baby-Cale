@@ -16,6 +16,7 @@ from . import (
     test_combos,
     test_comentarios,
     test_conocimiento,
+    test_conocimiento_en_cero,
     test_conocimiento_significado,
     test_conversaciones,
     test_cotizacion_automatica,

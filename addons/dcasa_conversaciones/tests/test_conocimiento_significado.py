@@ -132,9 +132,12 @@ class TestBusquedaPorSignificado(JuanCase):
 
     def test_las_entradas_automaticas_se_recalculan_si_cambia_lo_que_dicen(self):
         self.encender()
+        # De fábrica no hay ninguna entrada automática (el conocimiento arranca en cero): la crea la prueba.
+        tienda = self.Conocimiento.create(
+            {'titulo': 'Dónde estamos', 'fuente': 'tienda', 'etiquetas': 'horario'}).sudo()
         self.Conocimiento._cron_calcular_vectores()
-        tienda = self.env.ref('dcasa_conversaciones.conocimiento_tienda').sudo()
         huella = tienda.vector_huella
+        self.assertTrue(huella)
         with patch.object(K, 'texto_tienda', return_value='Ahora abrimos más temprano.'):
             self.env.invalidate_all()      # el texto automático se arma al leerse (cada corrida real es nueva)
             self.assertEqual(self.Conocimiento._cron_calcular_vectores(), 1, 'Solo la que cambió')

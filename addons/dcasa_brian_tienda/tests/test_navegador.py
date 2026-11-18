@@ -529,8 +529,8 @@ class TestBrianDeNoche(NavegadorCase):
             r = self.evaluar(browser, NOCHE_CHAT)
         self.assertEqual((r['noche'], r['avisar']), (True, False), 'el pase dice la verdad y que no hay que avisar')
         self.assertEqual(r['burbuja'], 'durmiendo', 'el robot de la burbuja sí duerme')
-        self.assertEqual(r['globos'][:2], ['Hola, soy Andrés. ¿Qué buscas hoy?', 'Con gusto te ayudo a encontrar tu '
-                         'mueble, ver precios, calcular el envío o dejarte el carrito listo.'], 'saluda como de día')
+        self.assertEqual(r['globos'][:2], ['Hola, soy Andrés. ¿Qué buscas hoy?', 'Con gusto te ayudo a encontrar lo '
+                         'que buscas, ver precios, calcular el envío o dejarte el carrito listo.'], 'saluda como de día')
         self.assertFalse([g for g in r['globos'] if cerrada in g])
         self.assertNotIn('durmiendo', r['poses'], 'el avatar del chat no se duerme')
         self.env['ir.config_parameter'].sudo().set_param('dcasa_brian_tienda.avisar_cerrado', 'True')

@@ -961,7 +961,7 @@ export class ChatBrian {
         this.aviso = el("p", { class: "o_dcbt_aviso", role: "status", hidden: true });
         this.lista = el("div", { class: "o_dcbt_mensajes", role: "log", "aria-live": "polite", "aria-label": "Conversación" },
             el("div", { class: "o_dcbt_intro" }, this.cajaPose("o_dcbt_avatar_intro", "asomado_burbuja"),
-                el("p", { class: "o_dcbt_intro_nombre", text: "D'CASA Panamá" }), el("p", { class: "o_dcbt_intro_sub", text: "Muebles y colchones · La Chorrera" })),
+                el("p", { class: "o_dcbt_intro_nombre", text: "D'CASA Panamá" })),
             el("p", { class: "o_dcbt_dia" }, el("span", { text: "Hoy" })));
         this.verificando = el("p", { class: "o_dcbt_verificando", hidden: true }, ico("escudo"), el("span", { text: "Conexión segura…" }));
         this.cajaTurnstile = el("div", { class: "o_dcbt_turnstile", hidden: true });
@@ -2220,7 +2220,7 @@ export class ChatBrian {
                 this.chips(SIGUE_TRAS_AGREGAR);
                 this.anotar({ tipo: "brian", texto: frase, pose: "bolsita" }, { tipo: "carrito" }, { tipo: "chips", opciones: SIGUE_TRAS_AGREGAR });
             } else if (r.motivo === "elegir" && r.url) {
-                const frase = "Ese mueble tiene opciones para elegir (medida, color o combo): escógela en su ficha y lo agregas desde ahí.";
+                const frase = "Ese producto tiene opciones para elegir (medida, color o combo): escógela en su ficha y lo agregas desde ahí.";
                 this.globo(frase);
                 this.tarjetaFicha(r.url, "Elegir en la ficha");
                 this.anotar({ tipo: "brian", texto: frase }, { tipo: "ficha", url: r.url });
@@ -2387,7 +2387,7 @@ export class ChatBrian {
             const saludo = "Hola, soy Andrés. ¿Qué buscas hoy?";
             const segundo = noche
                 ? "Ahora la tienda está cerrada, pero yo te ayudo con gusto. Si necesitas a una vendedora, te responde por WhatsApp en cuanto abramos" + (pase.horario_texto ? " (atendemos " + pase.horario_texto + ")" : "") + "."
-                : "Con gusto te ayudo a encontrar tu mueble, ver precios, calcular el envío o dejarte el carrito listo.";
+                : "Con gusto te ayudo a encontrar lo que buscas, ver precios, calcular el envío o dejarte el carrito listo.";
             this.pose("saludando");
             this.globo(saludo);
             await pausa(500);

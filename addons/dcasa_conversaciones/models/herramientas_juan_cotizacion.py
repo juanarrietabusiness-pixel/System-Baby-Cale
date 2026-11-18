@@ -284,7 +284,7 @@ class BrianHerramientasJuanCotizacion(models.AbstractModel):
             },
         },
         requeridos=['lineas'], nivel='construccion', categoria='ventas', grupos=GRUPOS,
-        ejemplos=['«mándame la cotización del sofá y la cama» → cotizar(lineas=[{codigo: …}, {codigo: …}])'],
+        ejemplos=['«mándame la cotización de estos dos» → cotizar(lineas=[{codigo: …}, {codigo: …}])'],
     )
     def _juan_cotizar(self, lineas):
         conv = self._j_conversacion()

@@ -54,41 +54,57 @@ class TestBaseDeConocimiento(JuanCase):
     def entrada(self, **valores):
         return self.env['dcasa.conocimiento'].create({'titulo': 'Prueba', 'contenido': 'Texto de prueba', **valores})
 
-    def semilla(self, xmlid):
-        return self.env.ref(f'dcasa_conversaciones.{xmlid}')
+    def tienda(self):
+        """Una entrada automática con los datos de la tienda, como la crearía Gerencia (fábrica: ninguna)."""
+        return self.env['dcasa.conocimiento'].create({
+            'titulo': 'Dónde estamos, horario y WhatsApp', 'fuente': 'tienda',
+            'etiquetas': 'dirección, ubicación, ubicados, dónde están, cómo llegar, mapa, horario, abren, cierran, '
+                         'atienden, whatsapp, teléfono, contacto, correo, visitarnos, tienda, local'})
 
-    def test_semilla_con_solo_hechos_verificados(self):
-        activas = self.env['dcasa.conocimiento'].search([('activo', '=', True)])
-        self.assertEqual(set(activas.mapped('fuente')), {'tienda', 'socios'})
-        for xmlid in ('conocimiento_garantia', 'conocimiento_compra'):
-            entrada = self.semilla(xmlid)
-            self.assertFalse(entrada.activo, 'Los textos provisionales nacen inactivos')
-            self.assertIn('PENDIENTE DE APROBACIÓN DE LA DUEÑA', entrada.nota)
-            self.assertIn('abogado', entrada.nota)
+    def socios(self):
+        """Una entrada automática con las reglas de Socios, como la crearía Gerencia (fábrica: ninguna)."""
+        return self.env['dcasa.conocimiento'].create({
+            'titulo': "Programa Socios D'CASA: puntos, premios e invitados", 'fuente': 'socios',
+            'etiquetas': 'socios, puntos, premios, canje, canjear, invitar, referido, cumpleaños, programa, registro, '
+                         'pin'})
 
-    def test_ninguna_semilla_toca_entregas_flete_financiamiento_ni_apartados(self):
-        for entrada in self.env['dcasa.conocimiento'].with_context(active_test=False).search([]):
+    def test_una_instalacion_nueva_no_trae_conocimiento_ni_preguntas(self):
+        """Pedido del dueño (2026-11-18): el conocimiento del bot va en cero; cada negocio pone el suyo."""
+        Conocimiento = self.env['dcasa.conocimiento'].with_context(active_test=False)
+        self.assertFalse(Conocimiento.search([]), 'Ninguna entrada de fábrica, ni activa ni inactiva')
+        self.assertFalse(self.env['dcasa.pregunta_pendiente'].search([]), 'Ninguna pregunta sin respuesta de fábrica')
+        datos = self.env['ir.model.data'].search([('model', 'in', ('dcasa.conocimiento', 'dcasa.pregunta_pendiente'))])
+        self.assertFalse(datos, 'Ningún módulo trae entradas de conocimiento ni preguntas en sus datos')
+        for xmlid in ('conocimiento_tienda', 'conocimiento_socios', 'conocimiento_garantia', 'conocimiento_compra'):
+            self.assertFalse(self.env.ref(f'dcasa_conversaciones.{xmlid}', raise_if_not_found=False), xmlid)
+
+    def test_sin_conocimiento_el_asistente_no_sabe_nada_de_la_tienda(self):
+        """Con la base vacía, ni el horario, ni la dirección, ni Socios, ni la garantía: nada sale de fábrica."""
+        Conocimiento = self.env['dcasa.conocimiento']
+        for consulta in ('¿Cuál es el horario de atención?', '¿Dónde están?', 'cómo gano puntos',
+                         'garantía de los colchones', 'cómo se hace una compra', 'Ley 45'):
+            self.assertEqual(Conocimiento._buscar(consulta, 3), [], consulta)
+
+    def test_las_automaticas_no_tocan_entregas_flete_financiamiento_ni_apartados(self):
+        for entrada in self.tienda() | self.socios():
             texto = f'{entrada.titulo} {entrada.contenido_vigente} {entrada.etiquetas}'.lower()
             for prohibida in ('entrega', 'flete', 'financiamiento', 'financiar', 'apartad', 'descuento'):
                 self.assertNotIn(prohibida, texto, f'«{entrada.titulo}» menciona {prohibida}')
 
-    def test_la_garantia_provisional_no_inventa_plazos(self):
-        contenido = self.semilla('conocimiento_garantia').contenido
-        self.assertNotRegex(contenido, r'\d+\s*(d[ií]as|meses|a[ñn]os)')
-        self.assertIn('confirma una vendedora', contenido)
-
     def test_dondeestamos_se_arma_con_los_datos_vivos(self):
-        texto = self.semilla('conocimiento_tienda').contenido_vigente
+        entrada = self.tienda()
+        self.assertFalse(entrada.contenido, 'No hay texto guardado que se pueda quedar viejo')
+        texto = entrada.contenido_vigente
         self.assertIn('Frente al Parque Libertadores', texto)
         self.assertIn('La Chorrera', texto)
         self.assertIn('+507 6026-1919', texto)
         self.assertIn('todos los días, de 8:00 a. m. a 5:00 p. m.', texto)
         self.ajustes.write({'horario_inicio': 9.0, 'horario_fin': 18.0})
-        self.semilla('conocimiento_tienda').invalidate_recordset()
-        self.assertIn('9:00 a. m. a 6:00 p. m.', self.semilla('conocimiento_tienda').contenido_vigente)
+        entrada.invalidate_recordset()
+        self.assertIn('9:00 a. m. a 6:00 p. m.', entrada.contenido_vigente)
 
     def test_socios_sale_de_puntos_json_y_nunca_se_guarda(self):
-        entrada = self.semilla('conocimiento_socios')
+        entrada = self.socios()
         self.assertFalse(entrada.contenido, 'No hay texto guardado que se pueda quedar viejo')
         self.assertEqual(entrada.contenido_vigente, '\n'.join(redactar(R.cargar_reglas())['resumen']))
         cambiadas = R.cargar_reglas()
@@ -107,19 +123,24 @@ class TestBaseDeConocimiento(JuanCase):
         self.assertNotIn('Zzmueble inactivo', [e.titulo for e, _ in resultados])
 
     def test_buscar_encuentra_lo_que_pregunta_la_gente(self):
+        tienda, socios = self.tienda(), self.socios()
         Conocimiento = self.env['dcasa.conocimiento']
         mejor = lambda texto: (Conocimiento._buscar(texto, 3) or [(None, 0)])[0][0]   # noqa: E731
-        self.assertEqual(mejor('¿Cuál es el horario de atención?'), self.semilla('conocimiento_tienda'))
-        self.assertEqual(mejor('¿Dónde están?'), self.semilla('conocimiento_tienda'))
-        self.assertEqual(mejor('cómo gano puntos'), self.semilla('conocimiento_socios'))
-        self.assertEqual(mejor('premios del programa de socios'), self.semilla('conocimiento_socios'))
+        self.assertEqual(mejor('¿Cuál es el horario de atención?'), tienda)
+        self.assertEqual(mejor('¿Dónde están?'), tienda)
+        self.assertEqual(mejor('cómo gano puntos'), socios)
+        self.assertEqual(mejor('premios del programa de socios'), socios)
 
     def test_lo_inactivo_no_se_encuentra_hasta_que_la_duena_lo_activa(self):
+        garantia = self.entrada(
+            titulo='Garantía, cambios y devoluciones', activo=False,
+            etiquetas='garantía, garantia, cambio, cambios, devolución, devolucion, devolver, reclamo, defecto',
+            contenido='Las condiciones de la garantía te las confirma una vendedora.')
         Conocimiento = self.env['dcasa.conocimiento']
         self.assertFalse(Conocimiento._buscar('garantía de los colchones', 3))
-        self.semilla('conocimiento_garantia').with_user(self.gerente).action_activar()
+        garantia.with_user(self.gerente).action_activar()
         (mejor, _), *_ = Conocimiento._buscar('garantía de los colchones', 3)
-        self.assertEqual(mejor, self.semilla('conocimiento_garantia'))
+        self.assertEqual(mejor, garantia)
 
     def test_sin_coincidencias(self):
         self.assertEqual(self.env['dcasa.conocimiento']._buscar('helicóptero', 3), [])

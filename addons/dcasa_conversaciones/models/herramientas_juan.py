@@ -56,8 +56,9 @@ MAX_GALERIA = 6
 MAX_ETIQUETA = 40
 AVISO_PRECIOS = ('Los precios son sin ITBMS: el 7 % se suma en el carrito. La disponibilidad es una '
                  'etiqueta del sistema; una vendedora la confirma antes de cualquier compra.')
-PARAM_CONSULTA = {'type': 'string', 'description': 'Lo que busca el cliente, con sus palabras: «colchón queen», '
-                                                    '«sofá gris», o el código de la ficha, p. ej. «DC-K7M4PX».'}
+PARAM_CONSULTA = {'type': 'string', 'description': 'Lo que busca el cliente, con sus palabras (el producto y, si lo '
+                                                    'dijo, su tamaño o su color), o el código de la ficha, p. ej. '
+                                                    '«DC-K7M4PX».'}
 
 # Lo que se vende pero no está publicado en la tienda en línea (incidente del 2026-11-13: Juan negó los colchones).
 QUE_HACER_SIN_PUBLICAR = (
@@ -333,18 +334,19 @@ class BrianHerramientasJuan(models.AbstractModel):
                     '(hay_sin_publicar, busca_de_nuevo o no_lo_manejamos).',
         parametros={
             'consulta': PARAM_CONSULTA,
-            'categoria': {'type': 'string', 'description': 'Opcional: una categoría de la tienda, p. ej. «Colchones».'},
+            'categoria': {'type': 'string', 'description': 'Opcional: una categoría de la tienda, tal como la nombra '
+                                                            'listar_categorias.'},
             'limite': {'type': 'integer', 'description': f'Cuántos como máximo (1 a {P.LIMITE_MAXIMO}). '
                                                          f'Por defecto {P.LIMITE_POR_DEFECTO}.'},
         },
         requeridos=['consulta'], nivel='lectura', categoria='catalogo', grupos=GRUPOS,
-        ejemplos=['«¿tienen camas queen?» → consulta=cama queen',
-                  '«colchones» → consulta=colchón, categoria=Colchones'],
+        ejemplos=['«¿tienen [producto] en [tamaño o color]?» → consulta=[producto] [tamaño o color]',
+                  '«¿qué tienen de [una categoría]?» → consulta=[lo que busca], categoria=[esa categoría]'],
     )
     def _juan_buscar_productos(self, consulta, categoria=None, limite=P.LIMITE_POR_DEFECTO):
         consulta = str(consulta or '').strip()[:200]
         if not P.palabras(consulta):
-            raise BrianError('Dime qué producto buscas, por ejemplo «cama queen» o el código de la ficha (DC-…).')
+            raise BrianError('Dime qué producto buscas, con las palabras del cliente, o el código de la ficha (DC-…).')
         publicadas = self._j_plantillas_publicadas()
         en_la_categoria = publicadas
         if categoria:
@@ -507,7 +509,7 @@ class BrianHerramientasJuan(models.AbstractModel):
                     'Por seguridad solo funciona con el mismo número de WhatsApp desde el que escribe.',
         parametros={
             'celular': {'type': 'string',
-                        'description': 'Su celular, p. ej. «6026-1919». Debe ser el de esta conversación.'},
+                        'description': 'Su celular, p. ej. «6000-0000». Debe ser el de esta conversación.'},
             'pin': {'type': 'string', 'description': 'Su PIN de socio (6 números). Nunca lo repitas ni lo anotes.'},
         },
         requeridos=['celular', 'pin'], nivel='lectura', categoria='clientes', grupos=GRUPOS,
@@ -594,7 +596,7 @@ class BrianHerramientasJuan(models.AbstractModel):
                     'cómo comprar…). Devuelve las 3 mejores coincidencias con su texto. Contesta SOLO con eso: '
                     'si no hay nada, no inventes.',
         parametros={'consulta': {'type': 'string', 'description': 'La pregunta del cliente o sus palabras clave, '
-                                                                   'p. ej. «horario» o «garantía de colchones».'}},
+                                                                   'p. ej. «horario» o «garantía».'}},
         requeridos=['consulta'], nivel='lectura', categoria='general', grupos=GRUPOS,
         ejemplos=['«¿a qué hora abren?» → consulta=horario', '«¿tienen garantía?» → consulta=garantía'],
     )
@@ -632,7 +634,8 @@ class BrianHerramientasJuan(models.AbstractModel):
             'resumen': {'type': 'string', 'description': 'Opcional: el contexto en una frase (de qué hablaban).'},
         },
         requeridos=['pregunta'], nivel='construccion', categoria='general', grupos=GRUPOS,
-        ejemplos=['no encontraste respuesta sobre «¿instalan los muebles?» → registrar_pregunta_sin_respuesta'],
+        ejemplos=['el cliente preguntó algo que ni las herramientas ni buscar_conocimiento contestan → '
+                  'registrar_pregunta_sin_respuesta'],
     )
     def _juan_registrar_pregunta_sin_respuesta(self, pregunta, resumen=None):
         pregunta = ' '.join(str(pregunta or '').split())[:MAX_PREGUNTA]
@@ -657,7 +660,7 @@ class BrianHerramientasJuan(models.AbstractModel):
             'resumen': {'type': 'string',
                         'description': 'Qué pidió el cliente, en 1 a 3 frases con sus datos concretos.'},
             'interes': {'type': 'string',
-                        'description': 'El producto o tema en pocas palabras, p. ej. «Cama queen con base».'},
+                        'description': 'El producto o tema en pocas palabras, p. ej. el nombre del producto.'},
             'presupuesto': {'type': 'number',
                             'description': 'Opcional: solo si el cliente dijo cuánto quiere gastar (USD).'},
             'zona': {'type': 'string',
@@ -667,7 +670,7 @@ class BrianHerramientasJuan(models.AbstractModel):
                        'description': 'Opcional: solo si el cliente dijo para cuándo lo quiere, con sus palabras.'},
         },
         requeridos=['resumen', 'interes'], nivel='construccion', categoria='ventas', grupos=GRUPOS,
-        ejemplos=['el cliente quiere una cama queen para esta semana → crear_oportunidad(resumen, interes, '
+        ejemplos=['el cliente quiere un producto para esta semana → crear_oportunidad(resumen, interes, '
                   'cuando="esta semana")'],
     )
     def _juan_crear_oportunidad(self, resumen, interes, presupuesto=None, zona=None, cuando=None):
@@ -709,7 +712,7 @@ class BrianHerramientasJuan(models.AbstractModel):
                     'Si la que escribes no existe, te digo cuáles hay.',
         parametros={'etiqueta': {'type': 'string', 'description': 'El nombre de la etiqueta, tal como existe.'}},
         requeridos=['etiqueta'], nivel='construccion', categoria='clientes', grupos=GRUPOS,
-        ejemplos=['el cliente preguntó el precio de un sofá → etiquetar_conversacion(etiqueta="Pidió precio")'],
+        ejemplos=['el cliente preguntó el precio de un producto → etiquetar_conversacion(etiqueta="Pidió precio")'],
     )
     def _juan_etiquetar_conversacion(self, etiqueta):
         nombre = ' '.join(str(etiqueta or '').split())[:MAX_ETIQUETA]

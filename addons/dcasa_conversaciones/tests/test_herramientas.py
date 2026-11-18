@@ -728,7 +728,7 @@ class TestHorarioYTienda(HerramientasCase):
         self.assertIn('Frente al Parque Libertadores', datos['direccion'])
         self.assertIn('Diagonal a la Discoteca Seven', datos['direccion'])
         self.assertIn('La Chorrera', datos['direccion'])
-        self.assertIn('google.com/maps', datos['como_llegar'])
+        self.assertIn('/visitanos', datos['como_llegar'])
         self.assertEqual(datos['whatsapp'], '+507 6026-1919')
         self.assertEqual(datos['correo'], 'info@dcasapty.com')
         self.assertEqual(datos['horario']['texto'], 'Todos los días, de 8:00 a. m. a 5:00 p. m. (hora de Panamá)')
@@ -856,7 +856,21 @@ class TestUsuarioTecnicoYAuditoria(HerramientasCase):
 @tagged('post_install', '-at_install')
 class TestConocimientoYAprendizaje(HerramientasCase):
 
+    def tienda(self):
+        """Una entrada automática de la tienda, como la crearía Gerencia (de fábrica no hay ninguna)."""
+        return self.env['dcasa.conocimiento'].create({
+            'titulo': 'Dónde estamos, horario y WhatsApp', 'fuente': 'tienda',
+            'etiquetas': 'dirección, ubicación, dónde están, cómo llegar, horario, abren, cierran, whatsapp'})
+
+    def test_sin_conocimiento_de_fabrica_no_encuentra_nada(self):
+        """El conocimiento arranca en cero: ni el horario ni Socios salen hasta que el equipo los escriba."""
+        for consulta in ('¿A qué hora abren y dónde están?', 'puntos y premios', 'garantía'):
+            datos = self.salida('buscar_conocimiento', {'consulta': consulta})
+            self.assertEqual((datos['encontrados'], datos['resultados']), (0, []), consulta)
+            self.assertIn('registrar_pregunta_sin_respuesta', datos['nota'])
+
     def test_buscar_conocimiento_devuelve_el_texto_del_equipo(self):
+        self.tienda()
         datos = self.salida('buscar_conocimiento', {'consulta': '¿A qué hora abren y dónde están?'})
         self.assertGreaterEqual(datos['encontrados'], 1)
         primero = datos['resultados'][0]
@@ -869,6 +883,9 @@ class TestConocimientoYAprendizaje(HerramientasCase):
         self.assertIn('los confirma una vendedora', datos['nota'])
 
     def test_las_reglas_de_socios_salen_de_puntos_json(self):
+        self.env['dcasa.conocimiento'].create({
+            'titulo': "Programa Socios D'CASA: puntos, premios e invitados", 'fuente': 'socios',
+            'etiquetas': 'socios, puntos, premios, canje, canjear, invitar, referido, cumpleaños, programa'})
         datos = self.salida('buscar_conocimiento', {'consulta': 'puntos y premios'})
         self.assertEqual(datos['resultados'][0]['titulo'], "Programa Socios D'CASA: puntos, premios e invitados")
         self.assertIn('1 punto por cada dólar', datos['resultados'][0]['contenido'])
@@ -879,6 +896,10 @@ class TestConocimientoYAprendizaje(HerramientasCase):
         self.assertEqual(len(self.salida('buscar_conocimiento', {'consulta': 'zzmantenimiento'})['resultados']), 3)
 
     def test_lo_inactivo_no_lo_ve_el_bot(self):
+        self.env['dcasa.conocimiento'].create({
+            'titulo': 'Garantía, cambios y devoluciones', 'activo': False,
+            'etiquetas': 'garantía, garantia, cambio, cambios, devolución, devolucion, reclamo, defecto',
+            'contenido': 'Se rige por la Ley 45 de 2007; las condiciones te las confirma una vendedora.'})
         datos = self.salida('buscar_conocimiento', {'consulta': 'garantía de los colchones'})
         self.assertEqual(datos['encontrados'], 0)
         self.assertIn('registrar_pregunta_sin_respuesta', datos['nota'])
