@@ -386,7 +386,8 @@ class TestEstadoYConfig(ApiCase):
             'activo', 'facebook', 'instagram', 'texto_publico', 'tope_por_hora', 'publicas_por_persona',
             'privadas_por_persona'})
         self.assertEqual(cuerpo['nombre_publico'], "el equipo de D'CASA")
-        self.assertEqual(cuerpo['horario'], {'inicio': '08:00', 'fin': '17:00', 'dias': [0, 1, 2, 3, 4, 5, 6],
+        # El horario de Baby Caleb (2026-11-18): lunes a sábado de 9:00 a 18:00.
+        self.assertEqual(cuerpo['horario'], {'inicio': '09:00', 'fin': '18:00', 'dias': [1, 2, 3, 4, 5, 6],
                                              'zona': 'America/Panama'})
         self.assertEqual(cuerpo['seguimiento'], {'primero_horas': 5, 'segundo_dias': 5,
                                                  'solo_horario_laboral': True, 'maximo': 2})
