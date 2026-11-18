@@ -34,7 +34,7 @@ from psycopg2.errors import LockNotAvailable
 from odoo import api, fields, models
 from odoo.addons.dcasa_conversaciones.models import transaccion
 from odoo.addons.dcasa_correo.models.correo import correo_valido, motivo_legible
-from odoo.addons.dcasa_correo.models.resend import remitente_visible
+from odoo.addons.dcasa_correo.models.resend import MOTIVO_SIN_REMITENTE, remitente_visible
 from odoo.exceptions import AccessError, UserError
 from odoo.tools import SQL, email_normalize
 from odoo.tools.misc import hmac as hmac_odoo
@@ -534,6 +534,10 @@ class DcasaCamila(models.AbstractModel):
         # Sale del remitente de las campañas (``remitente.py``), como la de verdad, con el nombre y la dirección de
         # respuesta de siempre. La marca va en el contexto de ESTE envío (un objeto de Python: no viaja por RPC).
         remitente = self._remitente_campanas()
+        if not remitente:
+            # Sin remitente (instalación nueva: queda PENDIENTE hasta tener un dominio verificado en Resend) el correo
+            # saldría con «From: Nombre <>» y el envío reventaría con un error técnico: se avisa claro antes.
+            raise UserError(self.env._('No salió la prueba: %s', MOTIVO_SIN_REMITENTE))
         mail = self.env['mail.mail'].sudo().create({
             'subject': self.env._('[Prueba] %s', campana.asunto or ''),
             'body_html': self._html(campana, prueba=True),
