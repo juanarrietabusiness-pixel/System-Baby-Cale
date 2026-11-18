@@ -1,10 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Los muebles de TV eran 16 de los 19 productos de «Salas»: van en su propia categoría. -->
+    <!-- Categorías de la tienda web del catálogo de Baby Caleb. Una categoría sin nada publicado no la ve el visitante
+         (regla de Odoo): por eso las de muebles de website_dcasa no salen en la tienda. -->
     <data noupdate="1">
-        <record id="public_category_muebles_tv" model="product.public.category">
-            <field name="name">Muebles de TV</field>
-            <field name="sequence">15</field>
+        <record id="public_category_panales" model="product.public.category">
+            <field name="name">Pañales</field>
+            <field name="sequence">1</field>
+        </record>
+        <record id="public_category_toallitas" model="product.public.category">
+            <field name="name">Toallitas húmedas</field>
+            <field name="sequence">2</field>
+        </record>
+        <record id="public_category_fulares" model="product.public.category">
+            <field name="name">Fulares</field>
+            <field name="sequence">3</field>
         </record>
     </data>
 </odoo>

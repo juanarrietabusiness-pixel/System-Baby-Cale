@@ -3,7 +3,8 @@
 
 Solo para la base temporal de esa prueba, que se borra al terminar. Crea:
 
-* algunos productos PUBLICADOS con precio, existencias y foto (y uno sin publicar, que el asistente no debe ver);
+* algunos productos PUBLICADOS con precio, existencias y foto (y uno sin publicar, que el asistente no debe ver), y
+  publica con foto uno del catálogo que instala dcasa_catalogo («Pañales Nateen Pants», de Baby Caleb);
 * una vendedora (usuario interno del equipo de ventas) y la clave del administrador, que llegan por variables
   de entorno generadas al momento (nunca están en el repositorio);
 * `web.base.url` = https://dcasapty.com, como en producción (el entrypoint la congela): de ahí salen las URL
@@ -31,6 +32,12 @@ else:
         'name': 'Vendedora Integración', 'login': 'vendedora_integra', 'password': CLAVE_VENDEDORA,
         'group_ids': [Command.set([env.ref('base.group_user').id, env.ref('sales_team.group_sale_salesman').id])],
     })
+
+# El catálogo que instala dcasa_catalogo (Baby Caleb) nace sin publicar porque no trae fotos: para la prueba se publica
+# uno con su foto, como lo hará el dueño (juan/test/integracion/historia.ts › «2a»).
+pants = env.ref('dcasa_catalogo.producto_nateen_pants')
+if not pants.is_published:
+    pants.write({'is_published': True, 'image_1920': PNG})
 
 if env['product.template'].search_count([('default_code', '=', 'INT-CAMA-Q')]):
     env.cr.commit()

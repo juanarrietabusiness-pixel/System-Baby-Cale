@@ -1,8 +1,8 @@
 """Combos de cama + colchón en Odoo: cargar combos.csv, convertir los que ya estaban,
 armarlos desde su nombre y venderlos.
 
-Todo con productos y precios inventados («PRUEBA-…»), salvo la prueba de los nombres reales del inventario anterior, que
-usa el catálogo del propio módulo ``dcasa_catalogo`` (sin datos de personas).
+Todo con productos y precios inventados («PRUEBA-…»): el catálogo que instala ``dcasa_catalogo`` (Baby Caleb) no trae
+camas, colchones ni combos.
 """
 import base64
 
@@ -115,7 +115,9 @@ class TestCargaDeCombosCsv(CombosCase):
         self.assertEqual((combo.type, combo.list_price, combo.is_published, combo.sale_ok),
                          ('combo', 170.0, False, True))
         self.assertEqual(combo.taxes_id, self.itbms, 'ITBMS que se suma; nada de impuesto escrito a mano en el precio')
-        self.assertEqual(combo.categ_id, self.env.ref('dcasa_base.product_category_recamaras'))
+        # La categoría sale de lo que va antes del «+» con las reglas del catálogo (Baby Caleb: pañales, toallitas y
+        # fulares): una cama no es de ninguna y queda en la de por defecto.
+        self.assertEqual(combo.categ_id.id, self.env['product.template'].default_get(['categ_id']).get('categ_id'))
         self.assertEqual(self.piezas(combo), [['PRUEBA-CAMA-T'], ['PRUEBA-COL-T']])
         self.assertEqual(resumen['avisos_de_precio'], [], '170 = 90 + 80: cuadra')
 
@@ -477,77 +479,28 @@ class TestArmarDesdeElNombre(CombosCase):
 
 
 @tagged('post_install', '-at_install')
-class TestLosCombosRealesDelInventarioAnterior(TransactionCase):
-    """Con el catálogo real que trae el módulo ``dcasa_catalogo`` (49 combos «COMBO … + COLCHÓN», transcritos de las
-    capturas del sistema anterior): cuántos quedan claros, dudosos y sin resolver, y que se pueden vender."""
-
-    def _combos(self):
-        pendientes, _ya = C.combos_por_nombre(self.env)
-        return pendientes
-
-    def piezas_de(self, plantilla):
-        return [[i.product_id.default_code for i in g.combo_item_ids] for g in plantilla.combo_ids.sorted('sequence')]
-
-    def test_los_49_combos_estan_como_productos_sueltos_sin_estructura(self):
-        combos = self._combos()
-        self.assertEqual(len(combos), 49)
-        self.assertEqual(set(combos.mapped('type')), {'consu'})
-        self.assertFalse(combos.combo_ids)
-        self.assertFalse(any(combos.mapped('is_published')))
-
-    def test_46_claros_2_dudosos_y_1_sin_resolver(self):
-        resumen = C.armar_desde_nombre(self.env)
-        self.assertEqual(
-            (len(resumen['cargados']), len(resumen['dudosos']), len(resumen['sin_resolver']),
-             len(resumen['necesitan_revision']), len(resumen['con_error'])), (46, 2, 1, 0, 0))
-        self.assertEqual(sorted(d[0] for d in resumen['dudosos']), [
-            'COMBO CAMA BUTTERFLY UP TWIN + COLCHO IMPERIAL', 'COMBO CAMA QUEEN W160969417 + COLCHÓN DULCES SUEÑOS'])
-        self.assertEqual([s[0] for s in resumen['sin_resolver']],
-                         ['COMBO CAMA KING CON ESTANTES 1062010753-54N + COLCHON IMPERIAL'])
-        cargados = {c[0] for c in resumen['cargados']}
-        self.assertIn('COMBO CAMA FELPA QUEEN WHITE XHT022-Q-W + COLCHON DULCES SUEÑOS', cargados,
-                      'La cama Queen de felpa existe sin código: se encuentra por su nombre exacto')
-        self.assertEqual(len(self._combos()), 3, 'Quedan sin estructura solo los 3 que no se pudieron armar')
-
-    def test_el_colchon_se_elige_del_inventario_anterior_y_se_anota_el_otro_igual(self):
-        resumen = C.armar_desde_nombre(self.env)
-        alternativas = {a[0].split(']')[0].strip('['): a for a in resumen['con_alternativa']}
-        self.assertEqual(sorted(alternativas), ['CSOK-10', 'DSRSOQ', 'XHT022-T-BG'])
-        self.assertEqual(alternativas['CSOK-10'][3], 23, 'Los 23 combos con First Class King')
-        self.assertIn('COLCHON-FIRST-CLASS-SEMIORTOPEDICO-KING', alternativas['CSOK-10'][2][0])
-
-    def test_el_unico_precio_que_no_cuadra_se_avisa(self):
-        resumen = C.armar_desde_nombre(self.env)
-        self.assertEqual([a[0] for a in resumen['avisos_de_precio']],
-                         ['COMBO CAMA KING COLOR GREY N-F12002-K-GR + COLCHON FIRST CLASS'])
-
-    def test_ya_armados_no_se_repite(self):
-        C.armar_desde_nombre(self.env)
-        resumen = C.armar_desde_nombre(self.env)
-        self.assertEqual((len(resumen['cargados']), len(resumen['ya_estaban'])), (0, 46))
-        self.assertEqual((len(resumen['dudosos']), len(resumen['sin_resolver'])), (2, 1))
+class TestVenderUnComboArmado(CombosCase):
+    """Un combo armado desde su nombre se vende de punta a punta: cotización, venta, entrega y factura."""
 
     def test_vender_un_combo_armado_de_punta_a_punta(self):
-        """El combo de la cama felpa King con el colchón First Class: cotización, venta, entrega y factura."""
-        C.armar_desde_nombre(self.env)
-        combo = self.env['product.template'].search(
-            [('name', '=', 'COMBO CAMA FELPA KING WHITE XHT022-K-W + COLCHÓN FIRST')])
-        self.assertEqual((combo.type, combo.list_price), ('combo', 389.99))
-        cama = self.env['product.product'].search([('default_code', '=', 'XHT022-K-W')])
-        colchon = self.env['product.product'].search([('default_code', '=', 'CSOK-10')])
-        self.assertEqual(self.piezas_de(combo), [['XHT022-K-W'], ['CSOK-10']])
-        cliente = self.env['res.partner'].create({'name': 'Cliente de Prueba Combo Real'})
+        resumen = C.armar_desde_nombre(self.env)
+        self.assertIn(self.viejo.name, [c[0] for c in resumen['cargados']])
+        combo = self.viejo
+        self.assertEqual((combo.type, combo.list_price), ('combo', 320.0))
+        self.assertEqual(self.piezas(combo), [['PRUEBA-CAMA-K'], ['PRUEBA-COL-K']])
+        cliente = self.env['res.partner'].create({'name': 'Cliente de Prueba Combo Armado'})
         orden = self.env['sale.order'].create({'partner_id': cliente.id})
         linea_combo = orden._dcasa_agregar_producto(combo.product_variant_id, 1)
         piezas = orden.order_line - linea_combo
-        self.assertEqual(piezas.product_id, cama | colchon, 'Una línea por la cama y otra por el colchón')
+        self.assertEqual(piezas.product_id, self.cama_k | self.col_k, 'Una línea por la cama y otra por el colchón')
         self.assertEqual((linea_combo.price_subtotal, linea_combo.tax_ids.ids), (0.0, []), 'La línea del combo no suma')
-        self.assertEqual(sum(piezas.mapped('price_subtotal')), 389.99, 'El precio del combo va repartido en las piezas')
-        self.assertEqual((orden.amount_untaxed, orden.amount_tax, orden.amount_total), (389.99, 27.30, 417.29))
+        self.assertAlmostEqual(sum(piezas.mapped('price_subtotal')), 320.0, places=2,
+                               msg='El precio del combo va repartido en las piezas')
+        self.assertEqual((orden.amount_untaxed, orden.amount_tax, orden.amount_total), (320.0, 22.4, 342.4))
         self.assertEqual(set(piezas.tax_ids.mapped('amount')), {7.0}, 'Cada pieza con su ITBMS de 7 %')
         orden.action_confirm()
         (entrega,) = orden.picking_ids
-        self.assertEqual(sorted(entrega.move_ids.mapped('product_id.default_code')), ['CSOK-10', 'XHT022-K-W'],
+        self.assertEqual(sorted(entrega.move_ids.mapped('product_id.default_code')), ['PRUEBA-CAMA-K', 'PRUEBA-COL-K'],
                          'La entrega descuenta la cama y el colchón, nunca el combo')
         for movimiento in entrega.move_ids:
             movimiento.quantity = movimiento.product_uom_qty
@@ -555,7 +508,7 @@ class TestLosCombosRealesDelInventarioAnterior(TransactionCase):
         self.assertEqual(entrega.state, 'done')
         factura = orden._create_invoices()
         factura.action_post()
-        self.assertEqual((factura.amount_untaxed, factura.amount_tax, factura.amount_total), (389.99, 27.30, 417.29))
+        self.assertEqual((factura.amount_untaxed, factura.amount_tax, factura.amount_total), (320.0, 22.4, 342.4))
         self.assertEqual(factura.invoice_line_ids.mapped('display_type'), ['line_section', 'product', 'product'])
         seccion = factura.invoice_line_ids.filtered(lambda ln: ln.display_type == 'line_section')
-        self.assertIn('COMBO CAMA FELPA KING WHITE', seccion.name)
+        self.assertIn('COMBO CAMA PRUEBA KING', seccion.name)

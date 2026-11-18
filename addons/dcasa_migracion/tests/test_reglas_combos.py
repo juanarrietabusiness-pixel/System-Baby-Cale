@@ -188,10 +188,19 @@ class TestLecturaDeNombres(BaseCase):
                 self.assertFalse(analisis['ok'])
                 self.assertIn(problema, analisis['problema'])
 
-    def test_todos_los_combos_del_inventario_anterior_se_leen(self):
-        """Los 49 nombres reales del CSV del repositorio (copia de las capturas del sistema anterior)."""
-        nombres = [f['nombre'] for f in leer_inventario_anterior() if clase_de_fila_inventario(f['nombre']) == 'combo']
-        self.assertEqual(len(nombres), 49)
+    def test_los_nombres_como_los_del_sistema_anterior_se_leen(self):
+        """Nombres de prueba con las formas que trae un inventario anterior (la cama con su tamaño, varias marcas y
+        errores de dedo, un camarote con 3 colchones). El CSV del módulo ya no trae los de D'CASA: solo encabezado."""
+        self.assertEqual(leer_inventario_anterior(), [])
+        nombres = [
+            'COMBO CAMA PRUEBA KING PRB-1 + COLCHON IMPERIAL',
+            'COMBO CAMA PRUEBA QUEEN + COLCHÓN DULCES SUEÑOS',
+            'COMBO CAMA PRUEBA TWIN + COLCHO BUEN SUEÑO',
+            'COMBO BOX SPRING DE PRUEBA TAMAÑO FULL / PRB-2 + COLCHON FIRST CLASS',
+            'COMBO CAMA PRUEBA KING COLOR BLACK + CPLCHON FIRST',
+            'COMBO CAMAROTE PRUEBA TRIPLE 3 TWIN PRB-3 + 3 COLCHONES IMPERIAL',
+        ]
+        self.assertTrue(all(clase_de_fila_inventario(n) == 'combo' for n in nombres))
         analisis = [RC.analizar_nombre(n) for n in nombres]
         self.assertTrue(all(a['ok'] for a in analisis), [a['problema'] for a in analisis if not a['ok']])
         self.assertTrue(all(a['tamano'] for a in analisis), 'Todos dicen el tamaño de la cama')

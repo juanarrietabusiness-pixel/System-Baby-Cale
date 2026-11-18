@@ -1,47 +1,37 @@
 {
     'name': "D'CASA Panamá — Catálogo",
-    'summary': "Productos reales de D'CASA (Excel + fotos de «up media») en inventario y tienda web",
+    'summary': "Productos del catálogo (Baby Caleb: pañales, toallitas y fulares) en inventario y tienda web",
     'description': """
-Carga el catálogo real de D'CASA en Odoo: el mismo producto para el inventario,
-las ventas y la tienda web.
+Carga el catálogo del negocio en Odoo: el mismo producto para el inventario, las ventas y la tienda web.
 
-* data/catalogo.json y static/img/productos/ los genera scripts/importar_catalogo.py
-  a partir de «up media/DCASA_listado_productos.xlsx» y de las fotos (nombre = código).
-* Precios del Excel tal cual, SIN ITBMS: el ITBMS 7 % se suma al precio (en la web,
-  «$39.99 + ITBMS»; el total con impuesto sale en carrito, cotización y factura).
-* Camas y colchones con tamaños (Twin, Full, Queen, King) como variantes.
-* Varias fotos por código: la primera es la principal, el resto va a la galería.
-* Productos sin foto quedan en inventario sin publicar en la web.
-* Nombres que distinguen cada mueble (color y rasgos que se ven en la foto) y medidas
-  cuando vienen impresas en la foto (data/fichas.json), con su lugar en la ficha.
-* En Odoo: buscar por varias palabras («colchón queen»), lista de productos con foto y
-  cotización por WhatsApp en un clic.
-* Pedidos nuevos del proveedor (LTSC-07) por el mismo camino: precios terminados en .99,
-  combo con el nombre del colchón, colores de un mismo código como variantes y código que
-  ya existía como producto aparte (-LTSC07). Ver docs/CATALOGO.md.
+* data/catalogo.json se escribe a mano con la lista del dueño (Baby Caleb, 2026-11-18): un producto por línea de
+  producto, con un atributo y sus valores en los datos («Talla»: RN, S, M…) y, en cada variante, su código, su precio
+  exacto, sus existencias y el texto del dueño (campo «Presentación»). Ver docs/CATALOGO.md.
+* Precios del archivo tal cual, como precio de lista, con el ITBMS de venta de la empresa que se suma (la misma regla
+  que tenía la carga anterior); un precio que falta no se inventa (el producto no se crea).
+* Existencias de la lista: entran como ajuste de inventario (con su motivo) solo al crear el producto.
+* Sin fotos: el dueño las sube a mano en Odoo; lo que no tiene foto queda en inventario sin publicar en la web.
+* Categorías de Baby Caleb (Pañales, Toallitas húmedas, Fulares), internas y de la tienda.
+* En Odoo: buscar por varias palabras («pañal m»), lista de productos con foto y cotización por WhatsApp en un clic.
 * Disponibilidad en la ficha de la tienda («Disponible», «Quedan pocas» o «Agotado», nunca el número): la regla de
-  dcasa_base/disponibilidad.py con las unidades libres de la medida elegida, la misma que dice Juan
+  dcasa_base/disponibilidad.py con las unidades libres de la variante elegida, la misma que dice Juan
   (``product.template._dcasa_disponibilidad``). Comprar o no comprar no cambia.
-* Black Weekend: marca los 12 productos elegidos por la dueña (catalogo.BLACK_WEEKEND, por código;
-  908K con su variante negra destacada). La ventana de la campaña vive en website_dcasa.
+* Black Weekend: marca por código los productos de catalogo.BLACK_WEEKEND (hoy vacía). La ventana de la campaña vive
+  en website_dcasa.
 * Existencias de prueba solo en staging (dcasa_catalogo.stock_prueba; producción siempre 0).
-* Inventario del sistema anterior (data/inventario_anterior.csv, transcrito de las capturas de
-  «up media/inventario-anterior»): existencias, costo y precio por código; los códigos nuevos
-  entran como productos (publicados solo con foto); combos con colchón sin publicar.
+* Inventario de un sistema anterior (data/inventario_anterior.csv, hoy solo el encabezado): existencias y precio por
+  código; los códigos nuevos entran como productos sin publicar.
 * Stock ordenable en Productos (campo dcasa_stock, guardado en cada producto): la lista de Productos ordena, filtra
   y suma por stock, precio y categoría para elegir qué empujar en una campaña; Productos abre en lista.
 * Código público (DC-K7M4PX) a la vista en la ficha del producto, columna opcional en la lista y buscable en
-  Productos y en las cotizaciones (el campo y el sorteo viven en dcasa_base). Esta versión se lo da a los
-  productos que ya existían. Ver docs/CATALOGO.md.
-* Combos cama + colchón que se arman en la venta (2026-10-22): botón «Armar combo» en la cotización (escoges la
-  cama y salen los colchones de su medida con existencia); cada colchón tiene su «Precio en combo» por medida, que
-  pone Gerencia en Ventas › Productos › Precios en combo, y se cobra solo si en la misma venta va una cama de su
-  medida. Reglas en el servidor (models/combo_armable.py); en el papel, «Combo cama + colchón» y el ahorro.
-  Ver docs/OPERACION.md.
-* Idempotente: volver a correr la carga solo crea lo que falta; no pisa lo que la
-  dueña cambió en Odoo (precios, fotos, textos).
+  Productos y en las cotizaciones (el campo y el sorteo viven en dcasa_base).
+* Combos que se arman en la venta (cama + colchón): botón «Armar combo» en la cotización; cada pieza puede tener su
+  «Precio en combo» por medida, que pone Gerencia en Ventas › Productos › Precios en combo. Reglas en el servidor
+  (models/combo_armable.py). Ver docs/OPERACION.md.
+* Idempotente: volver a correr la carga solo crea lo que falta; no pisa lo que se cambió en Odoo (precios, fotos,
+  textos, existencias).
 """,
-    'version': '19.0.1.12.0',
+    'version': '19.0.2.0.0',
     'category': 'Sales',
     'author': "D'CASA Panamá",
     'website': 'https://dcasapty.com',

@@ -24,14 +24,21 @@
         </xpath>
     </template>
 
-    <!-- Ficha: medidas (impresas en la foto del proveedor) y precio en combo, cada uno con su
-         etiqueta y separado del precio para que nadie los confunda. -->
+    <!-- Ficha: medidas (impresas en la foto del proveedor), presentación de cada talla (el texto de la lista del
+         dueño: unidades y rango de peso) y precio en combo, cada uno con su etiqueta y separado del precio para que
+         nadie los confunda. -->
     <template id="producto_medidas_y_combo" inherit_id="website_sale.product" name="D'CASA: medidas y combo">
         <xpath expr="//div[hasclass('o_wsale_product_details_content_section_price')]" position="after">
-            <dl t-if="product.dcasa_medidas or product.dcasa_combo" class="o_dcasa_ficha_datos mb-4">
+            <t t-set="dcasa_presentaciones" t-value="product._dcasa_presentaciones()"/>
+            <dl t-if="product.dcasa_medidas or product.dcasa_combo or dcasa_presentaciones" class="o_dcasa_ficha_datos mb-4">
                 <t t-if="product.dcasa_medidas">
                     <dt>Medidas</dt>
                     <dd t-out="product.dcasa_medidas"/>
+                </t>
+                <t t-if="dcasa_presentaciones">
+                    <dt>Presentación</dt>
+                    <dd t-foreach="dcasa_presentaciones" t-as="presentacion" class="o_dcasa_presentacion"
+                        t-out="presentacion[1]"/>
                 </t>
                 <t t-if="product.dcasa_combo">
                     <dt>También en combo</dt>

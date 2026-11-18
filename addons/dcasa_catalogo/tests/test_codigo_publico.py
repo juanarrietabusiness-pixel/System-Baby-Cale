@@ -111,7 +111,10 @@ class TestCodigoPublico(TransactionCase):
         """Incluye lo que cargó el catálogo, el inventario anterior y los productos de los demás módulos."""
         sin_codigo = self.Plantilla.with_context(active_test=False).search([('dcasa_codigo_publico', '=', False)])
         self.assertFalse(sin_codigo, sin_codigo.mapped('name'))
-        self.assertGreater(self.Plantilla.with_context(active_test=False).search_count([]), 100)
+        del_catalogo = self.env['ir.model.data'].search([
+            ('module', '=', 'dcasa_catalogo'), ('model', '=', 'product.template')]).mapped('res_id')
+        self.assertGreaterEqual(len(del_catalogo), 6, 'Los productos del catálogo de Baby Caleb están en la cuenta')
+        self.assertTrue(all(self.Plantilla.browse(del_catalogo).mapped('dcasa_codigo_publico')))
         self.env.cr.execute('SELECT count(*), count(DISTINCT dcasa_codigo_publico) FROM product_template')
         total, distintos = self.env.cr.fetchone()
         self.assertEqual(total, distintos, 'cada código es de un solo producto')
