@@ -92,8 +92,8 @@ class TestDcasaInvoice(TransactionCase):
             self.assertNotIn(de_la_tienda_de_origen, html)
 
     def test_factura_en_espanol_y_con_formato_de_panama(self):
-        # Una dirección pública, como en producción (web.base.url fija el dominio al arrancar) o cuando el dueño ponga la
-        # web de la empresa: la de fábrica va vacía. Sin ninguna, el enlace de los términos no tiene a qué cambiarse.
+        # Una dirección pública, como en producción (web.base.url fija el dominio al arrancar) o cuando el dueño ponga
+        # la web de la empresa: la de fábrica va vacía. Sin ninguna, el enlace de los términos no tiene a qué cambiarse.
         self.company.website = 'https://babycaleb.com'
         invoice = self._create_invoice()
         html = self._render(invoice.with_context(lang='en_US'))

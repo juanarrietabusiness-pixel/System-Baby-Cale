@@ -35,6 +35,15 @@ class TestValidaciones(FeComun):
         self.assertEqual(factura.state, 'draft')
         self.assertFalse(factura.l10n_pa_fe_documento_ids)
 
+    def test_la_empresa_de_fabrica_no_emite_sin_sus_datos_fiscales(self):
+        """Baby Caleb de fábrica (2026-11-18): sin RUC, DV ni dirección hasta que el dueño los dé; no se inventan, así
+        que la factura electrónica dice qué falta en lugar de emitir con datos ajenos."""
+        self._activar()
+        self.company.write({'vat': False, 'l10n_pa_dv': False, 'street': False, 'city': False})
+        problemas = self._factura(publicar=False)._l10n_pa_fe_problemas()
+        for falta in ('La empresa no tiene RUC.', 'La empresa no tiene DV.', 'La empresa no tiene dirección.'):
+            self.assertIn(falta, problemas)
+
     def test_falta_dv_de_la_empresa(self):
         self._activar()
         self.company.l10n_pa_dv = False

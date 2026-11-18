@@ -126,8 +126,8 @@ class TestFacturaCompleta(TransactionCase):
         factura = self._factura_completa()
         self.assertEqual(factura._dcasa_entrega(), self.entrega)
         html = self._render(factura)
-        # (El «RUC» que salía aquí era el de la empresa, en la cabecera: Baby Caleb todavía no tiene; la cabecera y el pie
-        # con RUC los prueba test_pie_con_whatsapp_correo_ruc_y_direccion.)
+        # (El «RUC» que salía aquí era el de la empresa, en la cabecera: Baby Caleb todavía no tiene; la cabecera y el
+        # pie con RUC los prueba test_pie_con_whatsapp_correo_ruc_y_direccion.)
         for texto in ('CLIENTE DE PRUEBA', '8-000-0000', '6123-4567', 'cliente@example.com',
                       'Calle 5, Barrio Balboa',
                       '>Entrega<', 'Villa Lucre, casa 12', 'Arraiján', '6999-0000',

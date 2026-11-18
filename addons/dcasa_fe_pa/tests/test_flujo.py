@@ -93,7 +93,7 @@ class TestFlujoSimulado(FeComun):
         self.assertIn('o_dcasa_fe', html)
         self.assertIn(doc.cufe, html)
         self.assertIn('data:image/png;base64,', html)
-        self.assertIn('155779346-2-2026 DV7', html, 'El formato de dcasa_invoice sigue igual')
+        self.assertIn('155700001-2-2026 DV45', html, 'El formato de dcasa_invoice sigue igual')
 
     def test_numeracion_consecutiva_por_punto(self):
         self._activar()
