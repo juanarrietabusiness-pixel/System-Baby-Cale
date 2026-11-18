@@ -115,6 +115,8 @@
   // "custom_domain": true }]. OJO: sin terminal (como en el CI), wrangler 4.158 se lleva SIN PREGUNTAR el dominio que
   // ya usa otro Worker y pisa los registros DNS que choquen (override_existing_origin/override_existing_dns_record):
   // ponerlo aquí antes de tiempo se lo quitaría a la web actual (y a sus pagos) en el primer despliegue.
+  // Y al revés: ANTES de ponerlo aquí, quitarlo de Baby-caleb/wrangler.jsonc (esa web se despliega sola en cada push a
+  // su main y se lo volvería a llevar). edge/test/dominio-babycaleb.test.ts no deja pasar sin marcar esa casilla.
   "routes": [],
   // workers.dev SIGUE respondiendo: con `routes` y sin esto, wrangler lo apaga en el siguiente despliegue, y ahí
   // viven el webhook de Telegram de Brian, la entrada /master de siempre y lo que Juan y el puente ya conocen.

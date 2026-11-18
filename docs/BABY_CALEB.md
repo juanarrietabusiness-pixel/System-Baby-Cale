@@ -48,6 +48,10 @@ del puente. Ya en uso en la cuenta y **no se tocan**: `babycaleb-web`, `babycale
 
 - Datos de la empresa: razón social, RUC y DV, dirección, teléfono, correo, web, lema de los documentos.
 - Promoción de Dany Baby (DANY-AW600): «2 cajas (1,200 toallitas) por $35.00». Anotada, no programada.
+- **RECORDARLE AL DUEÑO, PASO A PASO, EL DÍA DEL DOMINIO** (lo pidió el 2026-11-18): quitar `babycaleb.com` y
+  `www.babycaleb.com/*` de `Baby-caleb/wrangler.jsonc`, porque esa web se despliega sola en cada push a su `main` y se
+  volvería a llevar el dominio. Pasos en `docs/DOMINIO.md` (Fase B, paso 2); candado en
+  `edge/test/dominio-babycaleb.test.ts`.
 - Cobros en línea del sistema nuevo (hoy Tilopay y Yappy viven en la web actual, en `babycaleb.com`).
 - Qué herramientas se quitan para bajar costos.
 - Nombres configurables de los asistentes (Juan, Brian, Sofía, Camila, Andrés).

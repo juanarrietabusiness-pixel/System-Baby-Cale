@@ -31,8 +31,10 @@ responder** salvo que el sistema nuevo lo atienda.
    `override_existing_origin` y `override_existing_dns_record` en `true` (`edge/node_modules/wrangler/wrangler-dist/cli.js`,
    función de los dominios propios). Por eso el dominio **no** se pone en `edge/wrangler.jsonc` antes de tiempo.
 2. **Lo mismo vale al revés:** si el repositorio Baby-caleb vuelve a desplegar `babycaleb-web` con `babycaleb.com` en su
-   `wrangler.jsonc`, **se lo quita al sistema nuevo**. El día del cambio hay que sacar esas dos rutas de
-   `Baby-caleb/wrangler.jsonc` (cambio en ese repositorio, con sus reglas y con el «sí» del dueño).
+   `wrangler.jsonc`, **se lo quita al sistema nuevo**. Y ese repositorio despliega su web **sola, en cada push a su `main`**
+   (`Baby-caleb/.github/workflows/web.yml`, todo lo que no sea `sistema/`, `docs/` ni `*.md`): cualquier arreglo pequeño a
+   esa web bastaría. Por eso el paso 2 de la Fase B es obligatorio y `edge/test/dominio-babycaleb.test.ts` no deja pasar
+   las pruebas de este sistema con `babycaleb.com` puesto hasta que su casilla esté marcada.
 3. **Una ruta gana a un dominio propio** en el mismo nombre («Routes … take precedence if configured on the same
    hostname», developers.cloudflare.com/workers/configuration/routing/routes). Si `babycaleb-web` conserva la ruta
    `www.babycaleb.com/*`, `www` sigue yendo a la web vieja aunque el sistema nuevo tenga ese dominio. Esa ruta se borra a mano.
@@ -61,7 +63,15 @@ Lo que devuelva se pega en la sesión de Claude Code que esté trabajando el sis
 
 ## Fase B — el día del cambio (solo con el «sí» del dueño)
 
+Nota sobre `www`: según el comentario de `Baby-caleb/wrangler.jsonc`, `www.babycaleb.com` tiene hoy un CNAME proxiado hacia
+la raíz, y por eso allá `www` es una ruta y no un dominio propio (un dominio propio no se crea sobre un CNAME). Con el
+informe de la Fase A se decide si aquí `www` va como dominio propio (wrangler en el CI pisa ese registro) o, igual que
+allá, como ruta que el borde manda a la raíz.
+
 Antes, todo esto tiene que ser verdad:
+
+- [ ] **Repositorio Baby-caleb:** `wrangler.jsonc` ya no tiene `babycaleb.com` ni `www.babycaleb.com/*` en su `main`
+      (commit: _poner aquí el enlace_). Se marca con `[x]` solo cuando ese commit ya está en `main` (paso 2).
 
 - [ ] Producción sana en `https://sistemabk.juanarrietabusiness.workers.dev` (`/__edge/health`: 200, la versión
       desplegada, `base_al_dia: true`, `humo: ok`) y revisada por el dueño.
@@ -76,9 +86,19 @@ Pasos, en este orden y en el mismo rato:
    `"routes": [{ "pattern": "babycaleb.com", "custom_domain": true }, { "pattern": "www.babycaleb.com", "custom_domain": true }]`,
    con sus pruebas (`edge/test/fase1.test.ts`, `edge/test/anfitrion-canonico.test.ts`) y `CANONICAL_HOST` a
    `babycaleb.com`. CI a staging de ese commit (staging sigue con `"routes": []`).
-2. **En el repositorio Baby-caleb**, un commit que quite `babycaleb.com` y `www.babycaleb.com/*` de su `wrangler.jsonc`
-   (regla 2). Sin desplegarlo todavía si su CI despliega solo al unir; coordinarlo para que no corra antes del paso 4.
-3. **Claude en Chrome**, en Workers & Pages › babycaleb-web › Settings › Domains & Routes: borrar la ruta
+2. **En el repositorio Baby-caleb** (`abrinay1997-stack/Baby-caleb`, con sus reglas: leer su `CLAUDE.md` y su
+   `docs/TRAMPAS.md` antes, y con el «sí» del dueño), en una rama:
+   1. Abrir `wrangler.jsonc` (el de la raíz, el de la web; **no** `sistema/wrangler.jsonc`, que es el de `panel.` y `ruta.`).
+   2. Cambiar el bloque `"routes": [ { "pattern": "babycaleb.com", "custom_domain": true }, { "pattern":
+      "www.babycaleb.com/*", "zone_name": "babycaleb.com" } ]` por `"routes": []`, y dejar `"workers_dev": true` para que
+      la web vieja siga respondiendo en su dirección `workers.dev` (por si hay que volver atrás).
+   3. Revisar en ese repositorio lo que dé por hecho que la web vive en `babycaleb.com` (su `SITE_URL`, las vueltas de
+      Tilopay y Yappy, pruebas que fijen el dominio) y ajustarlo en el mismo commit, con sus pruebas en verde.
+   4. Unir a su `main` **en el mismo rato del cambio**, justo antes o justo después del paso 4. Al unir, su CI
+      despliega `babycaleb-web` sin dominio: si se une antes del paso 4, `babycaleb.com` queda unos minutos sin Worker.
+   5. Marcar con `[x]` la casilla «Repositorio Baby-caleb» de arriba, con el enlace del commit, en el mismo commit del
+      paso 1 de este repositorio (si no, `edge/test/dominio-babycaleb.test.ts` falla).
+3. **Claude en Chrome**, en Workers & Pages › babycaleb-web › Settings › Domains & Routes: si todavía aparece, borrar la ruta
    `www.babycaleb.com/*` (regla 3). El dominio propio `babycaleb.com` se lo lleva el despliegue del paso 4 (regla 1).
    No tocar los registros de correo ni `panel.` ni `ruta.`.
 4. **GitHub › Settings › Environments › production**: `URL_SITIO` = `https://babycaleb.com`. Luego *Actions › Desplegar*,
