@@ -1,100 +1,117 @@
-# Catálogo real
+# Catálogo
 
-De dónde sale lo que se vende en Odoo (inventario, ventas y tienda web: es el mismo producto).
+De dónde sale lo que se vende en Odoo (inventario, ventas y tienda web: es el mismo producto). Desde el 2026-11-18 el
+catálogo es el de **Baby Caleb** (pañales, toallitas húmedas y fulares). El de D'CASA (camas, colchones, salas; sus
+fotos de `static/img/productos/`, `fuentes/`, su inventario anterior, su Black Weekend y sus combos) ya no se carga:
+sigue solo en el historial de git y no es de este negocio.
 
-## Fuentes
+## Lo que se carga hoy: la lista del dueño (2026-11-18)
 
-- `fuentes/carga-inicial/DCASA_listado_productos.xlsx`, hoja «Productos»: código, nombre, precio
-  **sin ITBMS** («+ITBMS»), precios por tamaño, combo/el par, existencias y observaciones.
-- `fuentes/carga-inicial/*.png`: fotos originales. **El nombre es el código**: `CODIGO.png` o
-  `CODIGO_1.png`, `CODIGO_2.png`… (varias fotos del mismo producto). Una `/` del código
-  se escribe `-` en el archivo. No van en la imagen Docker (`.dockerignore`).
-- `up media/` es la **bandeja de entrada** de la dueña (sube desde GitHub, sin terminal): ahí solo
-  queda lo pendiente. Con cada subida, `.github/workflows/up-media.yml` corre
-  `scripts/procesar_up_media.py`, que regenera el catálogo, mueve con `git mv` lo ya cargado a
-  `fuentes/<pedido-o-carga>/` (y lo que no es de ningún producto a `descartado/<fecha>/`, con el
-  motivo en su `LEEME.md`) y escribe `up media/RESUMEN.md` (qué foto fue a qué producto, qué quedó
-  pendiente y por qué, qué Excel se cargó). El importador busca cada original primero en la
-  bandeja y después en `fuentes/**`, así el catálogo se regenera completo con la bandeja vacía.
-  Originales pesados: `scripts/archivar_fuentes.sh` (R2, prefijo `fuentes/`; ver
-  `docs/OPERACION.md` › «Cómo subir fotos»). Operación para la dueña: esa misma sección.
+`addons/dcasa_catalogo/data/catalogo.json`, escrito a mano con la lista que dio el dueño: código, texto, precio en
+dólares y existencias. Seis productos y quince variantes:
+
+| Producto (categoría) | Talla | Código | Precio | Existencias |
+|---|---|---|---|---|
+| Pañales Nateen de cierre (Pañales) | RN · S · M · L · XL · XXL | NAT-RN · NAT-S · NAT-M · NAT-L · NAT-XL · NAT-XXL | 50.00 · 50.00 · 50.00 · 45.00 · 45.00 · 45.00 | 4 · 3 · 7 · 0 · 0 · 3 |
+| Pañales Nateen Pants (Pañales) | L · XL · XXL | NAT-P-L · NAT-P-XL · NAT-P-XXL | 55.00 · 55.00 · 55.00 | 6 · 2 · 9 |
+| Pañales Velvee (Pañales) | P · M · G | VELVEE-P · VELVEE-M · VELVEE-L | 35.00 · 35.00 · 33.00 | 2 · 1 · 3 |
+| Water wipes Nateen (Toallitas húmedas) | — | WIPESNAT | 45.00 | 15 |
+| Water wipes Dany Baby (Toallitas húmedas) | — | DANY-AW600 | 20.00 | 26 |
+| Fular Moon (Fulares) | — | MOON-FUL | 46.00 | 2 |
+
+NAT-L no venía en la lista del 2026-11-18: el dueño decidió después cargarlo a $45.00 y sin existencias, con el texto
+de la web (`content.json`: «Caja L, 15 a 39 lb, 128 uds»).
+
+- **Formato** (`addons/dcasa_catalogo/catalogo.py`, arriba): `atributos` con sus valores en el orden de la tienda
+  («Talla»: RN, P, S, M, L, G, XL, XXL; el atributo es genérico, sus valores están en los datos) y `productos`, cada uno
+  con su `clave` (su xmlid, que no cambia), nombre, categoría, orden, descripción y sus `variantes` (`valor`, `codigo`,
+  `precio`, `existencias`, `texto`). Un producto sin `atributo` tiene una sola variante.
+- **Precio**: el de la lista, tal cual, como **precio de lista**; con tallas, el más bajo va al producto y cada talla
+  lleva lo que tiene de más (`price_extra`): cada variante queda con su precio exacto (lo comprueba la carga y una
+  prueba). Un precio vacío no se inventa: ese producto no se crea y queda en el registro.
+- **ITBMS**: el mismo que llevaba la carga de D'CASA, el impuesto de venta de la empresa que **se suma** al precio de
+  lista (decisión del dueño, 2026-11-18: sabe que es el 7 % y lo pondrá en cero desde Ajustes cuando corresponda; el
+  día que Baby Caleb cobre impuestos, solo cambia la tasa). Mientras sea 7 %, la web dice «$50.00 + ITBMS» y la
+  cotización suma el 7 %.
+- **Existencias**: entran como ajuste de inventario solo al crear el producto, con el motivo «Existencias iniciales del
+  catálogo (lista del dueño de Baby Caleb, 2026-11-18)» en la bitácora de bodega. Un conteo posterior nunca se pisa.
+- **Texto del dueño** (unidades por caja y rango de peso): campo **Presentación** de cada variante, tal cual. Se ve en
+  la ficha de la variante, en su lista (columna «Presentación»), en la ficha del producto cuando tiene una sola variante
+  y en la ficha de la tienda (debajo del precio, una línea por talla).
+- **Descripción** (`description_ecommerce`, la de la ficha de la tienda): la de la web de Baby Caleb
+  (`/home/user/Baby-caleb/content.json` › `products`, solo leída); `origen_descripcion` en el JSON dice de dónde sale y
+  qué se dejó fuera. Se quitó lo que contradice la lista del dueño: «Caja de 12 paquetes de 50» (Dany Baby; el dueño dice
+  6 de 100) y «Disponibilidad y colores por WhatsApp» (Fular Moon; la lista trae un solo color, gris). Velvee no está en
+  la web: solo el texto del dueño.
+- **Categorías** (`data/product_category_data.xml` y `data/product_public_category_data.xml`): Pañales, Toallitas
+  húmedas y Fulares, internas y de la tienda. Las reglas por nombre (`reglas.CATEGORIAS`: pañal, toallita/wipes,
+  fular/portabebé) son las mismas para el inventario anterior y para la importación de Brian.
+- **Sin fotos**: el dueño las sube a mano en Odoo. Lo que no tiene foto queda en inventario **sin publicar** en la
+  tienda (la regla de siempre); se publica desde la ficha (o con Brian) cuando ya tiene su foto. Mientras tanto Juan no
+  da nombre ni precio de lo no publicado: dice que está en el sistema y pasa la conversación a una vendedora.
+
+### Qué muestra la web mientras tanto
+
+La web no se rediseñó. Las categorías de muebles de D'CASA siguen existiendo (vacías) en `dcasa_base` y
+`website_dcasa`: la portada las nombra por xmlid (`CATEGORIAS_PORTADA`, el carril «Para dormir mejor») y unas 25
+pruebas de la web las usan. Un visitante no ve una categoría vacía en la tienda (regla de Odoo). En la portada:
+
+- «Compra por espacio» sigue mostrando las tarjetas de D'CASA (Salas, Recámaras, Colchones…, con sus fotos de muebles):
+  sin nada publicado, cada una abre WhatsApp con el mensaje listo en vez de una página vacía.
+- Los carriles «Lo más buscado» y «Para dormir mejor» salen vacíos hasta que se publique algo (y el segundo solo
+  muestra recámaras y colchones).
+- Cambiar esas tarjetas, sus fotos y el carril por los de Baby Caleb es trabajo de la web (marca), no del catálogo.
+
+### Preguntas pendientes para el dueño
+
+1. **Promoción de Dany Baby** («2 cajas (1,200 toallitas) por $35.00», DANY-AW600): **no está programada**. ¿Se arma
+   como regla de precio (tarifa por cantidad), como combo, o solo la dice la vendedora? ¿Desde cuándo y hasta cuándo?
+2. **NAT-L**: se cargó a $45.00 y sin existencias, con el texto de la web («Caja L — 15 a 39 lb — 128 uds»). ¿Ese texto
+   y ese rango de peso son los correctos (la web dice 15 a 39 lb)?
+3. **ITBMS**: el plan contable de Baby Caleb dice que no cobra ITBMS (`docs/plan/05-contabilidad.md` §6b, 2026-11-11) y
+   la lista dice precios finales; hoy el catálogo lleva el 7 % que se suma. Hasta que se ponga en cero en Ajustes, la
+   clienta pagaría el precio de la lista **más** 7 % (NAT-M: $50.00 + $3.50).
+4. **Categorías**: ¿bastan Pañales, Toallitas húmedas y Fulares? ¿Se quitan las de muebles de D'CASA de la portada y de
+   la tienda (trabajo de la web)?
+5. **Water wipes Nateen**: la web lo marca «descatalogado» y la lista trae 15 cajas. ¿Se vende?
+6. **Dany Baby**: la web dice «12 paquetes de 50» y la lista «6 paquetes de 100». ¿Cuál es? (la web hay que corregirla).
+7. **Velvee** no está en la web de Baby Caleb. ¿Se agrega?
+8. **Publicar sin foto**: hoy nada se publica hasta tener foto. ¿Se publican ya (sin foto) para que Juan y la tienda los
+   ofrezcan?
+9. **Pedir lo agotado**: la tienda deja pedir aunque no haya (regla de D'CASA, «se confirma por WhatsApp»); NAT-L y
+   NAT-XL están en 0. ¿Se deja así?
 
 ## Cómo se carga
 
-1. `scripts/importar_catalogo.py` lee el Excel y las fotos y genera:
-   - `addons/dcasa_catalogo/data/catalogo.json` (precios copiados, nunca calculados);
-   - `addons/dcasa_catalogo/static/img/productos/*.jpg` (1600 px, livianas);
-   - `docs/CATALOGO_REVISAR.md`: lo que el Excel deja en duda.
-2. El módulo `dcasa_catalogo`, al instalarse, crea los productos:
-   - precio del Excel tal cual, **sin ITBMS**, con el impuesto «ITBMS 7%» que **se suma** al
-     precio (decisión de la dueña, 2026-10-01; prueba: factura INV/2026/00821,
-     329.99 + 23.10 = 353.09). La web muestra «$39.99 + ITBMS»; el total con impuesto
-     sale en el carrito, la cotización y la factura;
-   - camas/colchones con tamaños → variantes Twin/Full/Queen/King;
-   - primera foto = principal, el resto a la galería; sin foto → no se publica;
-   - inventario activo en 0 («Sin confirmar») y la web deja comprar igual.
+El módulo `dcasa_catalogo`, **al instalarse** (`post_init_hook`, `__init__.py`, después del plan contable para tener el
+ITBMS), corre `catalogo.cargar_catalogo`, `marcar_black_weekend` (lista vacía) y `cargar_inventario_anterior` (CSV con
+solo el encabezado). La carga es idempotente: lo que ya existe (por su xmlid) no se toca —ni precio, ni nombre, ni
+existencias— y un código que ya está en Odoo sin ser de esta carga (lo creó una persona o Brian) no se duplica ni se
+pisa. Un archivo mal escrito (un valor de talla que no está en `atributos`, un código repetido, una categoría que no
+existe) detiene la instalación con el motivo.
 
 ## Actualizar
 
-Con un Excel o fotos nuevas en la bandeja: `python scripts/procesar_up_media.py` (o solo
-`python scripts/importar_catalogo.py` si no se quiere mover nada; los dos necesitan `openpyxl` y
-`Pillow`), commit, y en la base `odoo-bin shell` →
-`from odoo.addons.dcasa_catalogo.catalogo import cargar_catalogo; cargar_catalogo(env); env.cr.commit()`.
-Solo crea los códigos que falten: lo que se cambió en Odoo (precios, fotos, textos) no se pisa.
+Se edita `data/catalogo.json` (con la lista nueva del dueño: nada a ojo), y en la base `odoo-bin shell` →
+`from odoo.addons.dcasa_catalogo.catalogo import cargar_catalogo; cargar_catalogo(env); env.cr.commit()`. Solo crea los
+productos que falten: un cambio de precio o de existencias de un producto que ya existe se hace en Odoo (o con Brian),
+no en el JSON.
 
-## Regla de precios: todo termina en .99
+`up media/` sigue siendo el buzón del dueño en GitHub (`.github/workflows/up-media.yml` y
+`scripts/procesar_up_media.py`), pero hoy no carga nada: el catálogo se escribe a mano y las fotos se ponen en Odoo, así
+que todo lo que se sube queda guardado y anotado como pendiente en `up media/RESUMEN.md`. `scripts/importar_catalogo.py`
+ya no tiene ningún Excel registrado (el lector del Excel de D'CASA, que escribía el formato anterior, está en el
+historial de git). `fuentes/` queda con su LEEME, vacía.
 
-Decisión de la dueña (2026-10-02): **todo precio termina en .99**. Se conserva la parte entera
-y los centavos pasan a .99: 318.66 → 318.99, 439.98 → 439.99, 186.64 → 186.99; 129.99 queda
-igual. Vale para el precio del producto y para los de combo, siempre **sin ITBMS**.
-Código: `reglas.precio_terminado_en_99` (con tests en `tests/test_pedido_ltsc07.py`).
+## Regla de precios: todo termina en .99 (D'CASA)
 
-## Pedidos nuevos cargados como la mercancía inicial (LTSC-07)
-
-El pedido LTSC-07 (`fuentes/LTSC-07/Catalogo_LTSC-07_Precios_PRODUCTOS_NUEVOS.xlsm`, hoja «Catálogo
-LTSC-07», encabezado en la fila 4) entra por el mismo camino que la carga inicial —inventario
-**y** tienda web— y no por Brian. `scripts/importar_catalogo.py` (lista `PEDIDOS`) lo agrega a
-`catalogo.json`:
-
-- **Precio**: «Precio cama sola» con la regla .99. Las columnas «Total con ITBMS» se ignoran.
-- **Combo**: las columnas Imperial / Dulce Sueños / First Class son cama + colchón **sin
-  ITBMS**; van a «Precio en combo o el par» con el nombre del colchón y la regla .99:
-  «Combo con colchón First Class $439.99». Celda vacía = sin combo (no se inventa).
-- **Medidas**: «Largo × Ancho × Alto: 203 × 193 × 123 cm». Si el Excel pone «Queen» o «Full»
-  en vez de medidas, o las medidas no cuadran (`medidas_dudosas`), la ficha sale sin medidas.
-- **Mismo código, varios colores** (908K beige/negro/gris, 908Q beige/negro): **un** producto
-  con variantes del atributo «Color», el mismo precio en cada color y cada variante con su foto
-  (`image_variant_1920`) y su galería; referencia `908K-BEIGE`, `908K-NEGRO`…
-- **Código que ya estaba en el catálogo** (Y0300300, $159.99): el que estaba **no se toca**
-  (ni precio ni foto); las unidades del pedido son un producto aparte con sufijo:
-  `Y0300300-LTSC07` a $129.99 (decisión de la dueña). Sin textos de promoción en el nombre.
-- **Fotos** (`up media/` y `fuentes/LTSC-07/`, las que no son de la carga inicial; .jpg/.png/.webp), en este orden
-  (`reglas.asignar_foto`):
-  1. decisiones revisadas a mano, con su motivo (`decisiones` del pedido en el script);
-  2. código al inicio del nombre del archivo (`908K - Cama…`, `Y0200201 -Full…`); si el código
-     tiene varios colores, el color del archivo elige la variante; si el color o el material
-     del archivo no son los del Excel, se asigna igual por código y queda el aviso;
-  3. sin código: tamaño + color + medidas del nombre deben señalar **una sola** fila del Excel
-     («Queen – crema 205 × 151» → 825Q). Si señalan varias, no se adivina: decisión a mano o
-     sin foto, y queda anotado.
-  Si no hay foto en la carpeta, va la foto incrustada en la fila del Excel. Varias fotos: la
-  primera es la principal y las demás van a la galería («con colchón» al final). Se guardan
-  como `<código>[-color]_<n>.jpg` (o `_excel.jpg`), 1600 px, JPEG.
-- **Publicación**: con foto se publica (igual que la carga inicial); categoría según el nombre
-  (`reglas.categoria_de_nombre`: camas → Recámaras) y tamaño único como atributo «Tamaño».
-- Cada asignación de foto, cada precio (Excel → cargado) y cada duda quedan en
-  `docs/CATALOGO_REVISAR.md` › «Pedido LTSC-07».
-
-**Despliegue**: la base de staging ya existe, así que la carga no corre en la instalación sino
-en la migración `migrations/19.0.1.3.0/post-migrate.py` (`-u dcasa_catalogo` de
-`docker/entrypoint.sh` al cambiar `APP_VERSION`): `cargar_catalogo` crea solo los códigos que
-faltan. Un código que ya existe en Odoo sin ser de esta carga (p. ej. lo cargó Brian) no se
-duplica ni se pisa: queda en el registro.
+Era una regla de la dueña de D'CASA para su importador (`reglas.precio_terminado_en_99`, con tests en
+`tests/test_pedido_ltsc07.py`). Los precios de Baby Caleb se copian tal cual de la lista.
 
 ## Existencias de prueba (solo staging)
 
-Para probar ventas en staging, cada producto inventariable recibe **10 unidades** en el
-almacén principal (pedido de la dueña; después la dueña pone las reales). Seguro por diseño:
+Para probar ventas en staging, cada producto inventariable **sin ningún movimiento** recibe **10 unidades** en el
+almacén principal. Seguro por diseño:
 
 - Parámetro `dcasa_catalogo.stock_prueba` (vacío o 0 = apagado). Lo fija `docker/entrypoint.sh`
   desde `DCASA_STOCK_PRUEBA` (`edge/wrangler.jsonc`: `10` en staging, `0` en producción). Con
@@ -102,10 +119,10 @@ almacén principal (pedido de la dueña; después la dueña pone las reales). Se
   existencias inventadas.
 - `catalogo.aplicar_stock_prueba` solo toca productos inventariables, sin lote/serie, con
   existencias 0 y **sin ningún movimiento de inventario**: un conteo real o una venta nunca se
-  pisan. Usa el ajuste de inventario de Odoo (`stock.quant._apply_inventory`), que deja su
+  pisan (las tallas con existencias de la lista ya tienen su movimiento; en staging, las que llegaron en 0 —NAT-L,
+  NAT-XL— reciben las 10). Usa el ajuste de inventario de Odoo (`stock.quant._apply_inventory`), que deja su
   movimiento: la segunda vez ya no hace nada.
-- Corre en la migración 19.0.1.3.0 y, en staging, una vez por versión desde el entrypoint
-  (paso «2c»), después de fijar el parámetro.
+- En staging corre una vez por versión desde el entrypoint (paso «2c»), después de fijar el parámetro.
 
 ## Inventario nuevo desde el Excel de un proveedor (Brian)
 
@@ -118,7 +135,7 @@ producto en la columna «Imagen») y se le pide cargarlo.
 2. Gerencia revisa los avisos (códigos repetidos, sin precio, cambios de más del 30 %) y aplica
    con `aplicar_importacion` (confirmación con un clic).
 3. Los productos nuevos siguen las mismas reglas de esta carga (`valores_producto_nuevo` y
-   `reglas.py`, compartidas con `scripts/importar_catalogo.py`): precio del Excel tal cual,
+   `reglas.py`, las mismas de la carga del catálogo): precio del Excel tal cual,
    **sin ITBMS** (`modo_itbms = mas_itbms`), ITBMS 7 % que se suma, categoría y tamaño según el
    nombre, foto del Excel. Nacen **sin publicar**: se publican uno a uno con Brian
    (`publicar_producto_web`) o desde el producto, después de revisar nombre y fotos.
@@ -161,58 +178,36 @@ ejemplo, «las camas: cuál tiene más stock, cuál menos, de la más barata a l
 
 ## Black Weekend
 
-Banda negra con titular amarillo en la portada (antes de los carriles), página `/black-weekend`
-(con sitemap, canónica, `ItemList` y la imagen para compartir; la caché del borde guarda la misma página) y etiqueta
-«Black Weekend» en las tarjetas de los productos marcados.
+Banda negra con titular amarillo en la portada (antes de los carriles), página `/black-weekend` y etiqueta
+«Black Weekend» en las tarjetas de los productos marcados (`website_dcasa/models/black_weekend.py`).
 
-- **Qué productos:** los marcados en el producto (casilla «Black Weekend» junto a la categoría, con su orden y,
-  si tiene colores, la variante destacada). La migración 19.0.1.4.0 de `dcasa_catalogo` marca los
-  12 que eligió la dueña (`catalogo.BLACK_WEEKEND`; 908K en negro). Se pueden marcar o desmarcar
-  más desde Odoo.
+- **Qué productos:** los marcados en el producto (casilla «Black Weekend» junto a la categoría, con su orden y, si
+  tiene variantes, la destacada). `catalogo.BLACK_WEEKEND` es la lista que marca la instalación: **vacía** (la
+  selección de D'CASA no es de este negocio). Se marcan desde Odoo o, si el dueño da una lista, se escribe ahí.
 - **Precios:** los de la tienda (la tarifa del visitante), nunca escritos en una plantilla: si
-  cambia el precio en Odoo, cambia la página. La línea «Combo con colchón <colchón> $X + ITBMS»
-  sale del campo «Precio en combo o el par» (texto del Excel LTSC-07).
-- **Cuándo se ve** (`ir.config_parameter`, hora de Panamá):
-  - `dcasa_black_weekend.inicio` / `.fin`: `2026-10-02` / `2026-10-11` (decisión de la dueña, adelantada
-    el 2026-10-02 para presentar la página el lunes 5: del viernes 2 a las 00:00 al domingo 11 a las 23:59:59, inclusive). Fuera de la ventana desaparece sola.
-  - `dcasa_black_weekend.activo = 1`: visible ya, sin mirar fechas (staging, vista previa).
-  - En el despliegue los fija `docker/entrypoint.sh` desde `DCASA_BLACK_WEEKEND` (producción `0`,
-    staging `1`) y `DCASA_BLACK_WEEKEND_INICIO` / `_FIN` (`edge/wrangler.jsonc`). Para otra fecha:
-    cambiar esas variables (o el parámetro en Ajustes › Técnico › Parámetros del sistema si la
-    variable queda vacía).
-  - La caché de páginas del borde se invalida al cambiar la marca o un parámetro, y el cron horario
-    «D'CASA: Black Weekend» la invalida (y borra el sitemap guardado) cuando la campaña empieza o
-    termina sola.
-- **Lo que no lleva:** cuenta regresiva, «tiempo limitado», «remate», cuotas ni financiamiento
-  (tafi: descartado por la dueña el 2026-10-02). Las gráficas de la dueña
-  (`fuentes/graficas-black-weekend/115.png` … `153.png`) no son fotos de producto: solo `115.png` completa es la imagen para
-  compartir (la dueña aceptó, el 2026-10-02, que ahí salgan tafi y «tiempo limitado»; la página no
-  los repite). Revisión de las gráficas: `docs/CATALOGO_REVISAR.md`.
+  cambia el precio en Odoo, cambia la página.
+- **Cuándo se ve:** `dcasa_black_weekend.inicio` / `.fin` / `.activo` (`ir.config_parameter`, hora de Panamá), que
+  fija `docker/entrypoint.sh` desde `DCASA_BLACK_WEEKEND*` (`edge/wrangler.jsonc`). Las fechas que traen hoy son las de
+  D'CASA (2026-10-02 al 2026-10-11, ya pasadas): las de Baby Caleb las decide su dueño.
+- **Lo que no lleva:** cuenta regresiva, «tiempo limitado», «remate», cuotas ni financiamiento.
 
-## Inventario del sistema anterior (capturas del 2026-10-02)
+## Inventario de un sistema anterior
 
-Las 7 capturas de Inventario → Productos del Odoo anterior (`up media/inventario-anterior/`, 535
-productos) están transcritas en `inventario_anterior.csv` (doble lectura independiente por captura;
-columna `dudas` con lo que se confirmó con zoom) y copiadas en `addons/dcasa_catalogo/data/`.
-`inventario_anterior.cargar_inventario_anterior` las aplica en la migración 19.0.1.7.0 y al dar de
-alta una base nueva, con las reglas de la dueña (LEEME del inventario):
+`data/inventario_anterior.csv` trae **solo el encabezado**: el inventario anterior de D'CASA (535 productos de sus
+capturas) no es de este negocio, y las existencias iniciales de Baby Caleb vienen en `catalogo.json`, junto a su precio
+(un solo archivo por línea de la lista: el precio no queda repetido en dos lugares). El mecanismo
+(`inventario_anterior.cargar_inventario_anterior`) queda para una migración futura (`dcasa_migracion` lo usa con el CSV
+que se le sube):
 
-- Llave = código (`default_code`); sin código, el nombre exacto. Mismo código: existencias, costo y
-  precio si cambiaron (nombre y fotos no se tocan; el inventario manda sobre el precio, también en
-  los del pedido LTSC-07: el informe lista los 23 que cambian). Código nuevo: producto nuevo,
-  categoría por las palabras del nombre (`reglas.CATEGORIAS`), precio SIN ITBMS, publicado solo si
-  tiene foto en `static/img/productos` (archivo que empieza por el código).
-- Un código del inventario que en el catálogo tiene tamaños como variantes (`N-F10018-F-BK` →
-  `N-F10018-F-BK-FULL`, `XHT022-F-W` → `XHT022-F-W-FULL`) se aplica a la variante del tamaño que dice
-  el nombre, sin crear otro producto.
+- Llave = código (`default_code`); sin código, el nombre exacto. Mismo código: existencias, costo y precio si
+  cambiaron (nombre y fotos no se tocan). Código nuevo: producto nuevo, categoría por las palabras del nombre
+  (`reglas.CATEGORIAS`), precio de lista con el ITBMS que se suma, sin publicar (sin foto).
+- Un código sin el sufijo de tamaño de cama (`CODIGO` → `CODIGO-FULL`) se aplica a la variante del tamaño que dice el
+  nombre, sin crear otro producto.
 - «A la mano» → ajuste de inventario en el almacén principal; negativo → 0 y a la lista de conteo.
 - «COMBO … + COLCHÓN» → producto sin publicar. «Descuento», «Propinas» y «X COLCHÓN … PARA COMBO»
-  no se importan. Un código repetido en el CSV (XXI070507) solo entra la primera vez.
+  no se importan. Un código repetido en el CSV solo entra la primera vez.
 - Idempotente: la segunda corrida no crea nada ni deja movimientos.
-
-Informe para la dueña: `scripts/inventario_anterior_informe.py` escribe
-`docs/inventario-anterior-informe.md` (resumen y listas) y `docs/inventario-anterior-fotos-faltantes.xlsx`
-(código, nombre, existencias de los productos nuevos sin foto).
 
 ## Combos de cama y colchón
 
@@ -596,7 +591,7 @@ local con datos de prueba, 1366 y 390 px) para su visto bueno antes de producci�
     ese momento, aunque la página venga del borde.
   * Los datos para Google siguen **sin** disponibilidad (`PUBLICAR_DISPONIBILIDAD = False` en
     `website_dcasa/controllers/main.py`): eso es otra decisión.
-* **Medidas:** ya existían como dato (`dcasa_medidas`, de `data/fichas.json`: las impresas en la foto del proveedor) y
+* **Medidas:** ya existían como dato (`dcasa_medidas`; en D'CASA, las impresas en la foto del proveedor) y
   la ficha ya las mostraba. En la copia local de la base, 144 de los 229 productos publicados las tienen; **ninguno de
   los colchones** (tampoco el DR-1033): no se inventó ninguna.
 * **Lo que Google no muestra:** `/web/login`, `/web/signup` y `/web/reset_password` llevan `noindex` (Google mostraba

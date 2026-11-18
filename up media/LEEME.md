@@ -1,12 +1,14 @@
-# up media: bandeja de entrada
+# up media: buzón de Baby Caleb
 
-Aquí se suben las fotos y los Excel (GitHub → *Add file* → *Upload files* → *Commit changes*).
-GitHub los procesa solo y deja el resultado en `RESUMEN.md`, en esta misma carpeta.
+Aquí se suben archivos desde GitHub (*Add file* → *Upload files* → *Commit changes*), sin terminal. GitHub los revisa
+solo (`.github/workflows/up-media.yml`) y deja lo que pasó con cada uno en `RESUMEN.md`, en esta misma carpeta.
 
-- Foto de un producto que ya existe: el nombre es el código (`CODIGO.jpg`, `CODIGO_2.jpg`…).
-- Pedido nuevo: el Excel del proveedor **y** sus fotos con el código al inicio del nombre.
-- Lo ya cargado se va a `fuentes/<pedido>/`; lo que no era de ningún producto, a `descartado/<fecha>/`
-  (con el motivo). Aquí solo queda lo pendiente. Nada se borra.
-- `inventario-anterior/` es otra carga (capturas del sistema anterior): tiene su propio LEEME.
+- **El catálogo se escribe a mano** con la lista del dueño (`addons/dcasa_catalogo/data/catalogo.json`; ver
+  `docs/CATALOGO.md`). Este buzón no lo cambia.
+- **Las fotos de los productos se ponen a mano en Odoo** (Inventario › Productos › la foto del producto). Si se suben
+  aquí, quedan guardadas y anotadas como pendientes en `RESUMEN.md` hasta que alguien las ponga.
+- Un Excel nuevo queda pendiente hasta que el programador registre cómo se lee (`scripts/importar_catalogo.py`).
+- Nada se borra: lo que ya se procesó se va a `fuentes/<carpeta>/`; lo que no es de ningún producto, a
+  `descartado/<fecha>/` (con el motivo).
 
-Cómo subir y cómo leer el RESUMEN: `docs/OPERACION.md` › «Cómo subir fotos».
+Esta carpeta no se borra ni se renombra aunque esté vacía: es el buzón de entrada.

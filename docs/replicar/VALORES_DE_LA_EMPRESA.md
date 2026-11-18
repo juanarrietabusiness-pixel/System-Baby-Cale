@@ -180,14 +180,18 @@ nada se paga por afiliar…) son **invariantes del código**: se quedan. Están 
 
 ## L. Catálogo, `fuentes/` y `up media/` (no se copian)
 
-| Qué | Dónde | Qué hacer |
+**Hecho para Baby Caleb el 2026-11-18** (docs/CATALOGO.md): el catálogo de D'CASA, sus fotos, `fuentes/`, su
+inventario anterior, su Black Weekend y sus precios en combo ya no están en el árbol.
+
+| Qué | Dónde | Estado / qué hacer |
 |---|---|---|
-| Productos que se cargan **al instalar** (`post_init_hook`) | `addons/dcasa_catalogo/__init__.py:6-23` lee `addons/dcasa_catalogo/data/catalogo.json`, `data/fichas.json`, `data/inventario_anterior.csv` y las fotos de `addons/dcasa_catalogo/static/img/productos/`, y marca los productos de Black Weekend (`addons/dcasa_catalogo/catalogo.py:281`) | **Reemplazar o vaciar** antes del primer despliegue: si no, la base nueva nace con el catálogo, los precios y las existencias de D'CASA |
-| Categorías del catálogo | `addons/dcasa_catalogo/data/product_category_data.xml` y `product_public_category_data.xml` | Las suyas |
-| Importador del Excel y las fotos | `scripts/importar_catalogo.py` (lee `up media/DCASA_listado_productos.xlsx`, `:58`, y los pedidos `LTSC-07`, `:142-150`) | Hecho a la medida del Excel de D'CASA: para otro formato, adaptar o cargar los productos en Odoo (importar, *Cargar datos del sistema anterior* de [MIGRACION.md](../MIGRACION.md), o el importador de Brian de [BRIAN.md](../BRIAN.md)) |
-| Originales de fotos | `fuentes/` (994 MB en el árbol) | Borrar en la copia; la historia de git igual los guarda (§3 de REPLICAR) |
-| Bandeja de la dueña | `up media/` (y el flujo `.github/workflows/up-media.yml`, que procesa, hace commit a `main` y despliega a staging) | Vaciar; usar el flujo solo si el negocio adopta ese proceso ([OPERACION.md › Cómo subir fotos](../OPERACION.md)) |
-| Informe del inventario anterior | `docs/inventario-anterior-informe.md`, `docs/inventario-anterior-fotos-faltantes.xlsx`, `docs/CATALOGO_REVISAR.md` | Historia de D'CASA: no aplica |
+| Productos que se cargan **al instalar** (`post_init_hook`) | `addons/dcasa_catalogo/__init__.py` lee `data/catalogo.json` (formato en `catalogo.py`) y `data/inventario_anterior.csv`, y marca `catalogo.BLACK_WEEKEND` | Baby Caleb: 6 productos, 15 variantes, sin fotos; CSV y lista de Black Weekend vacíos. Otro negocio: escribir su `catalogo.json` con su lista |
+| Categorías del catálogo | `addons/dcasa_catalogo/data/product_category_data.xml` y `product_public_category_data.xml`; reglas por nombre en `reglas.CATEGORIAS` | Baby Caleb: Pañales, Toallitas húmedas, Fulares. Las de muebles de `dcasa_base` y `website_dcasa` siguen (las usan la portada y sus pruebas) |
+| Precios en combo aprobados | `addons/dcasa_catalogo/models/combo_armable.py` (`PRECIOS_COMBO_APROBADOS`) | Vacío |
+| Importador del Excel y las fotos | `scripts/importar_catalogo.py` | Sin Excel registrado: no genera nada (el lector del Excel de D'CASA está en el historial de git) |
+| Originales de fotos | `fuentes/` | Vacía, con su LEEME; la historia de git guarda los de D'CASA (§3 de REPLICAR) |
+| Bandeja del dueño | `up media/` (y `.github/workflows/up-media.yml`) | Buzón de Baby Caleb con su LEEME: lo que se sube queda pendiente y anotado en `RESUMEN.md` |
+| Informes del catálogo y del inventario anterior | `docs/CATALOGO_REVISAR.md`, `docs/inventario-anterior-informe.md` y su `.xlsx` | Retirados (historia de D'CASA) |
 
 ## M. Dominios y el subdominio `workers.dev` de la cuenta
 

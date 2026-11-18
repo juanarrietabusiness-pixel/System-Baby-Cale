@@ -184,14 +184,15 @@ La lista completa, con archivo:línea, está en [VALORES_DE_LA_EMPRESA.md](repli
 
 ### 4.1 El catálogo no se copia
 
-`dcasa_catalogo` carga **al instalarse** (`post_init_hook`, `addons/dcasa_catalogo/__init__.py:6-23`) los productos,
-precios, existencias y fotos de D'CASA (`data/catalogo.json`, `data/fichas.json`, `data/inventario_anterior.csv`,
-`static/img/productos/`) y marca los de Black Weekend (`addons/dcasa_catalogo/catalogo.py:281`). Antes del primer
-despliegue hay que **reemplazarlos** por los del negocio nuevo o vaciarlos, y borrar `fuentes/` y el contenido de
-`up media/`. El importador `scripts/importar_catalogo.py` está hecho a la medida del Excel de D'CASA
-([VALORES_DE_LA_EMPRESA.md §L](replicar/VALORES_DE_LA_EMPRESA.md)). Varias pruebas usan ese catálogo
-(`addons/dcasa_catalogo/tests/`, `juan/test/integracion/historia.ts`): se ajustan en el mismo commit. **No está
-probado** que la instalación funcione con el catálogo vacío (§12): córrelo con `scripts/test.sh` antes de seguir.
+`dcasa_catalogo` carga **al instalarse** (`post_init_hook`, `addons/dcasa_catalogo/__init__.py`) los productos,
+precios y existencias de `data/catalogo.json` (formato en `addons/dcasa_catalogo/catalogo.py`: un atributo con sus
+valores en los datos, y en cada variante su código, su precio exacto, sus existencias y su texto), el inventario de
+`data/inventario_anterior.csv` y los de Black Weekend (`catalogo.BLACK_WEEKEND`). En esta copia ya se hizo para Baby
+Caleb el 2026-11-18 (docs/CATALOGO.md): sin fotos, sin `fuentes/` ni contenido de D'CASA en `up media/`, y
+`scripts/importar_catalogo.py` sin Excel registrado ([VALORES_DE_LA_EMPRESA.md §L](replicar/VALORES_DE_LA_EMPRESA.md)).
+Para otro negocio: escribir su `catalogo.json` con su lista y ajustar en el mismo commit las pruebas que lo fijan
+(`addons/dcasa_catalogo/tests/test_catalogo.py`). **No está probado** que la instalación funcione con el catálogo vacío
+(§12): córrelo con `scripts/test.sh` antes de seguir.
 
 ### 4.2 El prefijo `dcasa_` se queda
 
@@ -595,7 +596,8 @@ Sacadas de [CONTEXTO_AGENTICO.md](CONTEXTO_AGENTICO.md), donde está cada una co
 
 ## 12. Lo que no se pudo verificar (preguntas abiertas)
 
-- **Instalar con el catálogo vacío o con otro catálogo** no se ha probado (`addons/dcasa_catalogo/__init__.py:6-23`):
+- **Instalar con otro catálogo** se probó el 2026-11-18 con el de Baby Caleb (`scripts/test.sh` con los módulos que
+  dependen del catálogo; docs/CATALOGO.md). **Con el catálogo vacío** sigue sin probarse (`addons/dcasa_catalogo/__init__.py`):
   comprobarlo con `scripts/test.sh` en la primera réplica.
 - **El permiso del token de Cloudflare para el binding de Workers AI** al desplegar Juan (`juan/wrangler.jsonc:24`) no
   está documentado en el repositorio.

@@ -230,12 +230,12 @@ además como módulo de todo el servidor (`server_wide_modules = base,web,dcasa_
 
 ## `dcasa_catalogo` — Catálogo
 
-- **Para qué:** carga en Odoo los productos de `data/catalogo.json`, `data/fichas.json` y
-  `data/inventario_anterior.csv`, con las fotos de `static/img/productos/` (los genera `scripts/importar_catalogo.py`
-  desde «up media/»). El mismo producto sirve para inventario, ventas y tienda. Le da a cada producto un código público
-  y la columna de stock ordenable. Existencias de prueba solo en staging (`DCASA_STOCK_PRUEBA`).
-- **Ojo para otro negocio:** la carga corre al **instalar** (`post_init_hook`): con los archivos de D'CASA, la base nueva
-  recibiría el catálogo de D'CASA. Ver [REPLICAR.md](REPLICAR.md) §4.
+- **Para qué:** carga en Odoo los productos de `data/catalogo.json` (hoy, Baby Caleb: escrito a mano con la lista del
+  dueño, con precio, existencias y la «Presentación» de cada variante; sin fotos) y `data/inventario_anterior.csv` (solo
+  el encabezado). El mismo producto sirve para inventario, ventas y tienda. Le da a cada producto un código público y la
+  columna de stock ordenable. Existencias de prueba solo en staging (`DCASA_STOCK_PRUEBA`). Ver [CATALOGO.md](CATALOGO.md).
+- **Ojo para otro negocio:** la carga corre al **instalar** (`post_init_hook`): la base nueva recibe lo que diga
+  `catalogo.json`. Ver [REPLICAR.md](REPLICAR.md) §4.
 - **Depende de (Odoo):** `website_sale_stock`.
 - **Modelos:** sin modelos nuevos; hereda productos y `sale.order` (cotización por WhatsApp).
 - **Apagado de fábrica:** no.
