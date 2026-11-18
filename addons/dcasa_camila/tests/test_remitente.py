@@ -368,10 +368,11 @@ class TestGuiaAbrieronEnCero(BaseCase):
         self.assertEqual(tarea['titulo'], '¿Por qué Abrieron sale en 0?')
         self.assertEqual(tarea['destino'], {'menu': 'dcasa_camila.menu_camila'})
         pasos = ' '.join(p['texto'] for p in tarea['pasos'])
-        for texto in ('Resend › Domains', 'novedades.tienda.example.com', 'Configuration', 'Enable tracking metrics',
+        for texto in ('Resend › Domains', 'novedades.tudominio.com', 'Configuration', 'Enable tracking metrics',
                       '«links»', 'Cloudflare', 'CNAME', 'nube gris', 'DNS only', 'Remitente de las campañas'):
             self.assertIn(texto, pasos)
         self.assertIn('facturas', tarea['nota'], 'Dice por qué no se enciende en el dominio de las facturas')
+        self.assertNotIn('dcasapty', json.dumps(tarea, ensure_ascii=False), 'Sin el dominio de D\'CASA')
 
 
 @tagged('post_install', '-at_install')

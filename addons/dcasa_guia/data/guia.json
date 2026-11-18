@@ -1671,14 +1671,14 @@
    "grupo": "Correo",
    "titulo": "¿Por qué Abrieron sale en 0?",
    "logras": "Entiendes por qué la tabla de campañas de Camila dice 0 en «Abrieron» y «Tocaron» y enciendes en Resend el conteo de aperturas y clics solo para las campañas, sin tocar las facturas.",
-   "nota": "Resend trae el conteo apagado. No lo enciendas en el dominio de las facturas (dcasapty.com): las facturas también llevarían el píxel y sus enlaces cambiarían. Las campañas que ya salieron con el conteo apagado siempre dirán 0, porque el píxel y los enlaces se ponen al enviar. Camila lo revisa sola y lo avisa arriba de su pantalla; el remitente de las campañas lo cambian Gerencia o un administrador.",
+   "nota": "Resend trae el conteo apagado. No lo enciendas en el dominio de las facturas (tudominio.com): las facturas también llevarían el píxel y sus enlaces cambiarían. Las campañas que ya salieron con el conteo apagado siempre dirán 0, porque el píxel y los enlaces se ponen al enviar. Camila lo revisa sola y lo avisa arriba de su pantalla; el remitente de las campañas lo cambian Gerencia o un administrador.",
    "destino": {
     "menu": "dcasa_camila.menu_camila"
    },
    "brian": "¿Por qué la campaña de correo dice 0 en Abrieron?",
    "pasos": [
     {
-     "texto": "En Resend › Domains, agrega el subdominio de las campañas (novedades.dcasapty.com) y copia sus registros en Cloudflare › DNS con la nube gris («DNS only») hasta que Resend diga «Verified».",
+     "texto": "En Resend › Domains, agrega el subdominio de las campañas (por ejemplo novedades.tudominio.com) y copia sus registros en Cloudflare › DNS con la nube gris («DNS only») hasta que Resend diga «Verified».",
      "destino": null
     },
     {
@@ -1708,7 +1708,6 @@
     "pixel",
     "remitente de las campanas",
     "subdominio de campanas",
-    "novedades.dcasapty.com",
     "dns only",
     "nube gris"
    ]
