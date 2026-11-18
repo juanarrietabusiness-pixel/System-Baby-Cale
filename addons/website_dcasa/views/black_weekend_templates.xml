@@ -92,7 +92,7 @@
     </template>
 
     <!-- Página /black-weekend (controllers/main.py). -->
-    <template id="pagina_black_weekend" name="D'CASA: página Black Weekend">
+    <template id="pagina_black_weekend" name="Promociones">
         <t t-call="website.layout">
             <t t-set="bw_nombre" t-value="website._dcasa_campana_nombre()"/>
             <t t-set="bw_frase" t-value="website._dcasa_campana_frase()"/>
@@ -106,7 +106,7 @@
             <div id="wrap" class="o_dcasa_pagina_bw">
                 <section class="o_dcasa_bw o_dcasa_bw_pagina o_dcasa_fondo_oscuro" aria-labelledby="dcasa-bw-h1">
                     <div class="o_dcasa_container">
-                        <p class="o_dcasa_kicker o_dcasa_kicker_light">D'CASA Panamá · La Chorrera</p>
+                        <p class="o_dcasa_kicker o_dcasa_kicker_light" t-out="website.name"/>
                         <h1 id="dcasa-bw-h1" class="o_dcasa_bw_titulo o_dcasa_bw_titulo_grande" t-out="bw_nombre"/>
                         <p t-if="bw_nombre == 'Black Weekend'" class="o_dcasa_bw_sub">Camas tapizadas y bases seleccionadas<t t-if="fechas">, <t t-out="fechas"/></t>.
                             Cada una con su precio de cama sola y en combo con colchón. Precios sin ITBMS: el 7 % se suma en el carrito.</p>

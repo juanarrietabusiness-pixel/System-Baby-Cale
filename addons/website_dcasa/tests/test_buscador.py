@@ -117,11 +117,11 @@ class TestLoQueGoogleNoMuestra(HttpCase):
 
     def test_un_solo_logo_en_los_datos_estructurados(self):
         self.website.domain = False
-        self.env['ir.config_parameter'].sudo().set_param('web.base.url', 'https://dcasapty.com')
-        logo = f'https://dcasapty.com/web/image/website/{self.website.id}/logo'
+        self.env['ir.config_parameter'].sudo().set_param('web.base.url', 'https://babycaleb.com')
+        logo = f'https://babycaleb.com/web/image/website/{self.website.id}/logo'
         bloques = _json_ld(self.url_open('/').text)
         logos = {b['logo'] for b in bloques if isinstance(b, dict) and b.get('logo')}
-        self.assertEqual(logos, {logo}, 'Organization y FurnitureStore dicen el mismo logo')
+        self.assertEqual(logos, {logo}, 'Organization y OnlineStore dicen el mismo logo')
         self.assertEqual(json.loads(self.website._dcasa_json_ld_organizacion())['logo'], logo)
 
 

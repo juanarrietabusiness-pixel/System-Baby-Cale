@@ -40,7 +40,7 @@ class TestSitioFase0(HttpCase):
 
     def _dominio_real(self):
         self.website.domain = False
-        self.env['ir.config_parameter'].sudo().set_param('web.base.url', 'https://dcasapty.com')
+        self.env['ir.config_parameter'].sudo().set_param('web.base.url', 'https://babycaleb.com')
 
     # -- Hero / LCP ---------------------------------------------------------------------------
 
@@ -176,7 +176,7 @@ class TestSitioFase0(HttpCase):
                 self.assertNotIn('127.0.0.1', bloque, ruta)
             organizacion = next(b for b in _json_ld(html) if b.get('@type') == 'Organization')
             self.assertEqual(organizacion['name'], self.website.company_id.name, ruta)
-            self.assertEqual(organizacion['url'], 'https://dcasapty.com', ruta)
+            self.assertEqual(organizacion['url'], 'https://babycaleb.com', ruta)
 
     def test_url_local_nunca_sale_en_el_json_ld(self):
         self.website.domain = False
@@ -188,9 +188,9 @@ class TestSitioFase0(HttpCase):
         self.env['ir.config_parameter'].sudo().set_param('web.base.url', 'http://127.0.0.1:8069')
         self.assertEqual(self.website._dcasa_url_publica(), '')
         # website.domain manda sobre web.base.url.
-        self.website.domain = 'https://dcasapty.com'
-        self.assertEqual(self.website._dcasa_url_publica(), 'https://dcasapty.com')
-        self.assertEqual(json.loads(self.website._dcasa_json_ld())['url'], 'https://dcasapty.com')
+        self.website.domain = 'https://babycaleb.com'
+        self.assertEqual(self.website._dcasa_url_publica(), 'https://babycaleb.com')
+        self.assertEqual(json.loads(self.website._dcasa_json_ld())['url'], 'https://babycaleb.com')
 
     def test_json_ld_organizacion_seguro_en_script(self):
         self.website.company_id.name = "D'CASA </script><script>alert(1)</script>"
@@ -227,7 +227,7 @@ class TestSitioFase0(HttpCase):
             self.assertNotRegex(visible, r'>\s*All [Pp]roducts\s*<', ruta)
             self.assertNotIn('aria-label="Main"', visible, ruta)
             self.assertNotIn('aria-label="Mobile"', visible, ruta)
-        self.assertRegex(self.url_open('/shop').text, r'<title>Catálogo \| D')
+        self.assertIn('<title>Catálogo | Baby Caleb</title>', self.url_open('/shop').text)
 
     def test_seo_de_la_portada_en_todas_sus_copias(self):
         html = self.url_open('/').text

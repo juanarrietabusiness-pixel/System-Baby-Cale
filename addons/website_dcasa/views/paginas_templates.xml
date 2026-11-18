@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Contacto: los datos reales de D'CASA (Odoo trae «Mi Empresa / 3575 Fake Buena Vista…»),
-         tuteo, y WhatsApp primero; el formulario queda como segunda opción. -->
+    <!-- Contacto: los datos reales de la empresa (Odoo trae «Mi Empresa / 3575 Fake Buena Vista…»),
+         tuteo, y WhatsApp primero; el formulario queda como segunda opción. Baby Caleb (2026-11-18): sin tienda, en
+         lugar de una dirección, su cobertura (content.json › nap › address). -->
     <template id="contactus_dcasa" inherit_id="website.contactus" name="D'CASA: contacto">
         <xpath expr="//div[@id='wrap']" position="before">
             <t t-set="dcasa_header_overlay" t-value="True"/>
@@ -17,13 +18,13 @@
                 <div class="o_dcasa_container o_dcasa_hero_inner">
                     <div class="o_dcasa_hero_texto" data-anim-entrada="">
                         <p class="o_dcasa_kicker o_dcasa_kicker_light">Contacto</p>
-                        <h1 class="o_dcasa_display mb-0">Hablemos de tu casa</h1>
+                        <h1 class="o_dcasa_display mb-0">Escríbenos</h1>
                     </div>
                 </div>
             </section>
         </xpath>
         <xpath expr="//p[hasclass('lead')]" position="replace">
-            <p class="lead">Lo más rápido es WhatsApp: te respondemos con precio, medidas y disponibilidad.
+            <p class="lead">Lo más rápido es WhatsApp: te respondemos con precio y disponibilidad.
                 Si prefieres, déjanos tu mensaje aquí y te escribimos.</p>
             <p class="mb-4">
                 <a href="/whatsapp" class="btn btn-lg btn-primary" target="_blank" rel="noopener nofollow">
@@ -45,12 +46,12 @@
         </xpath>
         <xpath expr="//div[hasclass('offset-lg-1')]" position="replace">
             <div class="col-lg-4 offset-lg-1 mt-4 mt-lg-0">
-                <h2 class="o_dcasa_kicker">D'CASA Panamá</h2>
+                <h2 class="o_dcasa_kicker">Baby Caleb</h2>
                 <ul class="list-unstyled mb-0 o_dcasa_contacto_datos">
-                    <li><i class="fa fa-map-marker fa-fw me-2" aria-hidden="true"/>Frente al Parque Libertadores,
-                        diagonal a la Discoteca Seven, La Chorrera</li>
+                    <li><i class="fa fa-truck fa-fw me-2" aria-hidden="true"/>Venta 100% online con entrega a domicilio — Ciudad de Panamá</li>
                     <li><i class="fa fa-whatsapp fa-fw me-2" aria-hidden="true"/><a href="/whatsapp" target="_blank" rel="noopener nofollow">Escríbenos por WhatsApp</a></li>
-                    <li><i class="fa fa-envelope fa-fw me-2" aria-hidden="true"/><a href="mailto:info@dcasapty.com">info@dcasapty.com</a></li>
+                    <li><i class="fa fa-envelope fa-fw me-2" aria-hidden="true"/><a href="mailto:babycalebpanama@gmail.com">babycalebpanama@gmail.com</a></li>
+                    <li><i class="fa fa-instagram fa-fw me-2" aria-hidden="true"/><a href="https://www.instagram.com/babycalebpanama" target="_blank" rel="noopener">@babycalebpanama</a></li>
                 </ul>
             </div>
         </xpath>

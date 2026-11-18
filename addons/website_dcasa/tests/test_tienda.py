@@ -62,14 +62,20 @@ class TestTiendaConfigurada(TransactionCase):
 
     def test_no_promete_entregas_a_todo_panama(self):
         """Al interior todavía no se entrega (decisión de la dueña, 2026-10-17): ni la barra de arriba, ni la portada,
-        ni el pie, ni las copias viejas de la portada prometen «todo Panamá»."""
-        zonas = 'Entregas en Panamá Oeste, Panamá y Colón'
-        for xmlid in ('website.layout', 'website.homepage'):
+        ni el pie, ni las copias viejas de la portada prometen «todo Panamá». Baby Caleb (2026-11-18): la barra de
+        arriba y la portada dicen su cobertura, Ciudad de Panamá (content.json › nap › address)."""
+        cobertura = {'website.layout': 'Entrega a domicilio — Ciudad de Panamá',
+                     'website.homepage': 'Venta 100% online con entrega a domicilio — Ciudad de Panamá'}
+        for xmlid, frase in cobertura.items():
             arco = etree.tostring(self.env.ref(xmlid).with_context(lang='es_419')._get_combined_arch(),
                                   encoding='unicode')
             with self.subTest(vista=xmlid):
                 self.assertNotIn('todo Panamá', arco)
-                self.assertIn(zonas, arco)
+                self.assertIn(frase, arco)
+                self.assertNotIn('Panamá Oeste', arco, 'las zonas de la tienda de origen no salen')
+        # Las copias viejas de la portada (solo en bases de la tienda de origen: la migración 19.0.1.14.0) se corrigen
+        # con el texto de ese entonces (TEXTOS_CORREGIDOS).
+        zonas = 'Entregas en Panamá Oeste, Panamá y Colón'
         vista = self.env['ir.ui.view'].create({
             'name': 'Copia vieja portada', 'type': 'qweb', 'key': 'website_dcasa.prueba_portada_vieja',
             'website_id': self.website.id,
@@ -109,8 +115,8 @@ class TestTiendaConfigurada(TransactionCase):
     def test_whatsapp_valido(self):
         with self.assertRaises(ValidationError):
             self.website.dcasa_whatsapp_number = 'llámame'
-        self.website.dcasa_whatsapp_number = '6026-1919'
-        self.assertTrue(self.website._dcasa_whatsapp_url().startswith('https://wa.me/50760261919?'))
+        self.website.dcasa_whatsapp_number = '6757-5065'
+        self.assertTrue(self.website._dcasa_whatsapp_url().startswith('https://wa.me/50767575065?'))
 
 
 @tagged('post_install', '-at_install')

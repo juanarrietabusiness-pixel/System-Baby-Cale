@@ -7,7 +7,6 @@ from odoo.addons.dcasa_base.models.codigo_publico import normalizar_codigo_publi
 from odoo.addons.website.controllers.main import Website
 from odoo.addons.website_dcasa.models.black_weekend import RUTA as RUTA_BLACK_WEEKEND
 from odoo.addons.website_dcasa.models.black_weekend import RUTA_PROMOCIONES
-from odoo.addons.website_dcasa.models.website import LATITUD, LONGITUD
 from odoo.addons.website_sale.controllers.main import WebsiteSale
 from odoo.fields import Domain
 from odoo.http import request
@@ -27,14 +26,14 @@ PUBLICAR_DISPONIBILIDAD = False
 PAGINAS_LEGALES = {
     '/privacidad': {
         'titulo': 'Política de privacidad',
-        'descripcion': "Qué datos guarda D'CASA Panamá, para qué los usa, con quién los comparte "
+        'descripcion': 'Qué datos guarda Baby Caleb, para qué los usa, con quién los comparte '
                        '(incluida la inteligencia artificial) y cómo ejercer tus derechos.',
         'actualizado': '1 de octubre de 2026',
         'cuerpo': 'website_dcasa.privacidad_cuerpo',
     },
     '/terminos': {
         'titulo': 'Términos y condiciones',
-        'descripcion': "Cómo funcionan los precios, los pedidos y la atención de D'CASA Panamá en este sitio.",
+        'descripcion': 'Cómo funcionan los precios, los pedidos y la atención de Baby Caleb en este sitio.',
         'actualizado': '1 de octubre de 2026',
         'cuerpo': 'website_dcasa.terminos_cuerpo',
     },
@@ -215,8 +214,8 @@ class DcasaTienda(http.Controller):
 
     @http.route('/visitanos', type='http', auth='public', website=True, sitemap=True)
     def visitanos(self, **kwargs):
-        """Página exclusiva de la tienda: dirección, mapa, cómo llegar y contacto."""
-        return request.render('website_dcasa.pagina_visitanos', {'latitud': LATITUD, 'longitud': LONGITUD})
+        """Contacto: Baby Caleb vende 100% en línea (sin tienda ni mapa): cobertura, horario y cómo escribirnos."""
+        return request.render('website_dcasa.pagina_visitanos')
 
     @http.route('/privacidad', type='http', auth='public', website=True, sitemap=True)
     def privacidad(self, **kwargs):

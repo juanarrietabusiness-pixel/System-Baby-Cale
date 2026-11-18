@@ -8,7 +8,7 @@
             <xpath expr="//block[@id='website_info_settings']" position="inside">
                 <setting id="dcasa_whatsapp" string="WhatsApp de ventas"
                          help="Número al que llevan todos los botones «Escríbenos por WhatsApp».">
-                    <field name="dcasa_whatsapp_number" placeholder="+507 6026-1919"/>
+                    <field name="dcasa_whatsapp_number" placeholder="+507 6757-5065"/>
                 </setting>
                 <setting id="dcasa_apartado" string="Apartados de la tienda"
                          help="Días que se guarda un pedido de la tienda sin cobrar. Pasado ese plazo sin que el cliente lo reclame, el pedido se anula solo y el inventario vuelve a quedar libre. 0 = nunca se anula solo.">

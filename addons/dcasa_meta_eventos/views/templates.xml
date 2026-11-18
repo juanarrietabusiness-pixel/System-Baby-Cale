@@ -63,7 +63,7 @@
                 <input class="form-check-input" type="checkbox" id="dcasa_meta_consentimiento_compra"
                        t-att-checked="'checked' if dcasa_meta_casilla_marcada else None"/>
                 <label class="form-check-label small" for="dcasa_meta_consentimiento_compra">
-                    Acepto que D'CASA comparta mis compras con Meta (Facebook e Instagram), con mi correo y celular
+                    Acepto que Baby Caleb comparta mis compras con Meta (Facebook e Instagram), con mi correo y celular
                     cifrados, para medir sus anuncios. Puedo retirarlo cuando quiera.
                     <a href="/privacidad#privacidad-meta">Más información</a>
                 </label>

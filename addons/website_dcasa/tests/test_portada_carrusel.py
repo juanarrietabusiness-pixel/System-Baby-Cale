@@ -168,7 +168,8 @@ class TestCarruselPortada(HttpCase):
         self.assertFalse(arbol.xpath('//div[@id="oe_structure_dcasa_hero"]'), 'y no el de siempre')
         self.assertNotIn('/website_dcasa/static/src/img/hero.webp', texto)
         self.assertEqual(len(arbol.xpath('//h1')), 1, 'un solo titular en la página')
-        self.assertEqual(' '.join(vitrina.xpath('.//h1')[0].text_content().split()), 'Tu casa, bien amueblada.')
+        self.assertEqual(' '.join(vitrina.xpath('.//h1')[0].text_content().split()),
+                         'Cuidado hipoalergénico para la piel de tu bebé')
         self.assertEqual(vitrina.xpath('.//a[contains(@class, "o_dcasa_btn_amarillo")]/@href'), ['/shop'])
 
         pila = vitrina.xpath('.//div[contains(@class, "o_dcasa_vitrina_fotos")]')[0]

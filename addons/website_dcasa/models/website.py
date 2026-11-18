@@ -24,24 +24,28 @@ def _sha1_logo_de_fabrica():
         return hashlib.sha1(archivo.read()).hexdigest()
 
 
-# La tienda en Google Maps (ficha «D'CASA», La Chorrera): la usan la página «Visítanos» y el JSON-LD.
-LATITUD, LONGITUD = 8.8765881, -79.7867962
+# El nombre con que el sitio saluda en los mensajes de WhatsApp ya escritos (docs/BABY_CALEB.md, 2026-11-18).
+MARCA = 'Baby Caleb'
 
-DEFAULT_WHATSAPP_MESSAGE = "Hola D'CASA, quiero información"
+# Baby Caleb vende 100% en línea, sin tienda física (decisión del dueño, 2026-11-18): en lugar de una dirección y un
+# mapa, el sitio dice esta frase (la de su web, content.json › nap › address). La usan «Contacto» (/visitanos), el pie
+# y la portada.
+COBERTURA = 'Venta 100% online con entrega a domicilio — Ciudad de Panamá'
+
+DEFAULT_WHATSAPP_MESSAGE = f'Hola {MARCA}, quiero información'
 
 # Hosts que nunca deben salir en los datos estructurados: son de la máquina, no del sitio.
 HOSTS_LOCALES = ('localhost', '0.0.0.0', '::1')
 
-# Título y descripción de la portada para Google. Solo categorías que el catálogo tiene de
-# verdad (dcasa_catalogo/data/catalogo.json: no hay comedores) y nada de financiamiento
-# mientras no exista (regla 4: no inventar).
+# Título y descripción de la portada para Google: los de la web de Baby Caleb (content.json › meta), tal cual
+# (regla 4: no inventar).
 SEO_PORTADA = {
-    'website_meta_title': "Mueblería en La Chorrera | D'CASA Panamá",
+    'website_meta_title': 'Baby Caleb Panamá | Pañales y Wipes Nateen hipoalergénicos',
     'website_meta_description': (
-        'Recámaras, colchones, zapateras, muebles de TV, estantes y escritorios con precios claros '
-        'en La Chorrera. Entregas en Panamá Oeste, Panamá y Colón. Escríbenos por WhatsApp.'),
+        'Pañales Nateen hipoalergénicos, sin cloro, sin perfumes. Tallas RN a XXL en caja para todo el mes. '
+        'Venta online con delivery en Ciudad de Panamá.'),
 }
-# Valores que se pueden pisar: vacíos, los de ejemplo de Odoo y los anteriores de D'CASA.
+# Valores que se pueden pisar: vacíos, los de ejemplo de Odoo y los que traía la copia de origen (D'CASA).
 # Lo que la dueña escriba desde el editor (Sitio web > SEO) no se toca.
 SEO_PORTADA_REEMPLAZABLES = {
     'website_meta_title': {'', "Mueblería en La Chorrera | D'CASA Panamá"},
@@ -50,6 +54,8 @@ SEO_PORTADA_REEMPLAZABLES = {
         'This is the homepage of the website',
         'Esta es la página principal del sitio web',
         'Esta es la página de inicio del sitio web',
+        'Recámaras, colchones, zapateras, muebles de TV, estantes y escritorios con precios claros '
+        'en La Chorrera. Entregas en Panamá Oeste, Panamá y Colón. Escríbenos por WhatsApp.',
         'Salas, recámaras, colchones y comedores con precios claros en La Chorrera. '
         'Entrega a todo Panamá y financiamiento. Escríbenos por WhatsApp.',
         'Recámaras, colchones, zapateras, muebles de TV, estantes y escritorios con precios claros '
@@ -57,6 +63,9 @@ SEO_PORTADA_REEMPLAZABLES = {
     },
 }
 
+# Las dos listas de abajo solo las usan migraciones viejas (19.0.1.8.0, 19.0.1.13.0, 19.0.1.14.0) de las bases de la
+# tienda de origen (D'CASA), con sus textos de ese entonces: en una instalación nueva no corren.
+#
 # Promesas sin respaldo que versiones anteriores publicaron (SW-03): si quedaron copiadas en
 # una vista del sitio (bloque guardado desde el editor, copia por sitio), se reemplazan por el
 # texto nuevo. Solo coincidencias exactas: lo que la dueña haya reescrito se respeta.
@@ -97,6 +106,9 @@ TEXTOS_CORREGIDOS = [
 ]
 
 # Categorías de la portada: (xmlid, nombre, texto alternativo). La foto es static/src/img/cat-<xmlid>.webp.
+# Son las de muebles de la copia de origen: el catálogo de Baby Caleb no tiene nada en ellas, así que la sección
+# «Compra por espacio» no sale (``_dcasa_categorias_con_productos``). Cuando Baby Caleb tenga fotos de sus categorías,
+# van aquí.
 CATEGORIAS_PORTADA = [
     ('salas', 'Salas', 'Sala con sofá turquesa y mesa de centro de madera'),
     ('recamaras', 'Recámaras', 'Cama king con cabecero tapizado'),
@@ -106,11 +118,12 @@ CATEGORIAS_PORTADA = [
     ('oficina', 'Oficina', 'Escritorio negro con repisa superior'),
 ]
 
-# Menú principal: tres opciones. Las categorías viven dentro del catálogo (/shop).
+# Menú principal: tres opciones. Las categorías viven dentro del catálogo (/shop). Baby Caleb no tiene tienda que
+# visitar: /visitanos es su página de contacto (cobertura, horario y canales).
 MENU_PRINCIPAL = [
     ('Catálogo', '/shop'),
-    ("Socios D'CASA", '/socios'),
-    ('Visítanos', '/visitanos'),
+    ('Socios Baby Caleb', '/socios'),
+    ('Contacto', '/visitanos'),
 ]
 
 
@@ -139,7 +152,7 @@ class Website(models.Model):
 
     dcasa_whatsapp_number = fields.Char(
         string='WhatsApp de ventas',
-        help='Número con código de país, p. ej. +507 6026-1919. Lo usan los botones de WhatsApp del sitio. '
+        help='Número con código de país, p. ej. +507 6757-5065. Lo usan los botones de WhatsApp del sitio. '
              'Si está vacío se usa el teléfono de la empresa.',
     )
 
@@ -154,7 +167,7 @@ class Website(models.Model):
             digitos = reglas_socios.solo_digitos(website.dcasa_whatsapp_number)
             if not (len(digitos) == 8 or 10 <= len(digitos) <= 15):
                 raise ValidationError(self.env._(
-                    'El WhatsApp de ventas debe ser un número, como +507 6026-1919 o 6026-1919.'))
+                    'El WhatsApp de ventas debe ser un número, como +507 6757-5065 o 6757-5065.'))
 
     def _dcasa_whatsapp_url(self, message=None):
         """Link wa.me con mensaje precargado; '/contactus' si no hay número."""
@@ -167,7 +180,7 @@ class Website(models.Model):
         return f'https://wa.me/{digits}?text={quote(message or DEFAULT_WHATSAPP_MESSAGE)}'
 
     def _dcasa_logo_de_fabrica(self):
-        """¿El logo del sitio sigue siendo el de D'CASA que trae el módulo (dcasa_base)?
+        """¿El logo del sitio sigue siendo el de fábrica que trae el módulo (dcasa_base)?
 
         Entonces la cabecera usa su copia en WebP (3-7 KB, static/src/img/logo-*.webp) en lugar del
         PNG de 56 KB que pedía cada página con prioridad alta, compitiendo con la foto LCP. Si la
@@ -182,7 +195,7 @@ class Website(models.Model):
     def _dcasa_whatsapp_producto(self, product):
         """Mensaje de WhatsApp con el nombre del mueble y su código público ya escritos (nunca la referencia del
         proveedor: la vendedora busca ese código en Productos y encuentra el mueble)."""
-        texto = f"Hola D'CASA, me interesa: {product._dcasa_nombre_cliente()}"
+        texto = f'Hola {MARCA}, me interesa: {product._dcasa_nombre_cliente()}'
         codigo = product.dcasa_codigo_publico
         return self._dcasa_whatsapp_url(f'{texto} (código {codigo})' if codigo else texto)
 
@@ -202,7 +215,7 @@ class Website(models.Model):
 
     @api.model
     def _dcasa_armar_menu_principal(self):
-        """Deja el menú de cada sitio en Catálogo · Socios D'CASA · Visítanos.
+        """Deja el menú de cada sitio en Catálogo · Socios Baby Caleb · Contacto.
 
         Solo quita los menús que reemplaza (Inicio, Tienda, Contáctanos, uno por categoría) y
         no duplica: se puede volver a correr sin perder lo que la dueña agregó desde el editor.
@@ -269,7 +282,7 @@ class Website(models.Model):
                 'nombre': nombre,
                 'cantidad': cantidad,
                 'url': self._dcasa_categoria_url(clave) if con_productos else self._dcasa_whatsapp_url(
-                    f"Hola D'CASA, quiero información de {nombre.lower()}"),
+                    f'Hola {MARCA}, quiero información de {nombre.lower()}'),
                 'whatsapp': not con_productos,
                 'imagen': f'/website_dcasa/static/src/img/cat-{clave}.webp',
                 # 400 px para el celular (dos columnas de ~180 px): 11-18 KB en vez de 36-68 KB.
@@ -277,6 +290,13 @@ class Website(models.Model):
                 'alt': alt,
             })
         return tarjetas
+
+    def _dcasa_categorias_con_productos(self):
+        """Las tarjetas de «Compra por espacio» si al menos una categoría tiene algo publicado; si ninguna tiene nada,
+        una lista vacía y la sección no sale: seis tarjetas que solo llevan a WhatsApp no ayudan a comprar (Baby
+        Caleb, 2026-11-18: su catálogo no tiene nada en las categorías de muebles de la portada)."""
+        tarjetas = self._dcasa_categorias()
+        return tarjetas if any(not tarjeta['whatsapp'] for tarjeta in tarjetas) else []
 
     def _dcasa_dominio_publicado(self):
         """Lo que un visitante puede comprar: se vende en este sitio y está publicado.
@@ -410,7 +430,9 @@ class Website(models.Model):
         return f'{base}/web/image/website/{self.id}/logo' if base else ''
 
     def _dcasa_json_ld(self):
-        """Datos estructurados FurnitureStore para Google (tienda local).
+        """Datos estructurados OnlineStore para Google: Baby Caleb vende en línea, sin tienda física (decisión del
+        dueño, 2026-11-18). Sin coordenadas ni mapa: no hay local que ubicar. La dirección, solo con lo que la empresa
+        tenga escrito (hoy, el país).
 
         JSON seguro dentro de <script> (escapa <, >, & y U+2028/9) con el helper de Odoo. El logo es el mismo que el de
         ``Organization`` (``_dcasa_logo_publico``).
@@ -420,12 +442,11 @@ class Website(models.Model):
         base = self._dcasa_url_publica()  # '' si solo hay una URL local: sin URLs absolutas
         datos = {
             '@context': 'https://schema.org',
-            '@type': 'FurnitureStore',
+            '@type': 'OnlineStore',
             '@id': base and f'{base}/#tienda',
             'name': company.name,
             'url': base,
             'logo': self._dcasa_logo_publico(base),
-            'image': base and f'{base}/website_dcasa/static/src/img/hero.webp',
             'telephone': company.phone,
             'email': company.email,
             'currenciesAccepted': company.currency_id.name,
@@ -433,11 +454,9 @@ class Website(models.Model):
                 '@type': 'PostalAddress',
                 'streetAddress': ', '.join(filter(None, [company.street, company.street2])),
                 'addressLocality': company.city,
-                'addressRegion': company.state_id.name or 'Panamá Oeste',  # La Chorrera
+                'addressRegion': company.state_id.name,
                 'addressCountry': company.country_id.code or 'PA',
             },
-            'geo': {'@type': 'GeoCoordinates', 'latitude': LATITUD, 'longitude': LONGITUD},
-            'hasMap': f'https://www.google.com/maps/search/?api=1&query={LATITUD}%2C{LONGITUD}',
             'sameAs': [url for url in (self.social_instagram, self.social_tiktok, self.social_facebook) if url],
         }
         # Sin campos vacíos (Google los marca como error). Nada de cifras inventadas (rango de precios).

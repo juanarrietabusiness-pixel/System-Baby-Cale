@@ -21,10 +21,12 @@
          cabecera queda fija, y el hero puede meterse debajo de las dos (header_overlay). -->
     <template id="layout_anuncios" inherit_id="website.layout" name="D'CASA: barra de anuncios">
         <xpath expr="//header/*[1]" position="before">
-            <div t-if="website" class="o_dcasa_anuncios o_header_hide_on_scroll" role="region" aria-label="Avisos de D'CASA">
+            <!-- Baby Caleb (2026-11-18): vende 100% en línea y entrega a domicilio en Ciudad de Panamá (su web,
+                 content.json › nap › address), sin tienda física. La frase va partida en las dos franjas de siempre. -->
+            <div t-if="website" class="o_dcasa_anuncios o_header_hide_on_scroll" role="region" t-attf-aria-label="Avisos de {{ website.name }}">
                 <div class="o_dcasa_container o_dcasa_anuncios_inner">
-                    <span class="o_dcasa_anuncio_entregas"><i class="fa fa-truck me-2" aria-hidden="true"/>Entregas en Panamá Oeste, Panamá y Colón</span>
-                    <span class="d-none d-md-inline"><i class="fa fa-map-marker me-2" aria-hidden="true"/>Tienda en La Chorrera</span>
+                    <span class="o_dcasa_anuncio_entregas"><i class="fa fa-truck me-2" aria-hidden="true"/>Entrega a domicilio — Ciudad de Panamá</span>
+                    <span class="d-none d-md-inline"><i class="fa fa-shopping-bag me-2" aria-hidden="true"/>Venta 100% online</span>
                     <a class="o_dcasa_anuncio_wa" t-att-href="website._dcasa_whatsapp_url()" target="_blank" rel="noopener"
                        aria-label="Escríbenos por WhatsApp (se abre en una pestaña nueva)"><i class="fa fa-whatsapp me-2" aria-hidden="true"/><span class="d-none d-sm-inline">Escríbenos por WhatsApp</span></a>
                 </div>
@@ -109,7 +111,7 @@
     <!-- Descripción para Google de la tienda (las categorías pueden tener la suya propia). -->
     <template id="products_meta_dcasa" inherit_id="website_sale.products" name="D'CASA: descripción de la tienda">
         <xpath expr="//t[@t-call='website.layout']" position="inside">
-            <t t-set="website_meta_description">Tienda en línea de D'CASA Panamá: salas, recámaras, colchones, zapateras, estantes y escritorios con precios claros. Entregas en Panamá Oeste, Panamá y Colón desde La Chorrera.</t>
+            <t t-set="website_meta_description">Catálogo de Baby Caleb: pañales Nateen hipoalergénicos, sin cloro, sin perfumes. Tallas RN a XXL en caja para todo el mes. Venta online con delivery en Ciudad de Panamá.</t>
             <!-- Sin categoría, Odoo titula la pestaña con el nombre de la vista («Products»). -->
             <t t-if="not category" t-set="additional_title">Catálogo</t>
         </xpath>
@@ -123,18 +125,19 @@
         </xpath>
     </template>
 
-    <!-- Ficha de producto: WhatsApp con el nombre del mueble y sellos de confianza junto al botón de compra. -->
+    <!-- Ficha de producto: WhatsApp con el nombre del producto y sellos de confianza junto al botón de compra. Baby Caleb
+         (2026-11-18): la entrega a domicilio en Ciudad de Panamá y la atención personal de su web (content.json ›
+         differentiators); fuera «te lo llevas hoy» y «míralo en tienda» (no tiene tienda). -->
     <template id="product_cta_dcasa" inherit_id="website_sale.cta_wrapper" name="D'CASA: confianza en la ficha">
         <!-- WhatsApp es el CTA de la marca: botón principal y antes de «Agregar al carrito». -->
         <xpath expr="//div[@id='o_wsale_cta_wrapper']" position="before">
             <a t-if="website and product" t-att-href="website._dcasa_whatsapp_producto(product)" target="_blank" rel="noopener"
                class="btn btn-primary btn-lg w-100 mb-3 o_dcasa_wa_producto">
-                <i class="fa fa-whatsapp me-2" aria-hidden="true"/>Pregunta por este mueble por WhatsApp
+                <i class="fa fa-whatsapp me-2" aria-hidden="true"/>Pregunta por este producto por WhatsApp
             </a>
             <ul class="o_dcasa_sellos" role="list">
-                <li><i class="fa fa-truck" aria-hidden="true"/><span><strong>Entregas en Panamá Oeste, Panamá y Colón.</strong> Costo y fecha por WhatsApp.</span></li>
-                <li><i class="fa fa-cube" aria-hidden="true"/><span><strong>Te lo llevas hoy.</strong> Muchos vienen en caja y caben en tu carro.</span></li>
-                <li><i class="fa fa-map-marker" aria-hidden="true"/><span><strong>Míralo en tienda.</strong> frente al Parque Libertadores, La Chorrera.</span></li>
+                <li><i class="fa fa-truck" aria-hidden="true"/><span><strong>Entrega a domicilio en Ciudad de Panamá.</strong> Costo y fecha por WhatsApp.</span></li>
+                <li><i class="fa fa-comments" aria-hidden="true"/><span><strong>Atención personal.</strong> Asesoría directa y humana por WhatsApp — te ayudamos a elegir la talla, nada de formularios.</span></li>
             </ul>
         </xpath>
     </template>
@@ -156,8 +159,9 @@
         </xpath>
     </template>
 
-    <!-- Logo de la píldora en WebP (3-7 KB en vez del PNG de 56 KB) mientras sea el de D'CASA
-         del módulo; en el editor, o si la dueña sube otro, el campo de Odoo de siempre. -->
+    <!-- Logo de la píldora en WebP (7-15 KB en vez del PNG de 40 KB) mientras sea el de fábrica del módulo
+         (dcasa_base/static/img/logo.png; los WebP los hace scripts/iconos_de_la_marca.py); en el editor, o si la dueña
+         sube otro, el campo de Odoo de siempre. -->
     <template id="logo_webp_dcasa" inherit_id="website.option_header_brand_logo" name="D'CASA: logo en WebP">
         <xpath expr="//span[@t-field='website.logo']" position="attributes">
             <attribute name="t-if">editable or not website._dcasa_logo_de_fabrica()</attribute>
@@ -166,7 +170,7 @@
         <xpath expr="//span[@t-field='website.logo']" position="after">
             <img t-else="" src="/website_dcasa/static/src/img/logo-200.webp"
                  srcset="/website_dcasa/static/src/img/logo-200.webp 1x, /website_dcasa/static/src/img/logo-400.webp 2x"
-                 width="200" height="91" class="img img-fluid" loading="eager" t-att-alt="website.name"/>
+                 width="200" height="200" class="img img-fluid" loading="eager" t-att-alt="website.name"/>
         </xpath>
     </template>
 
@@ -184,7 +188,7 @@
         </xpath>
     </template>
 
-    <!-- Fuera «Con la tecnología de Odoo»: el sitio es de D'CASA. Se quita el bloque del pie
+    <!-- Fuera «Con la tecnología de Odoo»: el sitio es de la empresa. Se quita el bloque del pie
          y se vacía la plantilla, así tampoco aparece en el portal ni en otras páginas. -->
     <template id="sin_credito_odoo" inherit_id="web.brand_promotion" name="D'CASA: sin crédito de Odoo">
         <xpath expr="//div[hasclass('o_brand_promotion')]" position="replace"/>
@@ -201,7 +205,7 @@
     <template id="socios_cabecera_dcasa" inherit_id="dcasa_socios.socios_layout" name="D'CASA: cabecera de socios">
         <!-- Título de pestaña distinto por página y cabecera sobre la foto. -->
         <xpath expr="//t[@t-set='additional_title']" position="replace">
-            <t t-set="additional_title" t-value="('%s · ' % titulo if titulo else '') + 'Socios D’CASA'"/>
+            <t t-set="additional_title" t-value="('%s · ' % titulo if titulo else '') + 'Socios Baby Caleb'"/>
             <t t-set="dcasa_header_overlay" t-value="True"/>
         </xpath>
         <xpath expr="//div[hasclass('o_dcasa_socios_head')]" position="replace">
@@ -215,7 +219,7 @@
                 <div class="o_dcasa_container o_dcasa_hero_inner">
                     <div class="o_dcasa_hero_texto" data-anim-entrada="">
                         <p class="o_dcasa_kicker o_dcasa_kicker_light">Programa de socios</p>
-                        <h1 class="o_dcasa_display mb-0" t-out="titulo or 'Socios D’CASA'"/>
+                        <h1 class="o_dcasa_display mb-0" t-out="titulo or 'Socios Baby Caleb'"/>
                     </div>
                 </div>
             </section>
@@ -250,7 +254,7 @@
         <xpath expr="//div[hasclass('oe_website_login_container')]" position="before">
             <t t-set="dcasa_header_overlay" t-value="True"/>
             <t t-call="website_dcasa.cabecera_pagina">
-                <t t-set="cabecera_kicker">Tu cuenta D'CASA</t>
+                <t t-set="cabecera_kicker">Tu cuenta Baby Caleb</t>
                 <t t-set="cabecera_titulo">Mi cuenta</t>
                 <t t-set="cabecera_imagen" t-value="'/website_dcasa/static/src/img/split-hoy.webp'"/>
                 <t t-set="cabecera_ancho" t-value="793"/>
@@ -289,7 +293,7 @@
 
     <template id="footer_copyright_dcasa" inherit_id="website.footer_copyright_company_name" name="D'CASA: copyright">
         <xpath expr="//span[hasclass('o_footer_copyright_name')]" position="replace">
-            <span class="o_footer_copyright_name me-2 small">© D'CASA Panamá · Todos los derechos reservados</span>
+            <span class="o_footer_copyright_name me-2 small">© Baby Caleb · Todos los derechos reservados</span>
         </xpath>
     </template>
 
@@ -309,20 +313,20 @@
         </xpath>
     </template>
 
-    <!-- Pie de página con los datos reales de D'CASA (editable en el constructor). Nada dinámico aquí dentro: al guardar,
+    <!-- Pie de página con los datos de Baby Caleb (editable en el constructor; los de su web, content.json y el pie de
+         babycaleb.com, decisión del dueño del 2026-11-18). Sin RUC: el dueño todavía no lo dio, y no se inventa. Sin
+         dirección: vende 100% en línea. Nada dinámico aquí dentro: al guardar,
          el editor escribe en la vista el HTML ya dibujado de esta zona (ir.ui.view.save) y un t-out quedaría como texto
          fijo. Lo dinámico va fuera, como el horario (pie_horario, abajo). -->
     <template id="footer_dcasa" inherit_id="website.footer_custom" name="D'CASA: pie de página">
         <xpath expr="//div[@id='footer']" position="replace">
             <div id="footer" class="oe_structure oe_structure_solo o_dcasa_footer" t-ignore="true" t-if="not no_footer">
-                <section class="s_text_block pt48 pb24" data-snippet="s_text_block" data-name="Pie D'CASA">
+                <section class="s_text_block pt48 pb24" data-snippet="s_text_block" data-name="Pie de página">
                     <div class="container">
                         <div class="row">
                             <div class="col-lg-4 pb24">
-                                <h2 class="o_dcasa_kicker">D'CASA Panamá</h2>
-                                <p>Tu casa, bien amueblada. Camas, colchones, salas, muebles de TV,
-                                    zapateras, estantes y escritorios, con la mejor atención y precios pensados para ti.</p>
-                                <p class="small mb-0">RUC 155779346-2-2026 DV7</p>
+                                <h2 class="o_dcasa_kicker">Baby Caleb</h2>
+                                <p>Esenciales de bebé hipoalergénicos y biodegradables — pensamos en cada etapa de tu bebé.</p>
                             </div>
                             <div class="col-lg-2 pb24">
                                 <h2 class="o_dcasa_kicker">Tienda</h2>
@@ -336,17 +340,16 @@
                                 </ul>
                             </div>
                             <div class="col-lg-3 pb24">
-                                <h2 class="o_dcasa_kicker">Visítanos</h2>
-                                <p>Frente al Parque Libertadores, diagonal a la Discoteca Seven<br/>La Chorrera, Panamá Oeste</p>
-                                <p><a href="/visitanos">Cómo llegar</a></p>
+                                <h2 class="o_dcasa_kicker">Cobertura</h2>
+                                <p>Venta 100% online con entrega a domicilio — Ciudad de Panamá</p>
+                                <p><a href="/visitanos">Horario y contacto</a></p>
                             </div>
                             <div class="col-lg-3 pb24">
                                 <h2 class="o_dcasa_kicker">Escríbenos</h2>
                                 <ul class="list-unstyled">
                                     <li><i class="fa fa-whatsapp fa-fw me-2" aria-hidden="true"/><a href="/whatsapp" target="_blank" rel="noopener nofollow">Escríbenos por WhatsApp</a></li>
-                                    <li><i class="fa fa-envelope fa-fw me-2" aria-hidden="true"/><a href="mailto:info@dcasapty.com">info@dcasapty.com</a></li>
-                                    <li><i class="fa fa-instagram fa-fw me-2" aria-hidden="true"/><a href="https://www.instagram.com/dcasapty" target="_blank" rel="noopener">@dcasapty</a></li>
-                                    <li><i class="fa fa-music fa-fw me-2" aria-hidden="true"/><a href="https://www.tiktok.com/@dcasapty" target="_blank" rel="noopener">TikTok @dcasapty</a></li>
+                                    <li><i class="fa fa-envelope fa-fw me-2" aria-hidden="true"/><a href="mailto:babycalebpanama@gmail.com">babycalebpanama@gmail.com</a></li>
+                                    <li><i class="fa fa-instagram fa-fw me-2" aria-hidden="true"/><a href="https://www.instagram.com/babycalebpanama" target="_blank" rel="noopener">@babycalebpanama</a></li>
                                 </ul>
                             </div>
                         </div>
@@ -370,7 +373,7 @@
                      t-as="dcasa_horario_pie" t-if="dcasa_horario_pie" class="o_dcasa_pie_horario_banda" t-ignore="true">
                     <div class="container">
                         <p class="o_dcasa_pie_horario">
-                            <span class="o_dcasa_pie_horario_titulo">Horario de la tienda</span>
+                            <span class="o_dcasa_pie_horario_titulo">Horario</span>
                             <span t-foreach="dcasa_horario_pie" t-as="fila" class="o_dcasa_pie_horario_fila" t-out="fila['corto']"/>
                         </p>
                     </div>

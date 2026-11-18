@@ -1,6 +1,6 @@
 """Ronda 6 de diseño: lo que la dueña pidió fijar.
 
-* La píldora de /socios (logo, Catálogo · Socios D'CASA · Visítanos, carrito, búsqueda, cuenta y
+* La píldora de /socios (logo, Catálogo · Socios Baby Caleb · Contacto, carrito, búsqueda, cuenta y
   «Escríbenos») está igual en todas las páginas, también en la tienda, la ficha, el carrito, las
   legales, la cuenta y Black Weekend, y es el vidrio líquido original (desenfoque, saturación,
   filos de luz y refracción): claro sobre fondo claro, ahumado sobre una foto.
@@ -56,12 +56,12 @@ class TestDisenoUniforme(HttpCase):
                 cabecera = _cabecera(html)
                 self.assertIn('o_dcasa_anuncios', cabecera, 'Barra de avisos azul arriba')
                 self.assertIn('o_main_nav', cabecera)
-                # Logo de D'CASA en WebP liviano (el PNG de 56 KB competía con la foto principal).
+                # Logo de la empresa en WebP liviano (el PNG competía con la foto principal).
                 self.assertIn('/website_dcasa/static/src/img/logo-200.webp', cabecera)
                 self.assertNotIn('/web/image/website/1/logo', cabecera)
                 menu = re.search(r'id="top_menu".*?</ul>', cabecera, re.S).group(0)
-                for enlace, texto in (('/shop', 'Catálogo'), ('/socios', 'Socios D&#39;CASA'),
-                                      ('/visitanos', 'Visítanos')):
+                for enlace, texto in (('/shop', 'Catálogo'), ('/socios', 'Socios Baby Caleb'),
+                                      ('/visitanos', 'Contacto')):
                     self.assertRegex(menu, rf'href="{re.escape(enlace)}"[^>]*>\s*<span>{texto}</span>')
                 self.assertIn('o_wsale_my_cart', cabecera, 'Carrito')
                 self.assertIn('o_search_modal', cabecera, 'Búsqueda')
@@ -88,7 +88,8 @@ class TestDisenoUniforme(HttpCase):
                 html = self.url_open(ruta).text
                 pie = re.search(r'<footer.*?</footer>', html, re.S).group(0)
                 self.assertIn('o_dcasa_footer', pie)
-                self.assertIn('info@dcasapty.com', pie)
+                self.assertIn('babycalebpanama@gmail.com', pie)
+                self.assertNotIn('dcasapty', pie)
                 for prohibido in ('<img', '<picture', 'background-image', 'opacity', 'filter:',
                                   'o_dcasa_hero', 'o_we_bg_filter', 'o_bg_img'):
                     self.assertNotIn(prohibido, pie)
