@@ -70,7 +70,7 @@ class TestMiCuentaHttp(MiCuentaComun, HttpCase):
         self.assertIn(fecha_corta(self.inicio_abono + timedelta(days=30)), html,
                       '30 días continuos desde el primer abono (decisión de la gerencia A3)')
         self.assertIn(self.socia.dcasa_socio_codigo, html, 'Su código de socio, para la caja')
-        self.assertIn('Socios D', html)
+        self.assertIn('Socios Baby Caleb', html)
         self.assertIn('Escríbenos por WhatsApp', html)
         self.assertIn('o_dcasa_mc_activa', html, 'La barra de abajo reemplaza al botón flotante')
         self.assertEqual(html.count('<h1'), 1, 'Un solo h1 por página')

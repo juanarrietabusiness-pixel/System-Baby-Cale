@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <!-- ===================================================================
-         Portada D'CASA v2 (ver docs/historico/REDISENO.md).
+         Portada v2 (ver docs/historico/REDISENO.md), con los textos de Baby Caleb (2026-11-18: los de su web,
+         content.json; lo que era de muebles sin un equivalente allá, fuera).
 
          Los bloques .oe_structure con id son editables en Sitio web > Editar
          (textos, fotos, botones). Las categorías, los carruseles de productos y
@@ -145,10 +146,10 @@
 
                 <div class="o_dcasa_vitrina_panel">
                     <div class="o_dcasa_hero_texto" data-anim-entrada="">
-                        <p class="o_dcasa_kicker o_dcasa_kicker_light">Mueblería en La Chorrera · Entregas en Panamá Oeste, Panamá y Colón</p>
-                        <h1 id="dcasa-hero-titulo" class="o_dcasa_display">Tu casa, bien amueblada.</h1>
-                        <p class="o_dcasa_hero_sub">Salas, recámaras, colchones y zapateras con precios claros.
-                            Muchos vienen en caja: te los llevas hoy mismo.</p>
+                        <!-- El texto del hero de la web de Baby Caleb (content.json › hero), tal cual. -->
+                        <p class="o_dcasa_kicker o_dcasa_kicker_light">Pensamos en cada etapa de tu bebé</p>
+                        <h1 id="dcasa-hero-titulo" class="o_dcasa_display">Cuidado hipoalergénico para la piel de tu bebé</h1>
+                        <p class="o_dcasa_hero_sub">Pañales y wipes hipoalergénicos: sin químicos agresivos, sin perfumes, sin alcohol, sin cloro.</p>
                         <div class="o_dcasa_ctas">
                             <a href="/shop" class="btn btn-lg o_dcasa_btn_amarillo">Ver el catálogo</a>
                             <a href="/whatsapp" class="btn btn-lg o_dcasa_btn_linea" target="_blank" rel="noopener nofollow">
@@ -173,9 +174,9 @@
         <section t-if="cine" class="o_dcasa_cine" aria-labelledby="dcasa-cine-titulo">
             <div class="o_dcasa_cine_inner">
                 <div class="o_dcasa_cine_texto" data-anim-cascada="izquierda">
-                    <p class="o_dcasa_kicker">Catálogo D'CASA</p>
+                    <p class="o_dcasa_kicker">Catálogo Baby Caleb</p>
                     <h2 id="dcasa-cine-titulo" class="o_dcasa_h2 o_dcasa_cine_titulo" data-titular="">Date una vuelta por la tienda</h2>
-                    <p class="o_dcasa_cine_lead">Camas, colchones, salas, zapateras y más: míralo todo con su precio en el catálogo.</p>
+                    <p class="o_dcasa_cine_lead">Míralo todo con su precio en el catálogo.</p>
                     <div class="o_dcasa_ctas">
                         <a href="/shop" class="btn btn-lg btn-primary">Ver el catálogo</a>
                     </div>
@@ -224,7 +225,10 @@
              desde la portada: una portada ya editada en el constructor es una copia que no
              recibiría un t-call nuevo; esta plantilla, sí. Solo sale con la campaña activa. -->
         <t t-call="website_dcasa.seccion_black_weekend"/>
-        <section class="o_dcasa_section o_dcasa_categorias" aria-labelledby="dcasa-cat-titulo">
+        <!-- Sin nada publicado en ninguna de sus categorías, la sección no sale (website._dcasa_categorias_con_productos):
+             hoy son las de muebles de la copia de origen y el catálogo de Baby Caleb no tiene nada en ellas. -->
+        <t t-set="dcasa_cats" t-value="website._dcasa_categorias_con_productos()"/>
+        <section t-if="dcasa_cats" class="o_dcasa_section o_dcasa_categorias" aria-labelledby="dcasa-cat-titulo">
             <div class="o_dcasa_container">
                 <div class="o_dcasa_section_head">
                     <div data-anim-cascada="izquierda">
@@ -235,7 +239,7 @@
                 </div>
                 <div class="o_dcasa_cat_grid" data-anim-cascada="">
                     <!-- Sin nada publicado, la tarjeta abre WhatsApp (website._dcasa_categorias). -->
-                    <a t-foreach="website._dcasa_categorias()" t-as="cat" t-att-href="cat['url']" class="o_dcasa_cat"
+                    <a t-foreach="dcasa_cats" t-as="cat" t-att-href="cat['url']" class="o_dcasa_cat"
                        t-att-target="cat['whatsapp'] and '_blank' or None"
                        t-att-rel="cat['whatsapp'] and 'noopener' or None"
                        t-att-aria-label="cat['whatsapp'] and ('%s: pregúntanos por WhatsApp' % cat['nombre']) or None">
@@ -263,7 +267,7 @@
         <section class="o_dcasa_socios_band" aria-labelledby="dcasa-socios-titulo">
             <div class="o_dcasa_container o_dcasa_split_grid">
                 <div class="o_dcasa_socios_band_text" data-anim-cascada="izquierda">
-                    <p class="o_dcasa_kicker o_dcasa_kicker_light">Socios D'CASA</p>
+                    <p class="o_dcasa_kicker o_dcasa_kicker_light">Socios Baby Caleb</p>
                     <h2 id="dcasa-socios-titulo" class="o_dcasa_h2" data-titular="">Suma puntos y gana invitando</h2>
                     <ul class="o_dcasa_socios_facts" role="list">
                         <t t-set="por_dolar" t-value="reglas['acumulacion'].get('puntosPorDolar')"/>
@@ -287,12 +291,13 @@
         </section>
     </template>
 
-    <!-- Portada: una franja corta que lleva a la página «Visítanos» (el mapa vive allá). Antes, una sección pequeña
+    <!-- Portada: una franja corta que lleva a la página de contacto (/visitanos). Antes, una sección pequeña
          de contacto (pedido de la dueña, 2026-11-15: sin «Escríbenos» en el menú, «un CTA pequeño que invite a
          escribirnos al WhatsApp o al correo»). Va aquí y no en la portada: esta plantilla llega aunque la portada se haya
-         editado en el constructor. -->
+         editado en el constructor. Baby Caleb vende 100% en línea (sin tienda): en lugar de la dirección, su cobertura
+         (el título es el de su web, babycaleb.com › Cobertura; la frase, content.json › nap › address). -->
     <template id="seccion_visitanos" name="D'CASA: visítanos (franja)">
-        <t t-set="correo_tienda" t-value="website.company_id.email or 'info@dcasapty.com'"/>
+        <t t-set="correo_tienda" t-value="website.company_id.email or 'babycalebpanama@gmail.com'"/>
         <section class="o_dcasa_contacto_cta" aria-labelledby="dcasa-contacto-titulo">
             <div class="o_dcasa_container o_dcasa_contacto_cta_inner">
                 <div>
@@ -310,23 +315,26 @@
         <section id="visitanos" class="o_dcasa_visita o_dcasa_visita_franja">
             <div class="o_dcasa_container o_dcasa_visita_franja_inner">
                 <div>
-                    <p class="o_dcasa_kicker o_dcasa_kicker_light">Visítanos</p>
-                    <h2 class="o_dcasa_h2" data-titular="">Te esperamos en La Chorrera</h2>
-                    <p class="o_dcasa_lead">Frente al Parque Libertadores, diagonal a la Discoteca Seven.</p>
+                    <p class="o_dcasa_kicker o_dcasa_kicker_light">Cobertura</p>
+                    <h2 class="o_dcasa_h2" data-titular="">Vendemos online y te lo llevamos.</h2>
+                    <p class="o_dcasa_lead">Venta 100% online con entrega a domicilio — Ciudad de Panamá</p>
                 </div>
                 <a href="/visitanos" class="btn btn-lg o_dcasa_btn_amarillo">
-                    <i class="fa fa-map-marker me-2" aria-hidden="true"/>Cómo llegar y más información</a>
+                    <i class="fa fa-clock-o me-2" aria-hidden="true"/>Horario y contacto</a>
             </div>
         </section>
     </template>
 
-    <!-- Página exclusiva /visitanos: dirección, mapa, cómo llegar y contacto. -->
-    <template id="pagina_visitanos" name="D'CASA: página Visítanos">
+    <!-- Página /visitanos: el contacto de Baby Caleb (decisión del dueño, 2026-11-18). Vende 100% en línea y no tiene
+         tienda: en lugar de la dirección y el mapa, su cobertura (la frase de su web, content.json › nap › address), su
+         horario (de los Ajustes de Juan) y sus canales: WhatsApp, correo e Instagram. -->
+    <template id="pagina_visitanos" name="Contacto">
         <t t-call="website.layout">
             <t t-set="pageName" t-value="'visitanos'"/>
             <t t-set="dcasa_header_overlay" t-value="True"/>
-            <t t-set="additional_title">Visítanos</t>
-            <t t-set="meta_description">D'CASA Panamá en La Chorrera, frente al Parque Libertadores, diagonal a la Discoteca Seven. Cómo llegar y cómo escribirnos.</t>
+            <t t-set="additional_title">Contacto</t>
+            <t t-set="meta_description">Baby Caleb: venta 100% online con entrega a domicilio — Ciudad de Panamá. Horario y cómo escribirnos.</t>
+            <t t-set="dcasa_whatsapp_visible" t-value="website.dcasa_whatsapp_number or website.company_id.phone"/>
             <div id="wrap" class="o_dcasa_pagina_visita">
                 <section class="o_dcasa_hero o_dcasa_hero_compacto">
                     <div class="o_dcasa_hero_media">
@@ -337,8 +345,8 @@
                     </div>
                     <div class="o_dcasa_container o_dcasa_hero_inner">
                         <div class="o_dcasa_hero_texto" data-anim-entrada="">
-                            <p class="o_dcasa_kicker o_dcasa_kicker_light">Visítanos</p>
-                            <h1 class="o_dcasa_display mb-0">Te esperamos en La Chorrera</h1>
+                            <p class="o_dcasa_kicker o_dcasa_kicker_light">Cobertura</p>
+                            <h1 class="o_dcasa_display mb-0">Vendemos online y te lo llevamos.</h1>
                         </div>
                     </div>
                 </section>
@@ -346,28 +354,22 @@
                 <section class="o_dcasa_visita_detalle">
                     <div class="o_dcasa_container o_dcasa_visita_detalle_inner">
                         <div class="o_dcasa_visita_datos">
-                            <h2 class="o_dcasa_kicker">La tienda</h2>
-                            <address class="o_dcasa_visita_direccion">
-                                <strong>D'CASA Panamá</strong><br/>
-                                Frente al Parque Libertadores,<br/>
-                                diagonal a la Discoteca Seven,<br/>
-                                La Chorrera, Panamá Oeste
-                            </address>
+                            <h2 class="o_dcasa_kicker">Baby Caleb</h2>
+                            <p class="o_dcasa_visita_direccion">Venta 100% online con entrega a domicilio — Ciudad de Panamá</p>
                             <ul class="list-unstyled o_dcasa_visita_lista">
-                                <li><i class="fa fa-location-arrow fa-fw me-2" aria-hidden="true"/>
-                                    <a t-attf-href="https://www.google.com/maps/dir/?api=1&amp;destination={{latitud}}%2C{{longitud}}"
-                                       target="_blank" rel="noopener">Abrir la ruta en Google Maps
-                                        <span class="visually-hidden">(se abre en una pestaña nueva)</span></a></li>
-                                <!-- El número abre WhatsApp (pedido de la dueña, 2026-11-15): es el canal donde se atiende. -->
-                                <li><i class="fa fa-whatsapp fa-fw me-2" aria-hidden="true"/>
-                                    <a t-att-href="website._dcasa_whatsapp_url('Hola D\'CASA, quiero información')"
-                                       target="_blank" rel="noopener">+507 6026-1919 <span class="o_dcasa_muted">· WhatsApp</span>
+                                <!-- El número abre WhatsApp (pedido de la dueña, 2026-11-15): es el canal donde se atiende. Es el
+                                     mismo número de todos los botones del sitio (Sitio web › Ajustes). -->
+                                <li t-if="dcasa_whatsapp_visible"><i class="fa fa-whatsapp fa-fw me-2" aria-hidden="true"/>
+                                    <a t-att-href="website._dcasa_whatsapp_url()"
+                                       target="_blank" rel="noopener"><t t-out="dcasa_whatsapp_visible"/> <span class="o_dcasa_muted">· WhatsApp</span>
                                         <span class="visually-hidden">(se abre en una pestaña nueva)</span></a></li>
                                 <li><i class="fa fa-envelope fa-fw me-2" aria-hidden="true"/>
-                                    <a href="mailto:info@dcasapty.com">info@dcasapty.com</a></li>
+                                    <a href="mailto:babycalebpanama@gmail.com">babycalebpanama@gmail.com</a></li>
                                 <li><i class="fa fa-instagram fa-fw me-2" aria-hidden="true"/>
-                                    <a href="https://www.instagram.com/dcasapty" target="_blank" rel="noopener">@dcasapty</a></li>
+                                    <a href="https://www.instagram.com/babycalebpanama" target="_blank" rel="noopener">@babycalebpanama</a></li>
                             </ul>
+                        </div>
+                        <div>
                             <!-- Horario: de los Ajustes de Juan (models/horario_tienda.py). Si no se sabe, no se muestra. -->
                             <t t-set="horario" t-value="website._dcasa_horario_tienda()"/>
                             <!-- t-ignore: sin las marcas del editor, el constructor no toca ni guarda esta tabla (si la
@@ -375,7 +377,7 @@
                             <div t-if="horario" class="o_dcasa_visita_horario" t-ignore="true">
                                 <h2 class="o_dcasa_kicker">Horario</h2>
                                 <table class="o_dcasa_horario">
-                                    <caption class="visually-hidden">Días y horas de la tienda (hora de Panamá)</caption>
+                                    <caption class="visually-hidden">Días y horas de atención (hora de Panamá)</caption>
                                     <tbody>
                                         <tr t-foreach="horario" t-as="fila">
                                             <th scope="row" t-out="fila['dias']"/>
@@ -385,29 +387,13 @@
                                 </table>
                             </div>
                             <div class="o_dcasa_visita_aviso">
-                                <h2 class="o_dcasa_kicker">Antes de venir</h2>
-                                <p t-if="horario">Escríbenos y te confirmamos las existencias y los colores disponibles
-                                    del mueble que te gusta. Muchos vienen en caja: te los llevas hoy mismo.</p>
-                                <p t-else="">Escríbenos y te confirmamos el horario, las existencias y los colores disponibles
-                                    del mueble que te gusta. Muchos vienen en caja: te los llevas hoy mismo.</p>
-                                <a t-att-href="website._dcasa_whatsapp_url('Hola D\'CASA, quiero visitarlos en la tienda')"
+                                <h2 class="o_dcasa_kicker">Escríbenos</h2>
+                                <!-- La frase de la web de Baby Caleb (content.json › faq › tallas). -->
+                                <p>Si dudas, escríbenos por WhatsApp y te asesoramos.</p>
+                                <a t-att-href="website._dcasa_whatsapp_url()"
                                    class="btn btn-lg btn-primary" target="_blank" rel="noopener">
                                     <i class="fa fa-whatsapp me-2" aria-hidden="true"/>Escríbenos por WhatsApp
                                     <span class="visually-hidden">(se abre en una pestaña nueva)</span></a>
-                            </div>
-                        </div>
-                        <!-- El mapa de Google pone cookies: se carga solo si quien visita ya aceptó las cookies opcionales del
-                             aviso del sitio, o cuando toca «Ver el mapa» (static/src/js/mapa.js). La página es la misma para
-                             todos (la guarda el borde): la decisión se toma en el navegador. -->
-                        <!-- t-ignore: el constructor no toca ni guarda el recuadro (si lo guardara con el mapa ya
-                             cargado, el <iframe> de Google quedaría fijo en la vista y cargaría sin permiso). -->
-                        <div class="o_dcasa_mapa o_dcasa_mapa_grande" t-ignore="true"
-                             data-dcasa-mapa="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3942.0322672536827!2d-79.7867962!3d8.876588100000001!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8fac99005edffcdf%3A0x6c9c01465bb08b38!2sD'CASA!5e0!3m2!1ses-419!2spa!4v1790675155871!5m2!1ses-419!2spa"
-                             data-dcasa-mapa-titulo="Mapa: D'CASA en La Chorrera">
-                            <div class="o_dcasa_mapa_permiso">
-                                <i class="fa fa-map-marker" aria-hidden="true"/>
-                                <p>El mapa es de Google y puede guardar cookies en tu navegador.</p>
-                                <button type="button" class="btn btn-lg btn-primary o_dcasa_mapa_ver">Ver el mapa</button>
                             </div>
                         </div>
                     </div>
@@ -440,10 +426,10 @@
                         </div>
                         <div class="o_dcasa_container o_dcasa_hero_inner">
                             <div class="o_dcasa_hero_texto" data-anim-entrada="">
-                                <p class="o_dcasa_kicker o_dcasa_kicker_light">Mueblería en La Chorrera · Entregas en Panamá Oeste, Panamá y Colón</p>
-                                <h1 class="o_dcasa_display">Tu casa, bien amueblada.</h1>
-                                <p class="o_dcasa_hero_sub">Salas, recámaras, colchones y zapateras con precios claros.
-                                    Muchos vienen en caja: te los llevas hoy mismo.</p>
+                                <!-- El texto del hero de la web de Baby Caleb (content.json › hero), tal cual. -->
+                                <p class="o_dcasa_kicker o_dcasa_kicker_light">Pensamos en cada etapa de tu bebé</p>
+                                <h1 class="o_dcasa_display">Cuidado hipoalergénico para la piel de tu bebé</h1>
+                                <p class="o_dcasa_hero_sub">Pañales y wipes hipoalergénicos: sin químicos agresivos, sin perfumes, sin alcohol, sin cloro.</p>
                                 <div class="o_dcasa_ctas">
                                     <a href="/shop" class="btn btn-lg o_dcasa_btn_amarillo">Ver el catálogo</a>
                                     <a href="/whatsapp" class="btn btn-lg o_dcasa_btn_linea" target="_blank" rel="noopener nofollow">
@@ -456,66 +442,47 @@
                 </div>
                 </t>
 
-                <!-- 2. Beneficios: las tres objeciones de compra, resueltas arriba -->
+                <!-- 2. Beneficios: lo que distingue a Baby Caleb, con el título y el texto de su web (content.json ›
+                     differentiators). El de la entrega dice la frase de su cobertura (content.json › nap › address): el
+                     de su web promete pagar en la misma página y aquí el pago se coordina por WhatsApp. -->
                 <div class="oe_structure" id="oe_structure_dcasa_beneficios">
                     <section class="o_dcasa_beneficios" data-snippet="s_text_block" data-name="Beneficios">
                         <div class="o_dcasa_container">
                             <ul class="o_dcasa_beneficios_list" role="list" data-anim-cascada="">
                                 <li>
-                                    <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M3 9h16v13H3zM19 13h6l4 5v4h-10z"/><circle cx="8" cy="24" r="2.5"/><circle cx="23" cy="24" r="2.5"/></svg>
-                                    <div><strong>Entregas en Panamá Oeste, Panamá y Colón</strong><span>Te decimos costo y fecha por WhatsApp.</span></div>
-                                </li>
-                                <li>
                                     <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M5 12l11-6 11 6v12l-11 6-11-6z"/><path d="M5 12l11 6 11-6M16 18v12"/></svg>
-                                    <div><strong>Te lo llevas hoy</strong><span>Muchos muebles vienen en caja y caben en tu carro.</span></div>
-                                </li>
-                                <li>
-                                    <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 29s-9-8.5-9-15a9 9 0 0 1 18 0c0 6.5-9 15-9 15z"/><circle cx="16" cy="14" r="3.2"/></svg>
-                                    <div><strong>Míralo en tienda</strong><span>Visítanos en La Chorrera y pruébalo antes de llevártelo.</span></div>
+                                    <div><strong>Cajas para todo el mes</strong><span>Vendemos en caja grande, no por paquete suelto: te sale más accesible y no te quedas sin pañales a mitad de mes.</span></div>
                                 </li>
                                 <li>
                                     <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M17 4h9v9L14 25l-9-9z"/><circle cx="21.5" cy="8.5" r="1.8"/></svg>
-                                    <div><strong>Precios claros</strong><span>Sin letra pequeña. Pregunta sin pena.</span></div>
+                                    <div><strong>De recién nacido a XXL</strong><span>Cubrimos desde recién nacidos y prematuros (talla RN, desde 4 libras) hasta niños de más de 55 libras — la talla XXL es difícil de conseguir en Panamá.</span></div>
+                                </li>
+                                <li>
+                                    <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M5 7h22v14H14l-6 5v-5H5z"/><path d="M10 12h12M10 16h8"/></svg>
+                                    <div><strong>Atención personal</strong><span>Asesoría directa y humana por WhatsApp — te ayudamos a elegir la talla, nada de formularios.</span></div>
+                                </li>
+                                <li>
+                                    <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M3 9h16v13H3zM19 13h6l4 5v4h-10z"/><circle cx="8" cy="24" r="2.5"/><circle cx="23" cy="24" r="2.5"/></svg>
+                                    <div><strong>Delivery a domicilio</strong><span>Venta 100% online con entrega a domicilio — Ciudad de Panamá.</span></div>
                                 </li>
                             </ul>
                         </div>
                     </section>
                 </div>
 
-                <!-- 3. Compra por espacio (dinámico: enlaza a las categorías reales) -->
+                <!-- 3. Compra por espacio (dinámico: enlaza a las categorías reales; sin nada publicado en ellas, no sale) -->
                 <t t-call="website_dcasa.seccion_categorias"/>
 
                 <!-- 4. Lo más buscado (dinámico, con precio y «Agregar») -->
                 <t t-call="website_dcasa.carrusel_productos">
                     <t t-set="items" t-value="website._dcasa_productos()"/>
-                    <t t-set="antetitulo">Precios claros, listos para llevar</t>
+                    <t t-set="antetitulo">Catálogo Baby Caleb</t>
                     <t t-set="titulo">Lo más buscado</t>
                     <t t-set="enlace" t-value="'/shop'"/>
                 </t>
 
-                <!-- 5. Split editorial: el diferenciador real del ADN -->
-                <div class="oe_structure" id="oe_structure_dcasa_hoy">
-                    <section class="o_dcasa_section o_dcasa_split" data-snippet="s_text_block" data-name="Te lo llevas hoy">
-                        <div class="o_dcasa_container o_dcasa_split_grid">
-                            <div class="o_dcasa_split_media" data-anim="izquierda">
-                                <img src="/website_dcasa/static/src/img/split-hoy.webp" width="793" height="595"
-                                     loading="lazy" decoding="async" alt="Sofá amarillo en una sala luminosa"/>
-                            </div>
-                            <div class="o_dcasa_split_text" data-anim-cascada="derecha">
-                                <p class="o_dcasa_kicker">Sin esperar semanas</p>
-                                <h2 class="o_dcasa_h2" data-titular="">Te lo llevas hoy mismo</h2>
-                                <p class="o_dcasa_lead">Muchos de nuestros muebles y camas vienen en caja y caben en tu
-                                    carro. Pasas por la tienda, pagas y te lo llevas. ¿No te cabe? Te lo llevamos a todo
-                                    el país.</p>
-                                <div class="o_dcasa_ctas">
-                                    <a href="/shop" class="btn btn-lg btn-primary">Ver lo disponible</a>
-                                    <a href="/whatsapp?texto=Hola%20D%27CASA%2C%20%C2%BFqu%C3%A9%20tienen%20para%20llevar%20hoy%3F"
-                                       class="btn btn-lg o_dcasa_btn_texto" target="_blank" rel="noopener nofollow">Pregunta qué hay hoy <span class="visually-hidden">(se abre en una pestaña nueva)</span></a>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-                </div>
+                <!-- 5. (El bloque «Te lo llevas hoy mismo» de la copia de origen era de muebles en caja y de la tienda
+                     física: sin equivalente en la web de Baby Caleb, se quitó.) -->
 
                 <!-- 6. Segundo carrusel: descanso (dinámico) -->
                 <t t-call="website_dcasa.carrusel_productos">
@@ -525,70 +492,52 @@
                     <t t-set="enlace" t-value="website._dcasa_categoria_url('recamaras')"/>
                 </t>
 
-                <!-- 7. Socios D'CASA (dinámico: cifras de puntos.json) -->
+                <!-- 7. Socios (dinámico: cifras de puntos.json) -->
                 <t t-call="website_dcasa.seccion_socios"/>
 
                 <!-- 7b. Opiniones reales de Google (dinámico: data/resenas.json) -->
                 <t t-call="website_dcasa.resenas_google"/>
 
-                <!-- 8. Inspírate + guía + preguntas + visítanos (editable) -->
+                <!-- 8. Preguntas frecuentes (editable): las de la web de Baby Caleb (content.json › faq), tal cual. Sin
+                     «¿Cuánto cuesta el delivery?»: allá se elige la zona y se ve el costo al pagar; aquí la entrega se
+                     cotiza por WhatsApp. La galería «Inspírate» y la guía «¿Te cabe? Mídelo en 3 pasos» de la copia de
+                     origen eran de muebles (fotos y medidas): sin equivalente, se quitaron. -->
                 <div class="oe_structure" id="oe_structure_dcasa_inspira">
-                    <section class="o_dcasa_section" data-snippet="s_text_block" data-name="Inspírate">
-                        <div class="o_dcasa_container">
-                            <div class="o_dcasa_section_head">
-                                <div data-anim-cascada="izquierda">
-                                    <p class="o_dcasa_kicker">Ideas para tu espacio</p>
-                                    <h2 class="o_dcasa_h2" data-titular="">Inspírate</h2>
-                                </div>
-                                <a href="https://www.instagram.com/dcasapty" class="o_dcasa_link" target="_blank" rel="noopener">
-                                    Síguenos en Instagram <span aria-hidden="true">→</span> <span class="visually-hidden">(se abre en una pestaña nueva)</span></a>
-                            </div>
-                            <div class="o_dcasa_galeria" data-anim-cascada="">
-                                <img src="/website_dcasa/static/src/img/insp-1.webp" width="768" height="768" loading="lazy" decoding="async" alt="Sala gris con mesa de centro de madera"/>
-                                <img src="/website_dcasa/static/src/img/insp-2.webp" width="460" height="460" loading="lazy" decoding="async" alt="Butaca amarilla con mesa de noche"/>
-                                <img src="/website_dcasa/static/src/img/insp-3.webp" width="640" height="640" loading="lazy" decoding="async" alt="Sala con sofá de cuero y plantas"/>
-                                <img src="/website_dcasa/static/src/img/insp-4.webp" width="768" height="768" loading="lazy" decoding="async" alt="Sofá de cuero color miel"/>
-                                <img src="/website_dcasa/static/src/img/insp-5.webp" width="600" height="600" loading="lazy" decoding="async" alt="Sofá naranja con luz de la tarde"/>
-                                <img src="/website_dcasa/static/src/img/insp-6.webp" width="800" height="800" loading="lazy" decoding="async" alt="Sillón de madera con cojín blanco"/>
-                            </div>
-                        </div>
-                    </section>
-
-                    <section class="o_dcasa_section o_dcasa_ayuda" data-snippet="s_text_block" data-name="Guía y preguntas">
+                    <section class="o_dcasa_section o_dcasa_ayuda" data-snippet="s_text_block" data-name="Preguntas frecuentes">
                         <div class="o_dcasa_container o_dcasa_split_grid o_dcasa_split_top">
-                            <div>
-                                <p class="o_dcasa_kicker">Guía útil · guárdala</p>
-                                <h2 class="o_dcasa_h2" data-titular="">¿Te cabe? Mídelo en 3 pasos</h2>
-                                <ol class="o_dcasa_steps" data-anim-cascada="">
-                                    <li><strong>Mide el espacio.</strong> Largo y ancho de la pared o el rincón donde va el mueble.</li>
-                                    <li><strong>Deja paso.</strong> Calcula al menos 60 cm libres para caminar alrededor.</li>
-                                    <li><strong>Revisa la entrada.</strong> Mide puertas, pasillos y escaleras por donde tiene que pasar.</li>
-                                </ol>
-                                <p class="o_dcasa_muted">Mándanos las medidas por WhatsApp y te decimos cuál te conviene.</p>
-                            </div>
                             <div>
                                 <p class="o_dcasa_kicker">Preguntas frecuentes</p>
                                 <h2 class="o_dcasa_h2" data-titular="">Lo que más nos preguntan</h2>
+                            </div>
+                            <div>
                                 <div class="o_dcasa_faq" data-anim-cascada="">
                                     <details>
-                                        <summary>¿A dónde hacen entregas?</summary>
-                                        <p>Hacemos entregas en La Chorrera, Arraiján, Capira, Panamá y Colón; al interior todavía no. El costo y la fecha dependen de tu zona: te los confirma una vendedora por WhatsApp.</p>
+                                        <summary>¿Cómo sé qué talla necesita mi bebé?</summary>
+                                        <p>Las tallas van por peso: RN (4-11 lb), S (6-13 lb), M (8-19 lb), L (15-39 lb), XL (26-55 lb) y XXL (más de 55 lb). Para prematuros y recién nacidos es la talla RN. En pants: L (19-31 lb), XL (26-37.5 lb) y XXL (más de 33 lb). Si dudas, escríbenos por WhatsApp y te asesoramos.</p>
                                     </details>
                                     <details>
-                                        <summary>¿Cómo sé el precio de un mueble?</summary>
-                                        <p>Está en la tienda en línea. Si tienes dudas, escríbenos por WhatsApp y te confirmamos precio y disponibilidad al momento.</p>
+                                        <summary>¿Tienen talla XXL?</summary>
+                                        <p>Sí. Manejamos la talla XXL para niños de más de 55 libras, una talla que casi no se consigue en Panamá. Caja de 112 unidades.</p>
                                     </details>
                                     <details>
-                                        <summary>¿Qué formas de pago manejan?</summary>
-                                        <p>Transferencia bancaria, Yappy o en la tienda (efectivo o Yappy). El mueble se entrega cuando está pagado completo. Escríbenos y te explicamos la que mejor te sirve.</p>
+                                        <summary>¿Por qué venden en caja y no por paquete?</summary>
+                                        <p>Porque la caja te alcanza para todo el mes y el costo por pañal te sale más accesible que comprando paquete por paquete. Solo vendemos cajas completas, así que antes de pedir te ayudamos por WhatsApp a elegir bien la talla según el peso de tu bebé.</p>
                                     </details>
                                     <details>
-                                        <summary>¿Me ayudan a saber si el mueble me cabe?</summary>
-                                        <p>Claro. Pásanos las medidas de tu espacio por WhatsApp y te decimos si te queda perfecto o cuál te conviene más.</p>
+                                        <summary>¿Cuál es la diferencia entre hipoalergénico y sin cloro?</summary>
+                                        <p>Hipoalergénico significa que tiene bajo riesgo de causar alergias. Sin cloro significa que no se usaron compuestos de cloro para blanquear la pulpa del pañal. Nuestros pañales Nateen son las dos cosas: hipoalergénicos y sin cloro ni perfumes.</p>
                                     </details>
                                     <details>
-                                        <summary>¿Puedo ver los muebles antes de comprar?</summary>
-                                        <p>Sí. Visítanos en La Chorrera o escríbenos y te confirmamos existencias y colores disponibles hoy mismo.</p>
+                                        <summary>¿Los wipes tienen alcohol o parabenos?</summary>
+                                        <p>No. Nuestros wipes son hipoalergénicos, sin alcohol, sin parabenos y sin perfumes. Los wipes de agua Dany Baby son 99% agua pura, ideales para recién nacidos.</p>
+                                    </details>
+                                    <details>
+                                        <summary>¿Tienen tienda física?</summary>
+                                        <p>Hoy vendemos únicamente online: haces tu pedido aquí mismo en la página, pagas con Yappy y te lo entregamos por delivery en Ciudad de Panamá.</p>
+                                    </details>
+                                    <details>
+                                        <summary>¿Los pañales son biodegradables?</summary>
+                                        <p>Sí — Nateen fabrica sus pañales con 100% fibras de bambú, biodegradables, transpirables y sin cloro ni perfumes.</p>
                                     </details>
                                 </div>
                             </div>
@@ -597,8 +546,8 @@
 
                 </div>
 
-                <!-- 9. Visítanos con el mapa (fuera del bloque editable: el iframe y el ancla
-                     #visitanos del menú no deben perderse al guardar desde el editor) -->
+                <!-- 9. Contacto y cobertura (fuera del bloque editable: el ancla #visitanos del menú no debe perderse
+                     al guardar desde el editor) -->
                 <t t-call="website_dcasa.seccion_visitanos"/>
             </div>
         </xpath>

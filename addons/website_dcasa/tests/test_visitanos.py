@@ -1,10 +1,11 @@
-"""Lote 2 de la web: el horario en Visítanos (y en el pie) y el mapa de Google solo con permiso.
+"""Lote 2 de la web: el horario en Visítanos (y en el pie) y nada de Google sin necesidad.
 
 * El horario sale de un solo lugar: `website._dcasa_horario_tienda()`. Aquí devuelve [] (sin fuente no se inventa);
   dcasa_conversaciones lo llena con el horario de Ajustes de Juan (sus pruebas en test_horario_sitio.py).
-* El mapa: la página trae un recuadro con «Ver el mapa». El <iframe> de Google se pone en el navegador si quien visita
-  ya aceptó las cookies opcionales, si las acepta luego o si toca el botón. Sin eso, el navegador no le pide nada a
-  Google (se mira con `fetch_proxy`, por donde pasa toda petición externa del Chrome de las pruebas).
+* El mapa: Baby Caleb vende 100% en línea (decisión del dueño, 2026-11-18), así que /visitanos (su página de
+  contacto) ya no trae el mapa de la tienda de origen. La página no le pide nada a Google, acepte o no las cookies
+  opcionales quien visita (se mira con `fetch_proxy`, por donde pasa toda petición externa del Chrome de las
+  pruebas). El recuadro del mapa con permiso (static/src/js/mapa.js) queda para un negocio con local.
 """
 import re
 
@@ -84,7 +85,7 @@ class TestVisitanosHorario(HttpCase):
         html = self.url_open('/visitanos').text
         self.assertNotIn('o_dcasa_horario', html)
         self.assertNotIn('o_dcasa_pie_horario', html)
-        self.assertIn('el horario', html, '«Antes de venir» sigue invitando a preguntar el horario')
+        self.assertIn('Escríbenos por WhatsApp', html, 'Sin horario, la página sigue invitando a escribir')
 
     def test_editor_del_sitio_abre_visitanos_con_horario(self):
         """Con la marca del editor (data-oe-*) la página sigue armándose: lección del lote 1."""
@@ -108,37 +109,17 @@ FIN = """
     })();
 """
 
-MAPA_SIN_TOCAR = INICIO + """
+SIN_MAPA = INICIO + """
         await esperar(800);
-        if (!caja || !caja.querySelector('.o_dcasa_mapa_ver')) { return falla('Falta el recuadro «Ver el mapa»'); }
-        if (document.querySelector('iframe[src*="google.com/maps"]')) { return falla('El mapa cargó sin permiso'); }
+        if (caja || document.querySelector('.o_dcasa_mapa_ver')) { return falla('Sin tienda no hay mapa'); }
+        if (document.querySelector('iframe[src^="' + EMBED + '"]')) { return falla('Salió un mapa de Google'); }
 """ + FIN
 
-MAPA_AL_TOCAR = INICIO + """
+SIN_MAPA_AL_ACEPTAR_DESPUES = INICIO + """
         await esperar(300);
-        if (caja.querySelector('iframe')) { return falla('El mapa cargó antes de tocar'); }
-        caja.querySelector('.o_dcasa_mapa_ver').click();
-        await esperar(300);
-        const mapa = caja.querySelector('iframe');
-        if (!mapa || !mapa.src.startsWith(EMBED)) { return falla('No cargó el mapa'); }
-        if (!mapa.title.includes('CASA en La Chorrera')) { return falla('El mapa no tiene título'); }
-        if (!caja.classList.contains('o_dcasa_mapa_cargado')) { return falla('El recuadro sigue a la vista'); }
-        caja.querySelector('.o_dcasa_mapa_ver').click();
-        if (caja.querySelectorAll('iframe').length !== 1) { return falla('Dos mapas'); }
-""" + FIN
-
-MAPA_SOLO = INICIO + """
-        let mapa = null;
-        for (let i = 0; i < 100 && !(mapa = caja.querySelector('iframe')); i++) { await esperar(50); }
-        if (!mapa || !mapa.src.startsWith(EMBED)) { return falla('No cargó solo con las cookies aceptadas'); }
-""" + FIN
-
-MAPA_ACEPTA_DESPUES = INICIO + """
-        await esperar(300);
-        if (caja.querySelector('iframe')) { return falla('Cargó sin permiso'); }
         document.dispatchEvent(new Event('optionalCookiesAccepted'));  // lo que hace el aviso de Odoo al aceptar
-        await esperar(300);
-        if (!caja.querySelector('iframe')) { return falla('No cargó al aceptar en el aviso'); }
+        await esperar(500);
+        if (document.querySelector('iframe[src^="' + EMBED + '"]')) { return falla('Al aceptar salió un mapa'); }
 """ + FIN
 
 ACEPTA_TODO = '{"required": true, "optional": true, "ts": 1790000000000}'
@@ -163,25 +144,25 @@ class TestVisitanosMapa(HttpCase):
         """Pedido de la dueña (2026-11-15): tocar el número en Visítanos abre WhatsApp (no una llamada)."""
         html = self.url_open('/visitanos').text
         self.assertNotIn('href="tel:', html)
-        enlace = re.search(r'<a[^>]*href="(https://wa\.me/[^"]+)"[^>]*>\s*\+507 6026-1919', html)
+        enlace = re.search(r'<a[^>]*href="(https://wa\.me/50767575065[^"]*)"[^>]*>\s*\+507 6757-5065', html)
         self.assertTrue(enlace, 'el número lleva a WhatsApp')
 
-    def test_sin_permiso_no_carga_el_mapa(self):
-        self.browser_js('/visitanos', MAPA_SIN_TOCAR, timeout=90)
+    def test_sin_permiso_no_hay_mapa_ni_google(self):
+        self.browser_js('/visitanos', SIN_MAPA, timeout=90)
         self.assertFalse(self._pidio_a_google_maps(), self.externas)
 
-    def test_solo_necesarias_no_carga_el_mapa(self):
-        self.browser_js('/visitanos', MAPA_SIN_TOCAR, timeout=90, cookies={'website_cookies_bar': SOLO_NECESARIAS})
+    def test_solo_necesarias_no_hay_mapa_ni_google(self):
+        self.browser_js('/visitanos', SIN_MAPA, timeout=90, cookies={'website_cookies_bar': SOLO_NECESARIAS})
         self.assertFalse(self._pidio_a_google_maps(), self.externas)
 
-    def test_ver_el_mapa_lo_carga(self):
-        self.browser_js('/visitanos', MAPA_AL_TOCAR, timeout=90)
+    def test_con_cookies_aceptadas_tampoco_hay_mapa(self):
+        """Antes, con las cookies aceptadas el mapa cargaba solo: sin tienda, ni así."""
+        self.browser_js('/visitanos', SIN_MAPA, timeout=90, cookies={'website_cookies_bar': ACEPTA_TODO})
+        self.assertFalse(self._pidio_a_google_maps(), self.externas)
 
-    def test_con_cookies_aceptadas_carga_solo(self):
-        self.browser_js('/visitanos', MAPA_SOLO, timeout=90, cookies={'website_cookies_bar': ACEPTA_TODO})
-
-    def test_al_aceptar_en_el_aviso_carga(self):
-        self.browser_js('/visitanos', MAPA_ACEPTA_DESPUES, timeout=90)
+    def test_al_aceptar_en_el_aviso_tampoco_hay_mapa(self):
+        self.browser_js('/visitanos', SIN_MAPA_AL_ACEPTAR_DESPUES, timeout=90)
+        self.assertFalse(self._pidio_a_google_maps(), self.externas)
 
     def test_portada_no_trae_mapa(self):
         html = self.url_open('/').text
@@ -241,7 +222,7 @@ class TestHorarioYElEditor(HttpCase):
         for linea in lineas:
             self.assertIsNone(_guardable(linea), 'El horario quedaría congelado al guardar con el editor')
         visita = self._como_editor('/visitanos')
-        for selector in ('o_dcasa_visita_horario', 'o_dcasa_mapa', 'o_dcasa_pie_horario'):
+        for selector in ('o_dcasa_visita_horario', 'o_dcasa_pie_horario'):
             (el,) = visita.xpath(f'//*[contains(concat(" ", @class, " "), " {selector} ")]')
             self.assertIsNone(_guardable(el), f'{selector} de Visítanos no está en una zona que el editor guarda')
 
@@ -250,14 +231,14 @@ class TestHorarioYElEditor(HttpCase):
         su xpath, en el contexto del sitio). Luego cambia el horario: el pie enseña el nuevo."""
         raiz = self._como_editor('/')
         (pie,) = raiz.xpath('//div[@id="footer"]')
-        (parrafo,) = pie.xpath('.//p[contains(., "Tu casa, bien amueblada")]')
-        parrafo.text = parrafo.text.replace('Tu casa, bien amueblada.', 'Tu casa, bien amueblada (editado).')
+        (parrafo,) = pie.xpath('.//p[contains(., "Esenciales de bebé")]')
+        parrafo.text = parrafo.text.replace('Esenciales de bebé', 'Esenciales de bebé (editado)')
         vista = self.env['ir.ui.view'].browse(int(pie.get('data-oe-id')))
         vista.with_user(self.env.ref('base.user_admin')).with_context(website_id=self.website.id).save(
             lxml_html.tostring(pie, encoding='unicode'), pie.get('data-oe-xpath'))
 
         html = self.url_open('/').text
-        self.assertIn('Tu casa, bien amueblada (editado).', html, 'El cambio del editor quedó guardado')
+        self.assertIn('Esenciales de bebé (editado)', html, 'El cambio del editor quedó guardado')
         self.assertIn('Lun. a sáb. 9:00 a. m. a 6:00 p. m.', html)
         self.horario = OTRO_HORARIO   # como cambiar el horario en los Ajustes de Juan
         html = self.url_open('/').text

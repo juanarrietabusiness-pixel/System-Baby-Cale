@@ -191,6 +191,12 @@ describe("la dueña · el bot no manda a nadie a leer políticas", () => {
     "Te recomiendo consultar el aviso de privacidad.",
     "Más en dcasapty.com/privacidad.",
     "Visita dcasapty.com/terminos para ver todo.",
+    // Las de este sistema (Baby Caleb): el dominio y las direcciones workers.dev de producción y de staging.
+    "Más en babycaleb.com/privacidad.",
+    "Todo está en https://www.babycaleb.com/terminos",
+    "Aquí: https://sistemabk.juanarrietabusiness.workers.dev/privacidad",
+    "Aquí: sistemabk-staging.juanarrietabusiness.workers.dev/terminos",
+    "Está en babycaleb.com/politica-de-privacidad.",
     "Eso está en nuestras políticas.",
     "Lee la política de privacidad, por favor.",
     "Mira nuestros términos.",
@@ -207,6 +213,9 @@ describe("la dueña · el bot no manda a nadie a leer políticas", () => {
     "Si quieres, te cuento cómo funciona Socios.",
     "Mira esta cama, es una de las más pedidas.",
     "Tus datos se usan solo para atenderte.",
+    // Un enlace de este sistema que no es una política no es mandar a leer.
+    "Aquí está el catálogo: https://babycaleb.com/shop",
+    "Te dejo la ficha: https://sistemabk.juanarrietabusiness.workers.dev/shop/panales-nateen-1",
   ];
   it.each(noMandan)("no se confunde: %s", (texto) => {
     expect(detectarMandaALeer(texto)).toEqual([]);

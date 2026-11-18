@@ -61,7 +61,7 @@ class ResConfigSettings(models.TransientModel):
             for direccion in (ajustes.dcasa_correo_remitente, ajustes.dcasa_correo_responder_a):
                 if direccion and not correo_valido(direccion):
                     raise ValidationError(self.env._(
-                        '«%s» no es un correo completo. Debe verse así: ventas@dcasapty.com.', direccion))
+                        '«%s» no es un correo completo. Debe verse así: ventas@tudominio.com.', direccion))
 
     def action_dcasa_correo_prueba(self):
         """Guarda los ajustes y manda un correo de prueba a quien pulsa el botón (solo administradores)."""

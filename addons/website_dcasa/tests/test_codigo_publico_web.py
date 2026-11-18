@@ -51,7 +51,7 @@ class TestCodigoPublicoEnLaWeb(HttpCase):
         enlace = self.website._dcasa_whatsapp_producto(self.producto)
         texto = unquote(enlace.split('text=', 1)[1])
         # El nombre va en formato título, como lo lee el cliente (F5); por dentro sigue en MAYÚSCULAS.
-        self.assertEqual(texto, f"Hola D'CASA, me interesa: Cama de Prueba del Código (código {self.codigo})")
+        self.assertEqual(texto, f'Hola Baby Caleb, me interesa: Cama de Prueba del Código (código {self.codigo})')
         self.assertNotIn(REFERENCIA, enlace)
         # También la variante (la ficha puede pasar una u otra).
         self.assertIn(self.codigo, unquote(self.website._dcasa_whatsapp_producto(self.producto.product_variant_id)))

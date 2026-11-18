@@ -460,7 +460,7 @@ class TestContratoVisual(HttpCase):
         # Sobre foto o fondo oscuro, la cabecera nace y queda ahumada (medida por el observador).
         self.assertEqual(m['html']['sobreFoto'], tipo == 'ahumado')
         self.assertTrue(m['html']['medida'] or tipo == 'claro')
-        self.assertTrue(m['logo'], 'logo WebP de D\'CASA en la píldora')
+        self.assertTrue(m['logo'], 'logo WebP de la empresa en la píldora')
         # Sin «Escríbenos» en la píldora (decisión de la dueña, 2026-11-15: «puede irse… ya está en el pie»; la
         # portada lleva una sección pequeña de contacto antes de Visítanos).
         self.assertIsNone(m['cta'], 'sin botón «Escríbenos» en la píldora')

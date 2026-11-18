@@ -25,7 +25,7 @@
             <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;border-collapse:separate;background-color:#FFFFFF;border-radius:12px;">
                 <tr>
                     <td align="center" style="padding:28px 24px 4px 24px;">
-                        <a t-att-href="dcasa['enlaces']['base'] or None" style="text-decoration:none;"><img t-att-src="dcasa['enlaces']['logo']" width="150" alt="D'CASA" style="display:block;width:150px;max-width:150px;height:auto;border:0;"/></a>
+                        <a t-att-href="dcasa['enlaces']['base'] or None" style="text-decoration:none;"><img t-att-src="dcasa['enlaces']['logo']" width="150" t-att-alt="company.name" style="display:block;width:150px;max-width:150px;height:auto;border:0;"/></a>
                     </td>
                 </tr>
                 <tr>

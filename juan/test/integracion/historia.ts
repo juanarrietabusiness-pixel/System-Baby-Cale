@@ -112,7 +112,8 @@ export function seccionHistoria(e: Escena) {
       const vistos = JSON.stringify(w.ia.peticiones.at(-1)!.cuerpo.messages);
       expect(vistos).toContain("Ancho × Largo: 160 × 200 cm");
       expect(vistos).toMatch(/puntos/i); // reglas_socios (las cifras salen de puntos.json)
-      expect(vistos).toContain("La Chorrera"); // horario_y_tienda
+      // horario_y_tienda: los datos de la empresa (Baby Caleb no tiene dirección cargada: sale su correo de contacto).
+      expect(vistos).toContain("babycalebpanama@gmail.com");
       expect(vistos).not.toMatch(/INT-SECRETO/); // un producto sin publicar no existe para el cliente
 
       // La foto salió por el puente: la URL pasó la validación REAL del puente (https, dominio de D'CASA) y se pudo bajar.

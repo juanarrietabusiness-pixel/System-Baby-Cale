@@ -16,10 +16,10 @@ class TestAjustesPorDefecto(JuanCase):
         a = self.ajustes
         self.assertEqual(a.nombre_publico, "el equipo de D'CASA")
         self.assertTrue(a.bot_activo_global)
-        # Horario laboral: 8:00 a 17:00, todos los días, hora de Panamá.
+        # Horario laboral: el de Baby Caleb (2026-11-18), lunes a sábado de 9:00 a 18:00, hora de Panamá.
         horario = a.horario()
-        self.assertEqual((horario.inicio, horario.fin), (time(8, 0), time(17, 0)))
-        self.assertEqual(horario.dias, frozenset(range(7)))
+        self.assertEqual((horario.inicio, horario.fin), (time(9, 0), time(18, 0)))
+        self.assertEqual(horario.dias, frozenset(range(1, 7)))
         self.assertEqual(horario.zona, 'America/Panama')
         # Seguimiento: 5 h, 5 días, máximo 2, solo en horario laboral.
         regla = a.regla_seguimiento()
@@ -44,7 +44,8 @@ class TestAjustesPorDefecto(JuanCase):
             'modelo_inteligente', 'modelos_por_defecto', 'precios', 'precios_ia', 'lecciones', 'mensaje_bienvenida',
             'texto_privacidad_corto', 'palabras_prohibidas', 'pausa_por_defecto_minutos', 'guardar_foto_perfil',
             'telegram_chats', 'telegram_abierto', 'comentarios'})
-        self.assertEqual(datos['horario'], {'inicio': '08:00', 'fin': '17:00', 'dias': [0, 1, 2, 3, 4, 5, 6],
+        # El horario de Baby Caleb (2026-11-18): lunes a sábado de 9:00 a 18:00.
+        self.assertEqual(datos['horario'], {'inicio': '09:00', 'fin': '18:00', 'dias': [1, 2, 3, 4, 5, 6],
                                             'zona': 'America/Panama'})
         self.assertEqual(datos['seguimiento'], {'primero_horas': 5, 'segundo_dias': 5,
                                                 'solo_horario_laboral': True, 'maximo': 2})
@@ -175,7 +176,8 @@ class TestAjustesEditables(JuanCase):
         self.assertEqual(datos['dias'], [1, 2, 3, 4, 5, 6])   # sin el domingo (0)
 
     def test_el_domingo_puede_cerrar_mas_temprano(self):
-        self.ajustes.write({'horario_inicio': 9.0, 'horario_fin': 18.0, 'horario_fin_domingo': 17.0})
+        self.ajustes.write({'horario_inicio': 9.0, 'horario_fin': 18.0, 'horario_fin_domingo': 17.0,
+                            'dia_domingo': True})
         datos = self.ajustes.como_json()['horario']
         self.assertEqual((datos['inicio'], datos['fin'], datos['fin_domingo']), ('09:00', '18:00', '17:00'))
         self.assertEqual(self.ajustes.horario().fin_del_dia(0).hour, 17)

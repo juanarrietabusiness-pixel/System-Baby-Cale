@@ -709,7 +709,9 @@ const MANDA_A_LEER = [
   /\b(?:lee|leer|leas|leerlas|leerlos|revisa|revisar|revises|consulta|consultar|consultes|visita|visitar|mira|checa|checar)\b[^.!?\n]{0,70}\b(?:politicas?|terminos|aviso de privacidad|aviso legal|privacidad)\b/,
   /\b(?:mas|todo)\s+(?:en|sobre)\s+(?:nuestras?\s+)?(?:politicas?|terminos|aviso de privacidad|privacidad)\b/,
   /\b(?:en|segun|ver|vea|ve)\s+(?:nuestras?|las|los|la|el)\s+(?:politicas?|terminos(?: y condiciones)?|aviso de privacidad|politica de privacidad)\b/,
-  /dcasapty\.com\/(?:privacidad|terminos|politica)/,
+  // Las páginas legales de este sistema (Baby Caleb, 2026-11-18): su dominio y las direcciones workers.dev de
+  // producción y de staging; y la de la tienda de origen (dcasapty.com), por si el modelo la nombra.
+  /(?:(?:www\.)?babycaleb\.com|sistemabk(?:-staging)?\.juanarrietabusiness\.workers\.dev|dcasapty\.com)\/(?:privacidad|terminos|politica)/,
   /\b(?:read|check|see|review|visit|look at)\b[^.!?\n]{0,70}\b(?:policy|policies|terms and conditions|terms of (?:use|service|sale)|our terms|privacy notice)\b/,
 ];
 

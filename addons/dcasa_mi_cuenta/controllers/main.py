@@ -19,6 +19,7 @@ from urllib.parse import urlsplit
 from odoo import http
 from odoo.addons.dcasa_socios.controllers.main import SESSION_AVISO, SociosDcasa, socio_por_pin
 from odoo.addons.portal.controllers.portal import CustomerPortal
+from odoo.addons.website_dcasa.models.website import MARCA
 from odoo.exceptions import UserError
 from odoo.http import request
 
@@ -29,7 +30,7 @@ DATOS = '/mi-cuenta/datos'
 OPINIONES = '/mi-cuenta/opiniones'
 # Lo que pasaba antes al terminar en /socios: la cuenta del socio vivía en /socios/cuenta.
 CUENTA_VIEJA = '/socios/cuenta'
-TEXTO_OLVIDE = "Hola D'CASA, olvidé mi PIN de Mi cuenta. ¿Me ayudan a cambiarlo?"
+TEXTO_OLVIDE = f'Hola {MARCA}, olvidé mi PIN de Mi cuenta. ¿Me ayudan a cambiarlo?'
 # A dónde puede volver quien entra desde la tienda («Entra a tu cuenta» del checkout o del carrito). Solo estas rutas:
 # nada de otro dominio ni del panel (/odoo), que es solo del equipo por /master.
 REGRESOS = ('/shop/checkout', '/shop/cart', '/shop/address', '/shop/payment')

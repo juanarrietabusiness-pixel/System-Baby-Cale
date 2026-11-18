@@ -7,9 +7,12 @@ from unittest.mock import MagicMock, patch
 from odoo import Command, fields
 from odoo.tests import TransactionCase, new_test_user
 
-from ..models.correo import P_A_CLIENTES, P_AL_PAGAR, P_BIENVENIDA, P_BIENVENIDA_DESDE
+from ..models.correo import P_A_CLIENTES, P_AL_PAGAR, P_BIENVENIDA, P_BIENVENIDA_DESDE, P_REMITENTE
 
 CLAVE = 're_prueba_123'
+# El remitente lo pone el dueño en Ajustes cuando tenga un dominio verificado en Resend (de fábrica va vacío): las
+# pruebas que envían usan uno de ejemplo.
+REMITENTE_DE_PRUEBA = 'ventas@example.com'
 PDF = (b'%PDF-1.4 prueba', 'pdf')
 RUTA_PDF = 'odoo.addons.base.models.ir_actions_report.IrActionsReport._render_qweb_pdf'
 
@@ -61,6 +64,7 @@ class CorreoCase(TransactionCase):
         self.ICP.set_param(P_BIENVENIDA, 'True')
         self.ICP.set_param(P_A_CLIENTES, False)
         self.ICP.set_param(P_BIENVENIDA_DESDE, '2020-01-01 00:00:00')
+        self.ICP.set_param(P_REMITENTE, REMITENTE_DE_PRUEBA)
 
     # ------------------------------------------------------------------
     # Interruptores

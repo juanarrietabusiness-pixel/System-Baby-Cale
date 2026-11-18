@@ -96,13 +96,17 @@ class TestBaseDeConocimiento(JuanCase):
         entrada = self.tienda()
         self.assertFalse(entrada.contenido, 'No hay texto guardado que se pueda quedar viejo')
         texto = entrada.contenido_vigente
-        self.assertIn('Frente al Parque Libertadores', texto)
-        self.assertIn('La Chorrera', texto)
-        self.assertIn('+507 6026-1919', texto)
-        self.assertIn('todos los días, de 8:00 a. m. a 5:00 p. m.', texto)
-        self.ajustes.write({'horario_inicio': 9.0, 'horario_fin': 18.0})
+        # La empresa de fábrica (Baby Caleb, 2026-11-18): sin dirección todavía; su WhatsApp, su correo y su horario.
+        self.assertNotIn(' está en ', texto, 'sin dirección cargada no se dice ninguna')
+        self.assertIn('+507 6757-5065', texto)
+        self.assertIn('babycalebpanama@gmail.com', texto)
+        self.assertIn('lunes, martes, miércoles, jueves, viernes, sábado, de 9:00 a. m. a 6:00 p. m.', texto)
+        self.ajustes.write({'horario_inicio': 10.0, 'horario_fin': 19.0})
         entrada.invalidate_recordset()
-        self.assertIn('9:00 a. m. a 6:00 p. m.', entrada.contenido_vigente)
+        self.assertIn('10:00 a. m. a 7:00 p. m.', entrada.contenido_vigente)
+        self.env.company.sudo().write({'street': 'Calle Zzprueba', 'city': 'Ciudad de Zzprueba'})
+        entrada.invalidate_recordset()
+        self.assertIn('Baby Caleb está en Calle Zzprueba, Ciudad de Zzprueba.', entrada.contenido_vigente)
 
     def test_socios_sale_de_puntos_json_y_nunca_se_guarda(self):
         entrada = self.socios()

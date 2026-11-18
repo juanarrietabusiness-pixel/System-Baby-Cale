@@ -84,10 +84,17 @@ class TestDcasaInvoice(TransactionCase):
         self.assertIn('Pagada el', html)
         self.assertIn('Saldo', html)
         self.assertIn('2-723-510', html)
-        self.assertIn('155779346-2-2026 DV7', html)
-        self.assertIn('Tu casa, bien amueblada.', html)
+        # La empresa de fábrica (Baby Caleb, 2026-11-18): su nombre; sin RUC ni lema hasta que el dueño los dé.
+        self.assertIn('Baby Caleb', html)
+        self.assertNotIn('o_dcasa_tagline', html, 'sin lema: no se pone otro')
+        # (El recuadro de Socios que pone dcasa_socios todavía dice «Socios D'CASA»: lo cambia el trabajo de Socios.)
+        for de_la_tienda_de_origen in ('155779346', 'amueblada', 'Libertadores', 'dcasapty'):
+            self.assertNotIn(de_la_tienda_de_origen, html)
 
     def test_factura_en_espanol_y_con_formato_de_panama(self):
+        # Una dirección pública, como en producción (web.base.url fija el dominio al arrancar) o cuando el dueño ponga
+        # la web de la empresa: la de fábrica va vacía. Sin ninguna, el enlace de los términos no tiene a qué cambiarse.
+        self.company.website = 'https://babycaleb.com'
         invoice = self._create_invoice()
         html = self._render(invoice.with_context(lang='en_US'))
         for etiqueta in ('Factura', 'Descripción', 'Cantidad', 'Precio unitario', 'Importe'):

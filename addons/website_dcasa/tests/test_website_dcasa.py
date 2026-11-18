@@ -14,10 +14,20 @@ class TestWhatsappLink(TransactionCase):
         self.website = self.env.ref('website.default_website')
 
     def test_whatsapp_url_uses_configured_number(self):
-        self.website.dcasa_whatsapp_number = '+507 6026-1919'
-        url = self.website._dcasa_whatsapp_url('Hola D\'CASA')
-        self.assertTrue(url.startswith('https://wa.me/50760261919?text='))
-        self.assertIn('Hola%20D%27CASA', url)
+        self.website.dcasa_whatsapp_number = '+507 6757-5065'
+        url = self.website._dcasa_whatsapp_url('Hola Baby Caleb')
+        self.assertTrue(url.startswith('https://wa.me/50767575065?text='))
+        self.assertIn('Hola%20Baby%20Caleb', url)
+
+    def test_whatsapp_de_fabrica_es_el_de_baby_caleb(self):
+        """El número de ventas y el saludo que trae el sitio al instalarse (decisión del dueño, 2026-11-18)."""
+        self.assertEqual(self.website.dcasa_whatsapp_number, '+507 6757-5065')
+        url = self.website._dcasa_whatsapp_url()
+        self.assertTrue(url.startswith('https://wa.me/50767575065?text='), url)
+        self.assertIn('Hola%20Baby%20Caleb', url)
+        self.assertEqual(self.website.name, 'Baby Caleb')
+        self.assertEqual(self.website.social_instagram, 'https://www.instagram.com/babycalebpanama')
+        self.assertFalse(self.website.social_tiktok, 'Baby Caleb no tiene TikTok en su web: no se inventa')
 
     def test_whatsapp_url_falls_back_to_company_phone(self):
         self.website.dcasa_whatsapp_number = False
@@ -44,11 +54,14 @@ class TestWebsitePages(HttpCase):
         response = self.url_open('/')
         self.assertEqual(response.status_code, 200)
         html = response.text
-        self.assertIn('Tu casa, bien amueblada.', html)
-        self.assertIn('https://wa.me/50760261919', html)
+        self.assertIn('Cuidado hipoalergénico para la piel de tu bebé', html)
+        self.assertIn('https://wa.me/50767575065', html)
         self.assertIn('o_dcasa_wa_float', html)
         self.assertIn(f"/shop/category/{self.env['ir.http']._slug(salas)}", html)
-        self.assertIn('info@dcasapty.com', html, 'El pie de página muestra los datos reales')
+        self.assertIn('babycalebpanama@gmail.com', html, 'El pie de página muestra los datos reales')
+        for de_la_tienda_de_origen in ("D'CASA", 'D&#39;CASA', 'dcasapty', 'La Chorrera', 'Libertadores', '6026',
+                                       'amueblada'):
+            self.assertNotIn(de_la_tienda_de_origen, html)
         self.assertNotIn('555-555-5556', html, 'No debe quedar el teléfono de ejemplo de Odoo')
         self.assertNotIn('Company name', html, 'No debe quedar el copyright de ejemplo de Odoo')
 
@@ -58,7 +71,7 @@ class TestWebsitePages(HttpCase):
         self.assertIn('Suma puntos y gana invitando', home)
         response = self.url_open('/socios')
         self.assertEqual(response.status_code, 200)
-        self.assertIn('https://wa.me/50760261919', response.text, 'La app del socio usa el mismo sitio y pie')
+        self.assertIn('https://wa.me/50767575065', response.text, 'La app del socio usa el mismo sitio y pie')
 
     def test_terminos_de_odoo_llevan_a_los_reales(self):
         """La factura y el portal enlazan /terms: la plantilla de Odoo trae términos inventados en inglés."""
@@ -118,7 +131,7 @@ class TestPortadaDinamica(HttpCase):
     def test_una_categoria_sin_nada_publicado_abre_whatsapp_y_vuelve_sola_al_publicar(self):
         """Pedido de la dueña (2026-11-09): «Colchones» llevaba a una página de error porque Gerencia no ha publicado
         los colchones. Sin nada publicado, la tarjeta abre WhatsApp; con algo publicado, su página de la tienda."""
-        self.website.dcasa_whatsapp_number = '+507 6026-1919'
+        self.website.dcasa_whatsapp_number = '+507 6757-5065'
 
         def tarjeta(nombre):
             return next(t for t in self.website._dcasa_categorias() if t['nombre'] == nombre)
@@ -134,7 +147,7 @@ class TestPortadaDinamica(HttpCase):
         publicados.is_published = False
         sin = tarjeta('Colchones')
         self.assertTrue(sin['whatsapp'])
-        self.assertTrue(sin['url'].startswith('https://wa.me/50760261919?text='), sin['url'])
+        self.assertTrue(sin['url'].startswith('https://wa.me/50767575065?text='), sin['url'])
         self.assertIn('colchones', sin['url'])
         self.assertFalse(tarjeta('Salas')['whatsapp'], 'las que tienen productos siguen a su página')
         portada = self.url_open('/').text
@@ -142,6 +155,24 @@ class TestPortadaDinamica(HttpCase):
         self.assertIn('Pregúntanos por WhatsApp', portada)   # v3: la nota debajo del nombre (antes «· por WhatsApp»)
         self.colchon.is_published = True
         self.assertFalse(tarjeta('Colchones')['whatsapp'], 'al publicar, vuelve sola a la tienda')
+
+    def test_sin_nada_publicado_en_ninguna_categoria_no_sale_compra_por_espacio(self):
+        """Baby Caleb (2026-11-18): las categorías de la portada son las de muebles de la copia de origen y su catálogo
+        no tiene nada en ellas. Seis tarjetas que solo llevan a WhatsApp no ayudan a comprar: la sección no sale. Con
+        una sola categoría con algo, vuelve entera (las vacías, a WhatsApp, como antes)."""
+        claves = [f'website_dcasa.public_category_{clave}' for clave in
+                  ('salas', 'recamaras', 'colchones', 'zapateras', 'organizacion', 'oficina')]
+        categorias = self.env['product.public.category'].browse([self.env.ref(x).id for x in claves])
+        publicados = self.env['product.template'].sudo().search([
+            ('public_categ_ids', 'child_of', categorias.ids), ('is_published', '=', True)])
+        publicados.is_published = False
+        self.assertEqual(self.website._dcasa_categorias_con_productos(), [])
+        portada = self.url_open('/').text
+        self.assertNotIn('dcasa-cat-titulo', portada)
+        self.assertNotIn('pregúntanos por WhatsApp', portada)
+        self.sofa.is_published = True
+        # (La portada ya quedó guardada en la memoria de páginas de Odoo para el visitante: se mira el dato.)
+        self.assertEqual(len(self.website._dcasa_categorias_con_productos()), 6)
 
     def test_portada_muestra_productos_con_precio_y_agregar(self):
         html = self.url_open('/').text
@@ -172,15 +203,22 @@ class TestPortadaDinamica(HttpCase):
     def test_json_ld_tienda(self):
         html = self.url_open('/').text
         bloques = [json.loads(b) for b in re.findall(r'<script type="application/ld\+json">(.*?)</script>', html, re.S)]
-        datos = next((b for b in bloques if b.get('@type') == 'FurnitureStore'), None)
-        self.assertTrue(datos, 'La portada publica los datos de la tienda')
-        self.assertEqual(datos['@type'], 'FurnitureStore')
-        self.assertEqual(datos['address']['addressCountry'], 'PA')
-        self.assertNotIn('FurnitureStore', self.url_open('/shop').text, 'Solo en la portada')
+        datos = next((b for b in bloques if b.get('@type') == 'OnlineStore'), None)
+        self.assertTrue(datos, 'La portada publica los datos de la tienda (en línea: Baby Caleb no tiene local)')
+        self.assertEqual(datos['name'], 'Baby Caleb')
+        self.assertEqual(datos['telephone'], '+507 6757-5065')
+        self.assertEqual(datos['email'], 'babycalebpanama@gmail.com')
+        self.assertEqual(datos['address'], {'@type': 'PostalAddress', 'addressCountry': 'PA'},
+                         'Solo lo que la empresa tiene escrito: sin calle, ciudad ni provincia inventadas')
+        for sin_local in ('geo', 'hasMap', 'image'):
+            self.assertNotIn(sin_local, datos)
+        self.assertNotIn('FurnitureStore', html)
+        self.assertNotIn('OnlineStore', self.url_open('/shop').text, 'Solo en la portada')
 
     def test_seo_de_la_portada(self):
         html = self.url_open('/').text
-        self.assertIn('Mueblería en La Chorrera', html)
+        self.assertIn('Baby Caleb Panamá | Pañales y Wipes Nateen hipoalergénicos', html)
+        self.assertIn('Tallas RN a XXL en caja para todo el mes', html)
         self.assertIn('name="description"', html)
 
     def test_agregar_al_carrito_en_un_clic(self):
@@ -208,7 +246,12 @@ class TestPortadaDinamica(HttpCase):
     def test_ficha_de_producto_con_whatsapp_y_sellos(self):
         html = self.url_open(self.sofa.website_url).text
         self.assertIn('o_dcasa_sellos', html)
-        self.assertIn('me%20interesa%3A%20Sof%C3%A1%20de%20Prueba', html)   # formato título (F5)
+        # Formato título (F5).
+        self.assertIn('Hola%20Baby%20Caleb%2C%20me%20interesa%3A%20Sof%C3%A1%20de%20Prueba', html)
+        self.assertIn('Entrega a domicilio en Ciudad de Panamá.', html)
+        self.assertIn('Asesoría directa y humana por WhatsApp', html)
+        for sin_tienda in ('Míralo en tienda', 'Te lo llevas hoy', 'Libertadores', 'este mueble'):
+            self.assertNotIn(sin_tienda, html)
 
     def test_ficha_sin_promesas_inventadas(self):
         html = self.url_open(self.sofa.website_url).text
@@ -217,7 +260,7 @@ class TestPortadaDinamica(HttpCase):
 
     def test_tienda_con_descripcion_para_google(self):
         html = self.url_open('/shop').text
-        self.assertRegex(html, r'<meta name="description" content="Tienda en línea de D(&#39;|\')CASA')
+        self.assertIn('<meta name="description" content="Catálogo de Baby Caleb: pañales Nateen', html)
 
     def _token(self):
         self.authenticate(None, None)
@@ -262,10 +305,10 @@ class TestPortadaDinamica(HttpCase):
         self.assertNotIn('MUEBLE A CONSULTAR', self.url_open('/shop/cart').text)
 
     def test_whatsapp_redirige_al_numero_configurado(self):
-        self.website.dcasa_whatsapp_number = '+507 6026-1919'
+        self.website.dcasa_whatsapp_number = '+507 6757-5065'
         respuesta = self.url_open('/whatsapp?texto=Hola', allow_redirects=False)
         self.assertEqual(respuesta.status_code, 302)
-        self.assertTrue(respuesta.headers['Location'].startswith('https://wa.me/50760261919?text=Hola'))
+        self.assertTrue(respuesta.headers['Location'].startswith('https://wa.me/50767575065?text=Hola'))
         self.website.dcasa_whatsapp_number = False
         self.website.company_id.phone = False
         respuesta = self.url_open('/whatsapp', allow_redirects=False)
@@ -304,7 +347,24 @@ class TestMarcaYMovimiento(HttpCase):
         socios = self.url_open('/socios').text
         self.assertIn('o_dcasa_hero_compacto', socios, 'Las páginas interiores usan el mismo hero')
 
+    def test_sin_resenas_de_otra_empresa(self):
+        """Baby Caleb (2026-11-18): todavía no hay ficha de Google suya en data/resenas.json; las de la tienda de origen
+        se quitaron. Sin opiniones, la cinta de la portada no sale (y no se inventa ninguna)."""
+        resenas = self.env.ref('website.default_website')._dcasa_resenas()
+        self.assertEqual(resenas['opiniones'], [])
+        html = self.url_open('/').text
+        self.assertNotIn('Déjanos tu opinión en Google', html)
+        self.assertNotIn('o_dcasa_resenas_pausa', html)
+
     def test_resenas_reales_de_google(self):
+        """Con la copia de las reseñas de la ficha de Google (la que pegue la dueña en data/resenas.json), la cinta."""
+        from odoo.addons.website_dcasa.models import website as modulo
+        original = modulo._leer_resenas
+        modulo._leer_resenas = lambda: {
+            'ficha': 'https://share.google/ficha-de-prueba', 'puntuacion': 5.0, 'total': 4,
+            'opiniones': [{'autor': f'Clienta {n}', 'estrellas': 5, 'cuando': 'Hace un mes', 'texto': 'Muy bien.'}
+                          for n in range(1, 5)]}
+        self.addCleanup(setattr, modulo, '_leer_resenas', original)
         resenas = self.env.ref('website.default_website')._dcasa_resenas()
         html = self.url_open('/').text
         self.assertIn(resenas['ficha'], html)
@@ -328,12 +388,12 @@ class TestMarcaYMovimiento(HttpCase):
     def test_menu_corto_con_catalogo(self):
         website = self.env.ref('website.default_website')
         nombres = website.menu_id.child_id.sorted('sequence').mapped('name')
-        self.assertEqual(nombres, ['Catálogo', "Socios D'CASA", 'Visítanos'])
+        self.assertEqual(nombres, ['Catálogo', 'Socios Baby Caleb', 'Contacto'])
         self.assertEqual(website.menu_id.child_id[0].url, '/shop')
         catalogo = website.menu_id.child_id.filtered(lambda m: m.url == '/shop')
         self.assertEqual(catalogo.with_context(lang='es_419').name, 'Catálogo', 'No «Tienda» en español')
-        visitanos = website.menu_id.child_id.filtered(lambda m: m.name == 'Visítanos')
-        self.assertEqual(visitanos.url, '/visitanos', 'Visítanos tiene su propia página')
+        contacto = website.menu_id.child_id.filtered(lambda m: m.name == 'Contacto')
+        self.assertEqual(contacto.url, '/visitanos', 'El contacto (sin tienda que visitar) tiene su propia página')
 
     def test_navbar_liquido_y_franja_visitanos(self):
         html = self.url_open('/').text
@@ -345,19 +405,23 @@ class TestMarcaYMovimiento(HttpCase):
         self.assertNotIn('https://www.google.com/maps/embed?pb=', html)
 
     def test_pagina_visitanos(self):
+        """Baby Caleb vende 100% en línea (decisión del dueño, 2026-11-18): en lugar de la dirección y el mapa, su
+        cobertura, su horario y sus canales."""
         respuesta = self.url_open('/visitanos')
         self.assertEqual(respuesta.status_code, 200)
         html = respuesta.text
-        self.assertIn('Frente al Parque Libertadores', html)
-        self.assertNotIn('Local 4550', html, 'La dirección vieja ya no sale')
-        # El mapa de Google se carga en el navegador solo con permiso (test_visitanos.py): aquí, su dirección.
-        self.assertIn('data-dcasa-mapa="https://www.google.com/maps/embed?pb=', html)
-        self.assertRegex(html, r'data-dcasa-mapa-titulo="Mapa: D(&#39;|\')CASA en La Chorrera"')
-        self.assertNotIn('<iframe', html)
-        self.assertIn('destination=8.8765881%2C-79.7867962', html)
+        self.assertIn('Venta 100% online con entrega a domicilio — Ciudad de Panamá', html)
+        self.assertIn('Vendemos online y te lo llevamos.', html)
+        self.assertRegex(html, r'<a [^>]*href="https://wa\.me/50767575065\?text=[^"]*"[^>]*>\+507 6757-5065 ')
+        self.assertIn('href="mailto:babycalebpanama@gmail.com"', html)
+        self.assertIn('href="https://www.instagram.com/babycalebpanama"', html)
         self.assertIn('Escríbenos por WhatsApp', html)
+        self.assertIn('<meta property="og:title" content="Contacto | Baby Caleb"/>', html)
+        for sin_tienda in ('data-dcasa-mapa', 'google.com/maps', '<iframe', 'destination=', 'Libertadores',
+                           'La Chorrera', 'Local 4550', "D'CASA", 'D&#39;CASA', 'dcasapty', '6026'):
+            self.assertNotIn(sin_tienda, html)
         datos = json.loads(self.env.ref('website.default_website')._dcasa_json_ld())
-        self.assertEqual(datos['geo']['latitude'], 8.8765881)
+        self.assertNotIn('geo', datos, 'Sin local: sin coordenadas')
 
     def test_menu_visitanos_viejo_se_actualiza(self):
         """Un sitio con el menú viejo (ancla /#visitanos) queda con uno solo, a la página."""
@@ -390,7 +454,9 @@ class TestMarcaYMovimiento(HttpCase):
         html = self.url_open('/contactus').text
         self.assertNotIn('Fake Buena Vista', html)
         self.assertNotIn('555-555-5556', html)
-        self.assertIn('info@dcasapty.com', html)
+        self.assertIn('babycalebpanama@gmail.com', html)
+        self.assertIn('Venta 100% online con entrega a domicilio — Ciudad de Panamá', html)
+        self.assertNotIn('Libertadores', html)
         self.assertIn('href="/whatsapp"', html)
 
     def test_whatsapp_sin_boton_en_el_menu_y_con_la_seccion_de_contacto(self):

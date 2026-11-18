@@ -9,7 +9,8 @@ import { patch } from "@web/core/utils/patch";
 import { NavBar } from "@web/webclient/navbar/navbar";
 
 export const LOGO_DE_FABRICA = "/dcasa_base/static/img/logo.png";
-export const NOMBRE_DE_FABRICA = "D'CASA Panamá";
+// El de fábrica va con el logo de fábrica (dcasa_base/static/img/logo.png, el de la empresa: Baby Caleb).
+export const NOMBRE_DE_FABRICA = "Baby Caleb";
 
 export function logoDelPanel() {
     return session.dcasa_marca?.logo || LOGO_DE_FABRICA;

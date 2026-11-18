@@ -95,7 +95,8 @@ class TestConfiguracionTienda(TransactionCase):
             if menu:
                 self.assertEqual(menu.group_ids, self.env.ref('base.group_no_one'), xmlid)
         almacen = self.env['stock.warehouse'].search([('company_id', '=', self.company.id)], limit=1)
-        self.assertEqual(almacen.name, "D'CASA La Chorrera")
+        self.assertNotIn(almacen.name, ('My Company', 'YourCompany'), 'el almacén no queda con el nombre de ejemplo')
+        self.assertEqual(almacen.name, self.company.name, 'el almacén lleva el nombre de la empresa')
 
     def test_se_puede_repetir(self):
         impuestos = self.env['account.tax'].search_count([])

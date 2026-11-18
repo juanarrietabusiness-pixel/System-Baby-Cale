@@ -23,14 +23,31 @@ class TestDcasaBase(TransactionCase):
         order = self.env['sale.order'].create({'partner_id': self.env['res.partner'].create({'name': 'X'}).id})
         self.assertEqual(order.currency_id, usd)
 
-    def test_company_ruc_with_dv(self):
-        self.assertEqual(self.company.vat, '155779346-2-2026')
-        self.assertEqual(self.company.partner_id.dcasa_ruc_display, '155779346-2-2026 DV7')
+    def test_company_es_baby_caleb(self):
+        """Los datos que aprobó el dueño (docs/BABY_CALEB.md, 2026-11-18): nombre, país, teléfono y correo."""
+        self.assertEqual(self.company.name, 'Baby Caleb')
+        self.assertEqual(self.company.phone, '+507 6757-5065')
+        self.assertEqual(self.company.email, 'babycalebpanama@gmail.com')
 
-    def test_company_real_address(self):
-        self.assertEqual(self.company.street, 'Frente al Parque Libertadores')
-        self.assertEqual(self.company.street2, 'Diagonal a la Discoteca Seven')
-        self.assertEqual(self.company.city, 'La Chorrera')
+    def test_company_ruc_dv_y_direccion_vacios_hasta_que_el_dueno_los_de(self):
+        """RUC, DV, dirección, ciudad, web y lema vacíos: nunca inventados ni los de otra empresa."""
+        for campo in ('vat', 'l10n_pa_dv', 'street', 'street2', 'city', 'website', 'report_header'):
+            with self.subTest(campo=campo):
+                self.assertFalse(self.company[campo], campo)
+        self.assertFalse(self.company.partner_id.dcasa_ruc_display)
+
+    def test_company_logo_es_el_de_baby_caleb(self):
+        """El logo de la empresa (documentos, sitio y correos) es el de su web: dcasa_base/static/img/logo.png."""
+        import base64
+
+        from odoo.tools.misc import file_open
+        with file_open('dcasa_base/static/img/logo.png', 'rb') as archivo:
+            self.assertEqual(base64.b64decode(self.company.logo), archivo.read())
+
+    def test_company_ruc_with_dv(self):
+        """Cuando el dueño ponga el RUC y el DV, la ficha los muestra juntos (mismo formato de siempre)."""
+        self.company.write({'vat': '1557-1-2026', 'l10n_pa_dv': '45'})
+        self.assertEqual(self.company.partner_id.dcasa_ruc_display, '1557-1-2026 DV45')
 
     def test_address_migration_only_replaces_old_address(self):
         import importlib.util

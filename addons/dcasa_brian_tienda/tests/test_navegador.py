@@ -210,13 +210,14 @@ POSE_EN_EL_INICIO = """(async () => {
     const res = { quieta: cambios.length, alLlegar: actual() };
     // Pasa rápido por dos secciones y se detiene en Socios: cuenta donde se detiene.
     await ir('.o_dcasa_beneficios', 200);
-    await ir('.o_dcasa_categorias .o_dcasa_section_head', 200);
+    await ir('.o_dcasa_rail .o_dcasa_section_head', 200);
     await ir('.o_dcasa_socios_band', 3200);
     res.trasPasarRapido = cambios.map((c) => c[1]);
-    // Dos seguidas: la segunda espera el mínimo entre cambios.
-    await ir('.o_dcasa_galeria', 900);
-    await ir('.o_dcasa_ayuda .o_dcasa_steps', 3400);
-    await ir('.o_dcasa_visita_franja', 3200);
+    // Dos seguidas: la segunda espera el mínimo entre cambios. (La portada de Baby Caleb, 2026-11-18: las preguntas
+    // frecuentes y la franja de contacto; la galería y la guía de medidas eran de muebles.)
+    await ir('.o_dcasa_ayuda .o_dcasa_faq', 900);
+    await ir('.o_dcasa_visita_franja', 3400);
+    await ir('#bottom, footer', 3200);
     res.cambios = cambios.map((c) => c[1]);
     res.minimo = minimo();
     res.sinScrollDeLado = document.documentElement.scrollWidth <= innerWidth;
@@ -403,8 +404,10 @@ class TestChatEnElNavegador(NavegadorCase):
         en_inicio = [p for p, _orden in r['enInicio']]
         self.assertEqual(en_inicio[0], 'asomado_burbuja', 'arriba, la de la página')
         self.assertEqual([o for _p, o in r['enInicio']], list(range(len(en_inicio))))
-        for pose in ('saludando', 'con_laptop', 'cama', 'cocina', 'escritorio', 'fidelidad', 'marco_foto', 'cinta_metrica',
-                     'burbuja_chat', 'mapa'):
+        # La portada de Baby Caleb (2026-11-18): beneficios, el carril del catálogo, Socios, las preguntas frecuentes y la
+        # franja de contacto. Sin la galería «Inspírate» ni la guía de medidas (eran de muebles), y «Compra por espacio»
+        # solo con algo publicado en sus categorías (las de muebles: aquí, nada).
+        for pose in ('saludando', 'busto_estrella', 'bolsita', 'fidelidad', 'burbuja_chat', 'mapa'):
             self.assertIn(pose, en_inicio, 'secciones que el Inicio siempre tiene')
         # 10:00 a. m. de un viernes (abierto), 9:00 p. m. del viernes (cerrado), 5:30 p. m. del domingo (cerrado).
         self.assertEqual(r['noche'], [False, True, True])
@@ -481,7 +484,7 @@ class TestPoseAlBajar(NavegadorCase):
             r = self.evaluar(browser, POSE_EN_EL_INICIO)
         self.assertEqual((r['quieta'], r['alLlegar']), (0, 'asomado_burbuja'), 'sin moverse, la de la página')
         self.assertEqual(r['trasPasarRapido'], ['fidelidad'], 'al pasar rápido, cuenta donde se detiene')
-        self.assertEqual(r['cambios'], ['fidelidad', 'marco_foto', 'cinta_metrica', 'mapa'])
+        self.assertEqual(r['cambios'], ['fidelidad', 'burbuja_chat', 'mapa', 'saludando'])
         self.assertGreaterEqual(r['minimo'], 2400, 'nunca dos cambios en menos de 2,5 s')
         self.assertTrue(r['sinScrollDeLado'])
 

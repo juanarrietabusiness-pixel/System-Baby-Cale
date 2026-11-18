@@ -137,7 +137,8 @@ class TestInterfazWeb(HttpCase):
     def test_login_sin_odoo(self):
         html = self.url_open('/web/login').text
         self.assertNotIn('Powered by', html)
-        self.assertIn("D'CASA", html.replace('&#39;', "'"))
+        self.assertIn('Baby Caleb', html, 'el nombre de la empresa en lugar del de Odoo')
+        self.assertNotIn("D'CASA", html.replace('&#39;', "'"), 'ni el nombre ni el lema de la tienda de origen')
 
     def test_bundle_backend_con_la_marca(self):
         self.authenticate('admin', 'admin')

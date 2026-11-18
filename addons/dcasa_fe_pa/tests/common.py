@@ -4,15 +4,20 @@ from odoo.tests import TransactionCase
 
 UBICACION = {'l10n_pa_cod_ubicacion': '8-8-8', 'l10n_pa_corregimiento': 'Barrio Colón',
              'l10n_pa_distrito': 'La Chorrera', 'l10n_pa_provincia': 'Panamá Oeste'}
+# El emisor de prueba: la empresa de fábrica (Baby Caleb, 2026-11-18) todavía no tiene RUC, DV ni dirección (los da el
+# dueño), y sin ellos no se emite (TestValidaciones). Las pruebas del flujo ponen unos de ejemplo, como hará el dueño en
+# Ajustes › Empresas.
+EMISOR = {'vat': '155700001-2-2026', 'l10n_pa_dv': '45', 'street': 'Calle de prueba 1', 'city': 'Ciudad de Panamá'}
 
 
 class FeComun(TransactionCase):
-    """Empresa D'CASA, un cliente contribuyente, un consumidor final y la cama del catálogo."""
+    """La empresa (con el emisor de prueba), un cliente contribuyente, un consumidor final y una cama."""
 
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
         cls.company = cls.env.ref('base.main_company')
+        cls.company.write(EMISOR)
         cls.company.partner_id.write(UBICACION)
         cls.diario = cls.env['account.journal'].search(
             [('type', '=', 'sale'), ('company_id', '=', cls.company.id)], limit=1)

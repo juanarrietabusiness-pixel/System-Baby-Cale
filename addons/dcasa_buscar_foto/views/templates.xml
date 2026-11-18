@@ -36,13 +36,13 @@
     </template>
 
     <!-- /shop/foto: para empezar, los resultados («Esto se parece a tu foto») o un mensaje. -->
-    <template id="pagina" name="D'CASA: Busca con una foto">
+    <template id="pagina" name="Busca con una foto">
         <t t-call="website.layout">
             <t t-set="additional_title" t-value="titulo"/>
-            <t t-set="meta_description">Toma una foto de un mueble o sube una captura y te mostramos lo que se le parece en la tienda de D'CASA.</t>
+            <t t-set="meta_description">Toma una foto de un mueble o sube una captura y te mostramos lo que se le parece en la tienda de Baby Caleb.</t>
             <div id="wrap" t-attf-class="o_dcasa_foto_pagina o_dcasa_foto_{{ estado }}" t-att-data-estado="estado">
                 <section class="o_dcasa_container o_dcasa_foto_cabeza">
-                    <p class="o_dcasa_kicker"><t t-if="estado == 'resultados'">Busca con una foto</t><t t-else="">Catálogo D'CASA</t></p>
+                    <p class="o_dcasa_kicker"><t t-if="estado == 'resultados'">Busca con una foto</t><t t-else="">Catálogo Baby Caleb</t></p>
                     <h1 class="o_dcasa_h2" t-out="titulo"/>
                     <t t-if="estado == 'inicio'">
                         <p class="o_dcasa_lead">Toma una foto de un mueble o sube una captura (también de Instagram) y te

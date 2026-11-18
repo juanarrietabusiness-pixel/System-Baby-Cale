@@ -15,7 +15,7 @@
     </template>
 
     <!-- La página que ve quien abre un QR sin permiso o de un documento que no existe. -->
-    <template id="documento_aviso" name="D'CASA: aviso al abrir un documento">
+    <template id="documento_aviso" name="Aviso al abrir un documento">
         &lt;!DOCTYPE html&gt;
         <html lang="es">
             <head>

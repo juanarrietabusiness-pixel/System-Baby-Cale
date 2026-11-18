@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Ajustes › Empresas › pestaña «Documentos D'CASA», junto a garantía, cambios y términos de la factura. Solo lo
+    <!-- Ajustes › Empresas › pestaña «Documentos Baby Caleb», junto a garantía, cambios y términos de la factura. Solo lo
          ve (y lo cambia) un administrador. -->
     <record id="view_company_form_dcasa_abonos" model="ir.ui.view">
         <field name="name">res.company.form.dcasa.abonos</field>

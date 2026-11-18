@@ -28,6 +28,8 @@ URL_RESEND = 'https://api.resend.com/emails'
 TIEMPO = (5, 30)   # segundos: conectar, esperar la respuesta
 PREFIJO_REINTENTAR = 'DCASA_REINTENTAR:'
 PREFIJO_NO_ENVIADO = 'DCASA_NO_ENVIADO:'
+# Sin remitente no sale nada (Baby Caleb, 2026-11-18: hasta tener un dominio verificado en Resend queda PENDIENTE).
+MOTIVO_SIN_REMITENTE = 'Falta el remitente (Ajustes › Correo a clientes): un correo del dominio verificado en Resend.'
 # Cabeceras propias que viajan a Resend (el hilo de respuestas); las demás las pone Resend o son de Odoo.
 CABECERAS_QUE_VIAJAN = ('References', 'In-Reply-To')
 _CORREO_EN_TEXTO = re.compile(r'[^\s<>"\'@,;:]+@[^\s<>"\'@,;:]+')
@@ -112,7 +114,7 @@ def _adjuntos(message):
 
 
 def remitente_visible(nombre, correo):
-    """«"D'CASA Panamá" <ventas@dcasapty.com>»: el nombre entre comillas y en UTF-8 (Resend arma la cabecera)."""
+    """«"Baby Caleb" <ventas@tudominio.com>»: el nombre entre comillas y en UTF-8 (Resend arma la cabecera)."""
     limpio = ' '.join(str(nombre or '').replace('"', '').replace('\\', '').replace('<', '').replace('>', '').split())
     return f'"{limpio}" <{correo}>' if limpio else correo
 
@@ -188,6 +190,8 @@ class SesionResend:
             clase, self.a_clientes, self.entorno, smtp_to_list or [], self.correos_internos)
         if not sale:
             raise RuntimeError(f'{PREFIJO_NO_ENVIADO} {motivo}')
+        if not self.remitente:
+            raise RuntimeError(f'{PREFIJO_NO_ENVIADO} {MOTIVO_SIN_REMITENTE}')
         datos = mensaje_a_resend(message, smtp_to_list, self.remitente, self.nombre, self.responder_a)
         cabeceras = {
             'Authorization': f'Bearer {self.__clave}',

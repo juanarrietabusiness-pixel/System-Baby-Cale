@@ -18,6 +18,8 @@ import unicodedata
 from odoo import models
 from odoo.http import request
 
+from .website import MARCA
+
 SIN_INDICE = 'noindex'
 BUSQUEDA = 'noindex, follow'
 
@@ -80,7 +82,7 @@ class Website(models.Model):
     def _dcasa_whatsapp_buscar(self, termino):
         """WhatsApp con lo que la persona buscó ya escrito: la vendedora sabe qué responder."""
         termino = ' '.join(str(termino or '').split())[:100]
-        return self._dcasa_whatsapp_url(f"Hola D'CASA, busco: {termino}" if termino else None)
+        return self._dcasa_whatsapp_url(f'Hola {MARCA}, busco: {termino}' if termino else None)
 
     def _search_with_fuzzy(self, search_type, search, limit, order, options):
         count, results, parecido = super()._search_with_fuzzy(search_type, search, limit, order, options)

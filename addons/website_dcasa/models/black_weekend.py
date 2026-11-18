@@ -26,6 +26,8 @@ from odoo.fields import Domain
 from odoo.http import request
 from odoo.tools.json import scriptsafe as json_scriptsafe
 
+from .website import COBERTURA, MARCA
+
 _logger = logging.getLogger(__name__)
 
 PARAM_ACTIVO = 'dcasa_black_weekend.activo'
@@ -318,7 +320,7 @@ class Website(models.Model):
 
     def _dcasa_bw_whatsapp(self, producto, codigo):
         nombre = producto._dcasa_nombre_cliente()
-        texto = f"Hola D'CASA, me interesa {self._dcasa_campana_de()}: {nombre}"
+        texto = f'Hola {MARCA}, me interesa {self._dcasa_campana_de()}: {nombre}'
         return self._dcasa_whatsapp_url(f'{texto} (código {codigo})' if codigo else texto)
 
     def _dcasa_bw_marcado(self, producto):
@@ -332,12 +334,11 @@ class Website(models.Model):
         fechas = self._dcasa_bw_fechas()
         nombre = self._dcasa_campana_nombre()
         if nombre == 'Black Weekend':
-            return (f"Black Weekend en D'CASA Panamá{(' ' + fechas) if fechas else ''}: {len(items)} camas y bases "
+            return (f"Black Weekend en {MARCA}{(' ' + fechas) if fechas else ''}: {len(items)} camas y bases "
                     'seleccionadas, con el precio de la cama sola y el del combo con colchón (+ ITBMS). '
-                    'Entregas en Panamá Oeste, Panamá y Colón, desde La Chorrera. Escríbenos por WhatsApp.')
-        return (f"{nombre} en D'CASA Panamá{(' ' + fechas) if fechas else ''}: {len(items)} productos "
-                'seleccionados (+ ITBMS). Entregas en Panamá Oeste, Panamá y Colón, desde La Chorrera. '
-                'Escríbenos por WhatsApp.')
+                    f'{COBERTURA}. Escríbenos por WhatsApp.')
+        return (f"{nombre} en {MARCA}{(' ' + fechas) if fechas else ''}: {len(items)} productos "
+                f'seleccionados (+ ITBMS). {COBERTURA}. Escríbenos por WhatsApp.')
 
     def _dcasa_bw_json_ld(self, items):
         """``ItemList`` de /black-weekend: la URL y el nombre de cada producto, en orden."""
@@ -351,7 +352,7 @@ class Website(models.Model):
         datos = {
             '@context': 'https://schema.org',
             '@type': 'ItemList',
-            'name': f"{self._dcasa_campana_nombre()} | D'CASA Panamá",
+            'name': f'{self._dcasa_campana_nombre()} | {MARCA}',
             'numberOfItems': len(lista),
             'itemListElement': lista,
         }

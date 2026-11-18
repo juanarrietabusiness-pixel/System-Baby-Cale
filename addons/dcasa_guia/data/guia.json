@@ -3212,7 +3212,7 @@
    "categoria": "facturar",
    "grupo": "Facturas de clientes",
    "titulo": "Mandarle la factura a un cliente por correo",
-   "logras": "Abres la factura, tocas «Enviar» y dejas marcada la casilla de correo. Sale con el PDF y la marca de D'CASA.",
+   "logras": "Abres la factura, tocas «Enviar» y dejas marcada la casilla de correo. Sale con el PDF y la marca de Baby Caleb.",
    "nota": "Si el cliente no tiene correo, escríbelo en su ficha.",
    "destino": {
     "menu": "account.menu_action_move_out_invoice_type"
@@ -3909,7 +3909,7 @@
    "titulo": "Apagar el cuadro de imprimir al completar un pago",
    "logras": "Al terminar de pagar ya no sale el cuadro de imprimir documentos.",
    "destino": null,
-   "nota": "Ajustes › Empresas › D'CASA Panamá, pestaña «Documentos D'CASA»: desmarca «Ofrecer imprimir los documentos al completar el pago».",
+   "nota": "Ajustes › Empresas › Baby Caleb, pestaña «Documentos Baby Caleb»: desmarca «Ofrecer imprimir los documentos al completar el pago».",
    "palabras": [
     "cuadro de imprimir",
     "apagar",
@@ -4023,7 +4023,7 @@
    "titulo": "Poner el código QR en la factura y la cotización",
    "logras": "La factura, la nota de crédito, la cotización y la nota de entrega llevan un QR pequeño de uso interno que abre ese documento en el sistema.",
    "destino": null,
-   "nota": "Ajustes › Empresas › D'CASA Panamá, pestaña «Documentos D'CASA»: marca «Mostrar el código QR en la factura y la cotización». Viene apagado: apagado, los documentos salen exactamente como siempre. El pedido de compra lleva su QR siempre. Enciéndelo solo después de aprobar cómo se ve.",
+   "nota": "Ajustes › Empresas › Baby Caleb, pestaña «Documentos Baby Caleb»: marca «Mostrar el código QR en la factura y la cotización». Viene apagado: apagado, los documentos salen exactamente como siempre. El pedido de compra lleva su QR siempre. Enciéndelo solo después de aprobar cómo se ve.",
    "palabras": [
     "qr",
     "codigo qr",
@@ -4040,7 +4040,7 @@
    "titulo": "Mostrar el código público de los productos en la factura y la cotización",
    "logras": "En la columna «Código» sale el código que ve el cliente (DC-K7M4PX) en lugar del código del proveedor.",
    "destino": null,
-   "nota": "Ajustes › Empresas › D'CASA Panamá, pestaña «Documentos D'CASA»: marca «Mostrar el código público de los productos en la factura y la cotización, en lugar del código del proveedor». Viene apagado: apagado, todo sale como siempre. Los productos sin código público (flete, servicios) quedan en blanco.",
+   "nota": "Ajustes › Empresas › Baby Caleb, pestaña «Documentos Baby Caleb»: marca «Mostrar el código público de los productos en la factura y la cotización, en lugar del código del proveedor». Viene apagado: apagado, todo sale como siempre. Los productos sin código público (flete, servicios) quedan en blanco.",
    "palabras": [
     "codigo publico",
     "codigo del proveedor",
@@ -4057,7 +4057,7 @@
    "titulo": "Poner la nota de entrega fácil de leer para bodega",
    "logras": "La nota de entrega sale con la foto de cada producto, la cantidad en número grande y en dibujitos, y una casilla para marcar, para que quien saca la mercancía no se confunda.",
    "destino": null,
-   "nota": "Ajustes › Empresas › D'CASA Panamá, pestaña «Documentos D'CASA», sección «Nota de entrega para bodega»: marca «Nota de entrega fácil de leer». Viene apagada: apagada, la nota de entrega sale como siempre. Un producto sin foto sale con un recuadro que dice «Sin foto»: ponle su foto al producto para que se vea.",
+   "nota": "Ajustes › Empresas › Baby Caleb, pestaña «Documentos Baby Caleb», sección «Nota de entrega para bodega»: marca «Nota de entrega fácil de leer». Viene apagada: apagada, la nota de entrega sale como siempre. Un producto sin foto sale con un recuadro que dice «Sin foto»: ponle su foto al producto para que se vea.",
    "palabras": [
     "nota de entrega",
     "bodega",
@@ -4077,7 +4077,7 @@
    "titulo": "Cambiar las condiciones de abono que se imprimen (solo administrador)",
    "logras": "Cambias el texto de la hoja «Condiciones de abono» que sale con el primer abono en dos copias: una para el cliente y otra para la tienda.",
    "destino": null,
-   "nota": "Ajustes › Empresas › D'CASA Panamá, pestaña «Documentos D'CASA», sección «Condiciones de abono»: escribe una condición por renglón (la hoja las numera sola). Si lo dejas vacío, la hoja no se imprime. El sistema no calcula ni cobra lo que digan las condiciones: solo las imprime. Para volver a imprimirla en otro abono, marca «Condiciones de abono (2 copias)» en el cuadro «Imprimir documentos».",
+   "nota": "Ajustes › Empresas › Baby Caleb, pestaña «Documentos Baby Caleb», sección «Condiciones de abono»: escribe una condición por renglón (la hoja las numera sola). Si lo dejas vacío, la hoja no se imprime. El sistema no calcula ni cobra lo que digan las condiciones: solo las imprime. Para volver a imprimirla en otro abono, marca «Condiciones de abono (2 copias)» en el cuadro «Imprimir documentos».",
    "palabras": [
     "condiciones de abono",
     "hoja de abono",

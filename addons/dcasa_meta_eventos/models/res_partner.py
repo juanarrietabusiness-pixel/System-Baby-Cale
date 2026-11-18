@@ -103,7 +103,7 @@ class ResPartner(models.Model):
         if not es_gerencia(self.env):
             raise AccessError(self.env._(
                 'Retirar el consentimiento para Meta lo hace Gerencia (la persona puede pedirlo en la tienda o '
-                'escribiendo a info@dcasapty.com).'))
+                'escribiendo a babycalebpanama@gmail.com).'))
         fichas = self.commercial_partner_id
         fichas.sudo().write(dict.fromkeys(CAMPOS_CONSENTIMIENTO, False))
         Evento = self.env['dcasa.meta.evento'].sudo()

@@ -8,7 +8,7 @@
         <field name="inherit_id" ref="base.view_company_form"/>
         <field name="arch" type="xml">
             <xpath expr="//notebook" position="inside">
-                <page string="Documentos D'CASA" name="dcasa_documentos">
+                <page string="Documentos Baby Caleb" name="dcasa_documentos">
                     <group>
                         <div class="text-muted mb-2" colspan="2">
                             Textos cortos que salen al final de la factura, la cotización y el pedido.

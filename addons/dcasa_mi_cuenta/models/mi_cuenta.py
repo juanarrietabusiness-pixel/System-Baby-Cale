@@ -23,6 +23,7 @@ from odoo.addons.dcasa_invoice.models import lineas as L
 from odoo.addons.dcasa_socios.models import reglas as R
 from odoo.addons.dcasa_socios.models.dcasa_canje import ESTADOS_CANJE
 from odoo.addons.website_dcasa.models.resena import LARGO_MAXIMO as LARGO_OPINION
+from odoo.addons.website_dcasa.models.website import MARCA
 
 TZ = pytz.timezone('America/Panama')
 MESES = ('ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic')
@@ -449,9 +450,9 @@ class DcasaMiCuenta(models.AbstractModel):
             'mensaje': mensaje,
             'apartado': apartado,
             'puntos': R.como_puntos(self._mc_puntos_de(pedido.partner_id, facturas)),
-            'whatsapp': self._mc_whatsapp(website, f"Hola D'CASA, tengo una pregunta sobre mi compra {pedido.name}"),
+            'whatsapp': self._mc_whatsapp(website, f'Hola {MARCA}, tengo una pregunta sobre mi compra {pedido.name}'),
             'whatsapp_factura': self._mc_whatsapp(
-                website, f"Hola D'CASA, necesito la factura de mi compra {pedido.name}"),
+                website, f'Hola {MARCA}, necesito la factura de mi compra {pedido.name}'),
             'pdf': '',
             'pdf_facturas': [],
         }
@@ -506,8 +507,8 @@ class DcasaMiCuenta(models.AbstractModel):
             'mensaje': '',
             'apartado': False,
             'puntos': R.como_puntos(self._mc_puntos_de(factura.partner_id, factura)),
-            'whatsapp': self._mc_whatsapp(website, f"Hola D'CASA, tengo una pregunta sobre mi factura {factura.name}"),
-            'whatsapp_factura': self._mc_whatsapp(website, f"Hola D'CASA, necesito mi factura {factura.name}"),
+            'whatsapp': self._mc_whatsapp(website, f'Hola {MARCA}, tengo una pregunta sobre mi factura {factura.name}'),
+            'whatsapp_factura': self._mc_whatsapp(website, f'Hola {MARCA}, necesito mi factura {factura.name}'),
             'pdf': '',
             'pdf_facturas': [{'nombre': factura.name,
                               'url': f'/my/invoices/{factura.id}?report_type=pdf&download=true'}] if tienda else [],

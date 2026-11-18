@@ -32,12 +32,15 @@ P_BIENVENIDA = 'dcasa_correo.bienvenida'
 P_BIENVENIDA_DESDE = 'dcasa_correo.bienvenida_desde'
 P_RECORDATORIO = 'dcasa_correo.recordatorio_abono'
 
-# Decisión de la dueña (17/10/2026): sale como «D'CASA Panamá <ventas@dcasapty.com>» y se responde a info@.
-REMITENTE = 'ventas@dcasapty.com'
-NOMBRE = "D'CASA Panamá"
-RESPONDER_A = 'info@dcasapty.com'
+# Baby Caleb (decisión del dueño, 2026-11-18): sale con su nombre y se responde a su correo de contacto. El remitente
+# tiene que ser de un dominio verificado en Resend y Baby Caleb todavía no tiene uno (babycaleb.com se mueve un día
+# aparte, docs/DOMINIO.md): queda PENDIENTE, vacío, hasta que el dueño lo ponga en Ajustes › Correo a clientes.
+# Sin él no sale ningún correo (Ajustes lo dice: ``_estado``).
+REMITENTE = ''
+NOMBRE = 'Baby Caleb'
+RESPONDER_A = 'babycalebpanama@gmail.com'
 
-TEXTO_WHATSAPP = "Hola D'CASA, te escribo por el correo que me mandaron."
+TEXTO_WHATSAPP = 'Hola Baby Caleb, te escribo por el correo que me mandaron.'
 AZUL = '#1340B1'
 
 
@@ -234,7 +237,7 @@ class DcasaCorreo(models.AbstractModel):
             return self.env._('¡Te damos la bienvenida!')
         if modelo == 'res.users':
             return self.env._('CORREO DE PRUEBA')
-        return "D'CASA"
+        return self.env.company.name or NOMBRE
 
     @api.model
     def _boton(self, registro):
@@ -412,6 +415,8 @@ class DcasaCorreo(models.AbstractModel):
             raise UserError(self.env._(
                 'Todavía no hay clave de Resend en el servidor (RESEND_API_KEY). Mira docs/CORREO.md: se pega en '
                 'GitHub y entra con el siguiente despliegue.'))
+        if not self._config()['remitente']:
+            raise UserError(self.env._(resend.MOTIVO_SIN_REMITENTE))
         destino = correo_valido(usuario.email)
         if not destino:
             raise UserError(self.env._(
@@ -428,7 +433,7 @@ class DcasaCorreo(models.AbstractModel):
                 usuario, mensaje, company),
         }, minimal_qcontext=True, raise_if_not_found=False)
         correo = self.env['mail.mail'].sudo().create({
-            'subject': valores.get('subject') or self.env._("Correo de prueba de D'CASA"),
+            'subject': valores.get('subject') or self.env._('Correo de prueba de %s', company.name or NOMBRE),
             'body_html': cuerpo,
             'email_to': formataddr((usuario.name or '', destino)),
             'email_from': self._remitente_formateado(),
@@ -462,6 +467,8 @@ class DcasaCorreo(models.AbstractModel):
             partes.append(self.env._('Sin clave: no sale ningún correo.'))
             return ' · '.join(partes)
         partes.append(self.env._('Clave cargada (…%s)', clave[-4:]))
+        if not config['remitente']:
+            partes.append(self.env._('Falta el remitente: pon un correo del dominio verificado en Resend'))
         if self._activo_para_clientes():
             partes.append(self.env._('Encendido'))
         elif config['entorno'] == politica.ENTORNO_PRODUCCION:

@@ -90,8 +90,8 @@
         <div class="o_dcasa_sin_resultados" role="status">
             <div class="mb-3"><t t-call="website.empty_search_svg"/></div>
             <h2 class="o_dcasa_sin_resultados_titulo">No encontramos “<t t-out="search"/>”</h2>
-            <p class="o_dcasa_lead">Prueba con otra palabra o mira por espacio. Si no lo ves, escríbenos: te ayudamos a buscarlo.</p>
             <t t-set="dcasa_categorias" t-value="website._dcasa_categorias_para_buscar()"/>
+            <p class="o_dcasa_lead">Prueba con otra palabra<t t-if="dcasa_categorias"> o mira por categoría</t>. Si no lo ves, escríbenos: te ayudamos a buscarlo.</p>
             <ul t-if="dcasa_categorias" class="o_dcasa_sin_resultados_categorias list-unstyled" aria-label="Categorías del catálogo">
                 <li t-foreach="dcasa_categorias" t-as="dcasa_categoria">
                     <a t-att-href="dcasa_categoria['url']" class="btn o_dcasa_btn_contorno" t-out="dcasa_categoria['nombre']"/>

@@ -2,13 +2,14 @@
 <odoo>
     <data noupdate="1">
         <record id="website.default_website" model="website">
-            <field name="name">D'CASA Panamá</field>
-            <field name="dcasa_whatsapp_number">+507 6026-1919</field>
+            <!-- Baby Caleb (decisión del dueño, 2026-11-18): su nombre, su WhatsApp de ventas, su logo y su Instagram
+                 (los de su web, content.json). Sin TikTok: su web no tiene. -->
+            <field name="name">Baby Caleb</field>
+            <field name="dcasa_whatsapp_number">+507 6757-5065</field>
             <field name="logo" type="base64" file="dcasa_base/static/img/logo.png"/>
-            <!-- Ícono de la pestaña: el de D'CASA, no el de Odoo. -->
+            <!-- Ícono de la pestaña: el de la empresa, no el de Odoo (scripts/iconos_de_la_marca.py). -->
             <field name="favicon" type="base64" file="website_dcasa/static/src/img/favicon.png"/>
-            <field name="social_instagram">https://www.instagram.com/dcasapty</field>
-            <field name="social_tiktok">https://www.tiktok.com/@dcasapty</field>
+            <field name="social_instagram">https://www.instagram.com/babycalebpanama</field>
             <!-- Tienda: 4 columnas, foto sobre fondo neutro, botón de compra siempre visible
                  (en el celular no hay «hover»: el botón oculto no se ve nunca). -->
             <field name="shop_ppr" type="int">4</field>
@@ -38,7 +39,7 @@
     </data>
 
     <!-- Se reafirman en cada despliegue (noupdate=0), aunque alguien las cambie en el backend:
-         la ficha nunca debe mostrar promesas que D'CASA no hizo, y el menú de tres opciones
+         la ficha nunca debe mostrar promesas que la tienda no hizo, y el menú de tres opciones
          nunca debe esconderse en el «+». -->
     <data noupdate="0">
         <!-- Menú centrado y de tres opciones: el auto-ocultado de Odoo las mandaría al «+»
@@ -48,7 +49,7 @@
         </record>
 
         <!-- La ficha de producto de Odoo trae «Garantía de devolución de 30 días / Envío: 2-3 días»:
-             son promesas que D'CASA no ha hecho (regla: no inventar). Se apaga. -->
+             son promesas que la tienda no ha hecho (regla: no inventar). Se apaga. -->
         <record id="website_sale.product_terms_and_conditions" model="ir.ui.view">
             <field name="active" eval="False"/>
         </record>
