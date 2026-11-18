@@ -665,7 +665,8 @@ class TestPasarAVendedora(HerramientasCase):
         with freeze_time(panama(2026, 10, 9, 22, 0)):
             datos = self.salida('pasar_a_vendedora', {'motivo': 'Pide una persona'})
         self.assertFalse(datos['dentro_de_horario'])
-        self.assertIn('mañana a primera hora, desde las 8:00 a. m.', datos['texto_para_el_cliente'])
+        # Viernes de noche: el sábado abre a las 9:00 (horario de Baby Caleb, lunes a sábado de 9 a 6).
+        self.assertIn('mañana a primera hora, desde las 9:00 a. m.', datos['texto_para_el_cliente'])
         self.assertNotIn('ahora', datos['texto_para_el_cliente'])
         self.assertNotIn('..', datos['texto_para_el_cliente'], 'Un punto de más al final de «a. m.»')
 
@@ -723,15 +724,17 @@ class TestPasarAVendedora(HerramientasCase):
 class TestHorarioYTienda(HerramientasCase):
 
     def test_datos_reales_de_la_tienda(self):
+        """Los de la empresa de fábrica (Baby Caleb, 2026-11-18): sin dirección todavía (vende en línea), su WhatsApp,
+        su correo y su horario (lunes a sábado de 9 a 6)."""
         with freeze_time(panama(2026, 10, 9, 10, 0)):
             datos = self.salida('horario_y_tienda')
-        self.assertIn('Frente al Parque Libertadores', datos['direccion'])
-        self.assertIn('Diagonal a la Discoteca Seven', datos['direccion'])
-        self.assertIn('La Chorrera', datos['direccion'])
+        self.assertEqual(datos['tienda'], 'Baby Caleb')
+        self.assertEqual(datos['direccion'], '', 'sin dirección cargada no se dice ninguna')
         self.assertIn('/visitanos', datos['como_llegar'])
-        self.assertEqual(datos['whatsapp'], '+507 6026-1919')
-        self.assertEqual(datos['correo'], 'info@dcasapty.com')
-        self.assertEqual(datos['horario']['texto'], 'Todos los días, de 8:00 a. m. a 5:00 p. m. (hora de Panamá)')
+        self.assertEqual(datos['whatsapp'], '+507 6757-5065')
+        self.assertEqual(datos['correo'], 'babycalebpanama@gmail.com')
+        self.assertEqual(datos['horario']['texto'], 'Lunes, martes, miércoles, jueves, viernes, sábado, '
+                                                    'de 9:00 a. m. a 6:00 p. m. (hora de Panamá)')
         self.assertEqual(datos['fecha_hora_panama'], 'viernes 9 de octubre de 2026, 10:00 a. m.')
         self.assertTrue(datos['abierto_ahora'])
 
@@ -740,7 +743,8 @@ class TestHorarioYTienda(HerramientasCase):
             self.assertFalse(self.salida('horario_y_tienda')['abierto_ahora'])
 
     def test_el_domingo_cierra_mas_temprano(self):
-        self.ajustes.write({'horario_inicio': 9.0, 'horario_fin': 18.0, 'horario_fin_domingo': 17.0})
+        self.ajustes.write({'horario_inicio': 9.0, 'horario_fin': 18.0, 'horario_fin_domingo': 17.0,
+                            'dia_domingo': True})
         with freeze_time(panama(2026, 10, 11, 17, 30)):   # domingo, 5:30 p. m.
             datos = self.salida('horario_y_tienda')
         self.assertFalse(datos['abierto_ahora'])
@@ -875,8 +879,9 @@ class TestConocimientoYAprendizaje(HerramientasCase):
         self.assertGreaterEqual(datos['encontrados'], 1)
         primero = datos['resultados'][0]
         self.assertEqual(primero['titulo'], 'Dónde estamos, horario y WhatsApp')
-        self.assertIn('Frente al Parque Libertadores', primero['contenido'])
-        self.assertIn('+507 6026-1919', primero['contenido'])
+        # Con los datos de la empresa de fábrica (Baby Caleb, 2026-11-18): su WhatsApp y su correo.
+        self.assertIn('+507 6757-5065', primero['contenido'])
+        self.assertIn('babycalebpanama@gmail.com', primero['contenido'])
         # Juan explica entregas, financiamiento, apartados y descuentos con lo que escribió el equipo; el caso concreto,
         # una vendedora (decisión de la dueña, 2026-10-16).
         self.assertIn('explica solo lo que diga aquí', datos['nota'])

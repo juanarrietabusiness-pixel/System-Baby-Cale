@@ -201,15 +201,16 @@ class TestRespuestasRapidas(JuanCase):
         self.Rapida.create({'atajo': '/zzdatos', 'texto': 'Atendemos {horario}. Estamos en {direccion}.'})
         texto = self.texto('/zzdatos')
         horario = self.ajustes.horario()
-        self.assertIn('todos los días, de 8:00 a. m. a 5:00 p. m. (hora de Panamá)', texto)
-        self.assertEqual(len(horario.dias), 7)
+        self.assertIn('lunes, martes, miércoles, jueves, viernes, sábado, de 9:00 a. m. a 6:00 p. m. '
+                      '(hora de Panamá)', texto)
+        self.assertEqual(len(horario.dias), 6, 'Baby Caleb: lunes a sábado')
         self.env.company.sudo().street = 'Calle Zzprueba'
         self.assertIn('Calle Zzprueba', self.texto('/zzdatos'))
 
     def test_cambia_el_horario_y_la_respuesta_cambia_sola(self):
         self.Rapida.create({'atajo': '/zzhorario', 'texto': 'Atendemos {horario}.'})
-        self.ajustes.horario_fin = 18.0
-        self.assertIn('de 8:00 a. m. a 6:00 p. m.', self.texto('/zzhorario'))
+        self.ajustes.horario_fin = 19.0
+        self.assertIn('de 9:00 a. m. a 7:00 p. m.', self.texto('/zzhorario'))
 
     def test_lo_que_no_es_un_dato_conocido_se_deja_tal_cual(self):
         # Una llave que se coló antes de validar (p. ej. por SQL) no se rompe ni se inventa.

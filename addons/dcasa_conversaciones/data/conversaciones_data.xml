@@ -14,10 +14,16 @@
         <field name="active" eval="True"/>
     </record>
 
-    <!-- Los ajustes que edita la dueña: un solo registro con las decisiones de la dueña como valores por defecto. -->
+    <!-- Los ajustes que edita la dueña: un solo registro con las decisiones de la dueña como valores por defecto.
+         El horario es el de Baby Caleb (decisión del dueño, 2026-11-18; su web, content.json › nap › hours): «Lunes a
+         Sábado: 9:00 - 18:00», domingo cerrado. Es el único lugar del horario: lo usan Juan y el sitio (Contacto y el
+         pie, models/horario_sitio.py). -->
     <record id="ajustes_juan" model="dcasa.juan.ajustes">
         <field name="nombre_publico">el equipo de D'CASA</field>
         <field name="responsable_id" ref="base.user_admin"/>
+        <field name="horario_inicio">9.0</field>
+        <field name="horario_fin">18.0</field>
+        <field name="dia_domingo" eval="False"/>
     </record>
 
     <!-- Tope de acciones por minuto del usuario técnico (todos los clientes comparten este usuario). -->

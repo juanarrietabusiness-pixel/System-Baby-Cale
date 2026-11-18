@@ -109,7 +109,9 @@ class TestDeNocheNadieRecibe(NocheCase):
 
     def test_la_migracion_pone_el_horario_de_la_tienda_si_seguia_el_de_fabrica(self):
         """Lunes a sábado 9-18, domingo 9-17 (la dueña, 2026-11-13); solo si seguía el de fábrica."""
-        self.ajustes.write({'horario_inicio': 8.0, 'horario_fin': 17.0, 'horario_fin_domingo': 0.0})
+        # El de fábrica de antes (todos los días de 8 a 5): el de una base vieja de la tienda de origen.
+        self.ajustes.write({'horario_inicio': 8.0, 'horario_fin': 17.0, 'horario_fin_domingo': 0.0,
+                            'dia_domingo': True})
         self._migracion_horario().migrate(self.env.cr, '19.0.1.4.0')
         self.assertEqual((self.ajustes.horario_inicio, self.ajustes.horario_fin, self.ajustes.horario_fin_domingo),
                          (9.0, 18.0, 17.0))

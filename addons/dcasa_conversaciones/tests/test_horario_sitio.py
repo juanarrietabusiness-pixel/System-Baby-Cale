@@ -24,8 +24,17 @@ class TestHorarioDelSitio(JuanCase):
         super().setUp()
         self.website = self.env['website'].get_current_website()
 
+    def test_de_fabrica_el_horario_de_baby_caleb(self):
+        """Lunes a sábado de 9:00 a 18:00, domingo cerrado (decisión del dueño, 2026-11-18; su web, content.json)."""
+        self.assertEqual(self.website._dcasa_horario_tienda(), [
+            {'dias': 'Lunes a sábado', 'horas': '9:00 a. m. a 6:00 p. m.',
+             'corto': 'Lun. a sáb. 9:00 a. m. a 6:00 p. m.'},
+            {'dias': 'Domingo', 'horas': 'Cerrado', 'corto': 'Dom. cerrado'},
+        ])
+
     def test_el_sitio_lee_los_ajustes_de_juan(self):
-        self.ajustes.write({'horario_inicio': 9.0, 'horario_fin': 18.0, 'horario_fin_domingo': 17.0})
+        self.ajustes.write({'horario_inicio': 9.0, 'horario_fin': 18.0, 'horario_fin_domingo': 17.0,
+                            'dia_domingo': True})
         self.assertEqual(self.website._dcasa_horario_tienda(), [
             {'dias': 'Lunes a sábado', 'horas': '9:00 a. m. a 6:00 p. m.',
              'corto': 'Lun. a sáb. 9:00 a. m. a 6:00 p. m.'},
@@ -57,7 +66,9 @@ class TestHorarioDelSitio(JuanCase):
         self.assertNotIn(0, self.env.cr.precommit.data.get(CLAVE_BORDE, {}))
 
     def test_migracion_pone_el_horario_de_la_duena_si_seguia_de_fabrica(self):
-        self.ajustes.write({'horario_inicio': 8.0, 'horario_fin': 17.0, 'horario_fin_domingo': 0.0})
+        # El de fábrica de antes (todos los días de 8 a 5): el de una base vieja de la tienda de origen.
+        self.ajustes.write({'horario_inicio': 8.0, 'horario_fin': 17.0, 'horario_fin_domingo': 0.0,
+                            'dia_domingo': True})
         _migracion().migrate(self.env.cr, '19.0.1.4.0')
         self.assertEqual((self.ajustes.horario_inicio, self.ajustes.horario_fin, self.ajustes.horario_fin_domingo),
                          (9.0, 18.0, 17.0))

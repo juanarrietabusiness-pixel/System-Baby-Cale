@@ -16,10 +16,10 @@ class TestAjustesPorDefecto(JuanCase):
         a = self.ajustes
         self.assertEqual(a.nombre_publico, "el equipo de D'CASA")
         self.assertTrue(a.bot_activo_global)
-        # Horario laboral: 8:00 a 17:00, todos los días, hora de Panamá.
+        # Horario laboral: el de Baby Caleb (2026-11-18), lunes a sábado de 9:00 a 18:00, hora de Panamá.
         horario = a.horario()
-        self.assertEqual((horario.inicio, horario.fin), (time(8, 0), time(17, 0)))
-        self.assertEqual(horario.dias, frozenset(range(7)))
+        self.assertEqual((horario.inicio, horario.fin), (time(9, 0), time(18, 0)))
+        self.assertEqual(horario.dias, frozenset(range(1, 7)))
         self.assertEqual(horario.zona, 'America/Panama')
         # Seguimiento: 5 h, 5 días, máximo 2, solo en horario laboral.
         regla = a.regla_seguimiento()
