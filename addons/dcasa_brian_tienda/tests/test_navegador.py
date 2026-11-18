@@ -403,8 +403,10 @@ class TestChatEnElNavegador(NavegadorCase):
         en_inicio = [p for p, _orden in r['enInicio']]
         self.assertEqual(en_inicio[0], 'asomado_burbuja', 'arriba, la de la página')
         self.assertEqual([o for _p, o in r['enInicio']], list(range(len(en_inicio))))
-        for pose in ('saludando', 'con_laptop', 'cama', 'cocina', 'escritorio', 'fidelidad', 'marco_foto', 'cinta_metrica',
-                     'burbuja_chat', 'mapa'):
+        # La portada de Baby Caleb (2026-11-18): beneficios, el carril del catálogo, Socios, las preguntas frecuentes y la
+        # franja de contacto. Sin la galería «Inspírate» ni la guía de medidas (eran de muebles), y «Compra por espacio»
+        # solo con algo publicado en sus categorías (las de muebles: aquí, nada).
+        for pose in ('saludando', 'busto_estrella', 'bolsita', 'fidelidad', 'burbuja_chat', 'mapa'):
             self.assertIn(pose, en_inicio, 'secciones que el Inicio siempre tiene')
         # 10:00 a. m. de un viernes (abierto), 9:00 p. m. del viernes (cerrado), 5:30 p. m. del domingo (cerrado).
         self.assertEqual(r['noche'], [False, True, True])
