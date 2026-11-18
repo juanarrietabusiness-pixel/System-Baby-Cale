@@ -524,11 +524,11 @@ class TestMarcaEnElNavegador(HttpCase):
     def test_de_fabrica_el_logo_de_siempre(self):
         self.probar(f"""
             const logo = await esperar(() => document.querySelector('.o_dcasa_barra_logo'), 'el logo de la barra');
-            if (logo.getAttribute('src') !== '{LOGO_DE_FABRICA}' || logo.getAttribute('alt') !== "D'CASA Panamá") {{
+            if (logo.getAttribute('src') !== '{LOGO_DE_FABRICA}' || logo.getAttribute('alt') !== "Baby Caleb") {{
                 throw new Error('logo: ' + logo.outerHTML);
             }}
             const marca = document.querySelector('.o_dcasa_barra_marca');
-            if (marca.getAttribute('aria-label') !== "D'CASA Panamá, ir al inicio") {{
+            if (marca.getAttribute('aria-label') !== "Baby Caleb, ir al inicio") {{
                 throw new Error('nombre: ' + marca.getAttribute('aria-label'));
             }}
         """)

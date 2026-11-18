@@ -178,7 +178,7 @@ def _configurar_interfaz(env):
     - Descuentos en la cotización y precios por tamaño (variantes) a la vista.
     - Al entrar se abre Ventas, no el chat.
     - Menús que no se usan (chat, calendario, tableros…) solo en modo desarrollador.
-    - El almacén con el nombre de la tienda.
+    - El almacén con el nombre de la empresa (no el de ejemplo de Odoo).
     """
     if env['res.lang']._activate_lang(DCASA_LANG):
         env['ir.module.module'].search([('state', '=', 'installed')])._update_translations([DCASA_LANG])
@@ -210,8 +210,8 @@ def _configurar_interfaz(env):
 
     company = env.ref('base.main_company')
     almacen = env['stock.warehouse'].search([('company_id', '=', company.id)], limit=1)
-    if almacen and almacen.name in ('My Company', 'YourCompany', company.name):
-        almacen.name = "D'CASA La Chorrera"
+    if almacen and almacen.name in ('My Company', 'YourCompany'):
+        almacen.name = company.name
 
 
 def _formato_panama(env):

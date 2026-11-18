@@ -1,4 +1,4 @@
-"""El ícono de D'CASA en el panel y en el sitio: estrictamente el logo (pedido de la dueña, 2026-10-22).
+"""El ícono de la empresa en el panel y en el sitio: estrictamente el logo (pedido de la dueña, 2026-10-22).
 
 «El ícono que se crea cuando se guarda la página o panel administrativo en los celulares en pantallas de inicio debe ser
 estrictamente el logo». Se revisa cada camino que lo define: el manifiesto del panel (Android), el apple-touch-icon
@@ -18,12 +18,29 @@ APPLE = f'{CARPETA}/apple-touch-icon.png'
 FAVICON = f'{CARPETA}/logo-192.png'
 LOGO = 'dcasa_base/static/img/logo.png'
 RAIZ = os.path.join(os.path.dirname(__file__), '..', '..')
-PROPORCION_DEL_LOGO = 892 / 405
 
 
 def _leer(*ruta):
     with open(os.path.join(RAIZ, *ruta), 'rb') as f:
         return f.read()
+
+
+def _caja(rgba, opaca):
+    """Lo que es logo dentro de la imagen: sobre blanco, lo que no es blanco; si no, lo que no es transparente."""
+    if opaca:
+        fondo = Image.new('RGBA', rgba.size, (255, 255, 255, 255))
+        sobre_blanco = Image.alpha_composite(fondo, rgba)
+        return ImageChops.difference(sobre_blanco, fondo).convert('L').point(lambda v: 255 if v > 24 else 0).getbbox()
+    return rgba.getchannel('A').point(lambda v: 255 if v > 24 else 0).getbbox()
+
+
+def _proporcion_del_logo(opaca):
+    """Ancho sobre alto de lo que se ve del logo de la marca (el archivo de dcasa_base), sobre blanco o tal cual: el
+    ícono tiene que mostrar el logo entero, sin recortar ni deformar, sea cual sea su forma."""
+    with file_open(LOGO, 'rb') as archivo:
+        logo = Image.open(io.BytesIO(archivo.read())).convert('RGBA')
+    izquierda, arriba, derecha, abajo = _caja(logo, opaca)
+    return (derecha - izquierda) / (abajo - arriba)
 
 
 @tagged('post_install', '-at_install')
@@ -43,15 +60,14 @@ class TestIconoDeLaMarca(HttpCase):
         if opaca:
             self.assertEqual(rgba.getextrema()[3], (255, 255), f'{nombre}: sin transparencia (el iPhone, en negro)')
             self.assertEqual(rgba.getpixel((0, 0)), (255, 255, 255, 255), f'{nombre}: fondo blanco')
-            # Lo que no es blanco: el logo (su borde azul fino lo delimita).
-            fondo = Image.new('RGBA', rgba.size, (255, 255, 255, 255))
-            caja = ImageChops.difference(rgba, fondo).convert('L').point(lambda v: 255 if v > 24 else 0).getbbox()
         else:
             self.assertEqual(rgba.getpixel((0, 0))[3], 0, f'{nombre}: fondo transparente')
-            caja = rgba.getchannel('A').point(lambda v: 255 if v > 24 else 0).getbbox()
+        # Lo que no es fondo: el logo.
+        caja = _caja(rgba, opaca)
         izquierda, arriba, derecha, abajo = caja
         ancho, alto = derecha - izquierda, abajo - arriba
-        self.assertAlmostEqual(ancho / alto, PROPORCION_DEL_LOGO, delta=0.08, msg=f'{nombre}: el logo sin recortar')
+        self.assertAlmostEqual(ancho / alto, _proporcion_del_logo(opaca), delta=0.08,
+                               msg=f'{nombre}: el logo sin recortar')
         self.assertLessEqual(abs(izquierda - (lado - derecha)), 2, f'{nombre}: centrado a lo ancho')
         self.assertLessEqual(abs(arriba - (lado - abajo)), 2, f'{nombre}: centrado a lo alto')
         self.assertGreater(izquierda, 0, f'{nombre}: con margen, no pegado al borde')
@@ -60,7 +76,7 @@ class TestIconoDeLaMarca(HttpCase):
     def test_el_manifiesto_del_panel_trae_el_logo(self):
         """Android: «Agregar a la pantalla de inicio» desde el panel."""
         manifiesto = self.url_open('/web/manifest.webmanifest').json()
-        self.assertEqual(manifiesto['name'], "D'CASA Panamá")
+        self.assertEqual(manifiesto['name'], 'Baby Caleb')
         self.assertEqual(manifiesto['theme_color'], '#1340B1')
         self.assertEqual(manifiesto['background_color'], '#FFFFFF', 'la pantalla de arranque, blanca como el ícono')
         iconos = {(i['sizes'], i['purpose']): i['src'] for i in manifiesto['icons']}

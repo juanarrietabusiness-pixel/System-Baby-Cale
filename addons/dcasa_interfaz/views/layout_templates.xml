@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <!--
-        Favicon del panel: el logo de D'CASA (dcasa_base/static/img/icono, scripts/iconos_de_la_marca.py), no el círculo
+        Favicon del panel: el logo de la empresa (dcasa_base/static/img/icono, scripts/iconos_de_la_marca.py), no el círculo
         de Odoo. Cuando una página trae su propio ícono (las del sitio web ponen el suyo en x_icon) se respeta; el panel
         usa este. Si la empresa subió su logo o su ícono (Ajustes › Marca del panel), la página del panel pone el suyo
         en x_icon (abajo, webclient_icono_dcasa).
@@ -50,6 +50,6 @@
     <!-- Nombre de la app instalable (por defecto «Odoo»). -->
     <record id="web_app_name" model="ir.config_parameter">
         <field name="key">web.web_app_name</field>
-        <field name="value">D'CASA Panamá</field>
+        <field name="value">Baby Caleb</field>
     </record>
 </odoo>

@@ -143,7 +143,7 @@ class TestPanel(TransactionCase):
     def test_ficha_de_cliente_sin_datos_de_la_tienda_como_ejemplo(self):
         """UI-09: con el RUC o el WhatsApp de D'CASA de ejemplo, un cliente nuevo terminaba con ellos."""
         arch = self.env['res.partner'].with_user(self.vendedora).get_views([(False, 'form')])['views']['form']['arch']
-        for dato in ('155779346', '6026-1919', '60261919'):
+        for dato in ('155779346', '6026-1919', '60261919', '6757-5065', '67575065'):
             self.assertNotIn(dato, arch)
 
     def test_sin_enriquecimiento_iap_de_la_empresa(self):
