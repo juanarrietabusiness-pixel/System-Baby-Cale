@@ -9,3 +9,5 @@ from . import herramientas_generales, herramientas_ventas, herramientas_catalogo
     herramientas_decisiones
 # Brian al día (2026-11-06): las pantallas propias, Sofía y Meta (módulos que dcasa_brian no exige).
 from . import herramientas_pantallas, herramientas_asistentes, herramientas_meta
+# La marca del panel (2026-11-18, Ajustes › Marca del panel de dcasa_interfaz).
+from . import herramientas_marca

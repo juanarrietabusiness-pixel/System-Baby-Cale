@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Ajustes › Marca del panel (2026-11-18, models/marca.py): el logo, el ícono y los colores del panel de cada
+         empresa. Solo administradores, como los datos de la empresa. La página web no cambia con esto. -->
+    <record id="res_config_settings_view_form_dcasa_marca" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.dcasa.marca</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority" eval="90"/>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app data-string="Marca del panel" string="Marca del panel" name="dcasa_interfaz"
+                     logo="/dcasa_interfaz/static/src/img/iconos/ajustes.svg" groups="base.group_system">
+                    <block title="Logo e ícono" name="dcasa_marca_imagenes">
+                        <setting id="dcasa_panel_logo_setting" string="Logo del panel" company_dependent="1"
+                                 help="Se ve arriba en la barra de la izquierda y en el menú del celular. En PNG o JPG, mejor con fondo transparente. Si no subes uno, se ve el de fábrica. No cambia el logo de las facturas ni el de la página web.">
+                            <field name="dcasa_panel_logo" widget="image" class="o_dcasa_marca_logo"
+                                   options="{'size': [0, 64]}"/>
+                        </setting>
+                        <setting id="dcasa_panel_icono_setting" string="Ícono del panel" company_dependent="1"
+                                 help="El de la pestaña del navegador y el de la app cuando la guardan en la pantalla de inicio del celular. Mejor cuadrado, en PNG o JPG. Si no lo subes, sale del logo del panel.">
+                            <field name="dcasa_panel_icono" widget="image" class="o_dcasa_marca_icono"
+                                   options="{'size': [64, 64]}"/>
+                        </setting>
+                    </block>
+                    <block title="Colores" name="dcasa_marca_colores">
+                        <setting id="dcasa_panel_color_principal_setting" string="Color principal" company_dependent="1"
+                                 help="Botones, enlaces, lo que está elegido y lo activo de la barra de la izquierda. Lleva letra blanca encima, así que tiene que ser un color medio u oscuro. Toca el cuadrito para elegirlo o escribe el código (por ejemplo #1340B1).">
+                            <div class="d-flex align-items-center gap-2 o_dcasa_marca_color">
+                                <field name="dcasa_panel_color_principal" widget="color" nolabel="1"/>
+                                <field name="dcasa_panel_color_principal" nolabel="1" placeholder="#1340B1"/>
+                            </div>
+                        </setting>
+                        <setting id="dcasa_panel_color_acento_setting" string="Color de acento" company_dependent="1"
+                                 help="Los detalles sobre el color oscuro de tu marca: insignias, números destacados, puntos. Nunca va sobre blanco y lleva letra oscura encima, así que tiene que ser un color claro y vivo (como el amarillo de fábrica, #FED00F).">
+                            <div class="d-flex align-items-center gap-2 o_dcasa_marca_color">
+                                <field name="dcasa_panel_color_acento" widget="color" nolabel="1"/>
+                                <field name="dcasa_panel_color_acento" nolabel="1" placeholder="#FED00F"/>
+                            </div>
+                        </setting>
+                        <setting id="dcasa_panel_lectura_setting" string="Cómo se va a leer" class="col-lg-12"
+                                 help="Se calcula mientras eliges. Si un color no se lee, al guardar te dice cuál sí sirve.">
+                            <field name="dcasa_panel_lectura" readonly="1" class="o_dcasa_marca_lectura"/>
+                        </setting>
+                        <setting id="dcasa_panel_fabrica_setting" string="Volver a la marca de fábrica"
+                                 help="Quita tu logo y tu ícono y vuelve a los colores de fábrica. Se ve al instante, al recargar.">
+                            <button name="action_dcasa_panel_fabrica" type="object" string="Volver a la marca de fábrica"
+                                    class="btn-link p-0" icon="fa-undo"
+                                    confirm="Se quitan el logo y el ícono que subiste y vuelven los colores de fábrica. ¿Seguir?"/>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_dcasa_marca_panel" model="ir.actions.act_window">
+        <field name="name">Marca del panel</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="path">marca-del-panel</field>
+        <field name="context">{'module': 'dcasa_interfaz', 'bin_size': False}</field>
+    </record>
+
+    <menuitem id="menu_dcasa_marca_panel" name="Marca del panel" parent="base.menu_administration"
+              action="action_dcasa_marca_panel" sequence="1" groups="base.group_system"/>
+</odoo>

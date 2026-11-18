@@ -50,6 +50,7 @@ Más abajo: [roles y grupos](#roles-y-grupos-mapa-completo) · [interruptores](#
 | **Envíos:** editar o archivar lugares (los km y la provincia, solo aquí), **«Marcar revisado»** un lugar, cambiar y **aprobar la tarifa**, cargar el archivo de envíos, y **Envíos › Promoción de envío** (2026-11-12) | No | No | No | Sí | Sí |
 | **Envíos › Tarifa › Enlace para choferes** (2026-11-09): ver, encender, copiar y cambiar el enlace secreto de la calculadora de los choferes (que no tienen usuario) | No | No | No | Sí | Sí |
 | **Ventas › Hoy › Opiniones por aprobar** (lote 2 de la web, 2026-11-13): leer las opiniones que dejaron los clientes y **«Publicar»** o **«No publicar»** cada una. Nadie las crea ni cambia lo que dijo el cliente (estrellas, texto); borrar una, solo el administrador | No | No | No | Sí | Sí |
+| **Ajustes › Marca del panel** (2026-11-18): subir el logo y el ícono del panel y elegir sus colores (los ve todo el equipo; la página web no cambia). También con Brian. Como los datos de la empresa (*Ajustes › Empresas*): el servidor exige administrador antes de escribir ([MARCA_DEL_PANEL.md](MARCA_DEL_PANEL.md)) | No | No | No | No (si no es administradora) | Sí |
 | **Sitio web › Brian de la tienda** (2026-11-13): encender o apagar el chat de la tienda, el presupuesto del mes, los topes de mensajes y ver su gasto y sus calificaciones (número y fecha; nadie las crea ni cambia por la interfaz) | No | No | No | Sí | Sí |
 
 **Opiniones de los productos (cliente, lote 2 de la web).** El cliente opina desde **Mi cuenta › Tus opiniones**

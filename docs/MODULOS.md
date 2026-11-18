@@ -248,9 +248,14 @@ además como módulo de todo el servidor (`server_wide_modules = base,web,dcasa_
   (salen como «En desarrollo»), el recorrido guiado y OdooBot. Le quita a todos el grupo de diseñador del sitio.
 - **Depende de (Odoo):** `website`, `sale_management`, `stock`, `stock_delivery`, `account`, `web_tour`, `mail_bot`.
 - **Modelos:** `dcasa.tablero` (cifras del Inicio, comparar ventas), `dcasa.sitio` (vista previa móvil y el candado del
-  constructor).
-- **Pantallas y menús:** *Inicio*, *Estadísticas*, *Sitio web › Configuración › Vista previa móvil*; reacomoda quién ve
-  *Pagos a proveedores*, *Reportes contables*, *Productos* y *Listas de precios*.
+  constructor). Hereda `res.company` (la marca del panel: `dcasa_panel_logo`, `dcasa_panel_icono`,
+  `dcasa_panel_color_principal`, `dcasa_panel_color_acento`) e `ir.ui.menu` (los íconos de las apps con esos colores).
+- **Rutas web:** `/dcasa_interfaz/marca/hoja/…` (la hoja del panel pintada con los colores de la empresa; con sesión) y
+  `/dcasa_interfaz/marca/icono/…` (favicon e íconos del celular hechos de su imagen; públicos).
+- **Pantallas y menús:** *Inicio*, *Estadísticas*, *Sitio web › Configuración › Vista previa móvil*, *Ajustes › Marca
+  del panel* (administradores: logo, ícono y colores del panel por empresa, en caliente; la web no cambia,
+  [MARCA_DEL_PANEL.md](MARCA_DEL_PANEL.md)); reacomoda quién ve *Pagos a proveedores*, *Reportes contables*,
+  *Productos* y *Listas de precios*.
 - **Apagado de fábrica:** no.
 
 ## `dcasa_contabilidad` — Contabilidad

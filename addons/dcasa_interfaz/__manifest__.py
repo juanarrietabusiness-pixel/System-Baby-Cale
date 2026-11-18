@@ -29,8 +29,11 @@ La interfaz de trabajo de D'CASA, hecha a medida:
   D'CASA no admiten copias por sitio ni ediciones desde el panel, y «Sitio web»
   queda con lo que sí se usa más una «Vista previa móvil» (390×844, tableta,
   escritorio) del sitio público.
+* Ajustes › Marca del panel (administradores): cada empresa sube su logo y su ícono y elige sus colores; el panel
+  (barra lateral, menú del celular, favicon, app instalable y colores) los toma en caliente, sin recompilar los estilos.
+  La página web pública no cambia. Ver docs/MARCA_DEL_PANEL.md.
 """,
-    'version': '19.0.1.2.0',
+    'version': '19.0.1.3.0',
     'category': 'Hidden',
     'author': "D'CASA Panamá",
     'website': 'https://dcasapty.com',
@@ -52,6 +55,7 @@ La interfaz de trabajo de D'CASA, hecha a medida:
         'views/reponer_views.xml',
         'views/login_templates.xml',
         'views/layout_templates.xml',
+        'views/marca_views.xml',
         'data/iconos_data.xml',
         'data/avisos_data.xml',
     ],

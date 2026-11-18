@@ -578,6 +578,20 @@ LISTA_BLANCA = {
     ('dcasa_interfaz', 'res.users', 'create'):
         OVERRIDE + ' Solo deja «Notificación: En Odoo» al usuario interno recién creado, con los mismos permisos de '
         'quien lo crea; sin sudo().',
+    # La marca del panel (Ajustes › Marca del panel, 2026-11-18, models/marca.py).
+    ('dcasa_interfaz', 'res.company', 'create'):
+        OVERRIDE + ' Solo deja los colores del panel como #RRGGBB (vacío = el de fábrica); sin sudo().',
+    ('dcasa_interfaz', 'res.company', 'write'):
+        OVERRIDE + ' Solo deja los colores del panel como #RRGGBB y cambia la versión de la marca si la marca cambia; '
+        'quién escribe la empresa lo siguen decidiendo el ACL y las reglas de Odoo (administradores); sin sudo().',
+    ('dcasa_interfaz', 'res.config.settings', 'action_dcasa_panel_fabrica'):
+        'Botón de Ajustes › Marca del panel: exige base.group_system en el servidor ANTES de escribir y solo vuelve a '
+        'fábrica el logo, el ícono y los colores de la empresa de esos ajustes; sin sudo().',
+    ('dcasa_interfaz', 'ir.http', 'session_info'):
+        OVERRIDE + ' Solo agrega, a quien es usuario interno, el logo y el nombre de SU empresa actual para la barra '
+        'lateral (lo que ya ve en el panel).',
+    ('dcasa_interfaz', 'ir.ui.menu', 'load_web_menus'):
+        OVERRIDE + ' Solo cambia los colores de los íconos SVG de las apps que quien llama ya ve; no agrega menús.',
     # --- dcasa_invoice -------------------------------------------------------------------
     ('dcasa_invoice', 'ir.qweb.field.monetary', 'value_to_html'): OVERRIDE + ' Solo formatea un valor.',
     ('dcasa_invoice', 'account.move.line', 'get_section_subtotal'):

@@ -598,6 +598,24 @@ bitácora de bodega con origen «Brian». La tarjeta de confirmación del bloque
 `crear_cliente` busca antes de crear (celular, correo, RUC y nombre parecido); con un nombre parecido no crea y
 pregunta; si la persona confirma que es otra, `crear_cliente_distinto`.
 
+## La marca del panel (2026-11-18, `dcasa_interfaz` › Ajustes › Marca del panel)
+
+Cuatro herramientas en `dcasa_brian/models/herramientas_marca.py`, solo para **administradores** (los mismos que ven la
+pantalla). Van por el mismo camino que Ajustes (`res.company._dcasa_panel_poner`: exige administrador antes de escribir
+y valida igual). Detalle de la función: [MARCA_DEL_PANEL.md](MARCA_DEL_PANEL.md).
+
+| Herramienta | Qué hace | Nivel y por qué |
+|---|---|---|
+| `ver_marca_del_panel()` | Logo e ícono (propios o de fábrica), los dos colores, el oscuro de la marca, cómo se leen y el botón a la pantalla | lectura |
+| `cambiar_colores_del_panel(principal?, acento?)` | Cambia uno o los dos colores. Si no se leen (el principal pide 4.5:1 con el blanco; el acento, 4.5:1 con el oscuro de la marca), no cambia nada y dice qué color sí sirve | **construcción**: se deshace con otro cambio o con la vuelta a fábrica, no toca dinero, permisos ni datos de nadie, y lo que no se lee ni se guarda. Queda en el registro de acciones |
+| `poner_imagen_del_panel(adjunto, uso)` | Pone como logo o ícono una imagen PNG, JPG o WebP que la persona le mandó a Brian (chat o Telegram), por su nombre o número | **construcción**; como la imagen viene en el mensaje, la regla de los adjuntos le hace pedir **Permitir** de todos modos (no lleva `segura_con_adjuntos`) |
+| `volver_a_la_marca_de_fabrica(que)` | `colores`, `logo`, `icono` o `todo` | **sensible**: quita lo que se subió y eso no se recupera sin el archivo; lo aprueba una persona y por MCP nunca corre solo |
+
+**Por MCP no viaja la imagen.** El canal solo lleva texto JSON (cada dato hasta 10 000 letras y 30 000 entre todos; un
+logo en base64 no cabe) y no tiene adjuntos. Por MCP sí se ven y se cambian los colores; para el logo o el ícono sirve
+una imagen que ya se le mandó a Brian en el chat del panel o en Telegram (se nombra en `adjunto`), o se sube en
+*Ajustes › Marca del panel*. `abrir_pantalla(pantalla=marca_del_panel)` abre esa pantalla.
+
 ## Para cada función nueva
 
 Toda función nueva de la plataforma debe poder usarla Brian (ver la plantilla de PR):

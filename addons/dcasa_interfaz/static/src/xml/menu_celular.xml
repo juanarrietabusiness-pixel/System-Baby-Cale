@@ -6,7 +6,7 @@
     <t t-inherit="web.NavBar.AppsMenu.Sidebar" t-inherit-mode="extension">
         <xpath expr="//div[hasclass('o_sidebar_topbar')]/small" position="replace">
             <span class="o_dcasa_cajon_titulo">
-                <img src="/dcasa_base/static/img/logo.png" alt="D'CASA Panamá"/>
+                <img t-att-src="dcasaLogo" t-att-alt="dcasaNombre"/>
             </span>
         </xpath>
         <xpath expr="//nav[hasclass('o_burger_menu_content')]" position="replace">

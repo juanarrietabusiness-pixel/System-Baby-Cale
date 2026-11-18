@@ -3082,6 +3082,30 @@
    ]
   },
   {
+   "id": "marca-del-panel",
+   "categoria": "administrar",
+   "grupo": "Empresa",
+   "titulo": "Poner el logo y los colores de tu empresa en el sistema",
+   "logras": "Subes tu logo (el de arriba de la barra de la izquierda y del menú del celular), el ícono de la pestaña y de la app del celular, y eliges tu color principal y tu color de acento. Todo el equipo lo ve al recargar la página.",
+   "destino": {
+    "menu": "dcasa_interfaz.menu_dcasa_marca_panel"
+   },
+   "nota": "Si un color no se lee bien (por ejemplo, uno muy claro con letra blanca encima), el sistema te lo dice y te sugiere uno parecido que sí se lee. Si no subes el ícono, sale del logo. La página web no cambia con esto, ni el logo de las facturas. Con «Volver a la marca de fábrica» todo queda como al principio.",
+   "palabras": [
+    "logo del panel",
+    "logo del sistema",
+    "colores",
+    "color del sistema",
+    "marca",
+    "favicon",
+    "icono",
+    "personalizar",
+    "branding",
+    "cambiar colores"
+   ],
+   "brian": "¿Cómo está la marca del panel?"
+  },
+  {
    "id": "brian-ajustes",
    "categoria": "administrar",
    "grupo": "Brian",
