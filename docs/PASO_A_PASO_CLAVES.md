@@ -62,13 +62,16 @@ Hazlo **dos veces**, una por caja:
 Si el primer despliegue dice que falta un permiso, el mensaje dice cuál: se agrega a esta misma llave (*Edit*) y se
 relanza. El día del dominio se le suma *Zone · Workers Routes · Edit* para `babycaleb.com` (`docs/DOMINIO.md`).
 
-## Paso 5 — La IA de Brian (`BRIAN_API_KEY`)
+## Paso 5 — La IA de Brian (`BRIAN_API_KEY`): Meta Muse Spark, igual que D'CASA
 
+Toda la IA de Baby Caleb corre con **Meta Muse Spark nivel `-contributor`**, el mismo de D'CASA (decisión del dueño,
+2026-11-18). El nombre del secreto sigue siendo `BRIAN_API_KEY` aunque la llave sea de Meta: así lo lee el sistema.
 El despliegue no arranca sin ella, aunque en staging no uses a Brian.
 
-1. Entra a console.anthropic.com › **API Keys** › **Create Key**.
-2. Nombre: `sistemabk staging` (y otra `sistemabk producción` cuando toque). Si la consola te deja ponerle un tope de
-   gasto al espacio de trabajo, ponle uno bajo a la de staging.
+1. Entra a la misma cuenta de desarrollador de Meta donde sacaste la llave de D'CASA (la de la API de modelos de Meta,
+   `dev.meta.ai`).
+2. Crea una llave **nueva** con nombre `sistemabk staging` (y otra `sistemabk producción` cuando toque). Nueva y no la
+   de D'CASA, para poder apagar una sin tocar la otra.
 3. Cópiala ya al gestor de contraseñas como `BRIAN_API_KEY`.
 
 ## Paso 6 — Las cinco claves que inventas tú
@@ -92,14 +95,27 @@ En tu gestor de contraseñas, usa **Generar contraseña** con estas condiciones:
    bajos tal cual):
    `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `PGBACKREST_CIPHER_PASS`,
    `RESPALDO_TOKEN`, `ODOO_ADMIN_PASSWORD`, `ODOO_MASTER_PASSWORD`, `DCASA_PIN_PEPPER`, `BRIAN_API_KEY`.
-3. Más abajo, **Environment variables** › **Add environment variable**: nombre `URL_SITIO`, valor
-   `https://sistemabk-staging.juanarrietabusiness.workers.dev` (sin `/` al final). **No** crees `CANONICAL_HOST`.
+3. Más abajo, **Environment variables** › **Add environment variable**, estas cuatro (nombre → valor, exactos):
+   - `URL_SITIO` → `https://sistemabk-staging.juanarrietabusiness.workers.dev` (sin `/` al final)
+   - `BRIAN_PROVEEDOR` → `openai` (es la vía «compatible con OpenAI» por la que entra Meta; no es ChatGPT)
+   - `BRIAN_BASE_URL` → `https://api.meta.ai/v1`
+   - `BRIAN_MODELO` → `muse-spark-1.3-contributor`
+
+   **No** crees `CANONICAL_HOST`.
 4. Para producción (cuando toque): **New environment** › `production` › en **Deployment branches and tags** elige
    **Selected branches and tags** › **Add deployment branch or tag rule** › `main`. Las mismas diez claves con sus valores
-   de producción, y `URL_SITIO` = `https://sistemabk.juanarrietabusiness.workers.dev` hasta el día del dominio.
+   de producción, `URL_SITIO` = `https://sistemabk.juanarrietabusiness.workers.dev` hasta el día del dominio, y las mismas
+   tres variables de Brian (`openai`, `https://api.meta.ai/v1`, `muse-spark-1.3-contributor`).
 5. Avísale a Claude «ya están». Claude revisa que estén los nombres (sin ver los valores) y lanza el despliegue a staging.
 
 ## Lo que viene después (no hace falta ahora)
 
-- Claves del bot de clientes (`sistemabk-chatbot`): su IA, WhatsApp, Telegram. Van en el panel de Cloudflare, no en GitHub.
+- **La IA del bot de clientes (Juan), igual que D'CASA.** En el panel de Cloudflare › Workers & Pages ›
+  `sistemabk-chatbot` (y `-staging`) › Settings › Variables and Secrets: secreto `META_AI_API_KEY` con una llave de Meta
+  nueva (como en el paso 5). Y en el panel de Odoo, *Conversaciones › Configuración › Ajustes de Juan*: proveedor
+  **`meta`**; modelo rápido y modelo inteligente **`muse-spark-1.3-contributor`**; y en precios
+  `{"muse-spark-1.3-contributor": {"entrada": 0.20, "entrada_cache": 0.004, "salida": 0.40}}` (el doble del precio real a
+  propósito, como D'CASA: `docs/JUAN.md`). Sin respaldo de Anthropic: toda la IA es Meta. Esto vive en la base de datos,
+  no en el código, por eso no viene copiado.
+- Las demás claves del bot de clientes (WhatsApp, Telegram) también van en el panel de Cloudflare, no en GitHub.
 - Opcionales: Telegram de Brian, correo (Resend), la puerta del equipo (Cloudflare Access), Turnstile.
