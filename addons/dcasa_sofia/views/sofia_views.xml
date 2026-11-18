@@ -106,7 +106,7 @@
         <field name="view_mode">list</field>
         <field name="path">sofia-mensajes</field>
         <field name="help" type="html">
-            <p>Los mensajes que Sofía propone. Puedes usar {nombre}, {vendedora}, {interes}, {cotizacion}, {vence},
+            <p>Los mensajes que Sofía propone. Puedes usar {nombre}, {vendedora}, {empresa}, {interes}, {cotizacion}, {vence},
                {para_cuando} y {que_falta}. Sin precios ni cifras.</p>
         </field>
     </record>

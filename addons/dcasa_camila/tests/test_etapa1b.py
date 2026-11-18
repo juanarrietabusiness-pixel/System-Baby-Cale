@@ -572,7 +572,7 @@ DESACTIVAR = """
 """
 
 SI_Y_CORREO = """
-    if (!cuerpo.textContent.includes('quiere recibir novedades de D')) { throw new Error('Falta la pregunta'); }
+    if (!cuerpo.textContent.includes('quiere recibir novedades de')) { throw new Error('Falta la pregunta'); }
     await esperar(() => document.querySelector('.o_camila_pregunta_si'), 'el botón Sí');
     if (!document.querySelector('.o_camila_pregunta_no')) { throw new Error('Falta el botón No'); }
     document.querySelector('.o_camila_pregunta_si').click();

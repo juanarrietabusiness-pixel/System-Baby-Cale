@@ -78,13 +78,13 @@ class TestArmar(CamilaComun):
     def test_si_la_ia_falla_o_no_pasa_la_revision_queda_el_texto_fijo(self):
         self.guion_ia(asunto='¡¡REMATE!! 50% menos', entrada='Visítenos hoy')
         datos = self.armar()
-        self.assertEqual(datos['campana']['asunto'], R.ASUNTO_FIJO)
+        self.assertEqual(datos['campana']['asunto'], R.asunto_fijo(self.env.company.name))
         self.assertEqual(datos['campana']['entrada'], R.ENTRADA_FIJA)
         self.assertIn('revisión de marca', datos['campana']['nota'])
         self.Camila.with_user(self.marketing).descartar(datos['campana']['id'])
         with patch.object(P.ProveedorPrueba, 'chatear', side_effect=P.ProveedorError('sin conexión')):
             datos = self.armar()
-        self.assertEqual(datos['campana']['asunto'], R.ASUNTO_FIJO)
+        self.assertEqual(datos['campana']['asunto'], R.asunto_fijo(self.env.company.name))
         self.assertIn('La IA no respondió', datos['campana']['nota'])
         self.assertEqual(datos['campana']['fuente'], 'Texto fijo')
 
@@ -111,7 +111,7 @@ class TestArmar(CamilaComun):
         # Etapa 1b (se activan solas al agregar el correo): el pie dice por qué le llega, igual para todos (Resend
         # manda el mismo contenido a todo el segmento).
         self.assertEqual(baja.text_content().strip(), 'Date de baja aquí')
-        self.assertIn("Te llega porque nos diste tu correo en D'CASA. ¿No quieres más?",
+        self.assertIn(f'Te llega porque nos diste tu correo en {self.env.company.name}. ¿No quieres más?',
                       ' '.join(baja.getparent().text_content().split()))
         (baja_previa,) = lxml_html.fromstring(campana.html).xpath("//a[contains(@class, 'o_camila_baja')]")
         self.assertEqual(baja_previa.get('href'), '#', 'La vista previa no lleva el enlace de Resend')

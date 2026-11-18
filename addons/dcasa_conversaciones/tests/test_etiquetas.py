@@ -158,9 +158,16 @@ class TestRespuestasRapidas(JuanCase):
     def texto(self, atajo, conv=None, usuario=None):
         return self.Rapida.with_user(usuario or self.vendedora).texto_para((conv or self.conv).id, atajo)['texto']
 
-    def test_la_semilla_trae_ubicacion_horario_y_socios(self):
+    def test_la_semilla_trae_ubicacion_y_horario_y_no_ofrece_socios(self):
+        """«/socios» se quitó de la semilla (2026-11-18): ofrecía un programa de puntos que todavía no tiene cifras."""
         atajos = set(self.Rapida.search([]).mapped('atajo'))
-        self.assertTrue({'/ubicacion', '/horario', '/socios'} <= atajos)
+        self.assertTrue({'/ubicacion', '/horario'} <= atajos)
+        self.assertNotIn('/socios', atajos)
+        self.assertFalse(self.env.ref('dcasa_conversaciones.respuesta_socios', raise_if_not_found=False))
+        semilla = self.Rapida.search([])
+        textos = ' '.join(filter(None, semilla.mapped('texto') + semilla.mapped('descripcion')))
+        for prohibida in ('Socios', "D'CASA", 'puntos', 'cumplea'):
+            self.assertNotIn(prohibida, textos)
 
     def test_el_atajo_se_limpia_y_se_valida(self):
         self.assertEqual(self.Rapida.create({'atajo': ' Zzhola ', 'texto': 'Hola'}).atajo, '/zzhola')
@@ -242,7 +249,7 @@ class TestRespuestasRapidas(JuanCase):
         self.assertEqual(set(lista['/horario']), {'id', 'atajo', 'texto', 'descripcion'})
 
     def test_la_semilla_no_inventa_cifras_ni_politicas(self):
-        for atajo in ('/ubicacion', '/horario', '/socios'):
+        for atajo in ('/ubicacion', '/horario'):
             texto = self.Rapida.search([('atajo', '=', atajo)]).texto
             with self.subTest(atajo=atajo):
                 self.assertNotRegex(texto, r'\d', 'Ninguna cifra escrita a mano')

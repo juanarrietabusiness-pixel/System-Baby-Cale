@@ -29,11 +29,15 @@ class NovedadesDcasa(http.Controller):
         else:
             estado = Camila._enlace_leer(t)[0]
         website = request.website
+        # El nombre de la empresa sale de Ajustes (res.company), nunca del código.
+        empresa = (website.company_id.name or '').strip()
         respuesta = request.render('dcasa_camila.pagina_novedades', {
             'estado': estado,
             'titulo': TITULOS[estado],
             'token': t if estado == 'confirmar' else '',
-            'whatsapp': website._dcasa_whatsapp_url("Hola D'CASA, quiero saber de lo nuevo."),
+            'empresa': empresa,
+            'whatsapp': website._dcasa_whatsapp_url(f'Hola {empresa}, quiero saber de lo nuevo.' if empresa
+                                                    else 'Hola, quiero saber de lo nuevo.'),
         })
         respuesta.headers['Cache-Control'] = 'no-store'
         respuesta.headers['X-Robots-Tag'] = 'noindex, nofollow'

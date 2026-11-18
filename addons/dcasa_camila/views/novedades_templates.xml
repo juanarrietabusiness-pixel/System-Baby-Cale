@@ -8,7 +8,7 @@
             <div id="wrap" class="o_camila_novedades">
                 <section class="o_camila_novedades_banda" t-att-data-estado="estado">
                     <div class="o_camila_novedades_caja">
-                        <p class="o_camila_novedades_kicker">D'CASA Panamá · Novedades por correo</p>
+                        <p class="o_camila_novedades_kicker"><t t-out="empresa"/> · Novedades por correo</p>
                         <h1 class="o_camila_novedades_titulo" t-out="titulo"/>
                         <t t-if="estado == 'confirmar'">
                             <p class="o_camila_novedades_texto">Te escribimos cuando llegue algo nuevo a la tienda o
@@ -22,7 +22,7 @@
                         </t>
                         <t t-elif="estado == 'gracias'">
                             <p class="o_camila_novedades_texto">Ya estás en la lista. Te avisaremos de lo nuevo y de las
-                                promociones de D'CASA. Si un día no quieres más, cada correo trae el enlace para darte de
+                                promociones de <t t-out="empresa"/>. Si un día no quieres más, cada correo trae el enlace para darte de
                                 baja.</p>
                         </t>
                         <t t-elif="estado == 'ya'">

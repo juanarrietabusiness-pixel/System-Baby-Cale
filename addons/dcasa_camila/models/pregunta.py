@@ -46,6 +46,8 @@ class CamilaPregunta(models.TransientModel):
 
     partner_id = fields.Many2one('res.partner', 'Cliente', required=True, readonly=True, ondelete='cascade')
     nombre = fields.Char(related='partner_id.name', string='Nombre')
+    # El nombre de la empresa, de Ajustes (res.company): el cuadro no dice el de ninguna otra.
+    empresa = fields.Char('Empresa', compute='_compute_empresa')
     orden_id = fields.Many2one('sale.order', 'Venta', readonly=True, ondelete='cascade')
     move_ids = fields.Many2many('account.move', string='Facturas pagadas', readonly=True)
     referencia = fields.Char('Dónde', readonly=True)
@@ -57,6 +59,10 @@ class CamilaPregunta(models.TransientModel):
     no_fecha = fields.Datetime(related='partner_id.dcasa_promos_no_fecha', string='Dijo que no el')
     correo = fields.Char('Su correo')
     siguiente = fields.Text(readonly=True, help='La acción que seguía (p. ej. «Imprimir documentos» tras pagar).')
+
+    def _compute_empresa(self):
+        for pregunta in self:
+            pregunta.empresa = pregunta.env.company.name or ''
 
     # Lo único que escribe la persona: la casilla y el correo (lo demás lo arma el servidor).
     CAMPOS_DE_LA_PERSONA = frozenset({'quiere', 'correo'})
