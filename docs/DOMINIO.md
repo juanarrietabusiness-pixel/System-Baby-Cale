@@ -83,8 +83,9 @@ Lo que eso decide para el día del cambio:
    `route`, 301 en GET y 308 en lo demás). La llave del robot necesita *Zone · Workers Routes · Edit* para `babycaleb.com`.
 2. **Encender «Usar siempre HTTPS»** en la zona (SSL/TLS › Certificados de perímetro). El borde manda HSTS, pero el
    navegador solo lo aprende después de una primera visita cifrada, y no redirige `http://` en la raíz. A `panel.` y `ruta.`
-   no les cambia nada (ya redirigen) y a la web actual le arregla su `http://`: se puede encender **desde ya**, con el «sí»
-   del dueño.
+   no les cambia nada (ya redirigen) y a la web actual le arregla su `http://`. **Hecho el 2026-11-18** con el «sí» del
+   dueño (Claude en Chrome, solo ese interruptor; HSTS, TLS mínimo y modo de cifrado sin tocar). Comprobado con curl:
+   `http://` de `babycaleb.com`, `www.`, `panel.` y `ruta.` → 301 a `https://`. Para deshacerlo: el mismo interruptor.
 3. Para el correo a clientes de este sistema (Resend, `docs/CORREO.md`), más adelante: con DMARC en `quarantine` y sin
    SPF ni DKIM, un correo «de» `@babycaleb.com` iría a spam. Resend da los registros SPF y DKIM que hay que agregar.
 
@@ -125,8 +126,8 @@ Pasos, en este orden y en el mismo rato:
       paso 1 de este repositorio (si no, `edge/test/dominio-babycaleb.test.ts` falla).
 3. **Claude en Chrome**, en Workers & Pages › babycaleb-web › pestaña **Dominios**: si todavía aparece, borrar la ruta
    `www.babycaleb.com/*` (regla 3: si se queda, gana a la de este sistema; y dos Workers no comparten un mismo patrón).
-   El dominio propio `babycaleb.com` se lo lleva el despliegue del paso 4 (regla 1). Si «Usar siempre HTTPS» sigue
-   apagado, encenderlo. No tocar `panel.`, `ruta.`, el CNAME de `www` ni el TXT de DMARC.
+   El dominio propio `babycaleb.com` se lo lleva el despliegue del paso 4 (regla 1). Comprobar que «Usar siempre HTTPS»
+   sigue encendido. No tocar `panel.`, `ruta.`, el CNAME de `www` ni el TXT de DMARC.
 4. **GitHub › Settings › Environments › production**: `URL_SITIO` = `https://babycaleb.com`. Luego *Actions › Desplegar*,
    `entorno = production`, con el `imagen_digest` y el `app_version` del CI del paso 1. Ese día el respaldo previo llama a
    `URL_SITIO`, que todavía apunta a la web vieja: con el «sí» del dueño se desmarca `respaldo_previo`, o se respalda antes
