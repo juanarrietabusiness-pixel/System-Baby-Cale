@@ -242,6 +242,11 @@ class CamilaComun(TransactionCase):
             parche.start()
             self.addCleanup(parche.stop)
         ICP = self.env['ir.config_parameter'].sudo()
+        # El remitente de los correos de siempre: de fábrica queda vacío (PENDIENTE hasta tener un dominio verificado
+        # en Resend), así que las pruebas fijan uno de ejemplo y siguen comprobando lo mismo.
+        ICP.set_param('dcasa_correo.remitente', 'ventas@tienda.example.com')
+        ICP.set_param('dcasa_correo.nombre', 'Tienda de Prueba')
+        ICP.set_param('dcasa_correo.responder_a', 'info@tienda.example.com')
         ICP.set_param('dcasa_brian.proveedor', 'prueba')
         ICP.set_param('dcasa_brian.modelo', 'prueba')
         P.fijar_guion([])

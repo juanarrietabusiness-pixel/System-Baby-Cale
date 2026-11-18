@@ -67,11 +67,11 @@ class TestRemitenteDeLasCampanas(ComunRemitente):
     def test_sin_remitente_propio_todo_sigue_igual(self):
         campana = self.preparar()
         remitente = self.panel()['remitente']
-        self.assertEqual((remitente['correo'], remitente['propio']), ('ventas@dcasapty.com', ''))
+        self.assertEqual((remitente['correo'], remitente['propio']), ('ventas@tienda.example.com', ''))
         self.assertTrue(self.enviar(campana)['ok'])
         (broadcast,) = self.resend.broadcasts.values()
-        self.assertEqual(broadcast['from'], '"D\'CASA Panamá" <ventas@dcasapty.com>')
-        self.assertEqual(broadcast['reply_to'], 'info@dcasapty.com')
+        self.assertEqual(broadcast['from'], '"Tienda de Prueba" <ventas@tienda.example.com>')
+        self.assertEqual(broadcast['reply_to'], 'info@tienda.example.com')
 
     def test_el_broadcast_sale_del_remitente_de_las_campanas(self):
         campana = self.preparar()
@@ -79,10 +79,10 @@ class TestRemitenteDeLasCampanas(ComunRemitente):
         resultado = self.enviar(campana)
         self.assertTrue(resultado['ok'], resultado)
         (broadcast,) = self.resend.broadcasts.values()
-        self.assertEqual(broadcast['from'], f'"D\'CASA Panamá" <{REMITENTE}>',
+        self.assertEqual(broadcast['from'], f'"Tienda de Prueba" <{REMITENTE}>',
                          'El nombre es el de siempre; el correo, el de las campañas')
-        self.assertEqual(broadcast['reply_to'], 'info@dcasapty.com', 'Las respuestas llegan a donde siempre')
-        self.assertEqual(self.env['dcasa.correo']._config()['remitente'], 'ventas@dcasapty.com',
+        self.assertEqual(broadcast['reply_to'], 'info@tienda.example.com', 'Las respuestas llegan a donde siempre')
+        self.assertEqual(self.env['dcasa.correo']._config()['remitente'], 'ventas@tienda.example.com',
                          'El remitente de las facturas no cambia')
 
     def test_la_prueba_sale_del_remitente_de_las_campanas_y_las_facturas_no(self):
@@ -91,8 +91,8 @@ class TestRemitenteDeLasCampanas(ComunRemitente):
         with self.correo_transaccional() as post:
             self.Camila.with_user(self.marketing).enviar_prueba(campana['id'])
         datos = post.call_args.kwargs['json']
-        self.assertEqual(datos['from'], f'"D\'CASA Panamá" <{REMITENTE}>')
-        self.assertEqual(datos['reply_to'], ['info@dcasapty.com'])
+        self.assertEqual(datos['from'], f'"Tienda de Prueba" <{REMITENTE}>')
+        self.assertEqual(datos['reply_to'], ['info@tienda.example.com'])
         self.assertEqual(post.call_args.kwargs['headers']['Authorization'], f'Bearer {CLAVE_CORREO}',
                          'La prueba sigue saliendo por los correos de siempre')
         # Cualquier otro correo (una factura, la bienvenida…) sigue saliendo del remitente de siempre.
@@ -101,7 +101,21 @@ class TestRemitenteDeLasCampanas(ComunRemitente):
             'headers': repr({'X-Dcasa-Correo': 'prueba'})})
         with self.correo_transaccional() as post:
             otro.send(raise_exception=True)
-        self.assertEqual(post.call_args.kwargs['json']['from'], '"D\'CASA Panamá" <ventas@dcasapty.com>')
+        self.assertEqual(post.call_args.kwargs['json']['from'], '"Tienda de Prueba" <ventas@tienda.example.com>')
+
+    def test_sin_ningun_remitente_la_prueba_avisa_claro_y_no_sale(self):
+        """Instalación nueva (Baby Caleb, 2026-11-18): ni remitente de las campañas ni el de los correos de siempre,
+        que queda vacío hasta tener un dominio verificado en Resend. Antes la prueba salía con «From: Nombre <>» y
+        reventaba con «Malformed 'Return-Path' or 'From' address»; ahora avisa qué falta y no manda nada."""
+        campana = self.armar()['campana']
+        self.ICP.set_param('dcasa_correo.remitente', '')
+        self.assertEqual(self.env['dcasa.correo']._config()['remitente'], '', 'De fábrica no hay remitente')
+        with self.correo_transaccional() as post, self.assertRaises(UserError) as error:
+            self.Camila.with_user(self.marketing).enviar_prueba(campana['id'])
+        self.assertIn('Falta el remitente', str(error.exception))
+        self.assertNotIn('Malformed', str(error.exception))
+        post.assert_not_called()
+        self.assertFalse(self.env['dcasa.camila.prueba'].sudo().search_count([]), 'Una prueba que no salió no cuenta')
 
     def test_la_marca_de_la_prueba_no_viaja_por_rpc(self):
         """El cambio de remitente de la prueba va con un objeto de Python en el contexto: un texto mandado por RPC
@@ -114,7 +128,7 @@ class TestRemitenteDeLasCampanas(ComunRemitente):
             'headers': repr({'X-Dcasa-Correo': 'prueba'})})
         with self.correo_transaccional() as post:
             otro.send(raise_exception=True)
-        self.assertEqual(post.call_args.kwargs['json']['from'], '"D\'CASA Panamá" <ventas@dcasapty.com>')
+        self.assertEqual(post.call_args.kwargs['json']['from'], '"Tienda de Prueba" <ventas@tienda.example.com>')
 
     def test_lo_cambian_gerencia_y_administradores_y_se_valida(self):
         with self.assertRaises(AccessError):
@@ -132,8 +146,8 @@ class TestRemitenteDeLasCampanas(ComunRemitente):
         self.assertTrue(datos['remitente']['puede_cambiar'])
         self.assertFalse(self.panel()['remitente']['puede_cambiar'], 'El rol Marketing lo ve, no lo cambia')
         datos = self.Camila.with_user(self.gerencia).ajustar_remitente('')
-        self.assertEqual((datos['remitente']['correo'], datos['remitente']['propio']), ('ventas@dcasapty.com', ''),
-                         'Vacío: vuelve al de las facturas')
+        self.assertEqual((datos['remitente']['correo'], datos['remitente']['propio']),
+                         ('ventas@tienda.example.com', ''), 'Vacío: vuelve al de las facturas')
 
 
 @tagged('post_install', '-at_install')
@@ -207,10 +221,10 @@ class TestRevisarElRemitenteEnResend(ComunRemitente):
         resultado = self.enviar(resultado['panel']['campana'])
         self.assertTrue(resultado['ok'], resultado)
         (broadcast,) = self.resend.broadcasts.values()
-        self.assertEqual(broadcast['from'], f'"D\'CASA Panamá" <{REMITENTE}>')
+        self.assertEqual(broadcast['from'], f'"Tienda de Prueba" <{REMITENTE}>')
 
     def test_dominio_que_no_esta_en_resend(self):
-        self.resend.dominio('dcasapty.com')   # solo el de las facturas
+        self.resend.dominio('tienda.example.com')   # solo el de las facturas
         datos = self.revisar()
         aviso = datos['remitente']['aviso']
         self.assertEqual(aviso['tipo'], 'no_verificado')
@@ -305,7 +319,7 @@ class TestRevisarElRemitenteEnResend(ComunRemitente):
 
     def test_sin_remitente_propio_revisa_el_de_las_facturas_y_no_lo_enciende_ahi(self):
         self.ICP.set_param(P_REMITENTE, '')
-        self.resend.dominio('dcasapty.com')
+        self.resend.dominio('tienda.example.com')
         aviso = self.revisar()['remitente']['aviso']
         self.assertEqual(aviso['tipo'], 'sin_seguimiento')
         self.assertIn('las facturas', aviso['detalle'], 'Avisa que encenderlo ahí cambia las facturas')
@@ -354,7 +368,7 @@ class TestGuiaAbrieronEnCero(BaseCase):
         self.assertEqual(tarea['titulo'], '¿Por qué Abrieron sale en 0?')
         self.assertEqual(tarea['destino'], {'menu': 'dcasa_camila.menu_camila'})
         pasos = ' '.join(p['texto'] for p in tarea['pasos'])
-        for texto in ('Resend › Domains', 'novedades.dcasapty.com', 'Configuration', 'Enable tracking metrics',
+        for texto in ('Resend › Domains', 'novedades.tienda.example.com', 'Configuration', 'Enable tracking metrics',
                       '«links»', 'Cloudflare', 'CNAME', 'nube gris', 'DNS only', 'Remitente de las campañas'):
             self.assertIn(texto, pasos)
         self.assertIn('facturas', tarea['nota'], 'Dice por qué no se enciende en el dominio de las facturas')
@@ -488,7 +502,7 @@ class TestAvisoRemitenteEnElNavegador(ComunRemitente, HttpCase):
             'name': 'ZZCM enviada', 'asunto': 'Lo nuevo para tu sala', 'estado': 'enviada', 'enviada_en': hace,
             'destinatarios': 2, 'resend_broadcast_id': 'bc-zzcm', 'resultados_en': hace, 'entregados': 2})
         # Hoy: salen del remitente de las facturas, que (bien) no cuenta; el subdominio de las campañas sí cuenta.
-        self.resend.dominio('dcasapty.com')
+        self.resend.dominio('tienda.example.com')
         self.resend.dominio(DOMINIO, aperturas=True, clics=True, subdominio='links')
         self.Camila.sudo()._revisar_remitente('ahora')
 

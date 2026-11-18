@@ -250,8 +250,8 @@ class TestEnviar(CamilaComun):
         (broadcast,) = self.resend.broadcasts.values()
         self.assertEqual(broadcast['enviado_a'], ['ana.zzcm@example.com', 'beto.zzcm@example.com'])
         self.assertEqual(broadcast['segment_id'], segmento)
-        self.assertEqual(broadcast['from'], '"D\'CASA Panamá" <ventas@dcasapty.com>')
-        self.assertEqual(broadcast['reply_to'], 'info@dcasapty.com')
+        self.assertEqual(broadcast['from'], '"Tienda de Prueba" <ventas@tienda.example.com>')
+        self.assertEqual(broadcast['reply_to'], 'info@tienda.example.com')
         self.assertIn('{{{RESEND_UNSUBSCRIBE_URL}}}', broadcast['html'])
         registro = self.env['dcasa.camila.campana'].browse(campana['id'])
         self.assertEqual((registro.estado, registro.destinatarios, registro.aprobada_por),
