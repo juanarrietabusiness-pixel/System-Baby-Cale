@@ -45,11 +45,11 @@
                                 </div>
                                 <div class="row">
                                     <label for="dcasa_correo_remitente" class="col-lg-4 o_light_label"/>
-                                    <field name="dcasa_correo_remitente" placeholder="ventas@dcasapty.com"/>
+                                    <field name="dcasa_correo_remitente" placeholder="ventas@tudominio.com"/>
                                 </div>
                                 <div class="row">
                                     <label for="dcasa_correo_responder_a" class="col-lg-4 o_light_label"/>
-                                    <field name="dcasa_correo_responder_a" placeholder="info@dcasapty.com"/>
+                                    <field name="dcasa_correo_responder_a" placeholder="babycalebpanama@gmail.com"/>
                                 </div>
                             </div>
                         </setting>

@@ -1,13 +1,15 @@
 """Ajustes › Correo a clientes y la clave: nunca en la base, nunca en un log, nunca en una respuesta."""
 import logging
 import os
+from email.message import EmailMessage
 from unittest.mock import patch
 
 from odoo.addons.website_dcasa.tests.ajustes_navegador import GuardarAjustesComoElNavegador
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import new_test_user, tagged
 
-from ..models.correo import P_NOMBRE
+from ..models import resend
+from ..models.correo import P_NOMBRE, P_REMITENTE, REMITENTE
 from .common import CLAVE, CorreoCase, respuesta
 
 # Lugares de la base donde podría colarse un texto: si la clave aparece en alguno, la prueba falla.
@@ -49,9 +51,10 @@ class TestAjustes(CorreoCase):
         self.assertFalse(ajustes.dcasa_correo_a_clientes)
         self.assertTrue(ajustes.dcasa_correo_al_pagar)
         self.assertTrue(ajustes.dcasa_correo_bienvenida)
-        self.assertEqual(ajustes.dcasa_correo_remitente, 'ventas@dcasapty.com')
-        self.assertEqual(ajustes.dcasa_correo_responder_a, 'info@dcasapty.com')
-        self.assertEqual(ajustes.dcasa_correo_nombre, "D'CASA Panamá")
+        # El remitente de las pruebas (common.py): el de fábrica va vacío (TestRemitentePendiente).
+        self.assertEqual(ajustes.dcasa_correo_remitente, 'ventas@example.com')
+        self.assertEqual(ajustes.dcasa_correo_responder_a, 'babycalebpanama@gmail.com')
+        self.assertEqual(ajustes.dcasa_correo_nombre, 'Baby Caleb')
         # Apagar «al pagar» se queda apagado (Odoo borra el parámetro: no vuelve el valor de fábrica).
         ajustes.dcasa_correo_al_pagar = False
         ajustes.execute()
@@ -140,3 +143,46 @@ class TestGuardarDesdeElNavegador(GuardarAjustesComoElNavegador):
         self.addCleanup(nunca.stop)
         self.guardar_ajustes('ajustes_duena', {'dcasa_correo_nombre': "D'CASA Prueba"})
         self.assertEqual(self.env['ir.config_parameter'].sudo().get_param(P_NOMBRE), "D'CASA Prueba")
+
+
+@tagged('post_install', '-at_install')
+class TestRemitentePendiente(CorreoCase):
+    """Baby Caleb (2026-11-18): el remitente tiene que ser de un dominio verificado en Resend y todavía no tiene uno,
+    así que de fábrica va vacío (PENDIENTE). Sin él no sale ningún correo, ni la prueba, y Ajustes lo dice."""
+
+    def setUp(self):
+        super().setUp()
+        self.ICP.set_param(P_REMITENTE, False)   # como queda al instalar
+
+    def test_de_fabrica_sin_remitente_y_con_los_datos_de_baby_caleb(self):
+        self.assertEqual(REMITENTE, '', 'PENDIENTE: no se inventa uno ni se deja el de otra empresa')
+        config = self.env['dcasa.correo']._config()
+        self.assertEqual((config['remitente'], config['nombre'], config['responder_a']),
+                         ('', 'Baby Caleb', 'babycalebpanama@gmail.com'))
+
+    def test_ajustes_dice_que_falta_el_remitente(self):
+        self.con_clave()
+        estado = self.env['res.config.settings'].create({}).dcasa_correo_estado
+        self.assertIn('Falta el remitente', estado)
+
+    def test_sin_remitente_no_sale_ni_la_prueba(self):
+        self.con_clave()
+        with self.transporte(), self.assertRaises(UserError) as error:
+            self.env['dcasa.correo']._enviar_prueba(self.admin)
+        self.assertIn('Falta el remitente', str(error.exception))
+        self.post.assert_not_called()
+
+    def test_sin_remitente_la_sesion_no_le_pide_nada_a_resend(self):
+        """Si algo llegara a la sesión sin remitente (un correo ya en la cola), no se manda: queda como no enviado."""
+        sesion = resend.SesionResend(CLAVE, {'remitente': '', 'nombre': 'Baby Caleb', 'responder_a': '',
+                                             'a_clientes': True, 'entorno': 'produccion'}, ['admin.correo@example.com'])
+        mensaje = EmailMessage()
+        mensaje['Subject'] = 'Prueba'
+        mensaje['To'] = 'admin.correo@example.com'
+        mensaje['X-Dcasa-Clase'] = 'prueba'   # la prueba al equipo sí podría salir: solo la frena el remitente
+        mensaje.set_content('Hola')
+        with self.assertRaises(RuntimeError) as error:
+            sesion.send_message(mensaje, smtp_to_list=['admin.correo@example.com'])
+        self.assertIn(resend.PREFIJO_NO_ENVIADO, str(error.exception))
+        self.assertIn('Falta el remitente', str(error.exception))
+        self.post.assert_not_called()

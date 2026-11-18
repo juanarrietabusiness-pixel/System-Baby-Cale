@@ -13,9 +13,9 @@ de D'CASA (dcasa_invoice):
   se achica la tabla de los muebles, lo justo; en una factura enorme la lista se corta y la hoja dice cuántos muebles
   más hay (están todos en la factura). Las condiciones, los totales y las firmas nunca se achican.
 * Las cifras salen de ``account.move._dcasa_estado_abono`` (la misma fuente del papel de ABONO y de «Mi cuenta»).
-* Las condiciones se escriben en Ajustes › Empresas › pestaña «Documentos D'CASA» (una por renglón; vacías, la hoja no
-  se imprime; si el texto es tan largo que ya no caben ni cinco muebles sin achicar, sale un aviso). El texto inicial es
-  la hoja que la tienda ya entrega, puesto una sola vez sin pisar lo que se cambie.
+* Las condiciones se escriben en Ajustes › Empresas › pestaña «Documentos Baby Caleb» (una por renglón; vacías, la hoja
+  no se imprime; si el texto es tan largo que ya no caben ni cinco muebles sin achicar, sale un aviso). El texto
+  inicial es la hoja que la tienda ya entrega, puesto una sola vez sin pisar lo que se cambie.
 * Se imprime desde el menú «Imprimir» de una factura de cliente publicada con al menos un abono, o desde el cuadro
   «Imprimir documentos» (casilla «Condiciones de abono (2 copias)», marcada en el primer abono), justo después de la
   factura del cliente.

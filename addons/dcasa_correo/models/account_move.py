@@ -87,7 +87,7 @@ class AccountMove(models.Model):
             asunto = self.env._('Tu factura %s está pagada', numero)
             titular = self.env._('¡TU COMPRA ESTÁ PAGADA!')
         else:
-            asunto = self.env._("Tu factura %s de D'CASA", numero)
+            asunto = self.env._('Tu factura %(numero)s de %(empresa)s', numero=numero, empresa=move.company_id.name)
             titular = self.env._('TU FACTURA')
         puntos_compra = sum(move.dcasa_compra_ids.filtered(lambda c: not c.anulada_en).mapped('puntos'))
         enlaces = correo._enlaces()

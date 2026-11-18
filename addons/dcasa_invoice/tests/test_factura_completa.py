@@ -126,7 +126,9 @@ class TestFacturaCompleta(TransactionCase):
         factura = self._factura_completa()
         self.assertEqual(factura._dcasa_entrega(), self.entrega)
         html = self._render(factura)
-        for texto in ('CLIENTE DE PRUEBA', 'RUC', '8-000-0000', '6123-4567', 'cliente@example.com',
+        # (El «RUC» que salía aquí era el de la empresa, en la cabecera: Baby Caleb todavía no tiene; la cabecera y el pie
+        # con RUC los prueba test_pie_con_whatsapp_correo_ruc_y_direccion.)
+        for texto in ('CLIENTE DE PRUEBA', '8-000-0000', '6123-4567', 'cliente@example.com',
                       'Calle 5, Barrio Balboa',
                       '>Entrega<', 'Villa Lucre, casa 12', 'Arraiján', '6999-0000',
                       'Fecha de factura', 'Vence', 'Pedido', 'S01004', 'Vendedor/a', 'Ana Vendedora', 'Condiciones'):
@@ -217,12 +219,24 @@ class TestFacturaCompleta(TransactionCase):
     # --- Pie, hoja y cotización ----------------------------------------------------------
 
     def test_pie_con_whatsapp_correo_ruc_y_direccion(self):
+        """Con el RUC y la dirección que ponga el dueño en Ajustes › Empresas, el pie los lleva."""
+        self.company.write({'vat': '1557-1-2026', 'l10n_pa_dv': '45', 'street': 'Calle de prueba 1'})
         html = self._render(self._factura_completa())
         self.assertIn('WhatsApp', html)
         self.assertIn(self.company.email, html)
-        self.assertIn('155779346-2-2026 DV7', html)
-        self.assertIn(self.company.street, html)
+        self.assertIn('1557-1-2026 DV45', html)
+        self.assertIn('Calle de prueba 1', html)
         self.assertNotIn('familia panameña', html)
+
+    def test_pie_de_fabrica_sin_ruc_ni_direccion_inventados(self):
+        """Baby Caleb de fábrica (2026-11-18): WhatsApp y correo de contacto; sin RUC ni dirección, el pie no los
+        inventa (y no queda nada de la tienda de origen)."""
+        html = self._render(self._factura_completa())
+        self.assertIn('WhatsApp +507 6757-5065', html)
+        self.assertIn('babycalebpanama@gmail.com', html)
+        self.assertNotIn('RUC', html.rsplit('o_dcasa_footer', 1)[-1])
+        for de_la_tienda_de_origen in ('155779346', 'Libertadores', 'dcasapty', '6026'):
+            self.assertNotIn(de_la_tienda_de_origen, html)
 
     def test_hoja_carta(self):
         self.assertEqual(self.company.paperformat_id, self.env.ref('dcasa_invoice.paperformat_dcasa_carta'))

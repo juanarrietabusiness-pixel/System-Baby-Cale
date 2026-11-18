@@ -74,7 +74,7 @@
     </template>
 
     <!-- Garantía · Cambios y devoluciones · Términos: textos cortos que escribe la dueña en la
-         empresa (Ajustes → Empresas → pestaña Documentos D'CASA). Vacíos, no se imprimen. -->
+         empresa (Ajustes → Empresas → pestaña Documentos Baby Caleb). Vacíos, no se imprimen. -->
     <template id="dcasa_bloques_legales" name="D'CASA: garantía, cambios y términos">
         <t t-set="dcasa_legales" t-value="empresa._dcasa_bloques_legales()"/>
         <!-- El QR de uso interno (si la empresa lo enciende) va a la derecha de estos textos, en la misma franja: así no

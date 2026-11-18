@@ -5,7 +5,7 @@ from odoo import api, fields, models
 from . import formato
 
 # (campo, título impreso). Vacío no se imprime. Textos iniciales propuestos (la dueña autorizó, 2026-10-03,
-# que se redactaran y el administrador los cambie en Ajustes → Empresas → Documentos D'CASA).
+# que se redactaran y el administrador los cambie en Ajustes → Empresas → Documentos Baby Caleb).
 BLOQUES_LEGALES = [
     ('dcasa_factura_garantia', 'Garantía'),
     ('dcasa_factura_cambios', 'Cambios y devoluciones'),

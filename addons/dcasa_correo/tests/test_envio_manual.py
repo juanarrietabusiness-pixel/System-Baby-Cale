@@ -57,7 +57,7 @@ class TestFacturaManual(CorreoCase):
         self.assertIn("'X-Dcasa-Correo': 'factura'", correo.headers)
         self.assertIn('Escríbenos por WhatsApp', correo.body_html)
         self.assertIn('TU FACTURA', correo.body_html)
-        self.assertEqual(correo.subject, f"Tu factura {factura.name} de D'CASA")
+        self.assertEqual(correo.subject, f'Tu factura {factura.name} de Baby Caleb')
         self.assertFalse(factura.access_token, 'Sin access_token: el enlace no da acceso a nadie')
 
     def test_reenviar_despues_de_un_abono_arma_un_pdf_nuevo_sin_borrar_el_anterior(self):

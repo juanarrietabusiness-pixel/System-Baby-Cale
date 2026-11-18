@@ -81,10 +81,10 @@ class TestLayout(CorreoCase):
         (logo,) = html.fromstring(self.cuerpo()).iter('img')
         self.assertEqual(logo.get('src'), 'http://localhost:8069/dcasa_base/static/img/logo.png')
         # Producción: la dirección pública del sitio, aunque web.base.url fuera una local.
-        website.domain = 'https://dcasapty.com'
+        website.domain = 'https://babycaleb.com'
         (logo,) = html.fromstring(self.cuerpo(self.beto)).iter('img')
-        self.assertEqual(logo.get('src'), 'https://dcasapty.com/dcasa_base/static/img/logo.png')
-        self.assertEqual(logo.get('alt'), "D'CASA")
+        self.assertEqual(logo.get('src'), 'https://babycaleb.com/dcasa_base/static/img/logo.png')
+        self.assertEqual(logo.get('alt'), 'Baby Caleb', 'el nombre de la empresa')
 
     def test_el_pie_corto_sale_de_la_empresa_y_del_sitio(self):
         website = self.env['website'].search([], order='sequence, id', limit=1)
