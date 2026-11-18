@@ -617,7 +617,7 @@ despachar. Un método público que usa `sudo()` sin exigir grupo sería una puer
 | Garantía, cambios y términos impresos en la factura | Texto inicial en `addons/dcasa_invoice/models/res_company.py` (`TEXTOS_INICIALES`), se escribe una vez | *Ajustes › Empresas › Documentos D'CASA* (no se vuelve a pisar) |
 | Condiciones de abono (hoja de dos copias) | Texto inicial en `addons/dcasa_abonos/models/condiciones.py` (`CONDICIONES_INICIALES`) | *Ajustes › Empresas › Documentos D'CASA* |
 | Plazo de los apartados por la web | Parámetro `website_dcasa.apartado_dias` | *Sitio web › Configuración › Ajustes* |
-| Lo que Juan dice de garantía y compra | Fichas de conocimiento (`dcasa_conversaciones/data/conocimiento_data.xml`), **inactivas** de fábrica | *Conversaciones › Conocimiento del bot*, con la revisión de la dueña |
+| Lo que Juan dice de garantía y compra | Fichas de conocimiento: **ninguna** de fábrica (`dcasa_conversaciones/data/conocimiento_data.xml` está vacío desde el 2026-11-18) | *Conversaciones › Conocimiento del bot*, con la revisión de la dueña |
 
 Regla para todas: no prometen plazos, garantías ni condiciones que el dueño no haya fijado; se revisan con un abogado.
 La ficha de producto de Odoo trae promesas propias («devolución de 30 días») que `website_dcasa` apaga en cada

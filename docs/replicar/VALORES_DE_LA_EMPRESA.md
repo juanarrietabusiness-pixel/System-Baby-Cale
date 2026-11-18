@@ -146,13 +146,14 @@ nada se paga por afiliar…) son **invariantes del código**: se quedan. Están 
 
 | Qué | Dónde | Qué hacer |
 |---|---|---|
-| Quién es Juan, de qué tienda y en qué ciudad | `juan/src/dcasa/prompt.ts:79-82,159,253` | Nombre del negocio, giro y ciudad. El resto del prompt (fuentes de verdad, reglas, voz) se conserva salvo que el negocio cambie la voz |
-| Lo mismo para los borradores y resúmenes del panel | `juan/src/odoo-panel-sugerir.ts:107`, `juan/src/odoo-panel-resumir.ts:80` | Ídem |
+| Quién es Juan y de qué tienda | `juan/src/dcasa/prompt.ts` (`<identidad>`, ejemplos de tono, seguimiento) y `juan/src/tienda/prompt.ts` (Andrés) | Solo el nombre del negocio y de los asistentes: desde el 2026-11-18 los prompts no dicen el giro, la ciudad, el dominio ni el catálogo (los dicen las herramientas; lo vigila `juan/test/dcasa/conocimiento-en-cero.test.ts`). El resto del prompt (fuentes de verdad, reglas, voz) se conserva salvo que el negocio cambie la voz («el pana que sabe de casas») |
+| Lo mismo para los borradores y resúmenes del panel | `juan/src/odoo-panel-sugerir.ts`, `juan/src/odoo-panel-resumir.ts` | Ídem |
 | Guardia de salida: dominio de las páginas legales que Juan puede citar y el texto «asistente virtual de D'CASA» | `juan/src/dcasa/salvaguardas.ts:217,417` | Su dominio y su nombre |
 | Nombre público por defecto del Worker | `juan/src/config.ts:87` | «el equipo de <negocio>» |
 | Bienvenida y nombre público por defecto en Odoo | `addons/dcasa_conversaciones/models/ajustes.py:67,79` | Los suyos (luego se editan en *Conversaciones › Configuración › Ajustes de Juan*) |
 | Textos fijos del sistema (tope diario, fallo técnico, archivo recibido) | `juan/src/dcasa/textos.ts` | Revisar el tono |
-| Lo que Juan sabe del negocio | Odoo, *Conversaciones › Conocimiento del bot*; semilla `addons/dcasa_conversaciones/data/conocimiento_data.xml` (`noupdate`: dirección, horario y Socios se arman solos con los datos vivos; garantía y compra vienen **inactivas**) | Cargar el conocimiento del negocio nuevo en Odoo, sin inventar políticas |
+| Lo que Juan sabe del negocio | Odoo, *Conversaciones › Conocimiento del bot*. Arranca **vacío** (2026-11-18): `addons/dcasa_conversaciones/data/conocimiento_data.xml` no trae ninguna entrada ni pregunta sin respuesta | Cargar el conocimiento del negocio nuevo en Odoo, sin inventar políticas. Las entradas con origen «Datos de la tienda» y «Reglas de Socios» se arman solas con los datos vivos |
+| Ruta en Google Maps que da Juan (`horario_y_tienda`) | La latitud y la longitud del contacto de la empresa (*Ajustes › Empresas*); la provincia, de su dirección | Llenarlas en la empresa. Sin ellas Juan no da ruta (la página «Visítanos» del sitio sigue con `LATITUD`/`LONGITUD` de `addons/website_dcasa/models/website.py`, §C) |
 | Horario, canales, proveedor y modelos de IA, tope mensual, palabras prohibidas | *Conversaciones › Configuración › Ajustes de Juan* ([JUAN.md, Parte 2 §8](../JUAN.md)) | Lo decide la gerencia. Si elige un modelo «contributor» de Meta (entrena con las conversaciones), la política de privacidad lo tiene que decir (§C) |
 | Sitio público al que Juan completa los enlaces | `juan/wrangler.jsonc:49` (producción) y `:80` (staging) | La dirección donde el sitio responde **hoy** (el `workers.dev` hasta tener dominio) |
 | Catálogo, precios, existencias | Siempre de Odoo por herramientas: el prompt no tiene cifras ([JUAN.md, Parte 2 §9](../JUAN.md)) | Nada que cambiar en el Worker |
@@ -166,8 +167,8 @@ nada se paga por afiliar…) son **invariantes del código**: se quedan. Están 
 
 ## J. Brian (el asistente del panel)
 
-- Instrucciones fijas: `addons/dcasa_brian/models/conversacion.py:800` («el asistente de D'CASA Panamá, tienda de
-  muebles en La Chorrera»). Nombre, giro y ciudad del negocio nuevo.
+- Instrucciones fijas: `addons/dcasa_brian/models/conversacion.py` (`_sistema_fijo`: «el asistente de D'CASA
+  Panamá»). Solo el nombre del negocio: desde el 2026-11-18 no dicen el giro ni la ciudad.
 - Proveedor, modelo y clave: variables y secretos de GitHub ([CUENTAS_Y_SECRETOS.md §2](CUENTAS_Y_SECRETOS.md)).
 
 ## K. La Guía (`dcasa_guia`)

@@ -602,14 +602,19 @@ que Brian cierre o gane oportunidades, y «perdida» cuando el cliente dice que 
 
 **Conocimiento del bot** (*Conversaciones › Conocimiento del bot*). Es lo único que el asistente puede decir sobre
 horario, ubicación, Socios, garantía, cómo comprar… cuando se lo preguntan. Cada entrada tiene un título, palabras
-con las que la gente la pregunta y su texto. Dos vienen **automáticas** y no hay que editarlas: *Dónde estamos,
-horario y WhatsApp* (se arma con la dirección de la empresa, el WhatsApp del sitio y el horario de Ajustes) y
-*Socios D'CASA* (sale de `puntos.json`). Así no se quedan viejas ni repiten una cifra.
+con las que la gente la pregunta y su texto.
 
-Las de **garantía** y **cómo se hace una compra** vienen **inactivas** y con la nota «pendiente de aprobación de la
-dueña»: son textos provisionales de los términos del sitio, pendientes de revisión del abogado, y no traen ningún
-plazo porque ninguno está aprobado. Tú decides si las activas (botón **Activar**) o las reescribes. Nada de
-entregas, flete, financiamiento ni apartados: eso siempre lo confirma una vendedora. Cada cambio queda en el historial.
+**Una instalación nueva arranca en cero** (pedido del dueño, 2026-11-18): ninguna entrada de fábrica y ninguna pregunta
+sin respuesta; cada negocio escribe las suyas. Hasta entonces el asistente no sabe nada de la tienda fuera de sus
+herramientas (productos, horario y dirección de `horario_y_tienda`, reglas de Socios) y lo demás lo anota como pregunta
+sin respuesta. Una entrada puede ser **automática** para no repetir datos que ya viven en Odoo: con el origen *Datos
+de la tienda (automático)* se arma con la dirección de la empresa (calle, ciudad, provincia y, si la empresa tiene su
+latitud y longitud, la ruta en Google Maps), el WhatsApp del sitio y el horario de Ajustes; con *Reglas de Socios
+(automático)*, sale de `puntos.json`. Así no se quedan viejas ni repiten una cifra. Ningún texto de política (garantía,
+cambios, entregas, flete, financiamiento, apartados) viene de fábrica: lo escribe el negocio y, hasta que lo escriba,
+lo confirma una vendedora. Cada cambio queda en el historial. Las bases instaladas antes del 2026-11-18 conservan las
+cuatro entradas que traía la semilla de entonces (`noupdate`). Hoy las entradas se escriben en la pantalla: no hay
+herramienta de Brian ni MCP para escribirlas.
 
 **Preguntas sin respuesta** (*Conversaciones › Preguntas sin respuesta*). Cuando el asistente no sabe, anota la pregunta
 y le dice al cliente que una vendedora se la confirma. Las parecidas se **agrupan** y cuentan cuántas veces se

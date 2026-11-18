@@ -441,7 +441,7 @@ además como módulo de todo el servidor (`server_wide_modules = base,web,dcasa_
 - **Apagado de fábrica:** sin `JUAN_ODOO_TOKEN`/`JUAN_WORKER_TOKEN` la API responde 503 y Odoo arranca igual. Canales de
   fábrica: WhatsApp QR y Telegram encendidos, WhatsApp API oficial, Messenger e Instagram apagados (`models/ajustes.py`;
   en producción, la API oficial está encendida desde el 2026-11-02: [JUAN_CANALES.md](JUAN_CANALES.md)).
-  Las fichas de conocimiento «garantía» y «compra» vienen inactivas.
+  El conocimiento del bot y las preguntas sin respuesta arrancan vacíos (2026-11-18): ninguna ficha de fábrica.
 
 ## `dcasa_sofia` — Sofía, la asistente del CRM
 

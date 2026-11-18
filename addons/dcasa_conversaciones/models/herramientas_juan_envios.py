@@ -332,7 +332,7 @@ class BrianHerramientasJuanEnvios(models.AbstractModel):
                     'hacer. Esas cifras solo salen de aquí.',
         parametros={
             'lugar': {'type': 'string', 'description': 'A dónde va, como lo escribe el cliente: «Villa Lucre», «PH '
-                                                       'Ocean Park», «cerca del hospital de Chorrera». Sin número de '
+                                                       'Ocean Park», «cerca del hospital». Sin número de '
                                                        'casa, apartamento ni piso.'},
             'lugar_id': {'type': 'integer', 'description': 'Solo si el cliente eligió uno de la lista que devolvió '
                                                            'antes esta herramienta (estado «varios»): su lugar_id.'},
