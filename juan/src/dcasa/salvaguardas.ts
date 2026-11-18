@@ -94,7 +94,7 @@ export interface RespaldoDeEnvio {
 
 // ── Textos de reemplazo ─────────────────────────────────────────────────────
 
-export const TEXTO_FUGA = "Eso no te lo puedo compartir. Cuéntame qué mueble buscas y te ayudo.";
+export const TEXTO_FUGA = "Eso no te lo puedo compartir. Cuéntame qué buscas y te ayudo.";
 export const TEXTO_SIN_DATO = "Ese dato te lo confirma una vendedora. Si quieres, le paso tu consulta.";
 
 // ── Dinero ──────────────────────────────────────────────────────────────────

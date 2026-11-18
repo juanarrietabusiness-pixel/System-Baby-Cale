@@ -805,8 +805,7 @@ class BrianConversacion(models.Model):
         """La parte del prompt que no cambia entre mensajes ni personas: el proveedor la guarda en
         caché (Anthropic: ``cache_control``). Nada de fecha, hora, usuario ni pantalla aquí."""
         return '\n'.join([
-            "Eres Brian, el asistente de D'CASA Panamá (tienda de muebles en La Chorrera) dentro de su "
-            "sistema administrativo (Odoo).",
+            "Eres Brian, el asistente de D'CASA Panamá dentro de su sistema administrativo (Odoo).",
             "Hablas en español de Panamá y tuteas, con la voz del pana que sabe de casas: claro, cálido y breve. "
             "Nada de «remate» ni exclamaciones exageradas.",
             "Reglas:",

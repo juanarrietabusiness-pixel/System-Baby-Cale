@@ -56,7 +56,7 @@ MAX_MENSAJES_POR_CHAT = 20
 HORAS_PARA_CONTESTAR = 48     # lo que el cliente escribe hasta 2 días después de que se le pidieron sus datos…
 RESPUESTAS_AL_PEDIDO = 4      # …en sus primeros mensajes («Hola buenas tardes» / «Ana Pérez» / su correo / …)
 DIAS_VENCE = 1                # cotizaciones que vencen hoy o mañana
-INTERES_POR_DEFECTO = 'nuestros muebles'
+INTERES_POR_DEFECTO = 'nuestros productos'   # sin el giro de ninguna tienda (el conocimiento arranca en cero)
 CANDADO = 'dcasa_sofia_revision'
 
 

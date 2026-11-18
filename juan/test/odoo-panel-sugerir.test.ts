@@ -511,7 +511,7 @@ describe("la revisión de la marca: corrige sin relajar las reglas", () => {
   });
 
   it("una frase copiada de las instrucciones internas no llega a la vendedora (se quita solo esa)", async () => {
-    const m = montar({ pasos: [{ texto: "Hola Karen. Mi tarea es ayudar a elegir muebles (qué hay, medidas, precios, disponibilidad), armar cotizaciones y más. ¿Qué cama buscas para tu cuarto?" }] });
+    const m = montar({ pasos: [{ texto: "Hola Karen. Mi tarea es ayudar a elegir productos de la tienda (qué hay, medidas, precios, disponibilidad), armar cotizaciones y más. ¿Qué cama buscas para tu cuarto?" }] });
     const r = await m.pedir();
     expect(r.status).toBe(200);
     expect(r.cuerpo.texto).toBe("Hola Karen. ¿Qué cama buscas para tu cuarto?");

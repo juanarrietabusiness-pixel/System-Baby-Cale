@@ -77,7 +77,7 @@ export function promptDelResumen(cfg: Config, p: PeticionResumir): string {
   const marca = marcaDe(cfg.nombre_publico);
   const etiquetas = p.etiquetas.map((e) => textoParaElModelo(e).slice(0, 40)).join(", ");
   return `<tarea>
-Resumes para una VENDEDORA de «${marca}» (D'CASA Panamá, mueblería en La Chorrera) lo que pasó en una conversación con un cliente, para que pueda seguirla sin leerla toda.
+Resumes para una VENDEDORA de «${marca}» (D'CASA Panamá) lo que pasó en una conversación con un cliente, para que pueda seguirla sin leerla toda.
 Escribe en español de Panamá, directo, como se lo contarías a una colega. No te diriges al cliente.
 Formato: de 3 a 6 líneas cortas, cada una empieza con «• ». Cubre SOLO lo que aparezca en la conversación:
 • Qué busca el cliente (producto, medidas, código, presupuesto, fechas, para qué).

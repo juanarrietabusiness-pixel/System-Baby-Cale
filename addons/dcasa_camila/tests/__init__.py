@@ -10,3 +10,4 @@ from . import test_etapa2
 from . import test_revision2
 from . import test_etapa1b
 from . import test_remitente
+from . import test_conocimiento_en_cero

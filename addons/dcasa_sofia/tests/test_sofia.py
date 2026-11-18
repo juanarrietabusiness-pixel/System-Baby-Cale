@@ -632,7 +632,8 @@ class TestSofia(JuanCase):
         texto = self.Sofia._texto(self.propuestas(lead_id=lead.id), self.vendedora)
         self.assertNotIn('899', texto)
         self.assertNotIn('$', texto)
-        self.assertIn('nuestros muebles', texto)
+        self.assertIn('nuestros productos', texto)
+        self.assertNotIn('mueble', texto)
 
     def test_crear_tarea_no_cuenta_como_datos_pedidos(self):
         partner, _c, lead = self.cliente('🌻', '+507 6000-3032', vendedora=self.vendedora)
