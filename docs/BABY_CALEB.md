@@ -39,6 +39,7 @@ del puente. Ya en uso en la cuenta y **no se tocan**: `babycaleb-web`, `babycale
 | 2026-11-18 | Conocimiento de los asistentes | En cero: nada de D'CASA, ni preguntas por responder. Cada negocio carga el suyo (a mano o por MCP). El mecanismo no se toca |
 | 2026-11-18 | Marca del panel | Logo del panel, favicon y colores del panel se cambian desde Ajustes, por empresa. La web pública la programamos nosotros |
 | 2026-11-18 | Web pública | Mismo diseño, sin nombre, logo, WhatsApp, dirección ni políticas de D'CASA (políticas `PENDIENTE` hasta que la asesoría del negocio las apruebe) |
+| 2026-11-18 | Contacto de la web | Los de la web actual de Baby Caleb (`Baby-caleb/content.json`): WhatsApp +507 6757-5065, babycalebpanama@gmail.com, Instagram @babycalebpanama, Lunes a Sábado 9:00-18:00, «Venta 100% online con entrega a domicilio — Ciudad de Panamá», y el logo `logo-babycaleb.png` |
 | 2026-11-18 | Datos de la empresa | Los pasa el dueño después. Mientras: «Baby Caleb», Panamá, y lo demás vacío |
 | 2026-11-18 | Costos | El dueño dirá qué herramientas del sistema de D'CASA se quedan y cuáles se quitan, para bajar el consumo |
 | 2026-11-18 | Nombres de los asistentes | Cada empresa debe poder nombrarlos como quiera (trabajo aparte, por hacer) |
@@ -46,7 +47,6 @@ del puente. Ya en uso en la cuenta y **no se tocan**: `babycaleb-web`, `babycale
 ## Pendiente (preguntas abiertas y trabajo por hacer)
 
 - Datos de la empresa: razón social, RUC y DV, dirección, teléfono, correo, web, lema de los documentos.
-- WhatsApp y logo de Baby Caleb para la web pública.
 - Promoción de Dany Baby (DANY-AW600): «2 cajas (1,200 toallitas) por $35.00». Anotada, no programada.
 - Cobros en línea del sistema nuevo (hoy Tilopay y Yappy viven en la web actual, en `babycaleb.com`).
 - Qué herramientas se quitan para bajar costos.
