@@ -41,6 +41,11 @@ del puente. Ya en uso en la cuenta y **no se tocan**: `babycaleb-web`, `babycale
 | 2026-11-18 | Web pública | Mismo diseño, sin nombre, logo, WhatsApp, dirección ni políticas de D'CASA (políticas `PENDIENTE` hasta que la asesoría del negocio las apruebe) |
 | 2026-11-18 | Contacto de la web | Los de la web actual de Baby Caleb (`Baby-caleb/content.json`): WhatsApp +507 6757-5065, babycalebpanama@gmail.com, Instagram @babycalebpanama, Lunes a Sábado 9:00-18:00, «Venta 100% online con entrega a domicilio — Ciudad de Panamá», y el logo `logo-babycaleb.png` |
 | 2026-11-18 | Datos de la empresa | Los pasa el dueño después. Mientras: «Baby Caleb», Panamá, y lo demás vacío |
+| 2026-11-18 | Conocimiento por MCP | Se queda como está: solo desde la pantalla (hoy no hay herramienta de Brian/MCP para cargarlo) |
+| 2026-11-18 | Plantillas de mensajes | Las de Sofía, la respuesta rápida /socios y el asunto fijo de Camila dicen el nombre de la empresa en lugar de D'CASA, y sin ofrecer Socios ni cumpleaños |
+| 2026-11-18 | Presentación de los asistentes | Siguen diciendo «D'CASA» (p. ej. «Hola, soy Juan de D'CASA.») hasta el trabajo de nombres configurables |
+| 2026-11-18 | Ejemplos de staging | Fuera las conversaciones de ejemplo de D'CASA; no se inventan ejemplos de Baby Caleb |
+| 2026-11-18 | Socios y vendedores | Todas las cifras de `puntos.json` en PENDIENTE (ninguna de D'CASA) y el programa de vendedores apagado. No dan puntos ni comisiones hasta que el dueño ponga las de Baby Caleb; las ventas funcionan igual. Socios no tiene interruptor propio |
 | 2026-11-18 | Costos | El dueño dirá qué herramientas del sistema de D'CASA se quedan y cuáles se quitan, para bajar el consumo |
 | 2026-11-18 | Nombres de los asistentes | Cada empresa debe poder nombrarlos como quiera (trabajo aparte, por hacer) |
 
