@@ -1,0 +1,57 @@
+# Esta copia es la de Baby Caleb
+
+Este repositorio (`juanarrietabusiness-pixel/System-Baby-Cale`) nació el **2026-11-18** como espejo exacto de
+`dcasapty/D_Casa_new_word` en el commit `d2ba8ca` (463 commits de historia, `main` idéntico). El original sigue como
+remoto `upstream` para traer mejoras con `git merge` (`docs/REPLICAR.md` §8). Sobre ese espejo se hacen las adecuaciones
+que pide el dueño, y este archivo es su registro: **lo que no está aquí no está decidido**.
+
+La meta del dueño: que este sistema sea una **plantilla** que se pueda seguir copiando a otras empresas, cada una con sus
+datos, su marca y los nombres de sus asistentes.
+
+## Nombres en Cloudflare (cuenta de Juancito, subdominio `juanarrietabusiness.workers.dev`)
+
+Prefijo elegido por el dueño: «sistemaBK», que Cloudflare solo acepta en minúsculas → **`sistemabk`**.
+
+| Antes (D'CASA) | Ahora | Qué es |
+|---|---|---|
+| `dcasa` | `sistemabk` | Odoo + sitio (borde y contenedor). Producción en `https://sistemabk.juanarrietabusiness.workers.dev` |
+| `dcasa-staging` | `sistemabk-staging` | Ídem, de prueba. `https://sistemabk-staging.juanarrietabusiness.workers.dev` |
+| `dcasa-juan` / `-staging` | `sistemabk-chatbot` / `sistemabk-chatbot-staging` | El Worker del bot de clientes (hoy «Juan») |
+| `dcasa-puente-wa` / `-staging` | `sistemabk-puente-wa` / `-staging` | Puente de WhatsApp por QR (opcional; D'CASA nunca lo desplegó) |
+| `dcasa-respaldos` / `-staging` | `sistemabk-respaldos` / `sistemabk-respaldos-staging` | Buckets de R2 (hay que crearlos: wrangler no los crea) |
+| `dcasa-odoo` | `sistemabk-odoo` | Repositorio de la imagen en el registro de Cloudflare |
+
+Lo que dice «dcasa» y **se queda** (decisión del dueño, 2026-11-18, para poder traer mejoras de D'CASA): el prefijo
+`dcasa_` de módulos y campos, las variables `DCASA_*`, el nombre interno de la base, los User-Agent y las sales de cifrado
+del puente. Ya en uso en la cuenta y **no se tocan**: `babycaleb-web`, `babycaleb-sistema(-staging)`, `babycaleb-db`,
+`babycaleb-privado`, `babycaleb-respaldos` (son del sistema actual de Baby Caleb).
+
+## Decisiones del dueño
+
+| Fecha | Tema | Decisión |
+|---|---|---|
+| 2026-11-18 | Forma de copiar | Espejo tal cual del repositorio y, sobre él, las adecuaciones que el dueño pida |
+| 2026-11-18 | Repositorio | Público (los minutos de Actions de uno privado no alcanzan: cada CI + despliegue ronda 1 h 30 – 2 h) |
+| 2026-11-18 | Entornos | Los mismos de D'CASA: pruebas, staging y producción. Staging solo para probar; producción con todos los secretos |
+| 2026-11-18 | Dominio | `babycaleb.com` se mueve **un día aparte**, cuando producción esté revisada: `docs/DOMINIO.md` |
+| 2026-11-18 | ITBMS | Se queda tal cual (7 %, como D'CASA). Baby Caleb hoy no cobra ITBMS: el dueño pone la tasa en cero desde Ajustes; el día que cobre, solo cambia la tasa |
+| 2026-11-18 | Catálogo | Fuera todo lo de D'CASA. Entran los artículos del inventario del dueño del 2026-11-18 con su precio y su stock, más NAT-L a $45 con 0 en stock. Sin fotos: se suben a mano |
+| 2026-11-18 | Conocimiento de los asistentes | En cero: nada de D'CASA, ni preguntas por responder. Cada negocio carga el suyo (a mano o por MCP). El mecanismo no se toca |
+| 2026-11-18 | Marca del panel | Logo del panel, favicon y colores del panel se cambian desde Ajustes, por empresa. La web pública la programamos nosotros |
+| 2026-11-18 | Web pública | Mismo diseño, sin nombre, logo, WhatsApp, dirección ni políticas de D'CASA (políticas `PENDIENTE` hasta que la asesoría del negocio las apruebe) |
+| 2026-11-18 | Datos de la empresa | Los pasa el dueño después. Mientras: «Baby Caleb», Panamá, y lo demás vacío |
+| 2026-11-18 | Costos | El dueño dirá qué herramientas del sistema de D'CASA se quedan y cuáles se quitan, para bajar el consumo |
+| 2026-11-18 | Nombres de los asistentes | Cada empresa debe poder nombrarlos como quiera (trabajo aparte, por hacer) |
+
+## Pendiente (preguntas abiertas y trabajo por hacer)
+
+- Datos de la empresa: razón social, RUC y DV, dirección, teléfono, correo, web, lema de los documentos.
+- WhatsApp y logo de Baby Caleb para la web pública.
+- Promoción de Dany Baby (DANY-AW600): «2 cajas (1,200 toallitas) por $35.00». Anotada, no programada.
+- Cobros en línea del sistema nuevo (hoy Tilopay y Yappy viven en la web actual, en `babycaleb.com`).
+- Qué herramientas se quitan para bajar costos.
+- Nombres configurables de los asistentes (Juan, Brian, Sofía, Camila, Andrés).
+- `CLAUDE.md`, `docs/LEEME_PRIMERO.md` (bitácora), `docs/PRIORIDADES.md`, `docs/historico/` y `docs/gerencia/` siguen siendo
+  los de D'CASA: se reescriben para Baby Caleb cuando el dueño lo pida (`docs/REPLICAR.md` §4.3).
+- `.github/versiones_estables.json` y `volver-a-estable.yml` apuntan a imágenes de D'CASA que no existen en esta cuenta: **no
+  usar ese botón** hasta tener la primera versión estable propia (`docs/REPLICAR.md` §4.3).

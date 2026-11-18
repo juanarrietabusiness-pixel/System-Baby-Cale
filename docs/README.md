@@ -2,6 +2,9 @@
 
 Índice de todo lo que está en `docs/`. Puesto al día el 2026-11-06.
 
+> **Copia de Baby Caleb:** [BABY_CALEB.md](BABY_CALEB.md) (qué cambió respecto de D'CASA, decisiones del dueño y
+> pendientes) y [DOMINIO.md](DOMINIO.md) (cómo está babycaleb.com hoy y cómo se pasa al sistema nuevo).
+
 > **¿Vas a instalar este sistema para otro negocio?** [REPLICAR.md](REPLICAR.md): cómo instalar este sistema para otra
 > empresa, con sus dos anexos: [replicar/VALORES_DE_LA_EMPRESA.md](replicar/VALORES_DE_LA_EMPRESA.md) y
 > [replicar/CUENTAS_Y_SECRETOS.md](replicar/CUENTAS_Y_SECRETOS.md).

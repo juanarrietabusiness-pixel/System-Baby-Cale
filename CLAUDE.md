@@ -1,5 +1,9 @@
 # CLAUDE.md — reglas de este repositorio
 
+> **Esta es la copia de Baby Caleb** (espejo de D'CASA del 2026-11-18, en adecuación). Antes que nada, leer
+> `docs/BABY_CALEB.md`: qué se cambió, qué decidió el dueño y qué está pendiente. Donde este archivo hable de D'CASA y
+> `docs/BABY_CALEB.md` diga otra cosa, manda `docs/BABY_CALEB.md`.
+
 ## Proyecto
 
 ERP + sitio web de **D'CASA Panamá** (retail de muebles, La Chorrera) sobre
