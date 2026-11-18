@@ -117,7 +117,8 @@ class TestCargaDeCombosCsv(CombosCase):
         self.assertEqual(combo.taxes_id, self.itbms, 'ITBMS que se suma; nada de impuesto escrito a mano en el precio')
         # La categoría sale de lo que va antes del «+» con las reglas del catálogo (Baby Caleb: pañales, toallitas y
         # fulares): una cama no es de ninguna y queda en la de por defecto.
-        self.assertEqual(combo.categ_id.id, self.env['product.template'].default_get(['categ_id']).get('categ_id'))
+        por_defecto = self.env['product.template'].default_get(['categ_id']).get('categ_id') or False
+        self.assertEqual(combo.categ_id.id, por_defecto)
         self.assertEqual(self.piezas(combo), [['PRUEBA-CAMA-T'], ['PRUEBA-COL-T']])
         self.assertEqual(resumen['avisos_de_precio'], [], '170 = 90 + 80: cuadra')
 

@@ -197,7 +197,7 @@ class TestLecturaDeNombres(BaseCase):
             'COMBO CAMA PRUEBA QUEEN + COLCHÓN DULCES SUEÑOS',
             'COMBO CAMA PRUEBA TWIN + COLCHO BUEN SUEÑO',
             'COMBO BOX SPRING DE PRUEBA TAMAÑO FULL / PRB-2 + COLCHON FIRST CLASS',
-            'COMBO CAMA PRUEBA KING COLOR BLACK + CPLCHON FIRST',
+            'COMBO CAMA PRUEBA KING COLOR BLACK + COLCHÓN FIRST',
             'COMBO CAMAROTE PRUEBA TRIPLE 3 TWIN PRB-3 + 3 COLCHONES IMPERIAL',
         ]
         self.assertTrue(all(clase_de_fila_inventario(n) == 'combo' for n in nombres))

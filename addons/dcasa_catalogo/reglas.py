@@ -2,8 +2,9 @@
 
 Las comparten la carga del catálogo (``catalogo.py``), el inventario de un sistema anterior (``dcasa_migracion``) y la
 importación de Excel de proveedores de Brian (``dcasa_brian``): la misma categoría y el mismo tamaño salen del mismo
-nombre. Las de fotos de un pedido (``asignar_foto`` y compañía) las usaba el lector del Excel de D'CASA. Los tamaños de cama (``TAMANOS``) y lo de colores, medidas y
-combos cama + colchón son las reglas de esas funciones (los combos se arman en la venta): no son datos de un catálogo.
+nombre. Las de fotos de un pedido (``asignar_foto`` y compañía) las usaba el lector del Excel de D'CASA. Los tamaños
+de cama (``TAMANOS``) y lo de colores, medidas y combos cama + colchón son las reglas de esas funciones (los combos se
+arman en la venta): no son datos de un catálogo.
 """
 import re
 import unicodedata
