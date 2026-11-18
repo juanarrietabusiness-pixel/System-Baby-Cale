@@ -16,7 +16,7 @@ class TestBrianSinConocimientoDeFabrica(TransactionCase):
 
     def test_las_instrucciones_fijas_no_traen_el_giro_ni_la_ciudad(self):
         fijo = self.env['brian.conversacion']._sistema_fijo()
-        self.assertFalse(HECHOS_DE_DCASA.findall(fijo))
+        self.assertFalse([m.group(0) for m in HECHOS_DE_DCASA.finditer(fijo)])
         # Lo que sí se queda: las reglas de siempre.
         self.assertIn('No inventes cifras, precios, nombres ni resultados', fijo)
         self.assertIn('Las acciones sensibles las confirma la persona con un botón', fijo)

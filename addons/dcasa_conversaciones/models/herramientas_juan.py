@@ -509,7 +509,7 @@ class BrianHerramientasJuan(models.AbstractModel):
                     'Por seguridad solo funciona con el mismo número de WhatsApp desde el que escribe.',
         parametros={
             'celular': {'type': 'string',
-                        'description': 'Su celular, p. ej. «6026-1919». Debe ser el de esta conversación.'},
+                        'description': 'Su celular, p. ej. «6000-0000». Debe ser el de esta conversación.'},
             'pin': {'type': 'string', 'description': 'Su PIN de socio (6 números). Nunca lo repitas ni lo anotes.'},
         },
         requeridos=['celular', 'pin'], nivel='lectura', categoria='clientes', grupos=GRUPOS,

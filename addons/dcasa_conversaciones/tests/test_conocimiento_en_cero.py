@@ -33,7 +33,8 @@ class TestConocimientoEnCero(HerramientasCase):
         self.assertTrue(catalogo, 'El Worker recibe las herramientas de siempre')
         for herramienta in catalogo:
             texto = json.dumps(herramienta, ensure_ascii=False)
-            self.assertFalse(HECHOS_DE_DCASA.findall(texto), herramienta['nombre'])
+            hallados = [m.group(0) for m in HECHOS_DE_DCASA.finditer(texto)]
+            self.assertFalse(hallados, herramienta['nombre'])
 
     def test_la_ruta_en_el_mapa_sale_de_la_ubicacion_de_la_empresa(self):
         """Ninguna ubicación escrita en el código: sin la latitud y la longitud de la empresa no hay ruta; con ellas, la

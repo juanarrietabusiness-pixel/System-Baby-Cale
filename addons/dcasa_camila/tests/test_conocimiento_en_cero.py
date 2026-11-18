@@ -19,7 +19,7 @@ class TestCamilaSinConocimientoDeFabrica(BaseCase):
 
     def test_las_instrucciones_de_la_ia_no_traen_el_giro_ni_la_ciudad(self):
         for nombre in ('SISTEMA_IA', 'SISTEMA_LINEA', 'SISTEMA_SUGERIR'):
-            self.assertFalse(HECHOS_DE_DCASA.findall(getattr(K, nombre)), nombre)
+            self.assertFalse([m.group(0) for m in HECHOS_DE_DCASA.finditer(getattr(K, nombre))], nombre)
         # Lo que sí se queda: las reglas de siempre.
         self.assertIn('Sin cifras ni números de ningún tipo', K.SISTEMA_IA)
         self.assertIn('No inventes nada que no esté en los datos', K.SISTEMA_LINEA)
