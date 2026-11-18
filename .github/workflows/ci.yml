@@ -299,9 +299,18 @@ jobs:
             sleep 5
           done
           curl -fsS http://localhost:8069/web/health
-      - name: El sitio responde con la marca D'CASA
+      - name: El sitio responde con la marca Baby Caleb
+        # Lo que dice la portada de Baby Caleb (el titular de su web y su correo de contacto) y que no quede nada de la
+        # tienda de origen (D'CASA): ni su nombre, ni su dominio, ni su WhatsApp.
         run: |
-          curl -fsS http://localhost:8069/ | grep -q "Tu casa, bien amueblada"
+          portada="$(curl -fsS http://localhost:8069/)"
+          grep -q "Cuidado hipoalerg" <<<"$portada"
+          grep -q "babycalebpanama@gmail.com" <<<"$portada"
+          if grep -qE "D'CASA|D&#39;CASA|dcasapty|6026-1919|60261919" <<<"$portada"; then
+            echo "::error::La portada todavía dice algo de D'CASA:"
+            grep -oE ".{0,60}(D'CASA|D&#39;CASA|dcasapty|6026-1919|60261919).{0,60}" <<<"$portada" | head -5
+            exit 1
+          fi
           curl -fsS -o /dev/null http://localhost:8069/shop
           curl -fsS http://localhost:8069/socios | grep -q "Tus puntos"
       - name: Nunca queda admin/admin (S-04)
@@ -345,7 +354,7 @@ jobs:
             exit 1
           fi
           echo "Adjunto $id en R2: $(grep -cE '"PUT /dcasa-ci/adjuntos/' "$RUNNER_TEMP/s3/moto.log") PUT en adjuntos/."
-      - name: La factura en PDF sale con el diseño de D'CASA (estilos y fuentes cargados)
+      - name: La factura en PDF sale con el diseño de la marca (estilos y fuentes cargados)
         # web.base.url apunta a https://localhost (inalcanzable aquí, como Cloudflare desde el
         # contenedor): si wkhtmltopdf pidiera los estilos ahí, el PDF saldría como texto suelto.
         run: |

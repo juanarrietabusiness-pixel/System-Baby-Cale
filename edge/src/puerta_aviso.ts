@@ -165,7 +165,7 @@ function pagina(titulo: string, cuerpo: string, pie: string): string {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>D'CASA · Acceso del equipo</title>
+<title>Baby Caleb · Acceso del equipo</title>
 <style>
   *{box-sizing:border-box}
   body{margin:0;background:#0b2160;color:#fff;font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;

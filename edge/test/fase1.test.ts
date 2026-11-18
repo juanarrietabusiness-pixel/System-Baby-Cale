@@ -72,6 +72,10 @@ describe("503 amable mientras Odoo arranca o restaura (I-07)", () => {
     const html = await res.text();
     expect(html).toContain('http-equiv="refresh" content="15"');
     expect(html).toContain("Escríbenos por WhatsApp");
+    // La empresa y su WhatsApp (Baby Caleb, 2026-11-18): nada de la tienda de origen.
+    expect(html).toContain("<title>Baby Caleb · Un momento</title>");
+    expect(html).toContain('href="https://wa.me/50767575065"');
+    expect(html).not.toMatch(/D'CASA|60261919/);
     expect(html).not.toMatch(/FED00F/i); // el amarillo nunca sobre blanco
     expect(html).not.toMatch(/gradient/i);
   });
@@ -81,6 +85,7 @@ describe("503 amable mientras Odoo arranca o restaura (I-07)", () => {
     expect(res.status).toBe(503);
     expect(res.headers.get("Content-Type")).toContain("text/plain");
     expect(res.headers.get("Retry-After")).toBe("15");
+    expect(await res.text()).toBe("Baby Caleb está arrancando. Vuelve a intentar en 15 segundos.\n");
   });
 
   it("si Odoo está listo reenvía sin arrancar nada", async () => {

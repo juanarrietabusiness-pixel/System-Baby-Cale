@@ -9,6 +9,13 @@ import { withSecurityHeaders } from "./routing";
 export const REINTENTO_SEGUNDOS = 15;
 
 /**
+ * La empresa y su WhatsApp de ventas (Baby Caleb, decisión del dueño del 2026-11-18): esta página sale sin Odoo, así
+ * que no puede leerlos del sitio. El número va en formato internacional, sin «+» (wa.me).
+ */
+export const EMPRESA = "Baby Caleb";
+export const WHATSAPP_WA_ME = "50767575065";
+
+/**
  * En vez de un error pelado, una página corta que se recarga sola. Nunca se guarda en caché. A
  * quien no pide HTML (Brian, Telegram, JSON-RPC, POST) se le da texto.
  */
@@ -22,7 +29,7 @@ export function respuestaArrancando(request: Request, reintento = REINTENTO_SEGU
   if (!aceptaHtml || request.method !== "GET") {
     headers.set("Content-Type", "text/plain; charset=utf-8");
     return withSecurityHeaders(
-      new Response(`D'CASA está arrancando. Vuelve a intentar en ${reintento} segundos.\n`, { status: 503, headers }),
+      new Response(`${EMPRESA} está arrancando. Vuelve a intentar en ${reintento} segundos.\n`, { status: 503, headers }),
     );
   }
   headers.set("Content-Type", "text/html; charset=utf-8");
@@ -38,7 +45,7 @@ function paginaArrancando(reintento: number): string {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="refresh" content="${reintento}">
 <meta name="robots" content="noindex">
-<title>D'CASA · Un momento</title>
+<title>${EMPRESA} · Un momento</title>
 <style>
   body{margin:0;background:#fff;color:#0B1F4D;font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
     min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box}
@@ -53,7 +60,7 @@ function paginaArrancando(reintento: number): string {
 <main>
   <h1>Estamos abriendo la tienda</h1>
   <p>Dame un momento: la página se recarga sola en ${reintento} segundos.</p>
-  <p>¿Tienes prisa? <a href="https://wa.me/50760261919">Escríbenos por WhatsApp</a></p>
+  <p>¿Tienes prisa? <a href="https://wa.me/${WHATSAPP_WA_ME}">Escríbenos por WhatsApp</a></p>
 </main>
 </body>
 </html>
