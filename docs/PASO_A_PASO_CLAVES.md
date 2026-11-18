@@ -119,3 +119,80 @@ En tu gestor de contraseñas, usa **Generar contraseña** con estas condiciones:
   no en el código, por eso no viene copiado.
 - Las demás claves del bot de clientes (WhatsApp, Telegram) también van en el panel de Cloudflare, no en GitHub.
 - Opcionales: Telegram de Brian, correo (Resend), la puerta del equipo (Cloudflare Access), Turnstile.
+
+## Plantilla para tu bloc de notas (sin valores)
+
+La estructura que el dueño usaba para D'CASA, puesta al día para esta copia (2026-11-18). Las **etiquetas** (los nombres
+de las llaves que tú creas en Cloudflare) cambiaron a `sistemabk-`, como todo lo de esta copia en Cloudflare. Los
+**nombres de los secretos no cambian** aunque digan `DCASA_`: el sistema los busca por ese nombre exacto. Aquí nunca se
+escriben los valores: van en el gestor de contraseñas.
+
+```text
+═══ CLOUDFLARE ═══
+R2 Token: sistemabk-staging          (caja sistemabk-respaldos-staging)
+  Access Key ID:                     → GitHub › staging › R2_ACCESS_KEY_ID
+  Secret Access Key:                 → GitHub › staging › R2_SECRET_ACCESS_KEY
+
+R2 Token: sistemabk-produccion       (caja sistemabk-respaldos)
+  Access Key ID:                     → GitHub › production › R2_ACCESS_KEY_ID
+  Secret Access Key:                 → GitHub › production › R2_SECRET_ACCESS_KEY
+
+sistemabk-github-deploy (la llave del robot)
+  Token:                             → GitHub › staging y production › CLOUDFLARE_API_TOKEN
+  Account ID:                        → GitHub › staging y production › CLOUDFLARE_ACCOUNT_ID
+  Subdomain: juanarrietabusiness     (no es secreto; ya está en el código)
+
+═══ STAGING (GitHub › Environments › staging › secrets) ═══
+PGBACKREST_CIPHER_PASS:              (NUNCA se cambia)
+DCASA_PIN_PEPPER:                    (NUNCA se cambia)
+ODOO_ADMIN_PASSWORD:
+ODOO_MASTER_PASSWORD:                (distinta de la de admin)
+RESPALDO_TOKEN:
+BRIAN_API_KEY:                       (llave NUEVA de Meta)
+TIENDA_FEED_TOKEN:                   (opcional: caché de páginas)
+Variables (no secretas):
+  URL_SITIO = https://sistemabk-staging.juanarrietabusiness.workers.dev
+  BRIAN_PROVEEDOR = openai
+  BRIAN_BASE_URL = https://api.meta.ai/v1
+  BRIAN_MODELO = muse-spark-1.3-contributor
+
+═══ PRODUCCIÓN (GitHub › Environments › production › secrets) ═══
+PGBACKREST_CIPHER_PASS:              (NUNCA se cambia)
+DCASA_PIN_PEPPER:                    (NUNCA se cambia)
+ODOO_ADMIN_PASSWORD:
+ODOO_MASTER_PASSWORD:
+RESPALDO_TOKEN:
+BRIAN_API_KEY:                       (otra llave NUEVA de Meta)
+TIENDA_FEED_TOKEN:                   (opcional)
+Variables (no secretas):
+  URL_SITIO = https://sistemabk.juanarrietabusiness.workers.dev   (hasta el día del dominio)
+  BRIAN_PROVEEDOR = openai
+  BRIAN_BASE_URL = https://api.meta.ai/v1
+  BRIAN_MODELO = muse-spark-1.3-contributor
+
+═══ JUAN, el chatbot (panel de Cloudflare, NO GitHub) ═══
+STAGING  → mismo valor en sistemabk-staging y en sistemabk-chatbot-staging
+  JUAN_ODOO_TOKEN:
+  JUAN_WORKER_TOKEN:
+PRODUCCIÓN → mismo valor en sistemabk y en sistemabk-chatbot
+  JUAN_ODOO_TOKEN:
+  JUAN_WORKER_TOKEN:
+META_AI_API_KEY:                     (llave NUEVA de Meta) → sistemabk-chatbot (y -staging)
+TELEGRAM_BOT_TOKEN_JUAN:             (bot NUEVO) → sistemabk-chatbot
+TELEGRAM_WEBHOOK_SECRET_JUAN:        → sistemabk-chatbot
+
+═══ PUERTA DEL EQUIPO (opcional, después; GitHub › cada entorno) ═══
+DCASA_PUERTA_RUTA:
+DCASA_ACCESS_EQUIPO:
+DCASA_ACCESS_AUD:                    (= el Application Audience (AUD) Tag de Cloudflare)
+DCASA_PUERTA_SECRETO:                (distinto por entorno)
+
+═══ TELEGRAM BRIAN (opcional, después; bot NUEVO) ═══
+TELEGRAM_BOT_TOKEN:                  → GitHub › cada entorno
+BRIAN_TELEGRAM_SECRETO:              → GitHub › cada entorno
+ID OWNER TELEGRAM:                   → panel de sistemabk: BRIAN_TELEGRAM_CHATS y DCASA_ALERTA_TELEGRAM_CHAT
+```
+
+Para el **primer despliegue a staging** solo hacen falta el bloque de Cloudflare y el de STAGING. Lo demás va después.
+Los dos bots de Telegram, las llaves de Meta y todo lo que se inventa son **nuevos**: nada se reusa de D'CASA (un bot de
+Telegram apunta a un solo sistema, y los de D'CASA apuntan a D'CASA).
