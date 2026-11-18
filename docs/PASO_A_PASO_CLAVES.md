@@ -29,10 +29,14 @@ después directo en Cloudflare.
 ## Paso 2 — Las dos cajas de respaldos (buckets de R2)
 
 1. Menú de la izquierda › **R2 Object Storage** › **Create bucket**.
-2. Nombre: `sistemabk-respaldos-staging`. En **Location** elige **Provide a location hint** › **Eastern North America
+2. Nombre: `sistemabk-staging`. En **Location** elige **Provide a location hint** › **Eastern North America
    (ENAM)**. Storage class: Standard. **Create bucket**.
-3. Repite con el nombre `sistemabk-respaldos` (el de producción), también ENAM.
+3. Repite con el nombre `sistemabk-production` (el de producción), también ENAM.
 4. No actives acceso público ni reglas de borrado automático en ninguna de las dos.
+
+Los nombres los eligió el dueño (2026-11-18). Tienen que ser **exactamente** esos: el código los busca así
+(`R2_BUCKET` en `edge/wrangler.jsonc`). La caja `sistemabk-staging` y el Worker de prueba `sistemabk-staging` se llaman
+igual pero son cosas distintas (una guarda respaldos, el otro es el sistema), y Cloudflare lo permite.
 
 (No uses `babycaleb-respaldos`: es del sistema actual de Baby Caleb.)
 
@@ -42,8 +46,8 @@ Hazlo **dos veces**, una por caja:
 
 1. **R2 Object Storage** › **Manage API tokens** (puede salir como «API» › «Manage API tokens») › **Create Account API
    token**.
-2. Nombre: `sistemabk staging` (o `sistemabk producción`). Permisos: **Object Read & Write**. En **Specify bucket(s)**:
-   **Apply to specific buckets only** y elige solo `sistemabk-respaldos-staging` (o solo `sistemabk-respaldos`). TTL:
+2. Nombre: `sistemabk-staging` (o `sistemabk-production`). Permisos: **Object Read & Write**. En **Specify bucket(s)**:
+   **Apply to specific buckets only** y elige solo `sistemabk-staging` (o solo `sistemabk-production`). TTL:
    Forever. **Create API Token**.
 3. La pantalla muestra **Access Key ID** y **Secret Access Key** **una sola vez**. Cópialas ya al gestor de contraseñas
    como `R2_ACCESS_KEY_ID` y `R2_SECRET_ACCESS_KEY` del entorno que corresponda.
@@ -129,11 +133,11 @@ escriben los valores: van en el gestor de contraseñas.
 
 ```text
 ═══ CLOUDFLARE ═══
-R2 Token: sistemabk-staging          (caja sistemabk-respaldos-staging)
+R2 Token: sistemabk-staging          (caja sistemabk-staging)
   Access Key ID:                     → GitHub › staging › R2_ACCESS_KEY_ID
   Secret Access Key:                 → GitHub › staging › R2_SECRET_ACCESS_KEY
 
-R2 Token: sistemabk-produccion       (caja sistemabk-respaldos)
+R2 Token: sistemabk-production       (caja sistemabk-production)
   Access Key ID:                     → GitHub › production › R2_ACCESS_KEY_ID
   Secret Access Key:                 → GitHub › production › R2_SECRET_ACCESS_KEY
 

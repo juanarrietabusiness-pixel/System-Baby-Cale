@@ -67,7 +67,7 @@
     "DCASA_BLACK_WEEKEND": "0",
     "DCASA_BLACK_WEEKEND_INICIO": "2026-10-02",
     "DCASA_BLACK_WEEKEND_FIN": "2026-10-11",
-    "R2_BUCKET": "sistemabk-respaldos",
+    "R2_BUCKET": "sistemabk-production",
     // Vacío = 24/7 (el contenedor no se duerme nunca).
     "ODOO_DORMIR_TRAS": "",
     // Caché de páginas: "off" en producción hasta que la dueña la apruebe en staging (todo lo
@@ -157,7 +157,7 @@
         "DCASA_BLACK_WEEKEND": "0",
         "DCASA_BLACK_WEEKEND_INICIO": "2026-10-02",
         "DCASA_BLACK_WEEKEND_FIN": "2026-10-11",
-        "R2_BUCKET": "sistemabk-respaldos-staging",
+        "R2_BUCKET": "sistemabk-staging",
         // 24/7 como producción (decisión de la dueña, 2026-10-02): dormido, la página cacheada
         // en el borde salía sin estilos (los assets los sirve Odoo) y /socios tardaba ~1 min en
         // despertar y restaurar desde R2. Para abaratar una pausa larga, poner "1h".

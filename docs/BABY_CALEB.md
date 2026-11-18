@@ -18,7 +18,7 @@ Prefijo elegido por el dueño: «sistemaBK», que Cloudflare solo acepta en min�
 | `dcasa-staging` | `sistemabk-staging` | Ídem, de prueba. `https://sistemabk-staging.juanarrietabusiness.workers.dev` |
 | `dcasa-juan` / `-staging` | `sistemabk-chatbot` / `sistemabk-chatbot-staging` | El Worker del bot de clientes (hoy «Juan») |
 | `dcasa-puente-wa` / `-staging` | `sistemabk-puente-wa` / `-staging` | Puente de WhatsApp por QR (opcional; D'CASA nunca lo desplegó) |
-| `dcasa-respaldos` / `-staging` | `sistemabk-respaldos` / `sistemabk-respaldos-staging` | Buckets de R2 (hay que crearlos: wrangler no los crea) |
+| `dcasa-respaldos` / `-staging` | `sistemabk-production` / `sistemabk-staging` | Buckets de R2 (hay que crearlos: wrangler no los crea) |
 | `dcasa-odoo` | `sistemabk-odoo` | Repositorio de la imagen en el registro de Cloudflare |
 
 Lo que dice «dcasa» y **se queda** (decisión del dueño, 2026-11-18, para poder traer mejoras de D'CASA): el prefijo
