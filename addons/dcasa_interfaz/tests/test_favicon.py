@@ -34,12 +34,19 @@ def _caja(rgba, opaca):
     return rgba.getchannel('A').point(lambda v: 255 if v > 24 else 0).getbbox()
 
 
-def _proporcion_del_logo(opaca):
-    """Ancho sobre alto de lo que se ve del logo de la marca (el archivo de dcasa_base), sobre blanco o tal cual: el
-    ícono tiene que mostrar el logo entero, sin recortar ni deformar, sea cual sea su forma."""
+def _logo_visible():
+    """El logo de la marca (el archivo de dcasa_base) sin el margen vacío de alrededor, transparente o blanco: lo mismo
+    que usa scripts/iconos_de_la_marca.py (``visible``) para hacer los íconos."""
     with file_open(LOGO, 'rb') as archivo:
         logo = Image.open(io.BytesIO(archivo.read())).convert('RGBA')
-    izquierda, arriba, derecha, abajo = _caja(logo, opaca)
+    caja = _caja(logo, True)
+    return logo.crop(caja) if caja else logo
+
+
+def _proporcion_del_logo(opaca):
+    """Ancho sobre alto de lo que se ve del logo, sobre blanco o tal cual: el ícono tiene que mostrar el logo entero,
+    sin recortar ni deformar, sea cual sea su forma."""
+    izquierda, arriba, derecha, abajo = _caja(_logo_visible(), opaca)
     return (derecha - izquierda) / (abajo - arriba)
 
 
@@ -131,8 +138,7 @@ class TestIconoDeLaMarca(HttpCase):
     def test_las_imagenes_salen_del_logo_de_la_marca(self):
         """Hechas con scripts/iconos_de_la_marca.py a partir de dcasa_base/static/img/logo.png: el centro del ícono
         es el logo reducido (no otro dibujo)."""
-        with file_open(LOGO, 'rb') as archivo:
-            logo = Image.open(io.BytesIO(archivo.read())).convert('RGBA')
+        logo = _logo_visible()
         icono = self._imagen(f'{CARPETA}/logo-512.png').convert('RGBA')
         ancho = round(512 * 0.94)
         alto = round(ancho * logo.height / logo.width)

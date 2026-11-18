@@ -3,7 +3,9 @@
 Pedido de la dueña (2026-10-22): «el ícono que se crea cuando se guarda la página o panel administrativo en los
 celulares en pantallas de inicio debe ser estrictamente el logo». Todos salen de
 ``addons/dcasa_base/static/img/logo.png`` (el de la empresa, el sitio y los correos), tal cual: centrado, entero (sin
-recortar) y del mismo tamaño en proporción.
+recortar) y del mismo tamaño en proporción. Solo se le quita el margen vacío de alrededor (transparente o blanco): el
+logo de Baby Caleb (2026-11-18) trae el dibujo en un cuadrado blanco, corrido hacia abajo, y sin quitarlo los íconos
+salían descentrados y más chicos.
 
 * ``logo-192.png`` y ``logo-512.png``: solo el logo, con fondo transparente (manifiesto «any», favicon).
 * ``logo-maskable-192.png`` y ``logo-maskable-512.png``: sobre blanco y dentro de la zona segura (el círculo del 80 %),
@@ -20,7 +22,7 @@ Si cambia el logo, se vuelve a correr y se suben las imágenes nuevas.
 import math
 from pathlib import Path
 
-from PIL import Image
+from PIL import Image, ImageChops
 
 RAIZ = Path(__file__).resolve().parent.parent
 LOGO = RAIZ / 'addons/dcasa_base/static/img/logo.png'
@@ -41,6 +43,15 @@ ICONOS = (
 )
 
 
+def visible(logo):
+    """Lo que se ve del logo: sin el margen transparente ni el blanco de alrededor. Si no hay margen (el de D'CASA, con
+    su borde azul fino), el mismo logo."""
+    fondo = Image.new('RGBA', logo.size, BLANCO)
+    sobre_blanco = Image.alpha_composite(fondo, logo)
+    caja = ImageChops.difference(sobre_blanco, fondo).convert('L').point(lambda v: 255 if v > 24 else 0).getbbox()
+    return logo.crop(caja) if caja else logo
+
+
 def ancho_en_zona_segura(logo):
     """El ancho (sobre el lado) con el que el logo entero cae dentro del círculo de la zona segura: su esquina queda
     a la mitad de su diagonal del centro. Sale de la proporción del logo (con el de D'CASA, 892 × 405, daba 0,72; con
@@ -59,7 +70,7 @@ def componer(logo, lado, ancho_relativo, fondo):
 
 
 def main():
-    logo = Image.open(LOGO).convert('RGBA')
+    logo = visible(Image.open(LOGO).convert('RGBA'))
     CARPETA.mkdir(exist_ok=True)
     for archivo, lado, ancho, fondo in ICONOS:
         relativo = ancho_en_zona_segura(logo) if ancho == ZONA_SEGURA else ancho

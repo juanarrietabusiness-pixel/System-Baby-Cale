@@ -170,7 +170,7 @@
         <xpath expr="//span[@t-field='website.logo']" position="after">
             <img t-else="" src="/website_dcasa/static/src/img/logo-200.webp"
                  srcset="/website_dcasa/static/src/img/logo-200.webp 1x, /website_dcasa/static/src/img/logo-400.webp 2x"
-                 width="200" height="200" class="img img-fluid" loading="eager" t-att-alt="website.name"/>
+                 width="200" height="196" class="img img-fluid" loading="eager" t-att-alt="website.name"/>
         </xpath>
     </template>
 
