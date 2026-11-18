@@ -8,6 +8,7 @@ from freezegun import freeze_time
 from odoo.exceptions import ValidationError
 from odoo.tests import new_test_user, tagged
 
+from ..models.ajustes import DIAS_CAMPOS
 from .common import JuanCase
 
 
@@ -17,7 +18,12 @@ def panama(anio, mes, dia, hora=0, minuto=0):
 
 
 class RepartoCase(JuanCase):
-    """Un equipo de tres vendedoras (Ana, Beto y Carla), el reparto parejo encendido y el reloj quieto un viernes."""
+    """Un equipo de tres vendedoras (Ana, Beto y Carla), el reparto parejo encendido y el reloj quieto un viernes.
+
+    El horario de estas pruebas es el que dicen sus horas (todos los días de 8:00 a 17:00, el de fábrica cuando se
+    escribieron): se pone aquí, porque el de fábrica de la empresa puede cambiar (Baby Caleb, 2026-11-18: lunes a sábado
+    de 9:00 a 18:00) y las pruebas del reparto no tratan del horario.
+    """
 
     AHORA = panama(2026, 10, 9, 10, 0)    # viernes 9 de octubre, 10:00 a. m. en Panamá
 
@@ -35,6 +41,8 @@ class RepartoCase(JuanCase):
         self.reloj = freeze_time(self.AHORA)
         self.reloj.start()
         self.addCleanup(self.reloj.stop)
+        self.ajustes.write({'horario_inicio': 8.0, 'horario_fin': 17.0, 'horario_fin_domingo': 0.0,
+                            **{campo: True for campo, _dia in DIAS_CAMPOS}})
         self.ajustes.reparto_modo = 'parejo'
         self.Enlace = self.env['brian.telegram.enlace'].sudo()
         self.enviar = MagicMock()
