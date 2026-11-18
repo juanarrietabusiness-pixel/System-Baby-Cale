@@ -61,12 +61,36 @@ Devuélveme todo en tablas, sin resumir, y al final una lista de lo que te parec
 Lo que devuelva se pega en la sesión de Claude Code que esté trabajando el sistema. Con eso se arma la Fase B exacta
 (sobre todo, qué registros de correo no se pueden tocar).
 
+### Resultado de la Fase A (2026-11-18, Claude en Chrome, solo lectura; los redireccionamientos, comprobados con curl)
+
+- **DNS (6 registros):** `babycaleb.com`, `panel.` y `ruta.` son registros «Worker» (los crean los dominios propios);
+  `www` es un **CNAME proxiado a `babycaleb.com`**; un TXT de DMARC (`p=quarantine`, informes a
+  `dmarc_rua@onsecureserver.net`, residuo de GoDaddy) y un CNAME `_domainconnect` de GoDaddy. **No hay MX, SPF ni DKIM:**
+  el cambio de dominio no puede romper ningún correo (hoy no se recibe correo en `@babycaleb.com`).
+- **Rutas de la zona:** una sola, `www.babycaleb.com/*` → `babycaleb-web`. Sin reglas de redirección, de página ni
+  redireccionamientos masivos.
+- **babycaleb-web:** dominio propio `babycaleb.com` + la ruta de `www`; su `workers.dev` está **apagado** (su
+  `wrangler.jsonc` no declara `workers_dev` y tiene rutas). **babycaleb-sistema:** `panel.` y `ruta.`, sin rutas.
+- **SSL/TLS:** modo Completo; **«Usar siempre HTTPS» apagado** y sin HSTS en la zona; TLS mínimo 1.0. Comprobado:
+  `http://babycaleb.com/` responde **200 sin cifrar** (la web actual no redirige); `http://www.` y `https://www.` → 301 a
+  `https://babycaleb.com/`; `http://panel.` → 301 a `https://panel.`.
+- **No existen** `sistemabk` ni `sistemabk-staging` todavía.
+
+Lo que eso decide para el día del cambio:
+
+1. **`www` como ruta, igual que hoy**, y no como dominio propio: así el CNAME proxiado se queda y no se pisa ningún
+   registro DNS. El borde de este sistema ya manda `www` → `https://babycaleb.com` (`edge/src/routing.ts`, función
+   `route`, 301 en GET y 308 en lo demás). La llave del robot necesita *Zone · Workers Routes · Edit* para `babycaleb.com`.
+2. **Encender «Usar siempre HTTPS»** en la zona (SSL/TLS › Certificados de perímetro). El borde manda HSTS, pero el
+   navegador solo lo aprende después de una primera visita cifrada, y no redirige `http://` en la raíz. A `panel.` y `ruta.`
+   no les cambia nada (ya redirigen) y a la web actual le arregla su `http://`: se puede encender **desde ya**, con el «sí»
+   del dueño.
+3. Para el correo a clientes de este sistema (Resend, `docs/CORREO.md`), más adelante: con DMARC en `quarantine` y sin
+   SPF ni DKIM, un correo «de» `@babycaleb.com` iría a spam. Resend da los registros SPF y DKIM que hay que agregar.
+
 ## Fase B — el día del cambio (solo con el «sí» del dueño)
 
-Nota sobre `www`: según el comentario de `Baby-caleb/wrangler.jsonc`, `www.babycaleb.com` tiene hoy un CNAME proxiado hacia
-la raíz, y por eso allá `www` es una ruta y no un dominio propio (un dominio propio no se crea sobre un CNAME). Con el
-informe de la Fase A se decide si aquí `www` va como dominio propio (wrangler en el CI pisa ese registro) o, igual que
-allá, como ruta que el borde manda a la raíz.
+`www` va como **ruta**, no como dominio propio (ver «Resultado de la Fase A»).
 
 Antes, todo esto tiene que ser verdad:
 
@@ -78,29 +102,31 @@ Antes, todo esto tiene que ser verdad:
 - [ ] Decidido qué pasa con los cobros en línea: la web vieja cobra con Tilopay y Yappy en `babycaleb.com`; el sistema
       nuevo todavía no tiene esos cobros conectados. **PENDIENTE**: decisión del dueño.
 - [ ] Ningún pedido de la web vieja a medio pagar (Tilopay vuelve a `/pago/vuelta`).
-- [ ] Informe de la Fase A guardado (registros de correo anotados).
+- [x] Informe de la Fase A guardado (2026-11-18; ver «Resultado de la Fase A»: no hay registros de correo que cuidar).
 
 Pasos, en este orden y en el mismo rato:
 
 1. **En este repositorio**, un commit que ponga en `edge/wrangler.jsonc`
-   `"routes": [{ "pattern": "babycaleb.com", "custom_domain": true }, { "pattern": "www.babycaleb.com", "custom_domain": true }]`,
+   `"routes": [{ "pattern": "babycaleb.com", "custom_domain": true }, { "pattern": "www.babycaleb.com/*", "zone_name": "babycaleb.com" }]`,
    con sus pruebas (`edge/test/fase1.test.ts`, `edge/test/anfitrion-canonico.test.ts`) y `CANONICAL_HOST` a
    `babycaleb.com`. CI a staging de ese commit (staging sigue con `"routes": []`).
 2. **En el repositorio Baby-caleb** (`abrinay1997-stack/Baby-caleb`, con sus reglas: leer su `CLAUDE.md` y su
    `docs/TRAMPAS.md` antes, y con el «sí» del dueño), en una rama:
    1. Abrir `wrangler.jsonc` (el de la raíz, el de la web; **no** `sistema/wrangler.jsonc`, que es el de `panel.` y `ruta.`).
    2. Cambiar el bloque `"routes": [ { "pattern": "babycaleb.com", "custom_domain": true }, { "pattern":
-      "www.babycaleb.com/*", "zone_name": "babycaleb.com" } ]` por `"routes": []`, y dejar `"workers_dev": true` para que
-      la web vieja siga respondiendo en su dirección `workers.dev` (por si hay que volver atrás).
+      "www.babycaleb.com/*", "zone_name": "babycaleb.com" } ]` por `"routes": []` y agregar `"workers_dev": true` (hoy
+      su `workers.dev` está apagado): la web vieja sigue viva en `https://babycaleb-web.juanarrietabusiness.workers.dev`
+      por si hay que volver atrás. Revisar antes si esa web da algo por hecho con `workers.dev` apagado.
    3. Revisar en ese repositorio lo que dé por hecho que la web vive en `babycaleb.com` (su `SITE_URL`, las vueltas de
       Tilopay y Yappy, pruebas que fijen el dominio) y ajustarlo en el mismo commit, con sus pruebas en verde.
    4. Unir a su `main` **en el mismo rato del cambio**, justo antes o justo después del paso 4. Al unir, su CI
       despliega `babycaleb-web` sin dominio: si se une antes del paso 4, `babycaleb.com` queda unos minutos sin Worker.
    5. Marcar con `[x]` la casilla «Repositorio Baby-caleb» de arriba, con el enlace del commit, en el mismo commit del
       paso 1 de este repositorio (si no, `edge/test/dominio-babycaleb.test.ts` falla).
-3. **Claude en Chrome**, en Workers & Pages › babycaleb-web › Settings › Domains & Routes: si todavía aparece, borrar la ruta
-   `www.babycaleb.com/*` (regla 3). El dominio propio `babycaleb.com` se lo lleva el despliegue del paso 4 (regla 1).
-   No tocar los registros de correo ni `panel.` ni `ruta.`.
+3. **Claude en Chrome**, en Workers & Pages › babycaleb-web › pestaña **Dominios**: si todavía aparece, borrar la ruta
+   `www.babycaleb.com/*` (regla 3: si se queda, gana a la de este sistema; y dos Workers no comparten un mismo patrón).
+   El dominio propio `babycaleb.com` se lo lleva el despliegue del paso 4 (regla 1). Si «Usar siempre HTTPS» sigue
+   apagado, encenderlo. No tocar `panel.`, `ruta.`, el CNAME de `www` ni el TXT de DMARC.
 4. **GitHub › Settings › Environments › production**: `URL_SITIO` = `https://babycaleb.com`. Luego *Actions › Desplegar*,
    `entorno = production`, con el `imagen_digest` y el `app_version` del CI del paso 1. Ese día el respaldo previo llama a
    `URL_SITIO`, que todavía apunta a la web vieja: con el «sí» del dueño se desmarca `respaldo_previo`, o se respalda antes

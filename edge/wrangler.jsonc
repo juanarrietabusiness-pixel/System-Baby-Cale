@@ -111,8 +111,8 @@
 
   // Sin dominio propio todavía: producción nace en https://sistemabk.juanarrietabusiness.workers.dev y babycaleb.com sigue en la
   // web actual (babycaleb-web) hasta el día del cambio, que se hace a propósito y en un solo paso (docs/DOMINIO.md).
-  // Ese día esto pasa a ser [{ "pattern": "babycaleb.com", "custom_domain": true }, { "pattern": "www.babycaleb.com",
-  // "custom_domain": true }]. OJO: sin terminal (como en el CI), wrangler 4.158 se lleva SIN PREGUNTAR el dominio que
+  // Ese día esto pasa a ser [{ "pattern": "babycaleb.com", "custom_domain": true }, { "pattern": "www.babycaleb.com/*",
+  // "zone_name": "babycaleb.com" }] (www como ruta: su CNAME proxiado se queda; el borde lo manda a la raíz). OJO: sin terminal (como en el CI), wrangler 4.158 se lleva SIN PREGUNTAR el dominio que
   // ya usa otro Worker y pisa los registros DNS que choquen (override_existing_origin/override_existing_dns_record):
   // ponerlo aquí antes de tiempo se lo quitaría a la web actual (y a sus pagos) en el primer despliegue.
   // Y al revés: ANTES de ponerlo aquí, quitarlo de Baby-caleb/wrangler.jsonc (esa web se despliega sola en cada push a
