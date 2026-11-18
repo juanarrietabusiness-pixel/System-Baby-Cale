@@ -21,6 +21,7 @@
 | Los canales de Juan: WhatsApp por la API oficial, Telegram, conectar Messenger e Instagram | [JUAN_CANALES.md](JUAN_CANALES.md) |
 | Usar a Sofía, la asistente del CRM (propone a quién escribirle; una persona aprueba) | [SOFIA.md](SOFIA.md) |
 | Usar Brian, el asistente del panel | [BRIAN.md](BRIAN.md) |
+| Poner el logo, el ícono y los colores de la empresa en el panel (Ajustes › Marca del panel; la web no cambia) | [MARCA_DEL_PANEL.md](MARCA_DEL_PANEL.md) |
 | La puerta del equipo `/master` (cómo comprobarla y cuándo encenderla) | [PUERTA_MASTER.md](PUERTA_MASTER.md) |
 | Activar el doble factor y entender la puerta del equipo | [SEGURIDAD_ACCESO.md](SEGURIDAD_ACCESO.md) |
 | El correo a los clientes (factura, abono, bienvenida) por Resend | [CORREO.md](CORREO.md) |
@@ -73,7 +74,7 @@
 | `puente-wa/` (WhatsApp por QR, nunca desplegado) | [JUAN_PUENTE.md](JUAN_PUENTE.md) · [JUAN_CANALES.md](JUAN_CANALES.md#4-el-puente-de-whatsapp-por-qr-no-se-usa-en-producción) |
 | `dcasa_seguridad`, `dcasa_sesiones` | [SEGURIDAD_ACCESO.md](SEGURIDAD_ACCESO.md) · [PUERTA_MASTER.md](PUERTA_MASTER.md) |
 | `dcasa_adjuntos_r2`, `dcasa_tienda_borde`, `edge/`, `docker/` | [ARQUITECTURA.md](ARQUITECTURA.md) · [DESPLIEGUE.md](DESPLIEGUE.md) · [`edge/CONTRATO_CONTENEDOR.md`](../edge/CONTRATO_CONTENEDOR.md) |
-| `website_dcasa`, `dcasa_interfaz` | [OPERACION.md › El sitio se edita por código](OPERACION.md#el-sitio-se-edita-por-código) · [auditoria/ronda6/panel.md](auditoria/ronda6/panel.md) · diseño del sitio (registro): [historico/REDISENO.md](historico/REDISENO.md) |
+| `website_dcasa`, `dcasa_interfaz` | [OPERACION.md › El sitio se edita por código](OPERACION.md#el-sitio-se-edita-por-código) · [auditoria/ronda6/panel.md](auditoria/ronda6/panel.md) · diseño del sitio (registro): [historico/REDISENO.md](historico/REDISENO.md) · la marca del panel por empresa: [MARCA_DEL_PANEL.md](MARCA_DEL_PANEL.md) |
 
 ## Si programas u operas el sistema
 

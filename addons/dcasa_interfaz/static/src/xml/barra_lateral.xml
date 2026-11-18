@@ -16,8 +16,8 @@
              t-on-mouseenter="entrar" t-on-mouseleave="salir"
              t-on-focusin="entrar" t-on-focusout="salir">
             <a class="o_dcasa_barra_marca" href="/odoo" t-on-click="(ev) => this.abrir(apps[0], ev)"
-               aria-label="D'CASA Panamá, ir al inicio">
-                <img class="o_dcasa_barra_logo" src="/dcasa_base/static/img/logo.png" alt="D'CASA Panamá"/>
+               t-att-aria-label="nombre + ', ir al inicio'">
+                <img class="o_dcasa_barra_logo" t-att-src="logo" t-att-alt="nombre"/>
             </a>
 
             <button type="button" class="o_dcasa_barra_buscar" t-on-click="buscar"

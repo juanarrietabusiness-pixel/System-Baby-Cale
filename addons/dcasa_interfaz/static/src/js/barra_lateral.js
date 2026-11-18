@@ -16,6 +16,7 @@ import { router } from "@web/core/browser/router";
 import { useBus, useService } from "@web/core/utils/hooks";
 import { patch } from "@web/core/utils/patch";
 import { WebClient } from "@web/webclient/webclient";
+import { logoDelPanel, nombreDelPanel } from "./marca";
 
 const CLAVE = "dcasa.barra_lateral.modo";
 // Espera antes de recoger la barra al salir el mouse (evita que se cierre por un roce).
@@ -154,6 +155,15 @@ export class DcasaBarraLateral extends Component {
 
     enlace(item) {
         return item.actionID ? `/odoo/action-${item.actionID}` : "/odoo";
+    }
+
+    /** El logo de la empresa (Ajustes › Marca del panel) o el de fábrica; ver marca.js. */
+    get logo() {
+        return logoDelPanel();
+    }
+
+    get nombre() {
+        return nombreDelPanel();
     }
 
     icono(app) {

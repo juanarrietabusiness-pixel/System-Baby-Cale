@@ -65,7 +65,8 @@ imprime y cede el lugar a los menús desplegables y diálogos de Odoo.
 
 ## Qué contiene hoy
 
-191 tareas en 11 categorías (`data/guia.json`, contadas el 2026-11-13). Las de **Impuestos y obligaciones**
+200 tareas en 11 categorías (`data/guia.json`, contadas el 2026-11-18; la última, **Poner el logo y los colores de tu
+empresa en el sistema**, de Ajustes › Marca del panel, solo para administradores). Las de **Impuestos y obligaciones**
 (declaración de renta, ITBMS, seguro social y seguro educativo,
 décimo tercer mes, facturación electrónica de la DGI y un recordatorio de otras obligaciones) existen para que el
 administrador *se entere* de que están. **No presentan nada por él**: el sistema deja los números listos y la

@@ -314,6 +314,18 @@ class TestServidor(TransactionCase):
             with self.subTest(consulta):
                 self.assertIn('juan-costos-pago', self.buscar(consulta)[:3], self.buscar(consulta))
 
+    def test_la_marca_del_panel_es_de_los_administradores(self):
+        """Ajustes › Marca del panel (2026-11-18): el administrador la encuentra con sus palabras; Gerencia que no es
+        administradora y la vendedora no la ven (la pantalla es de Ajustes)."""
+        admin = self.env.ref('base.user_admin')
+        self.assertIn('marca-del-panel', self.ids_de(admin))
+        self.assertNotIn('marca-del-panel', self.ids_de(self.gerencia))
+        self.assertNotIn('marca-del-panel', self.ids_de(self.vendedora))
+        for consulta in ('cambiar el logo del sistema', 'colores del panel', 'poner mi marca', 'favicon',
+                         'personalizar los colores'):
+            with self.subTest(consulta):
+                self.assertIn('marca-del-panel', self.buscar(consulta, admin)[:3], self.buscar(consulta, admin))
+
     def test_buscar_abono_lleva_a_registrar_un_abono(self):
         for consulta in ('abono', 'registrar un abono', 'el cliente pagó una parte'):
             with self.subTest(consulta):

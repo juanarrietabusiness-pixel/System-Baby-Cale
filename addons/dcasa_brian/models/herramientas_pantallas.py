@@ -31,6 +31,7 @@ PANTALLAS = {
     'reponer': ('dcasa_interfaz.menu_dcasa_reponer', 'Reponer'),
     'clientes_repetidos': ('dcasa_contactos.menu_duplicados', 'Posibles duplicados'),
     'guia': ('dcasa_guia.menu_guia', 'Guía'),
+    'marca_del_panel': ('dcasa_interfaz.menu_dcasa_marca_panel', 'Marca del panel'),
 }
 
 

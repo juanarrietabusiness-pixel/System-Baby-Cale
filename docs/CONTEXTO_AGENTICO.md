@@ -1028,6 +1028,30 @@ provocan a propósito: ruido). El resultado real está en la línea `✖ Fallaro
 - **Las referencias visuales que ya fallan en esta máquina** se repiten iguales: «conexiones» a 390 px 13.73 % y «lista»
   a 390 px 7.68 % sin tocar esas pantallas (2026-11-07). Si sale otra cifra en otra pantalla, sí es del cambio.
 
+- **La marca del panel por empresa (2026-11-18, `dcasa_interfaz`, [MARCA_DEL_PANEL.md](MARCA_DEL_PANEL.md)): lo
+  aprendido.**
+  - **El azul no se cambia con una variable CSS.** En la hoja compilada del panel hay ~420 `#1340B1` en ~280 reglas que
+    Bootstrap y Odoo calcularon al compilar (botones y su color al pasar el puntero, focos, la pestaña de Ajustes, la
+    barra de estado, el chat), además de los `var(--dc-azul-*)`. Por eso los colores de una empresa se aplican
+    **pintando la hoja ya compilada** (`marca/tinte.py`) y enlazándola EN LUGAR de la de Odoo (misma cascada), no con
+    una hoja encima: una hoja encima vuelve a afirmar un color después de una regla posterior del mismo peso y cambia
+    lo que gana.
+  - **Girar el tono a la misma luminosidad HSL rompe el contraste**: un amarillo con la «L» del azul se lee 2.9:1 sobre
+    blanco. El giro (`colores.Giro`) trabaja con la luz relativa de WCAG y respeta lo que en fábrica se leía con blanco.
+  - **Grises fríos ≠ azul.** Los grises de Odoo y las líneas/niebla de D'CASA tienen tono 210–222° pero saturación
+    14–43 %; la escala de la marca, 73–86 %. El corte en 45 % los separa. Las paletas de categorías (calendario,
+    etiquetas, kanban) y los colores del contenido de la web (`o_cc*`, `--o-color-*`) se excluyen por su selector.
+  - **Un campo de imagen leído con `bin_size` queda en la memoria del ORM aparte**: después de escribir la imagen en la
+    misma transacción, `with_context(bin_size=True)[campo]` seguía diciendo `False` (Brian ponía el logo y respondía
+    «de fábrica»). Saber si hay imagen se pregunta a `ir.attachment` (`res_field`), que es una consulta y está al día.
+  - **En una prueba, un `write` que falla en un `@api.constrains` ya quedó escrito en la base** (la restricción corre
+    después del UPDATE): el siguiente `write` de la misma prueba valida contra el valor malo. Cada intento fallido va en
+    `with self.assertRaises(...), self.env.cr.savepoint():`.
+  - **Las pruebas de navegador se saltan en silencio sin `websocket-client`** («skipped … websocket-client module is
+    not installed», nivel INFO): el venv del scratchpad no lo traía; `pip install websocket-client`.
+  - **`ir.actions.act_window.target` ya no acepta `inline` en Odoo 19** (`current`, `new`, `fullscreen`, `main`): la
+    acción que abre una pestaña de Ajustes va sin `target`, con `context: {'module': '<nombre del <app>>'}`.
+
 ### Odoo 19
 
 - **Cinco trampas de precios que salieron con la campaña del sitio (2026-11-15/16, `website_dcasa/models/campana.py`):**
