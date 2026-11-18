@@ -3,7 +3,7 @@
 Índice de todo lo que está en `docs/`. Puesto al día el 2026-11-06.
 
 > **Copia de Baby Caleb:** [BABY_CALEB.md](BABY_CALEB.md) (qué cambió respecto de D'CASA, decisiones del dueño y
-> pendientes) , [DOMINIO.md](DOMINIO.md) (cómo está babycaleb.com hoy y cómo se pasa al sistema nuevo) y
+> pendientes), [DOMINIO.md](DOMINIO.md) (cómo está babycaleb.com hoy y cómo se pasa al sistema nuevo) y
 > [PASO_A_PASO_CLAVES.md](PASO_A_PASO_CLAVES.md) (las cuentas y claves para desplegar, paso a paso).
 
 > **¿Vas a instalar este sistema para otro negocio?** [REPLICAR.md](REPLICAR.md): cómo instalar este sistema para otra
