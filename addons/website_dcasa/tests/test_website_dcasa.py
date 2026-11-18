@@ -153,10 +153,21 @@ class TestPortadaDinamica(HttpCase):
         self.assertIn('Para dormir mejor', html)
 
     def test_cifras_de_socios_salen_de_puntos_json(self):
-        reglas = self.website._dcasa_reglas_socios()
-        html = self.url_open('/').text
+        # Cifras de PRUEBA encima de puntos.json (dcasa_socios/tests/common.py): la banda las lee de ahí.
+        from odoo.addons.dcasa_socios.tests.common import parche_de_reglas_de_prueba  # noqa: PLC0415
+        with parche_de_reglas_de_prueba():
+            reglas = self.website._dcasa_reglas_socios()
+            html = self.url_open('/').text
         self.assertIn('{:,}'.format(reglas['referido']['puntosAlPadrino']), html)
         self.assertIn('{:,}'.format(reglas['referido']['puntosAlAhijado']), html)
+
+    def test_con_puntos_json_de_fabrica_la_banda_no_dice_cifras(self):
+        """Todo en PENDIENTE (2026-11-18): la banda de Socios no enseña ninguna cifra."""
+        html = self.url_open('/').text
+        banda = re.search(r'<section class="o_dcasa_socios_band".*?</section>', html, re.S)
+        texto = re.sub(r'<[^>]+>', ' ', banda.group(0)) if banda else ''
+        self.assertNotRegex(texto, r'\d', 'ninguna cifra en la banda')
+        self.assertNotIn('por cada dólar', texto)
 
     def test_json_ld_tienda(self):
         html = self.url_open('/').text

@@ -91,8 +91,7 @@ class VendedoresDcasa(http.Controller):
             return request.redirect('/socios/cuenta')
         env = request.env
         link = f'{request.httprequest.host_url.rstrip("/")}/v/{ficha.dcasa_vendedor_codigo}'
-        texto = (f"Compra en D'CASA Panamá (muebles, colchones y todo para tu casa) con mi código "
-                 f"{ficha.dcasa_vendedor_codigo}: {link}")
+        texto = f"Compra en {env.company.name} con mi código {ficha.dcasa_vendedor_codigo}: {link}"
         Canje = env['dcasa.vend.canje'].sudo()
         return self._render('dcasa_socios.vendedor_panel', {
             'socio': ficha,

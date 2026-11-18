@@ -99,10 +99,16 @@ class DcasaCompra(models.Model):
 
     @api.model
     def _registrar(self, partner, factura, monto_centavos, vendedor, autor, move=None, notas=''):
-        """Registra la compra, acredita sus puntos y paga el referido si toca."""
+        """Registra la compra, acredita sus puntos y paga el referido si toca.
+
+        Con las cifras de acumulación en ``null`` (PENDIENTE en ``puntos.json``) no se registra ninguna compra y no
+        se acredita nada, y la factura se cobra igual: el programa nunca hace fallar un pago. La ficha (código de
+        socio, llave = celular) sí se asegura, porque es con lo que el cliente entra a Mi cuenta a ver sus compras."""
         reglas = R.cargar_reglas()
         ficha = partner._dcasa_asegurar_ficha()
         if ficha.dcasa_socio_estado != 'activo':
+            return self.browse()
+        if R.falta_para_acreditar(reglas):
             return self.browse()
         if not self._factura_libre(R.factura_normal(factura), move):
             raise UserError(self.env._('Esa factura ya dio puntos. Una factura, una carga (también si se anuló).'))
@@ -167,7 +173,7 @@ class DcasaCompra(models.Model):
         comprador = self.partner_id
         if not comprador.dcasa_referido_por_id:
             return 'sin-padrino'
-        # Una compra que no dio puntos no estrena a nadie (si no, $19.99 pagarían $7.50 en bonos).
+        # Una compra que no dio puntos no estrena a nadie (si no, una compra bajo el mínimo pagaría los bonos).
         if self.puntos <= 0:
             return 'no-califica'
         if comprador.dcasa_referido_pagado_en:

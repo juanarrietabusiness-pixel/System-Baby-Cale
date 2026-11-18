@@ -9,13 +9,13 @@ from odoo import Command
 from odoo.tests import HttpCase, tagged
 
 from ..models import reglas as R
-from .common import VENDEDORES_DE_PRUEBA
+from .common import VENDEDORES_DE_PRUEBA, ConReglasDePrueba
 
 PIN = '482915'
 
 
 @tagged('post_install', '-at_install')
-class TestVendedoresWeb(HttpCase):
+class TestVendedoresWeb(ConReglasDePrueba, HttpCase):
 
     def setUp(self):
         super().setUp()

@@ -10,6 +10,17 @@ se teclean dos veces.
 > `VEN…`, puntos propios y una colmena de un solo nivel; ver [VENDEDORES.md](VENDEDORES.md). Convive con
 > este: el cliente sigue ganando sus puntos de Socios y el vendedor es la misma ficha.
 
+> **En esta copia (Baby Caleb, 2026-11-18): el programa no tiene cifras todavía.** Por decisión del dueño, todas las
+> cifras de [`puntos.json`](../addons/dcasa_socios/data/puntos.json) (versión 6) están en `null` (PENDIENTE) y el
+> catálogo de premios arranca vacío. Mientras sea así: una factura pagada no registra ninguna compra con puntos ni paga
+> referidos (la ficha del cliente sí recibe su código de socio, que es con lo que entra a Mi cuenta), el cumpleaños no
+> regala nada, **no se puede pedir ningún premio** por ningún camino, la compra manual se niega diciendo qué falta, la
+> factura impresa solo enseña el código y `/socios`, `/socios/premios`, `/socios/terminos`, el carrito, `/my` y Mi
+> cuenta dicen «El programa de puntos todavía no está disponible.» sin ninguna cifra (Juan y Brian igual). Las ventas,
+> las facturas, los abonos y los pagos funcionan como siempre. Las cifras y los ejemplos de abajo son los de la empresa de
+> la que se copió el sistema: sirven para entender el programa, no rigen aquí. Para encenderlo: ver
+> [Cambiar las reglas](#cambiar-las-reglas).
+
 ## Qué se tomó de cada lado
 
 | De DCasa-Referidos (Abrinay) | De la integración con Odoo |
@@ -45,7 +56,8 @@ código `DCA…` o el nombre del padrino.
 - **Catálogo público** en `dcasapty.com/socios/premios`: foto, nombre y puntos de cada premio
   (lo que Gerencia edita en *Socios → Configuración → Premios*). «Pedir» crea el canje de siempre
   (código de 72 h, puntos reservados); la página enseña el estado y si se recoge o se enseña al pagar.
-- **Premio de ejemplo** (decisión de la dueña, 03/10/2026): «Dos almohadas» por 400 puntos, de
+- **Premio de ejemplo** (de la empresa de la que se copió; **desde el 2026-11-18 ya no se crea**: el catálogo arranca
+  vacío, igual que la escalera de descuentos de $5 a $100): «Dos almohadas» por 400 puntos, de
   producto, ligado a `ALMOHADA001` × 2 si ese producto ya está en la base (si no, sin producto). Se crea
   una sola vez desde `data/premios_data.xml`; Gerencia lo edita o lo archiva y no vuelve a aparecer.
   **Ojo:** `saldoMinimoParaCanjear` (500) se compara hoy contra los puntos **del premio**, así que un
@@ -213,6 +225,19 @@ Se edita `addons/dcasa_socios/data/puntos.json`, se sube la `version` y se hace 
 PR. Las compras guardan la versión con que se calcularon, así que las viejas
 siguen explicando sus puntos. Los valores en `null` o `PENDIENTE` no se rellenan
 a ojo: el programa se niega a acreditar hasta que estén decididos.
+
+Qué hace falta para que funcione cada parte (cada clave `$…` del archivo dice qué pasa mientras siga en `null`):
+
+- **Acreditar** (y que la web, Mi cuenta y los asistentes hablen del programa): `acumulacion.puntosPorDolar` y
+  `acumulacion.baseDeCalculo` (`"total"` o `"subtotal"`; con `"subtotal"`, también `itbmsPorcentaje`). Sin ellas
+  (`reglas.programa_disponible`), la factura se cobra y no se registra ninguna compra: el pago **nunca** falla por el
+  programa (antes de 2026-11-18 una acumulación en `null` hacía fallar el pago con `FaltaConfigurar`).
+- **Referidos:** `referido.puntosAlPadrino` (y `puntosAlAhijado`, los topes).
+- **Canjear:** `canje.vigenciaDelCodigoHoras` y `canje.saldoMinimoParaCanjear` (0 = sin mínimo)
+  (`reglas.falta_para_canjear`); sin ellas `dcasa.canje._pedir` se niega por cualquier camino. Además, los premios del
+  catálogo (Socios › Configuración › Premios) con sus puntos, valor y costo.
+- **Cumpleaños:** `cumpleanos.puntos`. **Mi cuenta «equivalen a»** y la pantalla de Ajustes de vendedores:
+  `canje.puntosPorDolar`.
 
 ## Migrar los socios de DCasa-Referidos
 

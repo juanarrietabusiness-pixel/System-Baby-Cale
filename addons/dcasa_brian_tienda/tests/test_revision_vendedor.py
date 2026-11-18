@@ -8,6 +8,7 @@ from unittest.mock import patch
 
 from odoo import Command
 from odoo.addons.dcasa_envios.tests.common import importar
+from odoo.addons.dcasa_socios.tests.common import ConReglasDePrueba
 from odoo.exceptions import UserError
 from odoo.tests import new_test_user, tagged
 
@@ -19,7 +20,8 @@ CLAVE = 'zzrv-socia-2026'
 
 
 @tagged('post_install', '-at_install', 'rv_andres')
-class TestRevisionVendedor(TiendaCase):
+class TestRevisionVendedor(ConReglasDePrueba, TiendaCase):
+    """Con las cifras y los premios de PRUEBA de Socios (puntos.json de fábrica está en PENDIENTE)."""
 
     @classmethod
     def setUpClass(cls):
@@ -65,7 +67,7 @@ class TestRevisionVendedor(TiendaCase):
         self.socia._dcasa_asegurar_ficha()
         self.socia._dcasa_guardar_pin(PIN)
         self.env['dcasa.movimiento']._asentar(self.socia, 'ajuste', 1500, 'test', motivo='Saldo de prueba')
-        diez = self.env.ref('dcasa_socios.premio_desc_10')
+        diez = self.premios[10]
         self.authenticate('zzrv_socia', CLAVE)
         self.assertTrue(self.agregar(self.tornillo).json()['ok'])
         orden = self.orden()
@@ -89,7 +91,7 @@ class TestRevisionVendedor(TiendaCase):
         self.authenticate('zzrv_socia', CLAVE)
         self.assertTrue(self.agregar(self.base_cama).json()['ok'])
         orden = self.orden()
-        orden._dcasa_usar_puntos_web(premio=self.env.ref('dcasa_socios.premio_desc_10'))
+        orden._dcasa_usar_puntos_web(premio=self.premios[10])
         premio = orden.order_line.filtered('dcasa_canje_id')
         self.assertTrue(premio, 'el premio está en la venta')
         carrito = self.url_open(f'{RAIZ}/carrito').json()['carrito']

@@ -317,6 +317,20 @@ class TestHerramientas(TransactionCase):
         self.assertEqual(len(ficha.dcasa_movimiento_ids), antes + 1)
         self.assertEqual(ficha.dcasa_saldo, datos['puntos'] + 150)
 
+    def test_con_el_programa_en_pendiente_el_saldo_lo_dice_sin_inventar_cifras(self):
+        """puntos.json de fábrica (todo PENDIENTE, 2026-11-18): el saldo es la suma del libro (0) y Brian sabe por
+        qué no sube; el resumen de vendedores dice que está apagado y no supone cuánto vale un punto."""
+        ficha = self.cliente._dcasa_asegurar_ficha()
+        datos = self.ok(self.ejecutar(self.vendedor, 'saldo_puntos', {'cliente': ficha.dcasa_socio_codigo}))
+        self.assertEqual(datos['puntos'], 0)
+        self.assertIn('todavía no da puntos', datos['aviso'])
+        self.assertIn('acumulacion.puntosPorDolar', datos['aviso'])
+        resumen = self.ok(self.ejecutar(self.gerente, 'resumen_programa_vendedores'))
+        self.assertIn('apagado', resumen['programa'])
+        self.assertNotIn('100', resumen['nota'])
+        self.assertIn('PENDIENTE', resumen['nota'])
+        self.assertIn('sin definir', resumen['costo_nominal'])
+
     # ------------------------------------------------------------------
     # Contabilidad
     # ------------------------------------------------------------------

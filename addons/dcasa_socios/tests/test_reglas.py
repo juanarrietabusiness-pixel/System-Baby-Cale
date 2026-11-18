@@ -4,6 +4,7 @@ from datetime import datetime
 from odoo.tests import BaseCase, tagged
 
 from ..models import reglas as R
+from .common import reglas_de_fabrica, reglas_de_prueba
 
 
 @tagged('post_install', '-at_install')
@@ -11,7 +12,7 @@ class TestPuntos(BaseCase):
 
     def setUp(self):
         super().setUp()
-        self.reglas = R.cargar_reglas()
+        self.reglas = reglas_de_prueba()   # cifras de PRUEBA encima de puntos.json (que hoy está todo en PENDIENTE)
 
     def con(self, **acumulacion):
         return {**self.reglas, 'acumulacion': {**self.reglas['acumulacion'], **acumulacion}}
@@ -67,16 +68,60 @@ class TestPuntos(BaseCase):
         self.assertEqual(R.a_centavos(353.09), 35309)
         self.assertEqual(R.a_centavos(0.1 + 0.2), 30)
 
-    def test_reglas_de_dcasa(self):
-        """Las cifras aprobadas el 2026-09-22 (datos/puntos.json de Abrinay)."""
-        a, ref = self.reglas['acumulacion'], self.reglas['referido']
-        self.assertEqual(a['puntosPorDolar'], 1)
-        self.assertEqual(a['baseDeCalculo'], 'total')
-        self.assertEqual(a['compraMinimaCentavos'], 2000)
-        self.assertEqual((ref['puntosAlPadrino'], ref['puntosAlAhijado']), (500, 250))
-        self.assertEqual(ref['topeDePuntosPorPadrinoAlMes'] // ref['puntosAlPadrino'], 10)
-        self.assertEqual(self.reglas['bienvenida']['puntos'], 0)
-        self.assertEqual(self.reglas['canje']['vigenciaDelCodigoHoras'], 72)
+    def test_con_subtotal_sin_itbms_no_acredita(self):
+        reglas = self.con(baseDeCalculo='subtotal', itbmsPorcentaje=None)
+        self.assertTrue(R.falta_para_acreditar(reglas))
+        self.assertFalse(R.programa_disponible(reglas))
+        with self.assertRaises(R.FaltaConfigurar):
+            R.puntos_de_compra(10700, reglas)
+
+    def test_canje_necesita_su_vigencia_y_su_minimo(self):
+        self.assertEqual(R.falta_para_canjear(self.reglas), [])
+        for cambio in ({'vigenciaDelCodigoHoras': None}, {'vigenciaDelCodigoHoras': 0},
+                       {'saldoMinimoParaCanjear': None}):
+            with self.subTest(**cambio):
+                self.assertTrue(R.falta_para_canjear({**self.reglas, 'canje': {**self.reglas['canje'], **cambio}}))
+        sin_minimo = {**self.reglas, 'canje': {**self.reglas['canje'], 'saldoMinimoParaCanjear': 0}}
+        self.assertEqual(R.falta_para_canjear(sin_minimo), [], '0 es una decisión: sin mínimo')
+
+    def test_puntos_json_de_fabrica_no_trae_ninguna_cifra(self):
+        """Decisión del dueño (2026-11-18): todas las cifras en null (PENDIENTE), ninguna de la empresa de la que se
+        copió el sistema. Con ellas así no se acredita, no se refiere y no se canjea nada."""
+        fabrica = R.cargar_reglas()
+        self.assertEqual(fabrica, reglas_de_fabrica(), 'sin parches: es el archivo tal cual')
+        self.assertGreaterEqual(fabrica['version'], 6)
+        a, ref, canje = fabrica['acumulacion'], fabrica['referido'], fabrica['canje']
+        for valor in (a['puntosPorDolar'], a['baseDeCalculo'], a['itbmsPorcentaje'], a['compraMinimaCentavos'],
+                      a['puntosMaximosPorCompra'], fabrica['bienvenida']['puntos'], ref['puntosAlPadrino'],
+                      ref['puntosAlAhijado'], ref['topeDeAhijadosPorPadrino'], ref['topeDePuntosPorPadrinoAlMes'],
+                      canje['vigenciaDelCodigoHoras'], canje['saldoMinimoParaCanjear'], canje['puntosPorDolar'],
+                      fabrica['vencimiento']['meses'], fabrica['cumpleanos']['puntos']):
+            self.assertIsNone(valor)
+        self.assertTrue(R.falta_para_acreditar(fabrica))
+        self.assertFalse(R.programa_disponible(fabrica))
+        self.assertTrue(R.falta_para_referir(fabrica))
+        self.assertTrue(R.falta_para_canjear(fabrica))
+        with self.assertRaises(R.FaltaConfigurar):
+            R.puntos_de_compra(10700, fabrica)
+        with self.assertRaises(R.FaltaConfigurar):
+            R.puntos_por_dolar_al_canjear(fabrica)
+
+    def test_ningun_texto_de_puntos_json_trae_cifras_de_otra_empresa(self):
+        """Los comentarios ($…) se quedaron neutrales: ni montos, ni porcentajes, ni el giro de la otra empresa."""
+        import json  # noqa: PLC0415
+        import re  # noqa: PLC0415
+
+        def comentarios(nodo):
+            for clave, valor in nodo.items():
+                if clave.startswith('$'):
+                    yield valor if isinstance(valor, str) else json.dumps(valor, ensure_ascii=False)
+                elif isinstance(valor, dict):
+                    yield from comentarios(valor)
+
+        texto = ' '.join(comentarios(reglas_de_fabrica()))
+        self.assertFalse(re.findall(r'\$\s?\d|\d\s?%|\d+[.,]\d+', texto), 'ningún monto ni porcentaje')
+        for prohibida in ("D'CASA", 'D’CASA', 'mueble', 'colch', 'Marcial', '145', '700', 'La Chorrera'):
+            self.assertNotIn(prohibida, texto)
 
 
 @tagged('post_install', '-at_install')

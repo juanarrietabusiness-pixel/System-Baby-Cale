@@ -53,6 +53,13 @@ del puente. Ya en uso en la cuenta y **no se tocan**: `babycaleb-web`, `babycale
 
 - Datos de la empresa: razón social, RUC y DV, dirección, teléfono, correo, web, lema de los documentos.
 - Promoción de Dany Baby (DANY-AW600): «2 cajas (1,200 toallitas) por $35.00». Anotada, no programada.
+- **Cifras de Socios y del programa de vendedores de Baby Caleb**: `addons/dcasa_socios/data/puntos.json` (versión 6)
+  está todo en `null` y el catálogo de premios vacío (hecho el 2026-11-18). Qué cifra enciende qué parte:
+  `docs/SOCIOS.md` › «Cambiar las reglas». Mientras tanto no se acredita ni se canjea nada y las ventas van igual.
+- Textos con la marca «Socios D'CASA» / «D'CASA» que siguen en la web del programa (títulos de `/socios`, la banda de
+  Socios de la portada —sin cifras, pero con «Suma puntos y gana invitando»—, el producto «Premio del programa Socios
+  D'CASA», los tipos de vendedor, la bienvenida por correo que dice «tus puntos»): se cambian con el trabajo de la web
+  pública o de nombres configurables.
 - **RECORDARLE AL DUEÑO, PASO A PASO, EL DÍA DEL DOMINIO** (lo pidió el 2026-11-18): quitar `babycaleb.com` y
   `www.babycaleb.com/*` de `Baby-caleb/wrangler.jsonc`, porque esa web se despliega sola en cada push a su `main` y se
   volvería a llevar el dominio. Pasos en `docs/DOMINIO.md` (Fase B, paso 2); candado en

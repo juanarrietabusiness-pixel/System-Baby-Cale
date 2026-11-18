@@ -739,6 +739,21 @@ provocan a propósito: ruido). El resultado real está en la línea `✖ Fallaro
 
 ### Esta máquina (sesiones de Claude)
 
+- **Un `null` en la acumulación de `puntos.json` hacía FALLAR el cobro** (2026-11-18, al dejar todo en PENDIENTE para
+  la copia de Baby Caleb). `_invoice_paid_hook` → `dcasa.compra._registrar` → `reglas.puntos_de_compra` lanza
+  `FaltaConfigurar` («se niega a acreditar») y ese error subía hasta el registro del pago: «el programa se niega» quería
+  decir «la factura no se puede pagar». Nunca lo vio una prueba porque todas corrían con las cifras de D'CASA. Ahora
+  `_registrar` devuelve vacío si `falta_para_acreditar` (la ficha y su código sí se aseguran: son la llave de Mi cuenta),
+  y `test_pendiente.py` paga ventas del mostrador, de la web y en abonos con el `puntos.json` de fábrica. Regla: una
+  regla de dinero que «se niega» se prueba también con la cifra en `null`, por el camino real del pago. Lo mismo con
+  `canje.vigenciaDelCodigoHoras` (`timedelta(hours=None)` reventaba `_pedir`) y con las plantillas que formateaban
+  `None` (`fmt_puntos(None)` en `/socios`, `'{:,}'.format(None)` en la portada).
+- **Las pruebas de Socios ya no leen las cifras de fábrica**: corren con `reglas_de_prueba()` / `ConReglasDePrueba` de
+  `dcasa_socios/tests/common.py` (las mismas cifras de antes, como datos de prueba) y los premios con
+  `premios_de_prueba()`. Una prueba nueva que necesite que el programa dé puntos usa eso; una que quiera la fábrica tal
+  cual pone `CON_CIFRAS_DE_PRUEBA = False`. `side_effect` (no `return_value`) en el parche: cada llamada devuelve una copia
+  nueva, como el `cargar_reglas` real.
+
 - **La línea del premio de Socios no baja la compra por su valor de cara** (2026-11-17): rebaja la BASE sin
   impuesto y el ITBMS va encima (base + ITBMS = el valor del premio). Un premio de $10 baja la compra medida sin
   ITBMS en **$9.35**, no en $10. Medir las dos cosas por igual se equivoca por el impuesto: el aviso al socio dice

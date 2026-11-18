@@ -16,6 +16,7 @@ from unittest.mock import patch
 
 from odoo import Command
 from odoo.addons.dcasa_envios.tests.common import importar
+from odoo.addons.dcasa_socios.tests.common import ConReglasDePrueba
 from odoo.exceptions import UserError
 from odoo.tests import new_test_user, tagged
 
@@ -27,7 +28,8 @@ CLAVE = 'zzpe-socia-2026'
 
 
 @tagged('post_install', '-at_install')
-class TestPremioFrenteAlEnvio(TiendaCase):
+class TestPremioFrenteAlEnvio(ConReglasDePrueba, TiendaCase):
+    """Con las cifras y los premios de PRUEBA de Socios (puntos.json de fábrica está en PENDIENTE)."""
 
     @classmethod
     def setUpClass(cls):
@@ -83,7 +85,7 @@ class TestPremioFrenteAlEnvio(TiendaCase):
         return bool((orden or self.orden()).order_line.filtered('dcasa_promocion_envio_id'))
 
     def premio(self, ref):
-        return self.env.ref(f'dcasa_socios.{ref}')
+        return self.premios[int(ref.removeprefix('premio_desc_'))]
 
     def carrito_con_envio(self, lugar=None):
         """Un carrito de $205 sin ITBMS con el envío puesto y la promoción aplicada."""

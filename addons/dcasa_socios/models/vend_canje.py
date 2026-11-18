@@ -78,6 +78,16 @@ class DcasaVendCanje(models.Model):
     _codigo_unico = models.Constraint('UNIQUE(codigo)', 'Ese código de canje ya existe.')
 
     @api.model
+    def _horas_del_codigo(self, canje_reglas):
+        """Cuánto dura el código de un premio de vendedor. Ninguna cifra fuera de puntos.json: sin ella (PENDIENTE)
+        no se inventa una y no se canjea."""
+        horas = canje_reglas.get('vigenciaDelCodigoHoras')
+        if not horas or horas <= 0:
+            raise UserError(self.env._('Los premios de vendedores todavía no se pueden pedir: falta definir cuántas '
+                                       'horas dura el código.'))
+        return horas
+
+    @api.model
     def _pedir(self, partner, premio, origen='panel'):
         reglas = self.env['dcasa.vend.reglas']._vigentes()
         canje_reglas = RV.seccion(reglas).get('canje') or {}
@@ -85,6 +95,7 @@ class DcasaVendCanje(models.Model):
         premio = premio.sudo()
         if not RV.seccion(reglas).get('programaActivo'):
             raise UserError(self.env._('El programa de vendedores todavía no está encendido.'))
+        horas = self._horas_del_codigo(canje_reglas)
         # Serializa los pedidos del mismo vendedor (igual que Socios): dos toques seguidos no gastan dos veces el saldo.
         self.env.cr.execute('UPDATE res_partner SET write_date = write_date WHERE id = %s', [ficha.id])
         ficha.invalidate_recordset(['dcasa_vend_saldo', 'dcasa_vend_disponible'])
@@ -123,7 +134,7 @@ class DcasaVendCanje(models.Model):
             'codigo': codigo, 'partner_id': ficha.id, 'premio_id': premio.id, 'premio_nombre': premio.name,
             'puntos': premio.puntos, 'valor': premio.valor, 'costo': premio.costo, 'origen': origen,
             'solicitado_en': ahora,
-            'expira_en': ahora + timedelta(hours=canje_reglas.get('vigenciaDelCodigoHoras') or 72),
+            'expira_en': ahora + timedelta(hours=horas),
         })
         self.env['dcasa.vend.movimiento']._asentar(
             ficha, 'canje', -premio.puntos, 'vendedor' if origen == 'panel' else self.env.user.login,

@@ -237,7 +237,11 @@ class SaleOrder(models.Model):
         reglas = R.cargar_reglas()
         socio = self._dcasa_socio_del_carrito()
         minimo = reglas['canje'].get('saldoMinimoParaCanjear') or 0
+        canje_disponible = not R.falta_para_canjear(reglas)
         valores = {
+            # Sin las cifras de puntos.json (PENDIENTE) el carrito no habla del programa: ni promete puntos ni ofrece
+            # premios. Solo se enseña si quedara un premio aplicado (para poder quitarlo).
+            'dcasa_programa_disponible': R.programa_disponible(reglas),
             'dcasa_socio': socio,
             'dcasa_modo_puntos': self._dcasa_modo_puntos_en_carrito(),
             'dcasa_reglas': reglas,
@@ -257,6 +261,8 @@ class SaleOrder(models.Model):
         total = self._dcasa_total_sin_premios()
         valores['dcasa_saldo'] = saldo
         valores['dcasa_total_centavos'] = total
+        if not canje_disponible:
+            return valores
         valores['dcasa_premios'] = self.env['dcasa.premio']._catalogo('descuento').filtered(
             lambda p: p.puntos >= minimo and R.a_centavos(p.valor) <= total)
         if valores['dcasa_modo_puntos'] == 'todo':
@@ -291,7 +297,7 @@ class SaleOrder(models.Model):
 
     def _dcasa_usar_puntos_web(self, premio=None, puntos=None):
         """El socio usa sus puntos en su carrito: se pide el canje (reserva los puntos, código de
-        72 h) y se aplica a la orden como una línea negativa. Nunca deja saldo negativo ni un total
+        vigencia de puntos.json) y se aplica a la orden como una línea negativa. Nunca deja saldo negativo ni un total
         negativo: solo cabe un premio por carrito y su valor no pasa del carrito."""
         self.ensure_one()
         socio = self._dcasa_socio_del_carrito()

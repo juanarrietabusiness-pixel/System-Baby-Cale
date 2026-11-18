@@ -7,6 +7,7 @@ from odoo.tests import BaseCase, tagged
 from ..models import reglas as R
 from ..models import reglas_ajustes as A
 from ..models import reglas_vendedores as RV
+from .common import reglas_de_fabrica, reglas_de_prueba
 
 AHORA = datetime(2026, 10, 14, 12, 0)
 
@@ -21,7 +22,7 @@ class TestReglasEfectivas(BaseCase):
 
     def setUp(self):
         super().setUp()
-        self.base = R.cargar_reglas()
+        self.base = reglas_de_prueba()   # el programa completo de prueba (puntos.json de fábrica está en PENDIENTE)
 
     def test_sin_versiones_rige_puntos_json_tal_cual(self):
         self.assertIs(A.reglas_efectivas(self.base, [], AHORA), self.base)
@@ -133,7 +134,7 @@ class TestLaPantallaYLosAjustes(BaseCase):
 
     def setUp(self):
         super().setUp()
-        self.base = R.cargar_reglas()
+        self.base = reglas_de_prueba()   # el programa completo de prueba (puntos.json de fábrica está en PENDIENTE)
         self.pantalla = A.valores_de_pantalla(self.base)
 
     def cambio(self, ajustes_actuales=None, actuales=None, **cambios):
@@ -319,6 +320,24 @@ class TestLaPantallaYLosAjustes(BaseCase):
         with self.assertRaises(R.FaltaConfigurar):
             A.calcular_cambio(base, base, {}, {})
         self.assertEqual(len(A.problemas_de_las_cifras(base)), 1)
+
+    def test_con_el_puntos_json_de_fabrica_la_pantalla_no_convierte_ni_deja_guardar(self):
+        """Todo en PENDIENTE (2026-11-18): sin canje.puntosPorDolar no hay cómo decir los topes en dólares; la
+        pantalla lo dice y no se guarda nada. Tampoco se calcula ningún costo."""
+        fabrica = reglas_de_fabrica()
+        with self.assertRaises(R.FaltaConfigurar):
+            A.valores_de_pantalla(fabrica)
+        with self.assertRaises(R.FaltaConfigurar):
+            A.calcular_cambio(fabrica, fabrica, {}, {'programa': True})
+        self.assertEqual(len(A.problemas_de_las_cifras(fabrica)), 1)
+        self.assertIsNone(A.costo_del_programa(fabrica))
+        self.assertEqual(A.cambios_contra_fabrica(fabrica, fabrica), [])
+        # Con solo el valor del punto, encender el programa sigue sin poderse: faltan las cifras obligatorias.
+        con_valor = copy.deepcopy(fabrica)
+        con_valor['canje']['puntosPorDolar'] = 100
+        problemas = A.problemas_de_las_cifras(A.calcular_cambio(
+            con_valor, con_valor, {}, {**A.valores_de_pantalla(con_valor), 'programa': True})['candidato'])
+        self.assertIn('Falta una cifra: comisión base (% de la venta neta).', problemas)
 
     def test_la_escalera_de_fabrica_cabe_en_la_pantalla_y_mas_no(self):
         self.assertLessEqual(len(RV.seccion(self.base)['comision']['escalones']), A.MAX_ESCALONES)

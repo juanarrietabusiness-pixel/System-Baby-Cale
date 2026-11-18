@@ -199,11 +199,17 @@ class AccountMove(models.Model):
         ficha = self.sudo().commercial_partner_id
         if ficha._is_public():
             return None
+        # Sin las cifras del programa (PENDIENTE en puntos.json) la factura no promete puntos: a quien ya tiene código
+        # solo se le imprime el código (con él entra a Mi cuenta a ver sus compras); a quien no, nada.
+        disponible = R.programa_disponible(R.cargar_reglas())
+        if not disponible and not ficha.dcasa_socio_codigo:
+            return None
         compra = self.sudo().dcasa_compra_ids.filtered(lambda c: not c.anulada_en)[:1]
         canjes = self.sudo().invoice_line_ids.sale_line_ids.dcasa_canje_id
         pedidos = self.sudo().invoice_line_ids.sale_line_ids.order_id
         padrino = ficha.dcasa_referido_por_id or pedidos.dcasa_referido_por_id[:1]
         return {
+            'disponible': disponible,
             'socio': bool(ficha.dcasa_socio_codigo),
             'codigo': ficha.dcasa_socio_codigo or '',
             'compra': compra,

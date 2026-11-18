@@ -27,6 +27,10 @@ LARGO_CODIGO_CANJE = 6
 LARGO_PIN = 6
 VERSION_TERMINOS = 1
 
+# Lo que se le dice a un cliente mientras el programa no tiene sus cifras (``puntos.json`` en ``null``): ni cifras ni
+# promesas de puntos, premios o cumpleaños.
+NO_DISPONIBLE = 'El programa de puntos todavía no está disponible.'
+
 # El candado contra fuerza bruta del PIN: a los 5 fallos, 15 minutos; a los 10, 24 horas.
 ESCALONES_CANDADO = ((5, 15), (10, 60 * 24))
 
@@ -61,6 +65,31 @@ def falta_para_acreditar(reglas):
         falta.append('acumulacion.puntosPorDolar tiene que ser mayor que cero.')
     if a.get('baseDeCalculo') not in ('total', 'subtotal'):
         falta.append('acumulacion.baseDeCalculo: falta decidir si los puntos salen del total o del subtotal.')
+    elif a['baseDeCalculo'] == 'subtotal' and a.get('itbmsPorcentaje') is None:
+        falta.append('acumulacion.itbmsPorcentaje: con la base «subtotal» falta definir el ITBMS que se le quita.')
+    return falta
+
+
+def programa_disponible(reglas):
+    """¿El programa ya da puntos por las compras? Sin las cifras de acumulación (``null`` en ``puntos.json``) no hay
+    programa que ofrecer: la web y los asistentes no prometen puntos y las ventas siguen igual."""
+    return not falta_para_acreditar(reglas)
+
+
+def falta_para_canjear(reglas):
+    """Lo que falta decidir para que se pueda pedir un premio. Vacío = listo.
+
+    Sin la vigencia del código no hay forma de vencer un canje, y sin el mínimo (que puede ser 0) se estaría
+    rellenando a ojo: con cualquiera de las dos en ``null`` no se canjea nada."""
+    c = reglas.get('canje') or {}
+    falta = []
+    horas = c.get('vigenciaDelCodigoHoras')
+    if horas is None:
+        falta.append('canje.vigenciaDelCodigoHoras: falta definir cuántas horas dura el código de un premio.')
+    elif not horas > 0:
+        falta.append('canje.vigenciaDelCodigoHoras tiene que ser mayor que cero.')
+    if c.get('saldoMinimoParaCanjear') is None:
+        falta.append('canje.saldoMinimoParaCanjear: falta definir el mínimo para canjear (0 si no hay mínimo).')
     return falta
 
 

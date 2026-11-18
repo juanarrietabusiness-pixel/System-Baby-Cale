@@ -107,6 +107,8 @@ class BrianHerramientasVendedores(models.AbstractModel):
             mejores[comision.partner_id] = mejores.get(comision.partner_id, 0) + comision.puntos
         pasivo = sum(self.env['dcasa.vend.movimiento']._saldos(Vendedores).values())
         falta = RV.falta_para_comisionar(reglas)
+        # Cuánto vale un punto sale de puntos.json (canje.puntosPorDolar); en PENDIENTE no se dice ninguna cifra.
+        por_dolar = (reglas.get('canje') or {}).get('puntosPorDolar')
         return {
             'programa': 'encendido' if not falta else 'apagado o incompleto: ' + ' '.join(falta),
             'vendedores_activos': len(Vendedores.filtered(lambda p: p.dcasa_vendedor_estado == 'activo')),
@@ -114,13 +116,15 @@ class BrianHerramientasVendedores(models.AbstractModel):
             'ventas_con_vendedor_este_mes': len(directas.filtered('puntos')),
             'venta_neta_atribuida': c.moneda(neto / 100),
             'puntos_pagados': puntos,
-            'costo_nominal': c.moneda(puntos / 100),
+            'costo_nominal': c.moneda(puntos / por_dolar) if por_dolar else 'sin definir: falta canje.puntosPorDolar',
             'costo_como_porcentaje_de_la_venta': f'{puntos / neto * 100:.2f} %' if neto else 'sin ventas todavía',
             'puntos_que_se_deben_a_vendedores': pasivo,
             'comisiones_que_no_pagaron': a_revisar or 'ninguna',
             'quienes_mas_ganaron': [{'vendedor': p.display_name, 'puntos': n}
                                     for p, n in sorted(mejores.items(), key=lambda x: -x[1])[:5]],
-            'nota': 'Los puntos son nominales (100 = $1); canjeados por mercancía cuestan solo el costo del producto.',
+            'nota': (f'Los puntos son nominales ({por_dolar:g} = $1); canjeados por mercancía cuestan solo el '
+                     'costo del producto.' if por_dolar else
+                     'Cuánto vale un punto todavía no está decidido (canje.puntosPorDolar está en PENDIENTE).'),
         }
 
     # ------------------------------------------------------------------

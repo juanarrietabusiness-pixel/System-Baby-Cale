@@ -13,7 +13,7 @@ class TestCanjes(SociosCommon):
 
     def setUp(self):
         super().setUp()
-        self.diez = self.env.ref('dcasa_socios.premio_desc_10')  # 1,000 puntos = $10
+        self.diez = self.premios[10]  # 1,000 puntos = $10
         self.env['dcasa.movimiento']._asentar(self.padrino, 'ajuste', 1500, 'test', motivo='Saldo de prueba')
 
     def test_pedir_reserva_los_puntos(self):
@@ -25,12 +25,12 @@ class TestCanjes(SociosCommon):
 
     def test_no_alcanza(self):
         with self.assertRaises(UserError):
-            self.env['dcasa.canje']._pedir(self.padrino, self.env.ref('dcasa_socios.premio_desc_25'))
+            self.env['dcasa.canje']._pedir(self.padrino, self.premios[25])
 
     def test_un_solo_pendiente_del_mismo_premio(self):
-        self.env['dcasa.canje']._pedir(self.padrino, self.env.ref('dcasa_socios.premio_desc_5'))
+        self.env['dcasa.canje']._pedir(self.padrino, self.premios[5])
         with self.assertRaises(UserError):
-            self.env['dcasa.canje']._pedir(self.padrino, self.env.ref('dcasa_socios.premio_desc_5'))
+            self.env['dcasa.canje']._pedir(self.padrino, self.premios[5])
 
     def test_canje_minimo(self):
         # El mínimo frena descuentos en dólares de centavos...

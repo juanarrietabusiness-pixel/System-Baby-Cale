@@ -3,8 +3,7 @@ import copy
 from unittest.mock import patch
 
 from odoo import Command
-from odoo.addons.dcasa_socios.models import reglas as R
-from odoo.addons.dcasa_socios.tests.common import VENDEDORES_DE_PRUEBA
+from odoo.addons.dcasa_socios.tests.common import VENDEDORES_DE_PRUEBA, reglas_de_prueba
 from odoo.tests import tagged
 from odoo.tests.common import TransactionCase
 
@@ -32,7 +31,7 @@ class TestBrianVendedores(TransactionCase):
 
     def setUp(self):
         super().setUp()
-        reglas = R.cargar_reglas()
+        reglas = reglas_de_prueba()   # cifras de PRUEBA (puntos.json de fábrica está en PENDIENTE)
         reglas['vendedores'] = copy.deepcopy(VENDEDORES_DE_PRUEBA)
         self.reglas = reglas
         parche = patch('odoo.addons.dcasa_socios.models.reglas.cargar_reglas', return_value=reglas)

@@ -9,15 +9,16 @@ Socios D'CASA
 Reglas del programa diseñado por Abrinay (repositorio DCasa-Referidos), llevadas
 a Odoo para que haya un solo sistema:
 
-* Economía en ``data/puntos.json`` (versionada en git): 1 punto por dólar pagado
-  con ITBMS, compra mínima $20, 100 puntos = $1 al canjear.
+* Economía en ``data/puntos.json`` (versionada en git). En esta copia todas sus cifras
+  están en ``null`` (PENDIENTE) hasta que el dueño decida las suyas: sin ellas no se
+  acredita ni se canjea nada y las ventas funcionan igual.
 * Libro mayor inmutable (``dcasa.movimiento``): el saldo es la suma de asientos;
   las correcciones son asientos contrarios con motivo.
 * La factura de Odoo pagada suma puntos sola; una nota de crédito o una
   cancelación los devuelve (y deshace el referido que disparó).
-* Referidos: padrino 500 / invitado 250 con la PRIMERA compra que da puntos,
-  nunca al registrarse; topes de 50 invitados y 5.000 puntos al mes.
-* Premios y canjes con código de 72 h; los puntos se reservan al pedir.
+* Referidos con la PRIMERA compra que da puntos, nunca al registrarse; con topes de
+  invitados y de puntos al mes.
+* Premios y canjes con código que vence; los puntos se reservan al pedir.
 * Regalo de cumpleaños automático (una vez al año, con compra previa).
 * App del socio en /socios: se entra con celular + PIN (candado 5→15 min,
   10→24 h). Link para invitar: /r/<código> o ?ref=<código> en cualquier página.

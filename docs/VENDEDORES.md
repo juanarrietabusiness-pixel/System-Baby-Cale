@@ -1,5 +1,12 @@
 # Programa de vendedores D'CASA (`dcasa_socios`)
 
+> **En esta copia (Baby Caleb, 2026-11-18): el programa está apagado y sin cifras.** `programaActivo` es `false` y todas
+> las cifras de la sección `vendedores` de `puntos.json` están en `null` (PENDIENTE): no se paga ninguna comisión, no se
+> canjea nada (el código de un premio de vendedor tampoco tiene ya un «72 horas» de respaldo en el código) y las ventas
+> siguen igual. La pantalla Ajustes › Programa de vendedores se abre, pero dice qué falta y no guarda hasta que
+> `canje.puntosPorDolar` (de Socios) tenga su cifra en `puntos.json`; encender el programa exige además las cifras
+> obligatorias. Las cifras de abajo son las de la empresa de la que se copió: explican el diseño, no rigen aquí.
+
 Un programa **aparte de Socios**, hecho para quien vende por su cuenta: empleados de D'CASA o gente de
 afuera. El cliente sigue ganando sus puntos de Socios como siempre; el vendedor gana **otros puntos, más
 altos**, cuando alguien compra con su código. Los puntos de vendedor se cambian por **mercancía**.

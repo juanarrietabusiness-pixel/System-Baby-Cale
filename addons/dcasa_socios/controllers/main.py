@@ -82,6 +82,11 @@ class SociosDcasa(http.Controller):
         valores = dict(valores or {})
         valores.setdefault('aviso', request.session.pop(SESSION_AVISO, None))
         valores.setdefault('reglas', R.cargar_reglas())
+        # Sin las cifras de puntos.json (PENDIENTE) las páginas no prometen puntos, premios ni cumpleaños: dicen que
+        # el programa todavía no está disponible. Entrar con celular y PIN sigue sirviendo (es la puerta de Mi cuenta).
+        valores.setdefault('programa_disponible', R.programa_disponible(valores['reglas']))
+        valores.setdefault('canje_disponible', not R.falta_para_canjear(valores['reglas']))
+        valores.setdefault('no_disponible', R.NO_DISPONIBLE)
         valores.setdefault('fmt_puntos', R.como_puntos)
         valores.setdefault('fmt_dolares', R.como_dolares)
         valores.setdefault('sesion_tienda', bool(self._ficha_de_la_tienda()))
@@ -356,12 +361,17 @@ class SociosDcasa(http.Controller):
         env = request.env
         saldo = socio.dcasa_saldo
         link = f'{request.httprequest.host_url.rstrip("/")}/r/{socio.dcasa_socio_codigo}'
-        texto = (f"Te invito a D'CASA Panamá: muebles, colchones y todo para tu casa. Regístrate con mi "
+        texto = (f"Te invito a {request.env.company.name}. Regístrate con mi "
                  f"código {socio.dcasa_socio_codigo} y con tu primera compra ganamos los dos: {link}")
         Canje = env['dcasa.canje'].sudo()
+        try:
+            equivale = R.como_dolares(R.centavos_de_puntos(saldo, R.cargar_reglas())) if saldo > 0 else ''
+        except R.FaltaConfigurar:
+            equivale = ''   # sin canje.puntosPorDolar no se dice cuánto valen
         return self._render('dcasa_socios.socios_cuenta', {
             'socio': socio,
             'saldo': saldo,
+            'equivale': equivale,
             'movimientos': env['dcasa.movimiento'].sudo().search([('partner_id', '=', socio.id)], limit=30),
             'premios': env['dcasa.premio']._catalogo(),
             'canjes': Canje.search([('partner_id', '=', socio.id), ('estado', '=', 'solicitado')]),

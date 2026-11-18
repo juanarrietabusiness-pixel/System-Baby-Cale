@@ -8,6 +8,7 @@ from freezegun import freeze_time
 
 from odoo import Command, fields
 from odoo.addons.dcasa_socios.models import reglas as R
+from odoo.addons.dcasa_socios.tests.common import ConReglasDePrueba, parche_de_reglas_de_prueba
 from odoo.tests import tagged
 from odoo.tools import mute_logger
 
@@ -466,7 +467,8 @@ class TestVerProductoYCategorias(HerramientasCase):
 
 
 @tagged('post_install', '-at_install')
-class TestSocios(HerramientasCase):
+class TestSocios(ConReglasDePrueba, HerramientasCase):
+    """Con las cifras de PRUEBA de Socios (puntos.json de fábrica está en PENDIENTE: ver TestSociosPendiente)."""
 
     def setUp(self):
         super().setUp()
@@ -576,6 +578,35 @@ class TestSocios(HerramientasCase):
         self.salida('reglas_socios')
         self.assertEqual(self.env['dcasa.movimiento'].search_count([]), antes)
         self.assertEqual(self.ficha.dcasa_saldo, 1500)
+
+
+@tagged('post_install', '-at_install')
+class TestSociosPendiente(HerramientasCase):
+    """Con el puntos.json de fábrica (todo PENDIENTE, 2026-11-18): Juan dice que el programa todavía no está
+    disponible, no da ninguna cifra y ni siquiera pide el PIN."""
+
+    def setUp(self):
+        super().setUp()
+        self.assertFalse(R.programa_disponible(R.cargar_reglas()))
+        self.ficha = self.conv.partner_id
+        self.ficha._dcasa_asegurar_ficha()
+        self.ficha._dcasa_guardar_pin(PIN)
+
+    def test_reglas_socios_dice_que_no_esta_disponible(self):
+        datos = self.salida('reglas_socios')
+        self.assertFalse(datos['disponible'])
+        self.assertEqual(datos['resumen'], [R.NO_DISPONIBLE])
+        self.assertEqual(datos['cifras'], {})
+        self.assertNotRegex(json.dumps({k: v for k, v in datos.items() if k not in ('version', 'pendientes')},
+                                       ensure_ascii=False), r'\d', 'ninguna cifra')
+
+    def test_saldo_puntos_no_pide_el_pin_ni_inventa_un_saldo(self):
+        for pin in (PIN, '111112'):
+            with self.subTest(pin=pin):
+                datos = self.salida('saldo_puntos', {'celular': '6123-4567', 'pin': pin})
+                self.assertEqual(datos, {'verificado': False, 'motivo': 'programa_no_disponible',
+                                         'mensaje': R.NO_DISPONIBLE})
+        self.assertEqual(self.ficha.dcasa_intentos_fallidos, 0, 'ni se prueba el PIN')
 
 
 @tagged('post_install', '-at_install')
@@ -888,6 +919,11 @@ class TestConocimientoYAprendizaje(HerramientasCase):
             'etiquetas': 'socios, puntos, premios, canje, canjear, invitar, referido, cumpleaños, programa'})
         datos = self.salida('buscar_conocimiento', {'consulta': 'puntos y premios'})
         self.assertEqual(datos['resultados'][0]['titulo'], "Programa Socios D'CASA: puntos, premios e invitados")
+        # puntos.json de fábrica (todo PENDIENTE): solo que todavía no está disponible.
+        self.assertEqual(datos['resultados'][0]['contenido'], R.NO_DISPONIBLE)
+        with parche_de_reglas_de_prueba():       # con cifras (de prueba), las explica tal cual
+            self.env['dcasa.conocimiento'].invalidate_model(['contenido_vigente'])
+            datos = self.salida('buscar_conocimiento', {'consulta': 'puntos y premios'})
         self.assertIn('1 punto por cada dólar', datos['resultados'][0]['contenido'])
 
     def test_maximo_3_resultados(self):

@@ -6,14 +6,14 @@ from odoo.tests import BaseCase, tagged
 
 from ..models import reglas as R
 from ..models import reglas_vendedores as RV
-from .common import VENDEDORES_DE_PRUEBA
+from .common import VENDEDORES_DE_PRUEBA, reglas_de_fabrica, reglas_de_prueba
 
 
 @tagged('post_install', '-at_install')
 class TestReglasDeVendedores(BaseCase):
 
     def reglas(self, **cambios):
-        reglas = {**R.cargar_reglas(), 'vendedores': copy.deepcopy(VENDEDORES_DE_PRUEBA)}
+        reglas = {**reglas_de_prueba(), 'vendedores': copy.deepcopy(VENDEDORES_DE_PRUEBA)}
         for ruta, valor in cambios.items():
             seccion, clave = ruta.split('__')
             reglas['vendedores'][seccion][clave] = valor
@@ -38,7 +38,7 @@ class TestReglasDeVendedores(BaseCase):
                     RV.comision_directa(10000, reglas)
 
     def test_la_seccion_ausente_no_acredita(self):
-        reglas = {**R.cargar_reglas()}
+        reglas = {**reglas_de_prueba()}
         reglas.pop('vendedores', None)
         self.assertTrue(RV.falta_para_comisionar(reglas))
 
@@ -53,12 +53,44 @@ class TestReglasDeVendedores(BaseCase):
         with self.assertRaises(R.FaltaConfigurar):
             RV.comision_patrocinio(10000, reglas)
 
-    def test_las_cifras_reales_de_puntos_json_estan_completas_y_son_las_decididas(self):
-        """Lo decidido el 2026-10-14 (consenso del debate). Si alguien cambia una cifra, esta prueba obliga a hacerlo
-        a propósito: sube la versión y actualiza docs/VENDEDORES.md."""
-        reales = R.cargar_reglas()
+    def test_puntos_json_de_fabrica_trae_el_programa_apagado_y_sin_cifras(self):
+        """Decisión del dueño (2026-11-18): el programa de vendedores apagado y todas sus cifras en null (PENDIENTE),
+        ninguna de la empresa de la que se copió el sistema. Apagado no paga nada; los candados legales siguen."""
+        fabrica = R.cargar_reglas()
+        self.assertEqual(fabrica, reglas_de_fabrica())
+        v = RV.seccion(fabrica)
+        self.assertIs(v['programaActivo'], False)
+        self.assertTrue(RV.falta_para_comisionar(fabrica))
+        self.assertTrue(RV.falta_para_patrocinar(fabrica))
+        with self.assertRaises(R.FaltaConfigurar):
+            RV.comision_directa(14500, fabrica)
+        with self.assertRaises(R.FaltaConfigurar):
+            RV.comision_patrocinio(14500, fabrica)
+        # Aun encendido a mano, sin cifras no paga.
+        self.assertTrue(RV.falta_para_comisionar({**fabrica, 'vendedores': {**v, 'programaActivo': True}}))
+        for seccion, claves in (
+                ('comision', ('puntosPorDolarNeto', 'compraMinimaCentavos', 'pagaEn', 'factorDeRecompra',
+                              'factorClienteExistente', 'escalones', 'diasParaEscalon')),
+                ('patrocinio', ('puntosPorDolarNetoDelDirecto', 'topeDeDirectos', 'ventasPropiasMinimasAlMes',
+                                'topeComoMultiploDeSuComisionDelMes')),
+                ('vinculacion', ('meses',)),
+                ('retencion', ('dias', 'primerasVentas', 'diasPrimerasVentas')),
+                ('techos', ('totalPorVentaPorcentajeDelNeto', 'pesoDelPuntoDeVendedor', 'margenBrutoSupuestoPorcentaje',
+                            'porVendedorAlMesPuntos', 'patrocinioPorPatrocinadorAlMesPuntos',
+                            'frenoGlobalPorcentajeDeLaVentaNeta')),
+                ('canje', ('puntosMinimosParaCanjear', 'vigenciaDelCodigoHoras', 'canjesPorVendedorAlMes'))):
+            for clave in claves:
+                with self.subTest(f'{seccion}.{clave}'):
+                    self.assertIsNone(v[seccion][clave])
+        self.assertIs(v['canje']['efectivoHabilitado'], False, 'Efectivo: no existe hasta el dictamen')
+        self.assertIs(v['canje']['externosHabilitado'], False, 'Externos: esperan la revisión del abogado')
+        self.assertIsNone(RV.nivel_del_vendedor(0, fabrica), 'sin escalera no hay niveles que enseñar')
+
+    def test_las_cifras_completas_de_prueba_calculan_como_siempre(self):
+        """El programa completo (escalera, freno, retención) con las cifras de PRUEBA de ``tests/common.py``: la misma
+        aritmética que se probaba antes con las de fábrica."""
+        reales = reglas_de_prueba()
         self.assertEqual((RV.falta_para_comisionar(reales), RV.falta_para_patrocinar(reales)), ([], []))
-        self.assertGreaterEqual(reales['version'], 5)
         self.assertEqual(RV.comision_directa(14500, reales), 580)            # 4 % de $145 neto
         self.assertEqual(RV.comision_patrocinio(14500, reales), 116)         # 0.8 %: un quinto de la comisión
         self.assertEqual(RV.aplicar_factor_de_recompra(580, reales), 290)
@@ -115,8 +147,8 @@ class TestReglasDeVendedores(BaseCase):
     # --- La escalera (versión 5) --------------------------------------------------------------
 
     def con_la_escalera_real(self):
-        """Las reglas de prueba con la escalera, el freno y el tope tal como están en ``puntos.json``."""
-        reales = RV.seccion(R.cargar_reglas())
+        """Las reglas de prueba con la escalera, el freno y el tope del programa completo de prueba."""
+        reales = RV.seccion(reglas_de_prueba())
         return self.reglas(comision__escalones=copy.deepcopy(reales['comision']['escalones']),
                            techos__porVendedorAlMesPuntos=reales['techos']['porVendedorAlMesPuntos'])
 

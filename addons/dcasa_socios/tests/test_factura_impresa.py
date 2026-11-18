@@ -57,7 +57,7 @@ class TestFacturaImpresa(SociosCommon):
 
     def test_premio_cobrado_sale_identificado(self):
         self.env['dcasa.movimiento']._asentar(self.padrino, 'ajuste', 1500, 'test', motivo='Saldo de prueba')
-        canje = self.env['dcasa.canje']._pedir(self.padrino, self.env.ref('dcasa_socios.premio_desc_10'))
+        canje = self.env['dcasa.canje']._pedir(self.padrino, self.premios[10])
         orden = self.env['sale.order'].create({
             'partner_id': self.padrino.id,
             'order_line': [(0, 0, {'product_id': self.producto.id, 'product_uom_qty': 1, 'price_unit': 100})],
