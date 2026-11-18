@@ -1,10 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Páginas legales. Texto base redactado con los datos reales de D'CASA y lo que el sistema
+    <!-- Páginas legales. Texto base redactado con los datos reales de la tienda de origen (D'CASA) y lo que el sistema
          hace de verdad; pendiente de revisión por abogado antes de producción (Fase 0b).
-         No prometen plazos, garantías ni condiciones que el dueño no haya fijado. -->
+         No prometen plazos, garantías ni condiciones que el dueño no haya fijado.
+         Baby Caleb (decisión del dueño, 2026-11-18, docs/BABY_CALEB.md): el MISMO texto, palabra por palabra; solo
+         cambia la empresa (nombre, RUC, dirección y correo). Lo que el dueño todavía no dio dice PENDIENTE, a la vista:
+         no se inventa. -->
 
-    <template id="pagina_legal" name="D'CASA: marco de página legal">
+    <!-- El nombre de una plantilla que se dibuja como página sale en og:title y twitter:title («<nombre> | <sitio>»): sin
+         marca, para que no diga la de otra empresa. -->
+    <template id="pagina_legal" name="Página legal">
         <t t-call="website.layout">
             <t t-set="additional_title" t-value="titulo"/>
             <t t-set="meta_description" t-value="descripcion"/>
@@ -12,7 +17,7 @@
             <div id="wrap" class="o_dcasa_legal">
                 <!-- Cabecera como la de /socios (ronda 6): foto, antetítulo y título en blanco. -->
                 <t t-call="website_dcasa.cabecera_pagina">
-                    <t t-set="cabecera_kicker">D'CASA Panamá</t>
+                    <t t-set="cabecera_kicker">Baby Caleb</t>
                     <t t-set="cabecera_titulo" t-value="titulo"/>
                     <t t-set="cabecera_imagen" t-value="'/website_dcasa/static/src/img/hero.webp'"/>
                     <t t-set="cabecera_srcset" t-value="'/website_dcasa/static/src/img/hero-800.webp 800w, /website_dcasa/static/src/img/hero.webp 1400w'"/>
@@ -36,8 +41,7 @@
     <template id="privacidad_cuerpo" name="D'CASA: política de privacidad (cuerpo)">
 
             <h2>Quiénes somos</h2>
-            <p>D'CASA Panamá, RUC 155779346-2-2026 DV7, frente al Parque Libertadores,
-                diagonal a la Discoteca Seven, La Chorrera, Panamá Oeste. Correo: <a href="mailto:info@dcasapty.com">info@dcasapty.com</a>.
+            <p>Baby Caleb, RUC PENDIENTE, dirección PENDIENTE. Correo: <a href="mailto:babycalebpanama@gmail.com">babycalebpanama@gmail.com</a>.
                 Tratamos tus datos conforme a la Ley 81 de 2019 de Protección de Datos Personales de Panamá.</p>
 
             <h2>Qué datos guardamos</h2>
@@ -46,8 +50,8 @@
                     correo y lo que nos cuentas.</li>
                 <li><strong>Cuando compras</strong>: nombre, celular, dirección de entrega y, si pides factura,
                     los datos fiscales (RUC o cédula).</li>
-                <li><strong>Si eres Socio D'CASA</strong>: tu celular (es tu usuario), tu nombre, tus compras y tus
-                    puntos. Tu PIN se guarda cifrado: nadie en D'CASA puede leerlo.</li>
+                <li><strong>Si eres Socio Baby Caleb</strong>: tu celular (es tu usuario), tu nombre, tus compras y tus
+                    puntos. Tu PIN se guarda cifrado: nadie en Baby Caleb puede leerlo.</li>
                 <li><strong>Al navegar el sitio</strong>: solo las cookies técnicas descritas abajo.</li>
             </ul>
 
@@ -55,7 +59,7 @@
             <ul>
                 <li>Responderte, cotizar, venderte y coordinar la entrega.</li>
                 <li>Emitir facturas y llevar la contabilidad, como exige la ley.</li>
-                <li>Llevar tus puntos del programa Socios D'CASA, si te inscribiste.</li>
+                <li>Llevar tus puntos del programa Socios Baby Caleb, si te inscribiste.</li>
             </ul>
             <p>No vendemos tus datos.</p>
 
@@ -96,7 +100,7 @@
             <p>Puedes pedirnos <strong>acceso</strong> a tus datos, <strong>corregirlos</strong>,
                 <strong>borrarlos</strong> (cancelación), <strong>oponerte</strong> a un uso (por ejemplo, la
                 inteligencia artificial) y llevártelos (<strong>portabilidad</strong>). Escríbenos a
-                <a href="mailto:info@dcasapty.com">info@dcasapty.com</a> o por
+                <a href="mailto:babycalebpanama@gmail.com">babycalebpanama@gmail.com</a> o por
                 <a href="/whatsapp" target="_blank" rel="noopener nofollow">WhatsApp</a>. Si no quedas conforme, puedes
                 acudir a la Autoridad Nacional de Transparencia y Acceso a la Información (ANTAI).</p>
 
@@ -112,8 +116,7 @@
     <template id="terminos_cuerpo" name="D'CASA: términos y condiciones (cuerpo)">
 
             <h2>Quiénes somos</h2>
-            <p>Este sitio es de D'CASA Panamá, RUC 155779346-2-2026 DV7, frente al Parque
-                Libertadores, diagonal a la Discoteca Seven, La Chorrera, Panamá Oeste.</p>
+            <p>Este sitio es de Baby Caleb, RUC PENDIENTE, dirección PENDIENTE.</p>
 
             <h2>Precios</h2>
             <p>Los precios del sitio están en dólares y <strong>no incluyen el ITBMS</strong>: se muestran como
@@ -129,12 +132,12 @@
             <p>Se acuerdan contigo al confirmar la compra y se rigen por la Ley 45 de 2007 de protección al
                 consumidor de Panamá.</p>
 
-            <h2>Programa Socios D'CASA</h2>
+            <h2>Programa Socios Baby Caleb</h2>
             <p>Sus reglas están en <a href="/socios/terminos">términos del programa Socios</a>.</p>
 
             <h2>Inteligencia artificial</h2>
             <p>Nuestro equipo se apoya en un asistente de inteligencia artificial. Si un texto preparado con su ayuda
-                no coincide con lo que te confirmó una persona de D'CASA, vale lo que te confirmó la persona. Cómo
+                no coincide con lo que te confirmó una persona de Baby Caleb, vale lo que te confirmó la persona. Cómo
                 tratamos tus datos con inteligencia artificial está en la
                 <a href="/privacidad#inteligencia-artificial">política de privacidad</a>.</p>
 
