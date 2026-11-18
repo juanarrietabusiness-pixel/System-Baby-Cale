@@ -6,8 +6,8 @@
 // Uso:
 //   node preparar_config.mjs <wrangler.jsonc> <salida.json> <entorno> <ref_digest> <ref_tag>
 //     entorno     production (raíz del archivo) o el nombre de un env (p. ej. staging)
-//     ref_digest  registry.cloudflare.com/<cuenta>/dcasa-odoo@sha256:<64 hex>
-//     ref_tag     registry.cloudflare.com/<cuenta>/dcasa-odoo:<sha del commit>
+//     ref_digest  registry.cloudflare.com/<cuenta>/sistemabk-odoo@sha256:<64 hex>
+//     ref_tag     registry.cloudflare.com/<cuenta>/sistemabk-odoo:<sha del commit>
 //
 // Política de scheduling (https://developers.cloudflare.com/containers/configuration/scheduling-policy/):
 //   - "default": campo `image` = Dockerfile → se cambia por ref_tag (referencia de registro

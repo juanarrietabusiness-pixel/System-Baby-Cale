@@ -121,7 +121,7 @@ describe("hostPermitido y lista de dominios", () => {
   it("el dominio y sus subdominios, con borde de punto", () => {
     expect(hostPermitido("dcasapty.com", lista)).toBe(true);
     expect(hostPermitido("www.dcasapty.com", lista)).toBe(true);
-    expect(hostPermitido("dcasa-staging.dcasapty.workers.dev", lista)).toBe(true);
+    expect(hostPermitido("sistemabk-staging.juanarrietabusiness.workers.dev", lista)).toBe(true);
     expect(hostPermitido("DCASAPTY.COM", lista)).toBe(true);
     expect(hostPermitido("malo-dcasapty.com", lista)).toBe(false);
     expect(hostPermitido("dcasapty.com.malo.net", lista)).toBe(false);
@@ -199,10 +199,10 @@ describe("validarUrlMedio (SSRF)", () => {
   });
 
   it("con lista de dominios, solo esos (y sus subdominios)", () => {
-    const hosts = ["dcasapty.com", "dcasapty.workers.dev"];
+    const hosts = ["dcasapty.com", "juanarrietabusiness.workers.dev"];
     expect(ok("https://dcasapty.com/x.jpg", hosts).ok).toBe(true);
     expect(ok("https://www.dcasapty.com/x.jpg", hosts).ok).toBe(true);
-    expect(ok("https://dcasa.dcasapty.workers.dev/x.jpg", hosts).ok).toBe(true);
+    expect(ok("https://sistemabk.juanarrietabusiness.workers.dev/x.jpg", hosts).ok).toBe(true);
     const mala = ok("https://evil.com/x.jpg", hosts);
     expect(mala.ok).toBe(false);
     if (!mala.ok) expect(mala.motivo).toContain("lista de permitidos");

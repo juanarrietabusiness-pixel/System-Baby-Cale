@@ -10,7 +10,7 @@ import { sqlDeDurableObject } from "../motor/sql";
 import { obtenerConfig, obtenerHerramientas, odooDe } from "../odoo/fabrica";
 import { MotorTienda, type DepsTienda, type EntradaTienda } from "./motor";
 
-const HOSTS_CONOCIDOS = ["dcasapty.com", "www.dcasapty.com", "dcasa-staging.dcasapty.workers.dev"];
+const HOSTS_CONOCIDOS = ["babycaleb.com", "www.babycaleb.com", "sistemabk.juanarrietabusiness.workers.dev", "sistemabk-staging.juanarrietabusiness.workers.dev"];
 
 /** Los hosts del propio sitio (sus direcciones absolutas se vuelven relativas en las tarjetas): los conocidos y el de URL_SITIO. */
 export function hostsDelSitio(env: Pick<Env, "URL_SITIO">): string[] {

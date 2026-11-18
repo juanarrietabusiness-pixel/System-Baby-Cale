@@ -39,13 +39,13 @@ const wrangler = JSON.parse(quitarComentarios(leer("wrangler.jsonc")));
 
 describe("wrangler.jsonc: producción y staging", () => {
   it("nombres de los Workers", () => {
-    expect(wrangler.name).toBe("dcasa-puente-wa");
-    expect(wrangler.env.staging.name).toBe("dcasa-puente-wa-staging");
+    expect(wrangler.name).toBe("sistemabk-puente-wa");
+    expect(wrangler.env.staging.name).toBe("sistemabk-puente-wa-staging");
   });
 
-  it("el service binding JUAN apunta a dcasa-juan (producción) y dcasa-juan-staging (staging)", () => {
-    expect(wrangler.services).toEqual([{ binding: "JUAN", service: "dcasa-juan" }]);
-    expect(wrangler.env.staging.services).toEqual([{ binding: "JUAN", service: "dcasa-juan-staging" }]);
+  it("el service binding JUAN apunta a sistemabk-chatbot (producción) y sistemabk-chatbot-staging (staging)", () => {
+    expect(wrangler.services).toEqual([{ binding: "JUAN", service: "sistemabk-chatbot" }]);
+    expect(wrangler.env.staging.services).toEqual([{ binding: "JUAN", service: "sistemabk-chatbot-staging" }]);
   });
 
   it.each([
@@ -67,8 +67,8 @@ describe("wrangler.jsonc: producción y staging", () => {
   });
 
   it("la URL pública de cada entorno es la de su propio Worker (el contenedor vuelve a entrar por ahí)", () => {
-    expect(wrangler.vars.PUENTE_BASE_URL).toBe("https://dcasa-puente-wa.dcasapty.workers.dev");
-    expect(wrangler.env.staging.vars.PUENTE_BASE_URL).toBe("https://dcasa-puente-wa-staging.dcasapty.workers.dev");
+    expect(wrangler.vars.PUENTE_BASE_URL).toBe("https://sistemabk-puente-wa.juanarrietabusiness.workers.dev");
+    expect(wrangler.env.staging.vars.PUENTE_BASE_URL).toBe("https://sistemabk-puente-wa-staging.juanarrietabusiness.workers.dev");
   });
 
   it("staging repite TODAS las variables de producción (los entornos no heredan `vars`)", () => {
@@ -105,7 +105,7 @@ describe("wrangler.jsonc: producción y staging", () => {
       expect(Number(v.LIMITE_POR_MINUTO)).toBeLessThanOrEqual(12);
       expect(Number(v.LIMITE_POR_DIA)).toBeLessThanOrEqual(500);
       expect(Number(v.LIMITE_FRIOS_DIA)).toBeLessThanOrEqual(20);
-      expect(v.MEDIOS_HOSTS_PERMITIDOS).toBe("dcasapty.com,dcasapty.workers.dev");
+      expect(v.MEDIOS_HOSTS_PERMITIDOS).toBe("babycaleb.com,juanarrietabusiness.workers.dev");
       expect(v.PUENTE_ACTIVO).toBe("on"); // el interruptor de emergencia; sin secretos igual no enciende nada
     }
   });

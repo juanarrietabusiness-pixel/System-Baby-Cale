@@ -91,7 +91,7 @@ function oggDeHoras(maxBytes: number, mentirSegundos: number | null): { bytes: U
 const TOKEN = "token-del-worker-de-prueba-0123456789abcdef";
 const AHORA = Date.UTC(2026, 10, 16, 16, 0);
 const SID = "AAECAwQFBgcICQoLDA0ODw";
-const URL_VOZ = "https://dcasa-juan.dcasapty.workers.dev/tienda/v1/voz";
+const URL_VOZ = "https://sistemabk-chatbot.juanarrietabusiness.workers.dev/tienda/v1/voz";
 
 describe("hallazgo 1: el «peor caso» de 6 kbps no es el peor caso", () => {
   it("un Ogg Opus válido de 1 MB dura 11 horas: el contenedor honesto lo dice y el peor caso apartado es 29 veces menos", () => {
@@ -127,7 +127,7 @@ describe("hallazgo 1: el «peor caso» de 6 kbps no es el peor caso", () => {
     const pase = await firmarPase(TOKEN, { v: 1, sid: SID, exp: Math.floor(AHORA / 1000) + 1800, sitio: 1 });
     const req = new Request(URL_VOZ, {
       method: "POST",
-      headers: { origin: "https://dcasapty.com", authorization: `Pase ${pase}`, "content-type": "audio/ogg;codecs=opus", "cf-connecting-ip": "190.140.12.34" },
+      headers: { origin: "https://babycaleb.com", authorization: `Pase ${pase}`, "content-type": "audio/ogg;codecs=opus", "cf-connecting-ip": "190.140.12.34" },
       body: bytes,
     });
     const res = await manejarTienda("/tienda/v1/voz", req, env, d, { voz: { global, plazoMs: 30 } });
@@ -150,7 +150,7 @@ describe("hallazgo 1: el «peor caso» de 6 kbps no es el peor caso", () => {
     const pase2 = await firmarPase(TOKEN, { v: 1, sid: "AAECAwQFBgcICQoLDA0OEA", exp: Math.floor(AHORA / 1000) + 1800, sitio: 1 });
     const req2 = new Request(URL_VOZ, {
       method: "POST",
-      headers: { origin: "https://dcasapty.com", authorization: `Pase ${pase2}`, "content-type": "audio/ogg;codecs=opus", "cf-connecting-ip": "190.140.12.35" },
+      headers: { origin: "https://babycaleb.com", authorization: `Pase ${pase2}`, "content-type": "audio/ogg;codecs=opus", "cf-connecting-ip": "190.140.12.35" },
       body: corta,
     });
     const res2 = await manejarTienda("/tienda/v1/voz", req2, env, d, { voz: { global, plazoMs: 30 } });
@@ -179,7 +179,7 @@ describe("hallazgo 1b: con esas notas, 90 peticiones de 2 conexiones apagan a An
       const pase = await firmarPase(TOKEN, { v: 1, sid, exp: Math.floor(AHORA / 1000) + 1800, sitio: 1 });
       const req = new Request(URL_VOZ, {
         method: "POST",
-        headers: { origin: "https://dcasapty.com", authorization: `Pase ${pase}`, "content-type": "audio/ogg", "cf-connecting-ip": i < 45 ? "190.140.12.34" : "201.218.1.9" },
+        headers: { origin: "https://babycaleb.com", authorization: `Pase ${pase}`, "content-type": "audio/ogg", "cf-connecting-ip": i < 45 ? "190.140.12.34" : "201.218.1.9" },
         body: bytes.slice(),
       });
       const res = await manejarTienda("/tienda/v1/voz", req, env, d, { voz: { global } });

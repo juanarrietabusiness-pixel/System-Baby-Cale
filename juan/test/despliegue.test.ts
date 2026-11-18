@@ -43,7 +43,7 @@ describe("el binding DCASA entra por JuanEntrada, no por el fetch público del W
     expect(dcasa(juan.services)).toEqual({ binding: "DCASA", service: borde.name, entrypoint: "JuanEntrada" });
   });
 
-  it("staging: service «dcasa-staging» + entrypoint «JuanEntrada»", () => {
+  it("staging: service «sistemabk-staging» + entrypoint «JuanEntrada»", () => {
     expect(dcasa(juan.env.staging.services)).toEqual({ binding: "DCASA", service: borde.env.staging.name, entrypoint: "JuanEntrada" });
   });
 

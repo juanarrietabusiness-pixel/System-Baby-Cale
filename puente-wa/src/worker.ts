@@ -1,4 +1,4 @@
-// Puente de WhatsApp por QR — Worker `dcasa-puente-wa`.
+// Puente de WhatsApp por QR — Worker `sistemabk-puente-wa`.
 //
 // Worker APARTE de `juan` a propósito (como en el CRM de origen): `juan` se publica con
 // un solo `wrangler deploy`, y si el contenedor se le colgara encima, una imagen que no

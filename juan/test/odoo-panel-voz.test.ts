@@ -17,7 +17,7 @@ import { crearSqlNode } from "./helpers/sqlNode";
 
 const TOKEN = "token-del-worker-de-prueba-0123456789abcdef";
 const AHORA = Date.UTC(2026, 10, 16, 16, 0);
-const URL_VOZ = "https://dcasa-juan.dcasapty.workers.dev/odoo/voz";
+const URL_VOZ = "https://sistemabk-chatbot.juanarrietabusiness.workers.dev/odoo/voz";
 const DICHO = "Brian, dime cuántas cotizaciones quedaron abiertas esta semana";
 
 afterEach(() => vi.restoreAllMocks());

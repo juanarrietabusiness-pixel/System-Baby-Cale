@@ -12,8 +12,8 @@ import { firmarPase } from "../../src/tienda/pase";
 const TOKEN = "token-del-worker-de-prueba-0123456789abcdef";
 const AHORA = Date.UTC(2026, 10, 13, 16, 0);
 const SID = "AAECAwQFBgcICQoLDA0ODw";
-const URL_MENSAJE = "https://dcasa-juan.dcasapty.workers.dev/tienda/v1/mensaje";
-const ORIGEN = "https://dcasapty.com";
+const URL_MENSAJE = "https://sistemabk-chatbot.juanarrietabusiness.workers.dev/tienda/v1/mensaje";
+const ORIGEN = "https://babycaleb.com";
 
 function montar(op: { config?: Config | (() => Promise<Config>); salida?: SalidaTienda; sinToken?: boolean; sinBinding?: boolean } = {}) {
   const recibidos: { nombre: string; entrada: EntradaTienda }[] = [];
@@ -58,7 +58,7 @@ async function mensaje(cuerpo: unknown = { texto: "busco un colchón queen", pag
 describe("CORS: solo la tienda puede llamar desde el navegador", () => {
   it("el preflight (OPTIONS) de un origen permitido: 204 con las cabeceras", async () => {
     const m = montar();
-    for (const origen of ["https://dcasapty.com", "https://www.dcasapty.com", "https://dcasa-staging.dcasapty.workers.dev"]) {
+    for (const origen of ["https://babycaleb.com", "https://www.babycaleb.com", "https://sistemabk.juanarrietabusiness.workers.dev", "https://sistemabk-staging.juanarrietabusiness.workers.dev"]) {
       const res = await m.pedir(new Request(URL_MENSAJE, { method: "OPTIONS", headers: { origin: origen, "access-control-request-method": "POST", "access-control-request-headers": "authorization, content-type" } }));
       expect(res.status).toBe(204);
       expect(res.headers.get("access-control-allow-origin")).toBe(origen);
@@ -70,7 +70,7 @@ describe("CORS: solo la tienda puede llamar desde el navegador", () => {
 
   it("otro origen, un origen parecido o sin origen: 403 sin cabeceras CORS (ni en el preflight ni en el POST)", async () => {
     const m = montar();
-    for (const origen of ["https://evil.example", "http://dcasapty.com", "https://dcasapty.com.evil.example", "https://evildcasapty.com", "null"]) {
+    for (const origen of ["https://evil.example", "http://babycaleb.com", "https://babycaleb.com.evil.example", "https://evilbabycaleb.com", "null"]) {
       const pre = await m.pedir(new Request(URL_MENSAJE, { method: "OPTIONS", headers: { origin: origen } }));
       expect(pre.status).toBe(403);
       expect(pre.headers.get("access-control-allow-origin")).toBeNull();
@@ -83,9 +83,9 @@ describe("CORS: solo la tienda puede llamar desde el navegador", () => {
   });
 
   it("los orígenes se pueden cambiar desde Odoo (brian_tienda.origenes)", async () => {
-    const m = montar({ config: normalizarConfig({ brian_tienda: { activo: true, origenes: ["https://tienda-nueva.dcasapty.com"] } }) });
-    expect((await m.pedir(await mensaje(undefined, { origen: "https://tienda-nueva.dcasapty.com" }))).status).toBe(200);
-    expect((await m.pedir(await mensaje(undefined, { origen: "https://dcasapty.com" }))).status).toBe(403);
+    const m = montar({ config: normalizarConfig({ brian_tienda: { activo: true, origenes: ["https://tienda-nueva.babycaleb.com"] } }) });
+    expect((await m.pedir(await mensaje(undefined, { origen: "https://tienda-nueva.babycaleb.com" }))).status).toBe(200);
+    expect((await m.pedir(await mensaje(undefined, { origen: "https://babycaleb.com" }))).status).toBe(403);
   });
 
   it("si Odoo tarda en dar la configuración, el preflight no espera: usa los orígenes de fábrica", async () => {

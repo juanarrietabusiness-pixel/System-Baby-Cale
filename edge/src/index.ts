@@ -414,7 +414,7 @@ function registrarRespaldo(resultado: ResultadoRespaldo, origen: string): Result
  * Punto de entrada para el service binding del Worker `juan` (el asistente de clientes).
  *
  * El Worker `juan` declara en su wrangler: `{ "binding": "DCASA", "service": "dcasa", "entrypoint": "JuanEntrada" }`
- * (en staging, `"service": "dcasa-staging"`) y llama `env.DCASA.fetch(new Request("https://dcasa/dcasa/juan/v1/mensaje", …))`.
+ * (en staging, `"service": "sistemabk-staging"`) y llama `env.DCASA.fetch(new Request("https://dcasa/dcasa/juan/v1/mensaje", …))`.
  * Solo reenvía `/dcasa/juan/**` al contenedor de Odoo (src/juan.ts); desde internet esas rutas dan 404 (routing.ts).
  */
 export class JuanEntrada extends WorkerEntrypoint<Env> {

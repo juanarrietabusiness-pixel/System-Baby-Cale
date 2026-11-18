@@ -128,7 +128,7 @@ export interface ConfigTienda {
   desde_odoo: boolean;
 }
 
-export const ORIGENES_DE_LA_TIENDA_POR_DEFECTO: readonly string[] = ["https://dcasapty.com", "https://www.dcasapty.com", "https://dcasa-staging.dcasapty.workers.dev"];
+export const ORIGENES_DE_LA_TIENDA_POR_DEFECTO: readonly string[] = ["https://babycaleb.com", "https://www.babycaleb.com", "https://sistemabk.juanarrietabusiness.workers.dev", "https://sistemabk-staging.juanarrietabusiness.workers.dev"];
 export const TIENDA_POR_DEFECTO: ConfigTienda = {
   activo: false,
   presupuesto_mes_usd: 30,

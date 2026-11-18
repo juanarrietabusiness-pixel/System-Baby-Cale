@@ -28,8 +28,8 @@ describe("CANONICAL_HOST en el despliegue", () => {
     expect(armar).toBeLessThan(pasar);
   });
 
-  it("wrangler.jsonc sigue con los dominios definitivos (la derivación solo se usa si la variable está vacía)", () => {
-    expect(wranglerJsonc).toContain('"CANONICAL_HOST": "dcasapty.com"');
-    expect(wranglerJsonc).toContain('"CANONICAL_HOST": "staging.dcasapty.com"');
+  it("wrangler.jsonc apunta a donde el sitio responde hoy: workers.dev de la cuenta (hasta el día del dominio)", () => {
+    expect(wranglerJsonc).toContain('"CANONICAL_HOST": "sistemabk.juanarrietabusiness.workers.dev"');
+    expect(wranglerJsonc).toContain('"CANONICAL_HOST": "sistemabk-staging.juanarrietabusiness.workers.dev"');
   });
 });

@@ -479,7 +479,10 @@ describe("wrangler.jsonc (producción y staging)", () => {
     expect(staging.vars.R2_BUCKET).not.toBe(config.vars.R2_BUCKET);
     expect(staging.vars.DCASA_ENTORNO).toBe("staging");
     expect(staging.vars.DCASA_STOCK_PRUEBA).toBe("10");
-    expect(staging.vars.DCASA_BLACK_WEEKEND).toBe("1");
+    // Black Weekend era una campaña de D'CASA: en la instalación de Baby Caleb queda apagado también en staging.
+    expect(staging.vars.DCASA_BLACK_WEEKEND).toBe("0");
+    // La puerta del equipo arranca apagada en una instalación nueva (incidente 4: "1" sin Access deja a todos afuera).
+    expect(staging.vars.DCASA_PUERTA_OBLIGATORIA).toBe("0");
     expect(staging.vars.CANONICAL_HOST).not.toBe(config.vars.CANONICAL_HOST);
     const c = contenedor(staging);
     expect(c.instance_type).toBe("basic");
@@ -490,15 +493,15 @@ describe("wrangler.jsonc (producción y staging)", () => {
     expect(staging.routes).toEqual([]);
   });
 
-  it("dominio propio: dcasapty.com y www en producción, y workers.dev sigue vivo", () => {
-    expect(config.routes).toEqual([
-      { pattern: "dcasapty.com", custom_domain: true },
-      { pattern: "www.dcasapty.com", custom_domain: true },
-    ]);
+  it("sin dominio propio todavía: producción vive en workers.dev hasta el día del cambio (docs/DOMINIO.md)", () => {
+    // babycaleb.com sigue en la web actual (babycaleb-web): ponerlo aquí antes de tiempo se lo quitaría al desplegar.
+    expect(config.routes).toEqual([]);
+    expect(config.vars.DCASA_PUERTA_OBLIGATORIA).toBe("0");
     // Con `routes` y sin `workers_dev`, wrangler apaga workers.dev (webhook de Brian, /master de siempre, Juan).
     expect(config.workers_dev).toBe(true);
     expect(config.env.staging.workers_dev ?? config.workers_dev).toBe(true);
-    expect(JSON.stringify(config.env.staging)).not.toContain('"dcasapty.com"');
+    expect(JSON.stringify(config.env.staging)).not.toContain('"babycaleb.com"');
+    expect(JSON.stringify(config)).not.toContain("dcasapty");
   });
 
   it("caché de páginas: KV por entorno; apagada en producción y encendida en staging", () => {

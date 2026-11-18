@@ -9,7 +9,7 @@ name: Desplegar puente de WhatsApp
 # de quien lo lanza es la aprobación (sin «Required reviewers»: no existe en repos privados Free/Pro/Team).
 #
 # SECRETOS: los del puente (WA_TOKEN, WA_SESION_CLAVE, TELEGRAM_BOT_TOKEN_JUAN…) NO pasan por GitHub. La dueña
-# los pega directamente en el panel de Cloudflare (Workers → dcasa-puente-wa → Settings → Variables and
+# los pega directamente en el panel de Cloudflare (Workers → sistemabk-puente-wa → Settings → Variables and
 # Secrets). Por eso este workflow solo usa los dos secretos de GitHub que YA existen para desplegar
 # (CLOUDFLARE_API_TOKEN y CLOUDFLARE_ACCOUNT_ID), no sube ningún secreto (nada de --secrets-file ni de
 # `secrets.required`) y el PRIMER despliegue sale bien sin ellos: el puente arranca «sin configurar»
@@ -26,7 +26,7 @@ on:
   workflow_dispatch:
     inputs:
       entorno:
-        description: "Entorno (staging = dcasa-puente-wa-staging; production = dcasa-puente-wa)"
+        description: "Entorno (staging = sistemabk-puente-wa-staging; production = sistemabk-puente-wa)"
         type: choice
         options: [staging, production]
         required: true
@@ -85,7 +85,7 @@ jobs:
           npx wrangler deploy --dry-run --containers-rollout=none --env=staging --outdir "$RUNNER_TEMP/dry-staging"
 
       - name: La imagen del contenedor construye
-        run: docker build --tag dcasa-puente-wa:ensayo puente-wa/contenedor
+        run: docker build --tag sistemabk-puente-wa:ensayo puente-wa/contenedor
 
   desplegar:
     name: Desplegar a ${{ inputs.entorno }}
@@ -129,7 +129,7 @@ jobs:
 
       - name: El Worker juan existe (el puente lo enlaza por service binding)
         run: |
-          if [ "$ENTORNO" = "production" ]; then juan=dcasa-juan; else juan=dcasa-juan-staging; fi
+          if [ "$ENTORNO" = "production" ]; then juan=sistemabk-chatbot; else juan=sistemabk-chatbot-staging; fi
           codigo="$(curl -sS -o /dev/null -w '%{http_code}' --retry 3 --retry-all-errors \
             -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
             "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/workers/scripts/${juan}" || echo 000)"
@@ -155,8 +155,8 @@ jobs:
 
       - name: Comprobar el puente desplegado
         run: |
-          if [ "$ENTORNO" = "production" ]; then nombre=dcasa-puente-wa; else nombre=dcasa-puente-wa-staging; fi
-          url="https://${nombre}.dcasapty.workers.dev"
+          if [ "$ENTORNO" = "production" ]; then nombre=sistemabk-puente-wa; else nombre=sistemabk-puente-wa-staging; fi
+          url="https://${nombre}.juanarrietabusiness.workers.dev"
           for intento in 1 2 3 4 5 6; do
             salud="$(curl -sS --max-time 20 "$url/health" || true)"
             [ "$salud" = "ok" ] && break

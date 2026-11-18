@@ -207,7 +207,7 @@ export interface EnvioAlPuente {
   descargas: { url: string; estado: number; mime: string; bytes: Uint8Array }[];
 }
 
-export const DOMINIOS_DEL_PUENTE = "dcasapty.com,dcasapty.workers.dev";
+export const DOMINIOS_DEL_PUENTE = "babycaleb.com,juanarrietabusiness.workers.dev";
 
 let contrato: Promise<any> | undefined;
 /** El contrato del puente de verdad (puente-wa/contenedor/lib/contrato.mjs): validarEnviar, construirWebhook, validarWebhook. */

@@ -15,9 +15,9 @@ const INICIO = Date.parse("2026-11-13T16:00:00Z"); // viernes, 11:00 en Panamá
 const TOKEN_WORKER = "token-del-worker-0123456789abcdef";
 const TOKEN_ODOO = "token-de-odoo-0123456789abcdef";
 const SID = "AAECAwQFBgcICQoLDA0ODw";
-const ORIGEN = "https://dcasapty.com";
+const ORIGEN = "https://babycaleb.com";
 
-const COLCHON = { producto_id: 456, plantilla_id: 123, codigo: "DC-K7M4PX", nombre: "Colchón Queen Ortopédico", precio: 278, precio_texto: "$278.00 + ITBMS", mas_itbms: true, disponibilidad: "disponible", url: "https://dcasapty.com/shop/colchon-123", ruta: "/shop/colchon-123", foto: null, imagen: "/web/image/product.template/123/image_512", agregable: true, categorias: ["Colchones"] };
+const COLCHON = { producto_id: 456, plantilla_id: 123, codigo: "DC-K7M4PX", nombre: "Colchón Queen Ortopédico", precio: 278, precio_texto: "$278.00 + ITBMS", mas_itbms: true, disponibilidad: "disponible", url: "https://babycaleb.com/shop/colchon-123", ruta: "/shop/colchon-123", foto: null, imagen: "/web/image/product.template/123/image_512", agregable: true, categorias: ["Colchones"] };
 
 type BloqueClaude = { type: "text"; text: string } | { type: "tool_use"; id: string; name: string; input: unknown };
 let claude: (cuerpo: any, n: number) => BloqueClaude[];
@@ -53,14 +53,14 @@ function escenario() {
   const odoo = dcasaFalso();
   odoo.estado.config = { ...odoo.estado.config, brian_tienda: { activo: true, presupuesto_mes_usd: 30, tope_sesion_hora: 20, tope_red_hora: 60, tope_dia: 1000 } };
   odoo.estado.herramienta = (nombre) => (nombre === "buscar_productos" ? { ok: true, resultado: { encontrados: 1, mostrados: 1, productos: [COLCHON] } } : { ok: true, resultado: {} });
-  const cluster = armarCluster({ JUAN_ODOO_TOKEN: TOKEN_ODOO, JUAN_WORKER_TOKEN: TOKEN_WORKER, ANTHROPIC_API_KEY: "sk-ant-clave-de-prueba-0123456789", DCASA: odoo.fetcher, URL_SITIO: "https://dcasapty.com", URL_PUBLICA: "https://dcasa-juan.dcasapty.workers.dev" } as never);
+  const cluster = armarCluster({ JUAN_ODOO_TOKEN: TOKEN_ODOO, JUAN_WORKER_TOKEN: TOKEN_WORKER, ANTHROPIC_API_KEY: "sk-ant-clave-de-prueba-0123456789", DCASA: odoo.fetcher, URL_SITIO: "https://babycaleb.com", URL_PUBLICA: "https://sistemabk-chatbot.juanarrietabusiness.workers.dev" } as never);
   const tienda = espacioDeLaTienda(() => cluster.env);
   (cluster.env as unknown as Record<string, unknown>).TIENDA = tienda;
   const ctx = { waitUntil: () => {}, passThroughOnException() {} } as unknown as ExecutionContext;
   const pedir = (req: Request) => worker.fetch(req, cluster.env, ctx);
   const mensaje = async (cuerpo: unknown) =>
     pedir(
-      new Request("https://dcasa-juan.dcasapty.workers.dev/tienda/v1/mensaje", {
+      new Request("https://sistemabk-chatbot.juanarrietabusiness.workers.dev/tienda/v1/mensaje", {
         method: "POST",
         headers: {
           origin: ORIGEN,

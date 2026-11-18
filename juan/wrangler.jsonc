@@ -1,8 +1,8 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  // PRODUCCIÓN es la raíz de este archivo (Worker `dcasa-juan`); STAGING es `env.staging` (Worker `dcasa-juan-staging`).
+  // PRODUCCIÓN es la raíz de este archivo (Worker `sistemabk-chatbot`); STAGING es `env.staging` (Worker `sistemabk-chatbot-staging`).
   // Wrangler NO hereda bindings, vars, Durable Objects ni crons entre entornos: por eso se repiten abajo.
-  "name": "dcasa-juan",
+  "name": "sistemabk-chatbot",
   "main": "src/index.ts",
   "compatibility_date": "2026-09-01",
   "compatibility_flags": ["nodejs_compat"],
@@ -34,8 +34,8 @@
   //   PUENTE: el puente de WhatsApp por QR (puente-wa/). Descomentar cuando ESE Worker ya esté publicado; mientras tanto el
   //          canal de WhatsApp aparece en /salud como «le falta PUENTE» y el resto del bot funciona (docs/JUAN.md).
   "services": [
-    { "binding": "DCASA", "service": "dcasa", "entrypoint": "JuanEntrada" }
-    // , { "binding": "PUENTE", "service": "dcasa-puente-wa" }
+    { "binding": "DCASA", "service": "sistemabk", "entrypoint": "JuanEntrada" }
+    // , { "binding": "PUENTE", "service": "sistemabk-puente-wa" }
   ],
 
   // UTC. Cada hora (minuto 23): renueva la llave de Instagram si toca, ¿sigue conectado el puente? ¿se alcanzó el tope de IA?
@@ -57,7 +57,7 @@
   // El Worker arranca sin ellos y GET /salud dice cuáles faltan. No se usa `secrets.required`: el primer despliegue es sin secretos.
   "vars": {
     "ENTORNO": "produccion",
-    "URL_SITIO": "https://dcasapty.com",
+    "URL_SITIO": "https://sistemabk.juanarrietabusiness.workers.dev",
     "BUFFER_SEGUNDOS": "15",
     "TOPE_DIARIO": "50",
     // "1" = las notas de voz se pasan a texto con Whisper de Workers AI (necesita el binding "ai" de arriba). "0" lo apaga.
@@ -71,7 +71,7 @@
 
   "env": {
     "staging": {
-      "name": "dcasa-juan-staging",
+      "name": "sistemabk-chatbot-staging",
       "durable_objects": {
         "bindings": [
           { "name": "CONVERSACION", "class_name": "Conversacion" },
@@ -84,15 +84,15 @@
         { "tag": "v2", "new_sqlite_classes": ["TiendaSesion"] }
       ],
       "ai": { "binding": "AI" },
-      // Hoy solo existe `dcasa-staging`: staging habla con ese.
+      // Hoy solo existe `sistemabk-staging`: staging habla con ese.
       "services": [
-        { "binding": "DCASA", "service": "dcasa-staging", "entrypoint": "JuanEntrada" }
-        // , { "binding": "PUENTE", "service": "dcasa-puente-wa-staging" }
+        { "binding": "DCASA", "service": "sistemabk-staging", "entrypoint": "JuanEntrada" }
+        // , { "binding": "PUENTE", "service": "sistemabk-puente-wa-staging" }
       ],
       "triggers": { "crons": ["23 * * * *"] },
       "vars": {
         "ENTORNO": "staging",
-        "URL_SITIO": "https://dcasa-staging.dcasapty.workers.dev",
+        "URL_SITIO": "https://sistemabk-staging.juanarrietabusiness.workers.dev",
         "BUFFER_SEGUNDOS": "15",
         "TOPE_DIARIO": "50",
         "TRANSCRIBIR_AUDIO": "1",

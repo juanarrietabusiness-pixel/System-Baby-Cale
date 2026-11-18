@@ -9,8 +9,8 @@ export WRANGLER_SEND_METRICS=false
 
 cuenta=00000000000000000000000000000000
 digest="sha256:$(printf '0%.0s' $(seq 64))"
-ref_digest="registry.cloudflare.com/${cuenta}/dcasa-odoo@${digest}"
-ref_tag="registry.cloudflare.com/${cuenta}/dcasa-odoo:0000000000000000000000000000000000000000"
+ref_digest="registry.cloudflare.com/${cuenta}/sistemabk-odoo@${digest}"
+ref_tag="registry.cloudflare.com/${cuenta}/sistemabk-odoo:0000000000000000000000000000000000000000"
 salida="$(mktemp -d)"
 trap 'rm -rf "$salida" edge/wrangler.desplegar.json' EXIT
 

@@ -114,11 +114,11 @@ class TestCalculos(BaseCase):
             C.limites_del_periodo('ayer', ahora)
 
     def test_la_direccion_que_el_puente_puede_bajar(self):
-        buenas = ('https://dcasapty.com', 'https://www.dcasapty.com/x', 'https://dcasapty.workers.dev',
-                  'https://dcasa-juan.dcasapty.workers.dev/a', 'https://dcasapty.com:443/a')
-        malas = ('http://dcasapty.com', 'https://dcasapty.com.evil.com', 'https://evil.com/dcasapty.com',
-                 'https://evildcasapty.com', 'https://user@dcasapty.com', 'https://dcasapty.com:8443/', '', None,
-                 'ftp://dcasapty.com', 'https://127.0.0.1', 'https://dcasapty.com:abc/')
+        buenas = ('https://babycaleb.com', 'https://www.babycaleb.com/x', 'https://juanarrietabusiness.workers.dev',
+                  'https://sistemabk-chatbot.juanarrietabusiness.workers.dev/a', 'https://babycaleb.com:443/a')
+        malas = ('http://babycaleb.com', 'https://babycaleb.com.evil.com', 'https://evil.com/babycaleb.com',
+                 'https://evilbabycaleb.com', 'https://user@babycaleb.com', 'https://babycaleb.com:8443/', '', None,
+                 'ftp://babycaleb.com', 'https://127.0.0.1', 'https://babycaleb.com:abc/')
         for url in buenas:
             with self.subTest(url=url):
                 self.assertTrue(C.url_descargable_por_el_puente(url))
@@ -647,9 +647,9 @@ class TestConexiones(JuanCase):
     def test_lo_que_odoo_sabe_de_si_mismo_son_solo_si_o_no(self):
         odoo = self.panel.conexiones()['odoo']
         self.assertEqual((odoo['url_del_worker'], odoo['token_del_worker']), (True, True))
-        self.assertEqual(odoo['dominios_del_puente'], ['dcasapty.com', 'dcasapty.workers.dev'])
+        self.assertEqual(odoo['dominios_del_puente'], ['babycaleb.com', 'juanarrietabusiness.workers.dev'])
         self.assertIsInstance(odoo['direccion_de_odoo_sirve_al_puente'], bool)
-        self.env['ir.config_parameter'].sudo().set_param('web.base.url', 'https://dcasapty.com')
+        self.env['ir.config_parameter'].sudo().set_param('web.base.url', 'https://babycaleb.com')
         self.assertTrue(self.panel.conexiones()['odoo']['direccion_de_odoo_sirve_al_puente'])
         self.env['ir.config_parameter'].sudo().set_param('web.base.url', 'http://localhost:8069')
         self.assertFalse(self.panel.conexiones()['odoo']['direccion_de_odoo_sirve_al_puente'])

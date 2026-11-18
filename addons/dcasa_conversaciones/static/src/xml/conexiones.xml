@@ -76,7 +76,7 @@
 
                         <section t-if="d.secretos_faltantes.length or d.ia.claves_faltantes.length" class="o_dcj_p_tarjeta">
                             <h2>Claves que faltan en el Worker</h2>
-                            <p class="o_dcj_p_detalle">Solo los nombres. La dueña las pega en Cloudflare (Workers › dcasa-juan › Settings › Variables and Secrets); nunca por aquí.</p>
+                            <p class="o_dcj_p_detalle">Solo los nombres. La dueña las pega en Cloudflare (Workers › sistemabk-chatbot › Settings › Variables and Secrets); nunca por aquí.</p>
                             <ul class="o_dcj_p_claves">
                                 <li t-foreach="d.secretos_faltantes" t-as="n" t-key="n"><code t-out="n"/></li>
                             </ul>

@@ -10,7 +10,7 @@ from datetime import date, datetime, timedelta
 from urllib.parse import urlsplit
 
 # Dominios desde los que el puente de WhatsApp descarga las fotos y documentos (MEDIOS_HOSTS_PERMITIDOS del puente).
-DOMINIOS_DEL_PUENTE = ('dcasapty.com', 'dcasapty.workers.dev')
+DOMINIOS_DEL_PUENTE = ('babycaleb.com', 'juanarrietabusiness.workers.dev')
 # 90 días y 12 meses: para medir en más tiempo (pedido de la dueña, 2026-11-03).
 PERIODOS = ('hoy', '7_dias', '30_dias', '90_dias', '12_meses')
 NOMBRES_PERIODO = {'hoy': 'Hoy', '7_dias': 'Últimos 7 días', '30_dias': 'Últimos 30 días',

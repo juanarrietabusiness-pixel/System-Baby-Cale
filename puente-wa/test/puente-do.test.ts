@@ -38,7 +38,7 @@ function juanFalso(...estados: number[]) {
 async function montar(envExtra: Record<string, unknown> = {}, ctx: CtxFalso = crearCtx()) {
   const env: any = {
     PUENTE_ACTIVO: "on",
-    PUENTE_BASE_URL: "https://dcasa-puente-wa-staging.dcasapty.workers.dev",
+    PUENTE_BASE_URL: "https://sistemabk-puente-wa-staging.juanarrietabusiness.workers.dev",
     MEDIOS_HOSTS_PERMITIDOS: "dcasapty.com",
     WA_TOKEN: TOKEN,
     WA_SESION_CLAVE: CLAVE,
@@ -123,7 +123,7 @@ describe("arranque y entorno del contenedor", () => {
     expect(todo).not.toContain(CLAVE);
     expect(d.envVars!).toMatchObject({
       PORT: "8080",
-      PUENTE_URL: "https://dcasa-puente-wa-staging.dcasapty.workers.dev",
+      PUENTE_URL: "https://sistemabk-puente-wa-staging.juanarrietabusiness.workers.dev",
       MEDIOS_HOSTS_PERMITIDOS: "dcasapty.com",
     });
   });

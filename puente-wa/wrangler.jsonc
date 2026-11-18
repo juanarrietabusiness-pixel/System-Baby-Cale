@@ -6,7 +6,7 @@
   //
   // APARTE del Worker `juan` a propósito: si la imagen del contenedor no construye, lo único que no sale es
   // el puente, y `juan` se sigue publicando (contestando por los demás canales).
-  "name": "dcasa-puente-wa",
+  "name": "sistemabk-puente-wa",
   "main": "src/worker.ts",
   "compatibility_date": "2026-09-01",
   "compatibility_flags": ["nodejs_compat"],
@@ -39,8 +39,8 @@
 
   // El Worker `juan`, por SERVICE BINDING (Worker a Worker de la misma cuenta por URL pública da el error
   // 1042 de Cloudflare, disfrazado de 404). Cloudflare NO despliega un Worker que declara un binding a otro
-  // que todavía no existe: primero se despliega `dcasa-juan`, después este.
-  "services": [{ "binding": "JUAN", "service": "dcasa-juan" }],
+  // que todavía no existe: primero se despliega `sistemabk-chatbot`, después este.
+  "services": [{ "binding": "JUAN", "service": "sistemabk-chatbot" }],
 
   // Un supervisor FUERA del Durable Object: llega aunque el DO se haya desalojado y su cadena de alarmas se
   // haya perdido (la causa de la noche muda del CRM de origen). Cada minuto, que es el mínimo que permite
@@ -59,10 +59,10 @@
     // Interruptor general. «on» = encendido (si hay secretos); cualquier otro valor = apagado.
     "PUENTE_ACTIVO": "on",
     // La URL pública de este mismo Worker: el contenedor vuelve a entrar por aquí a guardar su sesión.
-    "PUENTE_BASE_URL": "https://dcasa-puente-wa.dcasapty.workers.dev",
+    "PUENTE_BASE_URL": "https://sistemabk-puente-wa.juanarrietabusiness.workers.dev",
     // Dominios de los que se pueden descargar imágenes y documentos para enviar (protección SSRF, además de
     // exigir https y direcciones públicas). Subdominios incluidos. Vacío = cualquier dominio público.
-    "MEDIOS_HOSTS_PERMITIDOS": "dcasapty.com,dcasapty.workers.dev",
+    "MEDIOS_HOSTS_PERMITIDOS": "babycaleb.com,juanarrietabusiness.workers.dev",
     // Ritmo de envío conservador (menos riesgo de que WhatsApp bloquee el número).
     "LIMITE_POR_MINUTO": "10",
     "LIMITE_POR_DIA": "400",
@@ -80,15 +80,15 @@
   // Copia diaria opcional en R2 (apagada). Para encenderla: crear el bucket, descomentar esto, poner
   // COPIA_R2 en «on» y desplegar. La retención se pone con una regla de ciclo de vida del bucket: el código
   // nunca borra objetos de R2 (regla del repositorio).
-  // "r2_buckets": [{ "binding": "COPIAS", "bucket_name": "dcasa-puente-wa-copias" }],
+  // "r2_buckets": [{ "binding": "COPIAS", "bucket_name": "sistemabk-puente-wa-copias" }],
 
   "env": {
     // Para probar con un número de PRUEBA (nunca el del negocio). `wrangler deploy --env staging`: otro Worker
-    // (dcasa-puente-wa-staging), otro Durable Object, otra sesión y otro contenedor. Nada se comparte con
+    // (sistemabk-puente-wa-staging), otro Durable Object, otra sesión y otro contenedor. Nada se comparte con
     // producción. Las claves de `env.*` no heredan containers, durable_objects, migrations, services, triggers
     // ni vars: por eso se repiten completas.
     "staging": {
-      "name": "dcasa-puente-wa-staging",
+      "name": "sistemabk-puente-wa-staging",
       "containers": [
         {
           "class_name": "PuenteWa",
@@ -103,12 +103,12 @@
         "bindings": [{ "name": "WA", "class_name": "PuenteWa" }]
       },
       "migrations": [{ "tag": "v1", "new_sqlite_classes": ["PuenteWa"] }],
-      "services": [{ "binding": "JUAN", "service": "dcasa-juan-staging" }],
+      "services": [{ "binding": "JUAN", "service": "sistemabk-chatbot-staging" }],
       "triggers": { "crons": ["* * * * *"] },
       "vars": {
         "PUENTE_ACTIVO": "on",
-        "PUENTE_BASE_URL": "https://dcasa-puente-wa-staging.dcasapty.workers.dev",
-        "MEDIOS_HOSTS_PERMITIDOS": "dcasapty.com,dcasapty.workers.dev",
+        "PUENTE_BASE_URL": "https://sistemabk-puente-wa-staging.juanarrietabusiness.workers.dev",
+        "MEDIOS_HOSTS_PERMITIDOS": "babycaleb.com,juanarrietabusiness.workers.dev",
         "LIMITE_POR_MINUTO": "10",
         "LIMITE_POR_DIA": "400",
         "LIMITE_POR_DESTINATARIO_HORA": "30",

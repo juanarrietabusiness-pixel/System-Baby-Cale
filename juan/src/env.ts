@@ -1,4 +1,4 @@
-// Lo que el Worker `dcasa-juan` recibe de Cloudflare: bindings, variables y secretos.
+// Lo que el Worker `sistemabk-chatbot` recibe de Cloudflare: bindings, variables y secretos.
 // Solo NOMBRES: los valores de los secretos los carga la dueña (docs/JUAN.md).
 
 import type { Conversacion } from "./motor/do";

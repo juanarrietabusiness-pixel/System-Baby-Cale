@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "dcasa",
+  "name": "sistemabk",
   "main": "src/index.ts",
   "compatibility_date": "2026-09-01",
   "observability": { "enabled": true },
@@ -55,7 +55,9 @@
   //   recomendados: DCASA_PIN_PEPPER, ODOO_MASTER_PASSWORD, RESPALDO_TOKEN.
   // No se usa `secrets.required`: el CI despliega antes de cargar secretos y fallaría.
   "vars": {
-    "CANONICAL_HOST": "dcasapty.com",
+    // Hasta el día del dominio (docs/DOMINIO.md) Odoo arma sus direcciones con la de workers.dev; el despliegue igual
+    // la toma de URL_SITIO si la variable de GitHub CANONICAL_HOST está vacía (.github/workflows/desplegar.yml).
+    "CANONICAL_HOST": "sistemabk.juanarrietabusiness.workers.dev",
     "DCASA_ENTORNO": "produccion",
     // Existencias de prueba: en producción SIEMPRE 0 (el entrypoint lo fuerza igual).
     "DCASA_STOCK_PRUEBA": "0",
@@ -65,7 +67,7 @@
     "DCASA_BLACK_WEEKEND": "0",
     "DCASA_BLACK_WEEKEND_INICIO": "2026-10-02",
     "DCASA_BLACK_WEEKEND_FIN": "2026-10-11",
-    "R2_BUCKET": "dcasa-respaldos",
+    "R2_BUCKET": "sistemabk-respaldos",
     // Vacío = 24/7 (el contenedor no se duerme nunca).
     "ODOO_DORMIR_TRAS": "",
     // Caché de páginas: "off" en producción hasta que la dueña la apruebe en staging (todo lo
@@ -107,24 +109,25 @@
   //   { "name": "LIMITE_PDF", "namespace_id": "1105", "simple": { "limit": 6, "period": 60 } }
   // ],
 
-  // Dominio propio (docs/historico/TRASLADO_DOMINIO.md, 2026-10-26): dcasapty.com y www van a este Worker. Cloudflare crea solo
-  // sus registros DNS y certificados (custom_domain); el borde manda www → dcasapty.com.
-  "routes": [
-    { "pattern": "dcasapty.com", "custom_domain": true },
-    { "pattern": "www.dcasapty.com", "custom_domain": true }
-  ],
+  // Sin dominio propio todavía: producción nace en https://sistemabk.juanarrietabusiness.workers.dev y babycaleb.com sigue en la
+  // web actual (babycaleb-web) hasta el día del cambio, que se hace a propósito y en un solo paso (docs/DOMINIO.md).
+  // Ese día esto pasa a ser [{ "pattern": "babycaleb.com", "custom_domain": true }, { "pattern": "www.babycaleb.com",
+  // "custom_domain": true }]. OJO: sin terminal (como en el CI), wrangler 4.158 se lleva SIN PREGUNTAR el dominio que
+  // ya usa otro Worker y pisa los registros DNS que choquen (override_existing_origin/override_existing_dns_record):
+  // ponerlo aquí antes de tiempo se lo quitaría a la web actual (y a sus pagos) en el primer despliegue.
+  "routes": [],
   // workers.dev SIGUE respondiendo: con `routes` y sin esto, wrangler lo apaga en el siguiente despliegue, y ahí
   // viven el webhook de Telegram de Brian, la entrada /master de siempre y lo que Juan y el puente ya conocen.
   "workers_dev": true,
 
   "env": {
     // Entorno de prueba para los simulacros de caída y restauración (Fase 1, punto 3).
-    // `wrangler deploy --env staging`: otro Worker (dcasa-staging), por tanto otro
+    // `wrangler deploy --env staging`: otro Worker (sistemabk-staging), por tanto otro
     // Durable Object, otra app de contenedor y otra instancia; otro bucket de R2 y sus
     // propios secretos (`wrangler secret put … --env staging`). Nunca comparte R2 con
     // producción: dos PostgreSQL en el mismo repositorio = contabilidad corrupta.
     "staging": {
-      "name": "dcasa-staging",
+      "name": "sistemabk-staging",
       "containers": [
         {
           "class_name": "OdooContainer",
@@ -143,16 +146,16 @@
       "kv_namespaces": [{ "binding": "TIENDA" }],
       "triggers": { "crons": ["7 * * * *", "17 8 * * *"] },
       "vars": {
-        "CANONICAL_HOST": "staging.dcasapty.com",
+        "CANONICAL_HOST": "sistemabk-staging.juanarrietabusiness.workers.dev",
         "DCASA_ENTORNO": "staging",
         // 10 unidades a cada producto sin existencias ni movimientos, para probar ventas
         // (addons/dcasa_catalogo: aplicar_stock_prueba; nunca pisa un conteo real).
         "DCASA_STOCK_PRUEBA": "10",
-        // Black Weekend visible ya (vista previa para la dueña), sin mirar la ventana.
-        "DCASA_BLACK_WEEKEND": "1",
+        // Black Weekend apagado: es una campaña de D'CASA; Baby Caleb no tiene campaña cargada.
+        "DCASA_BLACK_WEEKEND": "0",
         "DCASA_BLACK_WEEKEND_INICIO": "2026-10-02",
         "DCASA_BLACK_WEEKEND_FIN": "2026-10-11",
-        "R2_BUCKET": "dcasa-respaldos-staging",
+        "R2_BUCKET": "sistemabk-respaldos-staging",
         // 24/7 como producción (decisión de la dueña, 2026-10-02): dormido, la página cacheada
         // en el borde salía sin estilos (los assets los sirve Odoo) y /socios tardaba ~1 min en
         // despertar y restaurar desde R2. Para abaratar una pausa larga, poner "1h".
@@ -160,8 +163,8 @@
         // Caché de páginas encendida: el borde sirve a los anónimos el MISMO HTML que dibuja Odoo
         // (navbar píldora, héroe, footer; probado idéntico byte a byte salvo el token CSRF, que el
         // JS refresca). La plantilla propia de antes (apagada el 2026-10-02) ya no existe.
-        // staging.dcasapty.com aún no apunta al Worker: el aviso de invalidación va a workers.dev.
-        "TIENDA_AVISO_URL": "https://dcasa-staging.dcasapty.workers.dev/__edge/tienda/regenerar",
+        // Staging vive en workers.dev: el aviso de invalidación va ahí.
+        "TIENDA_AVISO_URL": "https://sistemabk-staging.juanarrietabusiness.workers.dev/__edge/tienda/regenerar",
         "TIENDA_ESTATICA": "on",
         // Doble factor OBLIGATORIO en staging (pedido de la dueña, 2026-10-10: «blindar el acceso»):
         // cada administrador enrola la app de códigos la primera vez que entra después de la clave
@@ -169,15 +172,13 @@
         // hasta que la dueña pruebe aquí el flujo completo.
         "DCASA_2FA_OBLIGATORIO": "1",
         "DCASA_2FA_ALCANCE": "admins",
-        // La puerta del equipo (ver arriba): primero "avisar" para comprobar que todo el equipo pasa por ella, luego "1".
-        // 2026-10-10: la dueña ya probó /master (PIN al correo → «Acceso del equipo») → "avisar".
-        // 2026-10-13: "1" (pedido de la dueña): el personal solo entra por /master y con la puerta abierta; por
-        // /web/login (el login público, para clientes y socios) ya no entra. Rescate: "0" y desplegar.
-        "DCASA_PUERTA_OBLIGATORIA": "1",
+        // La puerta del equipo (ver arriba) arranca APAGADA en la instalación nueva: sin la aplicación de Access y sus
+        // cuatro secretos, "1" deja a todo el equipo afuera (incidente 4 de D'CASA). Se enciende por pasos:
+        // "0" → "avisar" unos días → "1" (docs/REPLICAR.md §6.9).
+        "DCASA_PUERTA_OBLIGATORIA": "0",
         "DCASA_PUERTA_EXIGIR_CORREO": "0"
       },
-      // `routes` se HEREDA de arriba: sin esta línea, staging se llevaría dcasapty.com. Cuando tenga su dominio:
-      // [{ "pattern": "staging.dcasapty.com", "custom_domain": true }]
+      // `routes` se HEREDA de arriba: staging nunca se lleva el dominio de producción. Siempre [] aquí.
       "routes": []
     }
   }

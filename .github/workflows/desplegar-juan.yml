@@ -1,6 +1,6 @@
 name: Desplegar Juan
 
-# Despliega el Worker `dcasa-juan` (el bot de atención a clientes; juan/, docs/JUAN.md) a staging o producción.
+# Despliega el Worker `sistemabk-chatbot` (el bot de atención a clientes; juan/, docs/JUAN.md) a staging o producción.
 # A producción, SOLO A MANO (Actions → Desplegar Juan → Run workflow, desde main). A staging también lo llama ci.yml:
 # con desplegar_en=staging (después de Odoo) y con desplegar_en=solo-juan-staging (sin repetir Odoo).
 #
@@ -16,7 +16,7 @@ name: Desplegar Juan
 # and Secrets). Un despliegue nunca borra los secretos puestos en el panel; `--keep-vars` también respeta las variables
 # que ella cambie ahí (URL_PUBLICA, ALERTA_TELEGRAM_CHAT_ID...). No se usa `--secrets-file` ni `secrets.required`.
 #
-# ANTES del primer despliegue real: los Workers a los que apunta `services` tienen que existir (staging → `dcasa-staging`;
+# ANTES del primer despliegue real: los Workers a los que apunta `services` tienen que existir (staging → `sistemabk-staging`;
 # producción → `dcasa`). Cloudflare rechaza el despliegue si el destino de un service binding no existe.
 
 on:

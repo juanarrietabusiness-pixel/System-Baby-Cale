@@ -18,8 +18,8 @@ import { crearSqlNode } from "../helpers/sqlNode";
 const TOKEN = "token-del-worker-de-prueba-0123456789abcdef";
 const AHORA = Date.UTC(2026, 10, 16, 16, 0);
 const SID = "AAECAwQFBgcICQoLDA0ODw";
-const URL_VOZ = "https://dcasa-juan.dcasapty.workers.dev/tienda/v1/voz";
-const ORIGEN = "https://dcasapty.com";
+const URL_VOZ = "https://sistemabk-chatbot.juanarrietabusiness.workers.dev/tienda/v1/voz";
+const ORIGEN = "https://babycaleb.com";
 const DICHO = "Busco un juego de sala gris para un apartamento pequeño";
 
 afterEach(() => vi.restoreAllMocks());
@@ -93,7 +93,7 @@ describe("la puerta: el mismo CORS y el mismo pase que el chat", () => {
 
   it("otro origen o sin origen: 403 sin cabeceras CORS, y no se llama a Whisper", async () => {
     const m = montar();
-    for (const origen of ["https://evil.example", "http://dcasapty.com", null]) {
+    for (const origen of ["https://evil.example", "http://babycaleb.com", null]) {
       const res = await m.pedir(await nota(undefined, { origen: origen as string | null }));
       expect(res.status).toBe(403);
       expect(res.headers.get("access-control-allow-origin")).toBeNull();

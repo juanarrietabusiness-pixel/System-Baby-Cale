@@ -550,7 +550,7 @@ jobs:
 
   desplegar-juan-solo:
     name: Desplegar solo Juan (bot) a staging
-    # Sin repetir Odoo: el flujo de Juan trae sus propias pruebas. Requiere que dcasa-staging ya tenga el módulo y JuanEntrada.
+    # Sin repetir Odoo: el flujo de Juan trae sus propias pruebas. Requiere que sistemabk-staging ya tenga el módulo y JuanEntrada.
     if: github.event_name == 'workflow_dispatch' && inputs.desplegar_en == 'solo-juan-staging'
     uses: ./.github/workflows/desplegar-juan.yml
     with:
