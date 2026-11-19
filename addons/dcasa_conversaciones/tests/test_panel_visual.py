@@ -450,7 +450,7 @@ class TestContratoVisualJuan(PanelUiCase):
         fotos_del_mes = self.env['dcasa.juan.panel']._ahora_local().date()
         for dia in range(1, fotos_del_mes.day):
             self.env['dcasa.juan.costo.dia']._guardar(fotos_del_mes.replace(day=dia), round(dia * 0.35, 2))
-        buscar = 'await buscarEnElCatalogo("pañales");'
+        buscar = 'await buscarEnElCatalogo("wipes");'
         escritorio = (
             ('conversaciones', ACCION, VENDEDORA, '', '.o_dcj_fila'),
             ('hilo', ACCION, VENDEDORA, 'await abrirConversacion("Karen");', '.o_dcj_fila'),
