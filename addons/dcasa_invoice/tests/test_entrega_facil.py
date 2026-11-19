@@ -294,7 +294,7 @@ class TestNotaFacilEnPdf(HttpCase):
         pdf, _tipo = self.env['ir.actions.report'].with_context(force_report_rendering=True)._render_qweb_pdf(
             INFORME_ENTREGA, entrega.ids)
         self.assertTrue(pdf.startswith(b'%PDF'))
-        self.assertIn(b'Inter', pdf, 'la nota salió sin estilos (wkhtmltopdf no cargó el CSS)')
+        self.assertIn(b'Montserrat', pdf, 'la nota salió sin estilos (wkhtmltopdf no cargó el CSS)')
 
     @skipUnless(shutil.which('wkhtmltopdf'), 'sin wkhtmltopdf (la imagen Docker lo comprueba en CI)')
     def test_diez_productos_con_foto_y_el_qr_caben_en_una_sola_hoja_carta(self):

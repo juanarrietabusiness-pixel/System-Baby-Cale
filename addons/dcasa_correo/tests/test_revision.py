@@ -142,7 +142,7 @@ class TestRevision(CorreoCase):
             with self.subTest(factura=factura.name):
                 correo = self.correos_de(factura)[-1]
                 self.assertNotIn('abono', (correo.subject + correo.body_html).lower())
-                self.assertIn('¡TU COMPRA ESTÁ PAGADA!', correo.body_html)
+                self.assertIn('¡Tu compra está pagada!', correo.body_html)
                 self.assertIn('Ver en Mi cuenta', correo.body_html)
         (abono,) = self.correos_de(en_dos)[:1]
         self.assertIn('Te falta', abono.body_html, 'El primer pago sí fue un abono')

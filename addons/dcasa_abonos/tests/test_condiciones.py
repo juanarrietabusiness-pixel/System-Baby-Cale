@@ -13,6 +13,7 @@ con la marca de las facturas, con el código del producto. Lo que se comprueba:
   unido: factura/ABONO del cliente → condiciones (cliente y empresa) → lo demás.
 * Nada de esto cambia un asiento.
 """
+import re
 import shutil
 from unittest import skipUnless
 from unittest.mock import patch
@@ -22,6 +23,7 @@ from lxml import html as lxml_html
 from odoo import Command, fields
 from odoo.addons.dcasa_base.nombres import nombre_para_cliente
 from odoo.addons.dcasa_base.tests.test_roles import crear_usuario
+from odoo.addons.dcasa_invoice.tests import marca
 from odoo.addons.dcasa_invoice.tests.documentos import DocumentosDePrueba
 from odoo.addons.dcasa_invoice.tests.test_paquete import (
     PaqueteComun,
@@ -125,6 +127,13 @@ class TestCondicionesSinBase(BaseCase):
         self.assertEqual(condiciones.renglones('SOFÁ\nCOLOR GRIS', 60), 2)
         self.assertEqual(condiciones.renglones('', 60), 1)
 
+    def test_las_condiciones_se_miden_con_montserrat(self):
+        """Montserrat (la letra de Baby Caleb) es más ancha que la de antes: un renglón de condiciones lleva menos
+        letras (de 115 a 109), así que la hoja nunca cuenta como de un renglón lo que en el papel ya ocupa dos."""
+        self.assertEqual(condiciones.LETRAS_POR_RENGLON_CONDICION, 109)
+        self.assertEqual(condiciones.renglones('a' * 109, condiciones.LETRAS_POR_RENGLON_CONDICION), 1)
+        self.assertEqual(condiciones.renglones('a' * 112, condiciones.LETRAS_POR_RENGLON_CONDICION), 2)
+
     def test_aviso_si_las_condiciones_no_dejan_lugar(self):
         self.assertFalse(condiciones.demasiado_largas(condiciones.lista_de_condiciones(condiciones.CONDICIONES_INICIALES)))
         self.assertFalse(condiciones.demasiado_largas([]))
@@ -201,6 +210,19 @@ class TestHojaDeCondiciones(DocumentosDePrueba):
         super().setUpClass()
         cls.company.dcasa_abono_condiciones = condiciones.CONDICIONES_INICIALES
         cls.company.dcasa_abono_condiciones_titulo = False
+
+    def test_la_hoja_lleva_la_marca_de_baby_caleb(self):
+        """El rótulo de la copia es una pastilla naranja con la letra navy (5.56), la letra es Montserrat y no queda
+        nada del azul ni de Oswald de D'CASA (docs/MARCA_BABY_CALEB.md)."""
+        hoja = marca.css_de_los_informes(self, '/dcasa_abonos/static/src/scss/condiciones.scss')
+        marca.sin_rastro_de_dcasa(self, hoja, 'condiciones.scss')
+        self.assertEqual(marca.letra_de_relleno(hoja), [])
+        plano = hoja.lower().replace(' ', '').replace('"', "'")
+        rotulo = re.search(r'\.o_dcasa_copia_rotulo\{([^}]*)\}', plano)
+        self.assertTrue(rotulo, 'no encontré el estilo del rótulo de la copia')
+        for regla in (f'background-color:#{marca.NARANJA}', f'color:#{marca.NAVY}', 'border-radius:999px',
+                      "font-family:'dcasamontserrat'"):
+            self.assertIn(regla, rotulo.group(1))
 
     def _hoja(self, factura, usuario=None):
         """(árbol del HTML, {'cliente': copia, 'empresa': copia})."""

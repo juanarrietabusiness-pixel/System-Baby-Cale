@@ -14,8 +14,11 @@ MAX_FACTURAS = 20
 
 TEXTO_COPIA = 'COPIA EMPRESA'
 
-# Azul de la marca (#1340B1) con letra blanca: el amarillo nunca toca el blanco.
-_AZUL = (0x13 / 255, 0x40 / 255, 0xB1 / 255)
+# La cinta en el naranja de la marca (#EE924A, relleno) con la letra navy (#1B3246): 5.56, como los botones de Baby
+# Caleb (docs/MARCA_BABY_CALEB.md). La letra es Helvetica, la del propio PDF: así el texto queda legible en la página
+# (las pruebas y quien busque «COPIA EMPRESA» en el archivo lo encuentran).
+_NARANJA = (0xEE / 255, 0x92 / 255, 0x4A / 255)
+_TINTA = (0x1B / 255, 0x32 / 255, 0x46 / 255)
 _MM = 72 / 25.4  # puntos por milímetro
 
 
@@ -59,12 +62,11 @@ def unir(pdfs):
 
 
 def sellar_copia(contenido, texto=TEXTO_COPIA):
-    """El mismo PDF con una cinta azul «COPIA EMPRESA» en cada página, a la derecha del título.
+    """El mismo PDF con una cinta naranja «COPIA EMPRESA» en cada página, a la derecha del título.
 
     La copia de la empresa es la misma factura que recibe el cliente: no es otra plantilla, solo lleva la cinta.
     Así lo que cambie en la factura (QR, textos) cambia también en la copia sin tocar nada más.
     """
-    from reportlab.lib import colors  # noqa: PLC0415
     from reportlab.pdfgen import canvas  # noqa: PLC0415
 
     originales = _paginas(_leer(contenido))
@@ -74,13 +76,14 @@ def sellar_copia(contenido, texto=TEXTO_COPIA):
         ancho, alto = _tamano(pagina)
         lienzo.setPageSize((ancho, alto))
         # Cinta a la derecha, a la altura del título «Factura INV/…» (bajo la banda del encabezado, donde la
-        # hoja de D'CASA tiene el margen derecho libre): no tapa la dirección de la empresa ni los datos.
+        # hoja tiene el margen derecho libre): no tapa la dirección de la empresa ni los datos.
         caja_ancho, caja_alto = 44 * _MM, 7 * _MM
         x = ancho - 12 * _MM - caja_ancho
         y = alto - 37 * _MM - caja_alto
-        lienzo.setFillColorRGB(*_AZUL)
-        lienzo.rect(x, y, caja_ancho, caja_alto, fill=1, stroke=0)
-        lienzo.setFillColor(colors.white)
+        lienzo.setFillColorRGB(*_NARANJA)
+        # Una pastilla, como los botones de la marca: radio de la mitad del alto.
+        lienzo.roundRect(x, y, caja_ancho, caja_alto, caja_alto / 2, fill=1, stroke=0)
+        lienzo.setFillColorRGB(*_TINTA)
         lienzo.setFont('Helvetica-Bold', 10)
         lienzo.drawCentredString(x + caja_ancho / 2, y + caja_alto / 2 - 3.5, texto)
         lienzo.showPage()
@@ -92,7 +95,7 @@ def sellar_copia(contenido, texto=TEXTO_COPIA):
         if '/Annots' in pagina:  # PyPDF2 se queja de las anotaciones al fusionar
             del pagina['/Annots']
         # Primero se fusiona el sello con la página y DESPUÉS se agrega al escritor (la receta de PyPDF2): al revés,
-        # la fuente del sello queda apuntando a objetos que no son suyos y la cinta sale azul y sin texto.
+        # la fuente del sello queda apuntando a objetos que no son suyos y la cinta sale de color y sin texto.
         (getattr(pagina, 'merge_page', None) or pagina.mergePage)(marca)
         _agregar(salida, pagina)
     resultado = io.BytesIO()

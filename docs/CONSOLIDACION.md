@@ -95,11 +95,11 @@ propio importe y sale una advertencia:
 - Si una **misma cuenta consolidada cae en secciones distintas** según la empresa (por ejemplo, activo
   corriente en una y no corriente en otra), cada parte queda en su sección y se avisa para revisar el mapa.
 
-## Cuentas que solo tiene una empresa (nota azul, no es un error)
+## Cuentas que solo tiene una empresa (una nota, no es un error)
 
 Una cuenta **nunca se pierde**: si no está en el mapa se une por su código y, si solo existe en una empresa, aparece sola en
 su fila. Pero si en realidad es la misma cuenta que otra de otra empresa con otro código, el consolidado la muestra en dos
-filas. Por eso, al calcular, el formulario (y el PDF) llevan una **nota azul** con las cuentas con saldo que ninguna otra
+filas. Por eso, al calcular, el formulario (y el PDF) llevan una **nota** con las cuentas con saldo que ninguna otra
 empresa del grupo tiene ni por código ni en el mapa. No es una advertencia: nada está mal. Si alguna es equivalente a otra,
 únelas en el **Mapa de cuentas**; si no, se deja así. Una cuenta que ya está en el mapa (aunque sea para dejarla sola) no
 vuelve a salir en la nota. El mapa muestra el **tipo de cuenta** de cada fila y se puede agrupar por él: así se ve que no se

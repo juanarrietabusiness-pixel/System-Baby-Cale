@@ -3,8 +3,9 @@
     'summary': "Formato de factura con la marca D'CASA: en español, Cédula/RUC con DV, pago verídico y monto en letras",
     'description': """
 Plantilla de documentos (facturas, cotizaciones, órdenes) con la identidad de
-D'CASA: la "placa" azul con banda amarilla, datos de la empresa con RUC y DV,
-pie de página que no se corta y tipografía de marca alojada en el módulo.
+la empresa (marca Baby Caleb, docs/MARCA_BABY_CALEB.md): el logo con el filete
+naranja, el texto en navy, datos de la empresa con RUC y DV, pie de página que
+no se corta y la letra de la marca (Montserrat, TTF de dcasa_base).
 
 * Siempre en español: etiquetas, fechas dd/mm/aaaa, montos $1,070.50 y el total
   en letras («… Dólares con 50/100»).
@@ -27,7 +28,7 @@ pie de página que no se corta y tipografía de marca alojada en el módulo.
   (producto «Flete / envío a domicilio», sin precio: se cotiza en cada venta).
 * Abonos con fecha y medio, pagado y por pagar debajo del total; descuento aplicado.
 * Garantía, cambios y términos: textos cortos que la dueña escribe en la empresa.
-* Hoja carta con la placa, la banda y un pie de dos líneas que no se corta.
+* Hoja carta con el logo, el filete y un pie de dos líneas que no se corta.
 * «Imprimir documentos»: botón extra en la factura y en el pedido (y «Imprimir paquete» en sus listas) que junta en
   un solo PDF la factura del cliente, la copia de la empresa y la nota de entrega; «Imprimir» abre el cuadro de
   impresión sin guardar archivos y «Descargar» lo guarda. Al completar un pago o registrar un abono, el asistente

@@ -56,7 +56,7 @@ class TestFacturaManual(CorreoCase):
         (correo,) = self.correos_de(factura)
         self.assertIn("'X-Dcasa-Correo': 'factura'", correo.headers)
         self.assertIn('Escríbenos por WhatsApp', correo.body_html)
-        self.assertIn('TU FACTURA', correo.body_html)
+        self.assertIn('Tu factura', correo.body_html)
         self.assertEqual(correo.subject, f'Tu factura {factura.name} de Baby Caleb')
         self.assertFalse(factura.access_token, 'Sin access_token: el enlace no da acceso a nadie')
 
@@ -125,7 +125,7 @@ class TestCotizacionManual(CorreoCase):
             asistente.action_send_mail()
         (correo,) = self.correos_de(orden)
         self.assertIn("'X-Dcasa-Correo': 'cotizacion'", correo.headers)
-        self.assertIn('TU COTIZACIÓN', correo.body_html)
+        self.assertIn('Tu cotización', correo.body_html)
         self.assertIn(f'te enviamos la cotización <strong>{orden.name}</strong>', correo.body_html)
         self.assertEqual(correo.recipient_ids, self.ana)
         self.assertEqual(orden.state, 'sent')

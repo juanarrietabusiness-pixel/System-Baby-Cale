@@ -24,43 +24,45 @@
         <field name="binding_model_id" eval="False"/>
     </record>
 
-    <!-- Cheque arriba (para papel de cheque carta) y talón con las facturas pagadas debajo. -->
+    <!-- Cheque arriba (para papel de cheque carta) y talón con las facturas pagadas debajo. Marca Baby Caleb
+         (docs/MARCA_BABY_CALEB.md): Montserrat y letra navy; la cabecera del talón en el relleno verde con la letra
+         navy (6.96). -->
     <template id="cheque">
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="o">
                 <t t-foreach="o._check_get_pages()" t-as="pagina">
-                    <div class="page" t-attf-style="font-family: Inter, Arial, sans-serif; font-size: 12px; color: #0B1F5C; padding: #{o.company_id.account_check_printing_margin_top}in #{o.company_id.account_check_printing_margin_right}in 0 #{o.company_id.account_check_printing_margin_left}in; page-break-after: always;">
+                    <div class="page" t-attf-style="font-family: 'DCASA Montserrat', Montserrat, Arial, Helvetica, sans-serif; font-size: 12px; color: #1B3246; padding: #{o.company_id.account_check_printing_margin_top}in #{o.company_id.account_check_printing_margin_right}in 0 #{o.company_id.account_check_printing_margin_left}in; page-break-after: always;">
                         <div style="position: relative; height: 3.3in;">
                             <div style="position: absolute; top: .35in; right: .2in; text-align: right;">
-                                <span t-if="o.company_id.account_check_printing_date_label" style="color: #5B6478;">Fecha </span>
+                                <span t-if="o.company_id.account_check_printing_date_label" style="color: #5F707E;">Fecha </span>
                                 <strong t-out="pagina['date']"/>
                                 <div t-if="pagina['sequence_number'] and pagina['manual_sequencing']" style="margin-top: 4px;">
                                     N.º <span t-out="pagina['sequence_number']"/>
                                 </div>
                             </div>
                             <div style="position: absolute; top: 1.05in; left: .2in; right: 2.1in;">
-                                <span style="color: #5B6478;">Páguese a la orden de </span>
+                                <span style="color: #5F707E;">Páguese a la orden de </span>
                                 <strong style="font-size: 14px;" t-out="pagina['partner_name']"/>
                             </div>
-                            <div style="position: absolute; top: 1.0in; right: .2in; font-size: 16px; font-weight: 700; border: 1px solid #0B1F5C; padding: 3px 10px;">
+                            <div style="position: absolute; top: 1.0in; right: .2in; font-size: 16px; font-weight: 700; border: 1px solid #1B3246; padding: 3px 10px;">
                                 <t t-out="pagina['amount']"/>
                             </div>
                             <div style="position: absolute; top: 1.5in; left: .2in; right: .2in; overflow: hidden; white-space: nowrap;">
-                                <span style="color: #5B6478;">La suma de </span><t t-out="pagina['amount_in_word']"/>
+                                <span style="color: #5F707E;">La suma de </span><t t-out="pagina['amount_in_word']"/>
                             </div>
-                            <div t-if="pagina['memo']" style="position: absolute; top: 2.35in; left: .2in; color: #5B6478;">
+                            <div t-if="pagina['memo']" style="position: absolute; top: 2.35in; left: .2in; color: #5F707E;">
                                 Concepto: <span t-out="pagina['memo']"/>
                             </div>
-                            <div style="position: absolute; top: 2.4in; right: .2in; width: 2.6in; border-top: 1px solid #0B1F5C; text-align: center; padding-top: 3px; color: #5B6478;">
+                            <div style="position: absolute; top: 2.4in; right: .2in; width: 2.6in; border-top: 1px solid #1B3246; text-align: center; padding-top: 3px; color: #5F707E;">
                                 Firma autorizada
                             </div>
                         </div>
-                        <div style="border-top: 1px dashed #9AA3B5; padding-top: .25in; margin-top: .1in;">
+                        <div style="border-top: 1px dashed #828E99; padding-top: .25in; margin-top: .1in;">
                             <strong style="font-size: 13px;" t-out="pagina['company']"/>
-                            <span style="color: #5B6478;"> · Comprobante de pago a </span><strong t-out="pagina['partner_name']"/>
+                            <span style="color: #5F707E;"> · Comprobante de pago a </span><strong t-out="pagina['partner_name']"/>
                             <table t-if="pagina['stub_lines']" style="width: 100%; margin-top: 10px; border-collapse: collapse;">
                                 <thead>
-                                    <tr style="background: #1340B1; color: #fff;">
+                                    <tr style="background: #91C9A2; color: #1B3246;">
                                         <th style="padding: 4px 6px; text-align: left;">Vence</th>
                                         <th style="padding: 4px 6px; text-align: left;">Documento</th>
                                         <th style="padding: 4px 6px; text-align: right;">Total</th>
@@ -69,7 +71,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr t-foreach="pagina['stub_lines']" t-as="linea" style="border-bottom: 1px solid #E6EAF2;">
+                                    <tr t-foreach="pagina['stub_lines']" t-as="linea" style="border-bottom: 1px solid #E4E6E9;">
                                         <t t-if="linea.get('header')">
                                             <td colspan="5" style="padding: 4px 6px; font-weight: 700;" t-out="linea['name']"/>
                                         </t>
@@ -83,7 +85,7 @@
                                     </tr>
                                 </tbody>
                             </table>
-                            <p t-if="pagina['stub_cropped']" style="margin-top: 6px; color: #5B6478;">Hay más facturas pagadas con este cheque; se listan en el pago.</p>
+                            <p t-if="pagina['stub_cropped']" style="margin-top: 6px; color: #5F707E;">Hay más facturas pagadas con este cheque; se listan en el pago.</p>
                             <p style="margin-top: 14px;">Monto: <strong t-out="pagina['amount']"/></p>
                         </div>
                     </div>

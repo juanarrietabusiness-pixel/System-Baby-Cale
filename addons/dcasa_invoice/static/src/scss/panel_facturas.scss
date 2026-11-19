@@ -1,24 +1,29 @@
 // Facturación › Tablero: tarjetas «Facturas de clientes» y «Facturas de proveedores».
-// Sistema plano de D'CASA: azul #1340B1 y tinta oscura sobre blanco, sin degradados ni sombras.
+// Marca Baby Caleb (docs/MARCA_BABY_CALEB.md): letra navy, el filete naranja arriba (relleno, no letra), el canto
+// suave y el titular como frase. Plano, sin degradados ni sombras. Los colores van escritos tal cual: Ajustes › Marca
+// del panel los vuelve a pintar con los de cada empresa sobre la hoja ya compilada (dcasa_interfaz/marca/tinte.py).
 // Las tarjetas usan el tamaño de las de los diarios (Ventas, Compras, bancos) para verse como una más.
 .o_account_kanban .o_dcasa_panel_tarjeta {
-    --dcasa-panel-azul: var(--dc-azul-600, #1340B1);
-    --dcasa-panel-tinta: var(--dc-tinta, #0E1A33);
-    --dcasa-panel-suave: var(--dc-tinta-3, #6B7690);
-    --dcasa-panel-linea: var(--dc-linea, #E2E7F0);
+    --dcasa-panel-tinta: #1B3246;
+    --dcasa-panel-suave: rgba(27, 50, 70, .7);
+    --dcasa-panel-linea: rgba(27, 50, 70, .12);
+    --dcasa-panel-naranja: #EE924A;
+    --dcasa-panel-crema: #F9F6ED;
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
     padding: 1rem;
-    border-top: 4px solid var(--dcasa-panel-azul);
+    border-top: 4px solid var(--dcasa-panel-naranja);
     box-shadow: none;
 
     .o_dcasa_panel_titulo {
         margin: 0;
         font-size: 1.25rem;
-        line-height: 1.2;
-        text-transform: uppercase;
-        color: var(--dcasa-panel-azul);
+        font-weight: 700;
+        line-height: 1.15;
+        letter-spacing: -0.03em;
+        text-transform: none;
+        color: var(--dcasa-panel-tinta);
 
         a {
             color: inherit;
@@ -32,6 +37,7 @@
         align-items: baseline;
         gap: 0.5rem;
         width: 100%;
+        min-height: 44px;
         padding: 0.375rem 0.25rem;
         border: 0;
         border-bottom: 1px solid var(--dcasa-panel-linea);
@@ -39,13 +45,14 @@
         color: var(--dcasa-panel-tinta);
         text-align: start;
 
-        &:hover { background: var(--dc-azul-50, #F2F6FE); }
+        &:hover { background: var(--dcasa-panel-crema); }
+        &:focus-visible { outline: 2px solid var(--dcasa-panel-tinta); outline-offset: 2px; }
 
         .o_dcasa_panel_cuenta {
             min-width: 2rem;
             font-size: 1.25rem;
             font-weight: 700;
-            color: var(--dcasa-panel-azul);
+            color: var(--dcasa-panel-tinta);
         }
         .o_dcasa_panel_texto { flex: 1 1 auto; }
         .o_dcasa_panel_monto { color: var(--dcasa-panel-suave); white-space: nowrap; }
@@ -55,4 +62,10 @@
     }
 
     .o_dcasa_panel_ver { align-self: flex-start; }
+}
+
+// El filete naranja de arriba le gana al canto de todas las tarjetas del panel (dcasa_interfaz: «.o_kanban_renderer
+// .o_kanban_record», que se carga después y pesa lo mismo), también al pasar el puntero.
+.o_account_kanban .o_kanban_record.o_dcasa_panel_tarjeta {
+    &, &:hover { border-top: 4px solid var(--dcasa-panel-naranja); }
 }

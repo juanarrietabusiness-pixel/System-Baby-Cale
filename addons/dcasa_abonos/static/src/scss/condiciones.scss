@@ -1,27 +1,28 @@
 // Hoja «Condiciones de abono» (copia cliente y copia empresa). La placa, la banda, el pie, la rejilla del cliente, la
 // tabla de los muebles y los títulos salen de dcasa_invoice (report_dcasa.scss); aquí solo lo propio de la hoja.
-// Marca: azul y navy sobre blanco; el amarillo nunca toca el blanco (aquí no se usa). Plano: sin degradados ni sombras.
-$dcasa-abono-azul: #1340B1;
-$dcasa-abono-navy: #0B2A6F;
-$dcasa-abono-grafito: #3A3A3A;
-$dcasa-abono-gris: #6B6B6B;
-$dcasa-abono-linea: #D9DEEA;
-$dcasa-abono-subtitulo: 'DCASA Oswald', 'Oswald', 'Arial Narrow', sans-serif;
+// Marca Baby Caleb (docs/MARCA_BABY_CALEB.md): letra navy sobre blanco; el naranja solo de relleno y de filete, con la
+// letra navy encima. Montserrat (la declara report_dcasa.scss). Plano: sin degradados ni sombras.
+$dcasa-abono-tinta: #1B3246;
+$dcasa-abono-tinta-suave: #5F707E;
+$dcasa-abono-linea: #E4E6E9;
+$dcasa-abono-naranja: #EE924A;
+$dcasa-abono-letra: 'DCASA Montserrat', 'Montserrat', Arial, Helvetica, sans-serif;
 
 .o_report_layout_dcasa {
-    // El rótulo de la copia, a la derecha del título: azul con letra blanca.
+    // El rótulo de la copia, a la derecha del título: una pastilla naranja con la letra navy (5.56).
     .o_dcasa_copia_rotulo {
         float: right;
         margin-top: 6px;
-        padding: 3px 12px;
-        font-family: $dcasa-abono-subtitulo;
-        font-weight: 600;
-        font-size: .82rem;
+        padding: 3px 14px;
+        border-radius: 999px;
+        font-family: $dcasa-abono-letra;
+        font-weight: 700;
+        font-size: .78rem;
         letter-spacing: .08em;
         line-height: 1.4;
         white-space: nowrap;  // «COPIA CLIENTE» en un solo renglón, nunca partido en dos
-        color: #FFFFFF;
-        background-color: $dcasa-abono-azul;
+        color: $dcasa-abono-tinta;
+        background-color: $dcasa-abono-naranja;
     }
 
     .o_dcasa_condiciones_hoja {
@@ -38,7 +39,7 @@ $dcasa-abono-subtitulo: 'DCASA Oswald', 'Oswald', 'Arial Narrow', sans-serif;
         .o_dcasa_en_blanco {
             display: inline-block;
             width: 30mm;
-            border-bottom: 1px solid $dcasa-abono-grafito;
+            border-bottom: 1px solid $dcasa-abono-tinta;
         }
 
         .o_dcasa_condiciones_muebles {
@@ -48,7 +49,7 @@ $dcasa-abono-subtitulo: 'DCASA Oswald', 'Oswald', 'Arial Narrow', sans-serif;
         // «Y N muebles más…»: solo en una factura enorme (la lista entera está en la factura).
         .o_dcasa_condiciones_faltan {
             font-style: italic;
-            color: $dcasa-abono-gris;
+            color: $dcasa-abono-tinta-suave;
         }
 
         // Bootstrap deja «border-style: solid; border-width: 0» en tr, th y td y el QtWebKit de wkhtmltopdf lo pinta como
@@ -61,7 +62,7 @@ $dcasa-abono-subtitulo: 'DCASA Oswald', 'Oswald', 'Arial Narrow', sans-serif;
             }
         }
 
-        // Total, abonado y saldo: a la derecha, el saldo en navy y con su raya azul.
+        // Total, abonado y saldo: a la derecha, el saldo en navy y con su filete naranja.
         .o_dcasa_condiciones_totales {
             width: 45%;
             margin: 0 0 10px auto;
@@ -69,13 +70,13 @@ $dcasa-abono-subtitulo: 'DCASA Oswald', 'Oswald', 'Arial Narrow', sans-serif;
 
             td {
                 padding: 2px 0 2px 10px;
-                color: $dcasa-abono-grafito;
+                color: $dcasa-abono-tinta;
             }
             .o_dcasa_condiciones_saldo td {
                 padding-top: 4px;
                 font-weight: 700;
-                color: $dcasa-abono-navy;
-                border-top: 2px solid $dcasa-abono-azul !important;
+                color: $dcasa-abono-tinta;
+                border-top: 2px solid $dcasa-abono-naranja !important;
             }
         }
 
@@ -109,16 +110,16 @@ $dcasa-abono-subtitulo: 'DCASA Oswald', 'Oswald', 'Arial Narrow', sans-serif;
             }
             .o_dcasa_raya {
                 height: 1px;
-                border-bottom: 1px solid $dcasa-abono-grafito;
+                border-bottom: 1px solid $dcasa-abono-tinta;
             }
             .o_dcasa_firma_nombre {
                 padding-top: 4px;
                 text-align: center;
-                font-family: $dcasa-abono-subtitulo;
-                font-weight: 600;
-                font-size: .72rem;
+                font-family: $dcasa-abono-letra;
+                font-weight: 700;
+                font-size: .75rem;
                 letter-spacing: .06em;
-                color: $dcasa-abono-azul;
+                color: $dcasa-abono-tinta;
             }
             .o_dcasa_firmas_espacio {
                 width: 12%;

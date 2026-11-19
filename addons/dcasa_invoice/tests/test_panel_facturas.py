@@ -200,3 +200,22 @@ class TestPanelFacturas(TransactionCase):
         self.assertEqual(self.env[PANEL].with_user(self.vendedora).obtener_datos()['tarjetas'][0]['titulo'],
                          'Facturas de clientes')
         self.assertEqual(self._cuentas(self.vendedora, 'clientes')['pendientes'], despues[caja])
+
+
+@tagged('post_install', '-at_install')
+class TestPanelFacturasMarca(TransactionCase):
+    """Las tarjetas «Facturas de clientes / de proveedores» con la marca Baby Caleb (docs/MARCA_BABY_CALEB.md)."""
+
+    def test_las_tarjetas_llevan_la_marca_de_baby_caleb(self):
+        from . import marca  # noqa: PLC0415
+
+        hoja = marca.css_de_los_informes(self, '/dcasa_invoice/static/src/scss/panel_facturas.scss',
+                                         paquete='web.assets_backend')
+        marca.sin_rastro_de_dcasa(self, hoja, 'panel_facturas.scss')
+        self.assertEqual(marca.letra_de_relleno(hoja), [])
+        plano = hoja.lower().replace(' ', '')
+        self.assertIn(f'--dcasa-panel-tinta:#{marca.NAVY}', plano)
+        self.assertIn(f'--dcasa-panel-naranja:#{marca.NARANJA}', plano)
+        self.assertIn('border-top:4pxsolidvar(--dcasa-panel-naranja)', plano, 'el filete naranja arriba')
+        self.assertIn('text-transform:none', plano, 'el título, como frase')
+        self.assertIn('min-height:44px', plano, 'cada fila se toca con el dedo')

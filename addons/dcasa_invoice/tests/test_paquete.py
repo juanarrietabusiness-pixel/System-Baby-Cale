@@ -387,7 +387,7 @@ class TestCopiaDeLaEmpresa(PaqueteComun):
 
     def test_la_fuente_de_la_cinta_queda_bien_enlazada(self):
         """Si el sello se fusiona DESPUÉS de agregar la página al escritor, la fuente de la cinta apunta a objetos
-        que no son suyos (el texto está en el flujo, pero el visor ve un rectángulo azul sin letras). Se mira lo que
+        que no son suyos (el texto está en el flujo, pero el visor ve un rectángulo de color sin letras). Se mira lo que
         ve un visor: cada fuente de la página existe y la de la cinta es Helvetica-Bold."""
         sellado = paquete.sellar_copia(pdf_falso('FACTURA ORIGINAL', paginas=2))
         for pagina in pdf.PdfFileReader(io.BytesIO(sellado), strict=False).pages:
@@ -395,6 +395,19 @@ class TestCopiaDeLaEmpresa(PaqueteComun):
             nombres = [fuentes[clave].get_object().get('/BaseFont') for clave in fuentes]
             self.assertNotIn(None, nombres, 'una fuente de la página apunta a un objeto que no es una fuente')
             self.assertIn('/Helvetica-Bold', nombres, 'la cinta no tiene su fuente')
+
+    def test_la_cinta_es_naranja_con_la_letra_navy(self):
+        """Marca Baby Caleb (docs/MARCA_BABY_CALEB.md): el relleno naranja #EE924A y, encima, la letra navy #1B3246
+        (5.56); nada del azul de D'CASA. Se leen los colores de relleno («r g b rg») que pinta la página sellada."""
+        sellado = paquete.sellar_copia(pdf_falso('FACTURA ORIGINAL'))
+        (pagina,) = pdf.PdfFileReader(io.BytesIO(sellado), strict=False).pages
+        flujo = _flujo_de_la_pagina(pagina).decode('latin-1')
+        rellenos = [tuple(round(float(c) * 255) for c in m.groups())
+                    for m in re.finditer(r'([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+rg\b', flujo)]
+        self.assertIn((0xEE, 0x92, 0x4A), rellenos, 'la cinta en el naranja de la marca')
+        self.assertIn((0x1B, 0x32, 0x46), rellenos, 'la letra de la cinta en navy')
+        self.assertNotIn((0x13, 0x40, 0xB1), rellenos, 'nada del azul de D\'CASA')
+        self.assertNotIn((0xFF, 0xFF, 0xFF), rellenos, 'nada de letra blanca sobre el naranja (2.37)')
 
     def test_unir_respeta_el_orden_y_las_paginas(self):
         union = paquete.unir([pdf_falso('A', 2), pdf_falso('B'), b'', pdf_falso('C', 3)])

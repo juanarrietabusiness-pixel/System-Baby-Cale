@@ -12,3 +12,4 @@ from . import test_etapa1b
 from . import test_remitente
 from . import test_conocimiento_en_cero
 from . import test_empresa
+from . import test_marca

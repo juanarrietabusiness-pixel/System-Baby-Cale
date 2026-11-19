@@ -11,9 +11,10 @@ que ve el cliente en la tienda en línea, el día que se arma o se aprueba), nun
 * **El texto** (``_textos``): lo escribe la IA que ya usa Brian (``brian.proveedores``), con las reglas de marca, y
   pasa por una revisión fija (``reglas.problemas``). Lo que no pasa, o si la IA falla, queda con un texto fijo que el
   equipo edita. A la IA solo le llegan nombres y categorías de productos: ningún dato de clientes.
-* **El HTML** (``views/correo_templates.xml``): la marca (azul #1340B1, el amarillo solo sobre azul, sin degradados ni
-  sombras, fuentes con respaldo para correo), la foto pública de la tienda (``/dcasa/img``), el precio de hoy, un solo
-  botón «Escríbenos por WhatsApp» con la marca de la campaña, los datos de la empresa y el enlace de baja de Resend.
+* **El HTML** (``views/correo_templates.xml``): la marca Baby Caleb (crema, navy y las bandas verdes, el botón en
+  pastilla naranja con la letra navy, sin degradados ni sombras, Montserrat con respaldo Arial/Helvetica), la foto
+  pública de la tienda (``/dcasa/img``), el precio de hoy, un solo botón «Escríbenos por WhatsApp» con la marca de la
+  campaña, los datos de la empresa y el enlace de baja de Resend.
 """
 import hashlib
 import json

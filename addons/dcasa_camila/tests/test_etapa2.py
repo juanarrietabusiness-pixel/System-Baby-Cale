@@ -13,6 +13,7 @@ from odoo import Command, fields
 from odoo.addons.dcasa_brian.models import proveedores as P
 from odoo.addons.dcasa_conversaciones.models import crm_reglas as CRM
 from odoo.addons.dcasa_conversaciones.models import horario as H
+from odoo.addons.dcasa_invoice.tests import marca
 from odoo.exceptions import AccessError, UserError
 from odoo.tests import HttpCase, tagged
 
@@ -358,7 +359,12 @@ class TestBotonesDelCorreo(Etapa2Comun):
         redes = self.html().xpath("//a[contains(@class, 'o_camila_red')]")
         self.assertEqual([(a.text_content(), a.get('href')) for a in redes],
                          [('Instagram', 'https://instagram.com/dcasa.zzcm')])
-        self.assertNotIn('fed00f', ''.join(a.get('style') for a in redes).lower(), 'Sin amarillo sobre lo claro')
+        estilos = ''.join(marca.estilo(a) for a in redes)
+        marca.sin_rastro_de_dcasa(self, estilos, 'las redes del pie')
+        # Píldoras de la marca: el relleno verde salvia con la letra navy (6.96).
+        self.assertIn(f'background-color:#{marca.SALVIA}', estilos)
+        self.assertIn(f'color:#{marca.NAVY}', estilos)
+        self.assertIn('border-radius:999px', estilos)
 
     def test_las_ventas_de_la_web_con_el_utm_de_la_campana(self):
         self.con_clave()

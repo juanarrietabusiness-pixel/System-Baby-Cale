@@ -326,7 +326,7 @@ class DcasaCorreoEnvio(models.Model):
             return self._omitir('sin_correo', self.env._(
                 'No se envió el recordatorio: falta el correo de %s o está mal escrito.', cliente))
         mensaje = correo._postear(move, self.env.ref('dcasa_correo.plantilla_recordatorio_abono'), destino,
-                                  tipo='recordatorio', titular=self.env._('TU ABONO VENCE PRONTO'))
+                                  tipo='recordatorio', titular=self.env._('Tu abono vence pronto'))
         self.write({'estado': 'enviado', 'message_id': mensaje.id, 'correo': destino.email_normalized,
                     'saldo_centavos': centavos(move.amount_residual), 'causa': False, 'motivo': False})
         correo._disparar_cola()
