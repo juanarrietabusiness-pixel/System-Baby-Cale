@@ -6,23 +6,23 @@ Juan (`juan/`, rama aparte; su parte está en [JUAN.md](JUAN.md) › Brian de la
 
 ## En palabras sencillas
 
-- En la tienda web, en vez de la burbuja verde de WhatsApp, sale **la burbuja de Brian** (el robot). Los botones
-  «Escríbenos por WhatsApp» de la página se quedan.
+- En la tienda web, en vez de la burbuja verde de WhatsApp, sale **la burbuja del chat**: con la marca Baby Caleb
+  (2026-11-19, [MARCA_BABY_CALEB.md](MARCA_BABY_CALEB.md)), la de su web: un círculo naranja con el globo de chat en
+  navy, quieto. El robot de D'CASA y sus poses se fueron con su marca. Los botones «Escríbenos por WhatsApp» de la
+  página se quedan.
 - Al tocarla se abre el chat: Brian saluda una sola vez («Hola, soy Brian. ¿Qué buscas hoy?»), busca muebles y los
   muestra en tarjetas que se deslizan (con foto, precio + ITBMS, disponibilidad y cantidad), deja el carrito listo,
   calcula el envío con la tarifa aprobada (escribiendo el barrio o tocando «Usar mi ubicación actual»), da la
   cotización del carrito en PDF y, para atención personal, abre WhatsApp con el mensaje ya escrito.
 - **No guarda la conversación** ni crea contactos ni oportunidades. Las estrellas del final se guardan solo como número
   y fecha.
-- **Siempre activo** (pedido de la dueña, 2026-11-15): de noche Brian saluda y ayuda como de día. Dos interruptores en
+- **Siempre activo** (pedido de la dueña, 2026-11-15): de noche Brian saluda y ayuda como de día. Un interruptor en
   Sitio web › Brian de la tienda: **«Fuera del horario, avisar que la tienda está cerrada»** (`avisar_cerrado`,
   **apagado** de fábrica; encendido, de noche saluda diciendo que la tienda está cerrada y que una vendedora responde
-  por WhatsApp en cuanto abran, y el avatar del chat se duerme mientras escribe) y **«De noche, el robot de la burbuja
-  duerme»** (`dormir_de_noche`, **encendido** de fábrica; apagado, de noche la burbuja se porta como de día, con sus
-  poses por página y por sección). El horario sale de Ajustes de Juan. El aviso viaja en el pase (`avisar_cerrado`, al
-  lado de `noche`, que sigue diciendo la verdad) y al Worker en `/config`; si el robot duerme va en el HTML
-  (`data-dormir`) y al cambiarlo el borde rehace las páginas, como con el interruptor.
-- **Sitio web › Brian de la tienda** (Gerencia y administradores): encender o apagar, los dos de la noche, el
+  por WhatsApp en cuanto abran). El horario sale de Ajustes de Juan. El aviso viaja en el pase (`avisar_cerrado`, al
+  lado de `noche`, que sigue diciendo la verdad) y al Worker en `/config`. El otro interruptor, «De noche, el robot de
+  la burbuja duerme» (`dormir_de_noche`), se fue con el robot (2026-11-19).
+- **Sitio web › Brian de la tienda** (Gerencia y administradores): encender o apagar, el aviso de la noche, el
   presupuesto del mes (30 USD de fábrica, aparte del de Juan), los topes de mensajes, cuánto va gastando y las
   calificaciones del mes.
 - **Andrés como buen vendedor** (pedido de la dueña, 2026-11-16, plan A1 a A5 de `PLAN_ANDRES_VOZ_PORTADA.md`):
@@ -150,32 +150,23 @@ navegador ──(3) /dcasa/brian/v1/carrito/* (sesión, CSRF) ──────
 
 ## La página (`static/src/js/brian_tienda.js`, `static/src/scss/brian_tienda.scss`)
 
-- El prototipo v2 llevado tal cual: los 16 robots (`static/src/img/poses/*.webp`), las transiciones distintas por pose,
-  la cabecera con WhatsApp, ampliar y cerrar, las tarjetas con selector de cantidad, las sugerencias, la ubicación, la
-  ventana ampliada con la cuadrícula, las estrellas y la noche. Todo cuelga de `.o_dcbt` (clases `o_dcbt_*`).
-- **La pose por página**: inicio (asomado), catálogo (con laptop), colchones (cama), cocina, oficina (escritorio),
-  ficha (marco, por las fotos de arriba), carrito (bolsita), socios (fidelidad), visítanos (mapa), busca con una foto
-  (marco), de noche (dormido). Al llegar a otra página la burbuja trae la pose anterior y cambia a la nueva con su
-  transición.
-- **La pose por sección** (pedido de la dueña, 2026-11-14): al bajar y subir, la burbuja cerrada toma la pose de la
-  sección que cruza la franja del 45 al 50 % de la ventana (`SECCIONES` en el JS, con `IntersectionObserver`; una fila o
-  dos columnas van pasando por sus poses). Entre el Inicio, el catálogo, la ficha, el carrito y Visítanos salen las 15
-  poses de día; el Inicio solo, todas: portada asomado → beneficios saludando → «Compra por espacio» con laptop → sus
-  tarjetas (salas corazón, recámaras y colchones cama, zapateras bolsita, estantes cocina, oficina escritorio) →
-  carruseles (el título por su tema o estrella; los productos bolsita) → «Te lo llevas hoy» corazón → Socios fidelidad →
-  reseñas cinco estrellas → Inspírate marco → «Mídelo en 3 pasos» cinta métrica → preguntas burbuja de chat → Visítanos
-  mapa → pie saludando. Ficha: fotos marco, precio y «Agregar» bolsita, medidas cinta métrica, «Pregunta por este
-  mueble» burbuja de chat, opiniones cinco estrellas, sugeridos corazón. Catálogo: la de la página arriba, cada cuatro
-  productos otra (corazón, estrella, bolsita, escritorio, cocina, con laptop) y al final burbuja de chat. Visítanos:
-  dirección saludando, horario estrella, «Antes de venir» burbuja de chat, mapa. Empieza cuando el visitante se mueve,
-  cambia una vez cada 2,5 s como mucho (al pasar rápido, cuenta donde se detiene) y no cambia con el chat abierto, con
-  la burbuja apartada, de noche (dormido) ni con movimiento reducido. El reposo de cada 7 s no va encima de un cambio.
+- **Con la marca Baby Caleb** (2026-11-19; el prototipo v2 era de D'CASA): como `Baby-caleb/src/components/Chatbot.tsx`.
+  La burbuja, 56 px, naranja `#EE924A` con el globo de chat (lucide) en navy `#1B3246` (5.56), quieta: la misma en
+  todas las páginas, al bajar y de noche. La cabecera, naranja con el nombre de la tienda (la empresa del sitio, en el
+  HTML como `data-marca`), el estado y los íconos en navy, y el corazón en un círculo crema. El panel en `surface`, la
+  conversación en crema; los globos de Andrés en `surface` con su filo y el pico arriba a la izquierda, los del cliente
+  en naranja con letra navy y el pico arriba a la derecha (sin avatar en cada globo). Botones en pastilla (el
+  principal naranja con letra navy, el de contorno con el filo `accent-edge` y letra `accent-strong`), el campo de 16 px
+  con radio de 14 y borde `control`, el aro de foco navy, Montserrat. Todo cuelga de `.o_dcbt` (clases `o_dcbt_*`;
+  `o_dcbt_btn_azul` es el nombre técnico de siempre del botón principal, hoy naranja). La pose que todavía manda el
+  Worker (`pose`) no se pinta. Lo prueba `tests/test_navegador.py` (`TestBurbujaEnLaPagina`, `TestBurbujaQuieta`,
+  `TestCabeceraDeLaMarca`).
 - **No tapa nada**: en la ficha del celular sube sobre la barra fija de «Agregar al carrito»; y se hace a un lado
   mientras tendría debajo «Pregunta por este mueble por WhatsApp», «Agregar al carrito», un botón de WhatsApp o el de
   pagar del carrito. No sale en el pago (`/shop/checkout`, `/shop/payment`…), en `/my`, en Mi cuenta (su barra de
   secciones va fija abajo) ni en el panel; ahí, y con Brian apagado, vuelve la burbuja de WhatsApp.
-- **Sobre las páginas guardadas en el borde**: el HTML es el mismo para todos (el WhatsApp del sitio, el horario y las
-  poses en atributos `data-*`). El token CSRF, el pase y el carrito los pide el JS al abrir. Las claves de sesión del
+- **Sobre las páginas guardadas en el borde**: el HTML es el mismo para todos (el WhatsApp del sitio y el nombre de la
+  tienda en atributos `data-*`). El token CSRF, el pase y el carrito los pide el JS al abrir. Las claves de sesión del
   chat no vuelven «personal» la sesión (`dcasa_tienda_borde`, `CLAVES_NEUTRAS`) y el borde nunca guarda
   `/dcasa/brian/` (`edge/src/routing.ts`). Sin JavaScript la burbuja es un enlace a WhatsApp.
 - **La barra del carrito y su hoja** (A1): `.o_dcbt_barra`, entre la conversación y el campo de escribir (el formulario
@@ -199,7 +190,7 @@ navegador ──(3) /dcasa/brian/v1/carrito/* (sesión, CSRF) ──────
   cerrar la pestaña o a las 2 horas sin actividad), nunca en Odoo. La ubicación no se guarda ni ahí.
 - **Accesible**: foco al abrir (el campo en la computadora, cerrar en el celular) y de vuelta a la burbuja al cerrar,
   Esc (primero vuelve del tamaño ampliado, después cierra), `aria-*`, botones de 44 px en pantallas táctiles; con
-  movimiento reducido, quieto (ni entradas, ni reposo, ni transiciones de pose).
+  movimiento reducido, quieto (ni entradas ni transiciones).
 
 ## Trampas que ya costaron
 
@@ -207,9 +198,8 @@ navegador ──(3) /dcasa/brian/v1/carrito/* (sesión, CSRF) ──────
   celular y el chat quedaba de 640 px con el campo de escribir fuera de la pantalla. Es un `<div role="dialog">`.
 - **Nada de plantillas de texto (`` `…` ``) dentro de otra** en el JS: el minificador de Odoo les come los espacios del
   borde («abramos(atendemos», «2×Colchón»). Se arma con `+`; `test_ajustes.py` lo revisa.
-- **Odoo guarda la portada y las páginas del sitio una hora** para los visitantes (`website.page`): un cambio del
-  horario de Juan tarda hasta una hora (más lo que guarde el borde) en llegar a la pose de noche de la burbuja. El
-  saludo de noche no, porque sale del pase. El interruptor sí se ve al momento (`set_param` limpia esa memoria y el
+- **Odoo guarda la portada y las páginas del sitio una hora** para los visitantes (`website.page`). El saludo de noche
+  no depende de eso, porque sale del pase. El interruptor sí se ve al momento (`set_param` limpia esa memoria y el
   borde se marca para rehacer).
 
 ## Mientras el Worker no esté

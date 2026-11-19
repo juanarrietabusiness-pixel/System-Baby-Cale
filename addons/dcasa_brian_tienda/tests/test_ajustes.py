@@ -31,23 +31,23 @@ class TestAjustes(TiendaCase):
         self.assertEqual(datos, {'activo': True, 'avisar_cerrado': False, 'presupuesto_mes_usd': 30,
                                  'tope_sesion_hora': 20, 'tope_red_hora': 60, 'tope_dia': 1000})
 
-    def test_de_fabrica_siempre_activo_y_el_robot_duerme_de_noche(self):
-        """Pedido de la dueña (2026-11-15): fuera del horario no avisa que la tienda está cerrada; el robot sí
-        duerme."""
+    def test_de_fabrica_siempre_activo_y_sin_robot(self):
+        """Pedido de la dueña (2026-11-15): fuera del horario no avisa que la tienda está cerrada. El interruptor «de
+        noche, el robot de la burbuja duerme» se fue con el robot de D'CASA (marca Baby Caleb, 2026-11-19): la burbuja
+        es la misma de día y de noche."""
         self.assertEqual(self.env.ref('dcasa_brian_tienda.parametro_avisar_cerrado').value, 'False')
-        self.assertEqual(self.env.ref('dcasa_brian_tienda.parametro_dormir_de_noche').value, 'True')
+        self.assertFalse(self.env.ref('dcasa_brian_tienda.parametro_dormir_de_noche', raise_if_not_found=False))
         ajustes = self.env['dcasa.brian.tienda.ajustes'].with_user(self.gerencia).create({})
-        self.assertEqual((ajustes.avisar_cerrado, ajustes.dormir_de_noche), (False, True))
+        self.assertIs(ajustes.avisar_cerrado, False)
+        self.assertNotIn('dormir_de_noche', ajustes._fields)
         pase = self.post('pase').json()
         self.assertTrue(pase['ok'])
         self.assertIs(pase['avisar_cerrado'], False, 'el pase dice si hay que avisar; «noche» sigue diciendo la verdad')
         self.assertIsInstance(pase['noche'], bool)
         # Sin parámetro (una base vieja), los mismos de fábrica.
         Parametro = self.env['ir.config_parameter'].sudo()
-        claves = ('dcasa_brian_tienda.avisar_cerrado', 'dcasa_brian_tienda.dormir_de_noche')
-        Parametro.search([('key', 'in', claves)]).unlink()
-        Tienda = self.env['dcasa.brian.tienda']
-        self.assertEqual((Tienda._avisar_cerrado(), Tienda._dormir_de_noche()), (False, True))
+        Parametro.search([('key', '=', 'dcasa_brian_tienda.avisar_cerrado')]).unlink()
+        self.assertIs(self.env['dcasa.brian.tienda']._avisar_cerrado(), False)
 
     def marcas_del_borde(self):
         """Las marcas para rehacer las páginas guardadas en el borde (si dcasa_tienda_borde está instalado)."""
@@ -60,23 +60,25 @@ class TestAjustes(TiendaCase):
         for usuario in (self.gerencia, self.env.ref('base.user_admin')):
             with self.subTest(usuario=usuario.login):
                 Parametro.set_param('dcasa_brian_tienda.avisar_cerrado', 'False')
-                Parametro.set_param('dcasa_brian_tienda.dormir_de_noche', 'True')
                 ajustes = self.env['dcasa.brian.tienda.ajustes'].with_user(usuario).create({})
-                ajustes.write({'avisar_cerrado': True, 'dormir_de_noche': False})
-                with self.marcas_del_borde() as marcar:
-                    ajustes.execute()
-                if marcar:
-                    marcar.assert_called_once()   # si el robot duerme va en el HTML: el borde rehace las páginas
-                self.assertIs(self.env['dcasa.juan.ajustes'].obtener().como_json()['brian_tienda']['avisar_cerrado'],
-                              True, 'le llega al Worker')
-                self.assertIs(self.post('pase').json()['avisar_cerrado'], True)
-                self.assertIn('data-dormir="0"', self.url_open('/shop').text)
+                ajustes.write({'avisar_cerrado': True})
                 # Cambiar solo el aviso no rehace las páginas (viaja en el pase, no en el HTML).
-                ajustes = self.env['dcasa.brian.tienda.ajustes'].with_user(usuario).create({'avisar_cerrado': False})
                 with self.marcas_del_borde() as marcar:
                     ajustes.execute()
                 if marcar:
                     marcar.assert_not_called()
+                self.assertIs(self.env['dcasa.juan.ajustes'].obtener().como_json()['brian_tienda']['avisar_cerrado'],
+                              True, 'le llega al Worker')
+                self.assertIs(self.post('pase').json()['avisar_cerrado'], True)
+                # Encender o apagar la burbuja sí: va en el HTML de todas las páginas, el borde las rehace.
+                ajustes = self.env['dcasa.brian.tienda.ajustes'].with_user(usuario).create({'activo': False})
+                with self.marcas_del_borde() as marcar:
+                    ajustes.execute()
+                if marcar:
+                    marcar.assert_called_once()
+                self.env['ir.config_parameter'].sudo().set_param('dcasa_brian_tienda.activo', 'True')
+                ajustes = self.env['dcasa.brian.tienda.ajustes'].with_user(usuario).create({'avisar_cerrado': False})
+                ajustes.execute()
         for usuario in (self.vendedora, self.portal):
             with self.subTest(usuario=usuario.login), self.assertRaises(AccessError):
                 self.env['dcasa.brian.tienda.ajustes'].with_user(usuario)._dcasa_exigir()
@@ -196,7 +198,12 @@ class TestLaPagina(TiendaCase):
         self.assertNotIn('o_dcasa_wa_float', html)
         self.assertIn('Escríbenos por WhatsApp', html, 'los botones de WhatsApp de la página se quedan')
         self.assertIn('data-whatsapp="', html)
-        self.assertIn('/dcasa_brian_tienda/static/src/img/poses/', html)
+        # El título del chat es el nombre de la empresa del sitio; nada del robot de D'CASA (ni sus imágenes ni su
+        # horario para dormir).
+        empresa = self.env['website'].browse(self.website.id).company_id.name
+        self.assertIn(f'data-marca="{empresa}"', html)
+        for de_antes in ('/static/src/img/poses/', 'data-poses=', 'data-dormir=', 'data-horario='):
+            self.assertNotIn(de_antes, html)
         self.env['ir.config_parameter'].sudo().set_param('dcasa_brian_tienda.activo', 'False')
         html = self.url_open('/').text
         self.assertNotIn('id="o_dcasa_brian"', html)

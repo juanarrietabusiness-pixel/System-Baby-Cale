@@ -1,12 +1,12 @@
 /**
- * «Brian de la tienda»: la burbuja con el robot y el chat de ventas (docs/BRIAN_TIENDA.md; contrato en
- * scratchpad/brian_tienda/contrato.md y contrato_cambios.md). Lleva a la web real el prototipo v2 que aprobó la dueña.
+ * «Brian de la tienda»: la burbuja y el chat de ventas (docs/BRIAN_TIENDA.md; contrato en scratchpad/brian_tienda/
+ * contrato.md y contrato_cambios.md), con la marca Baby Caleb (docs/MARCA_BABY_CALEB.md): se ven como el chat de la web
+ * de Baby Caleb (Baby-caleb/src/components/Chatbot.tsx).
  *
- *   · La burbuja reemplaza la de WhatsApp. Sin JS es un enlace a WhatsApp; con JS abre el chat. Su pose sale del tipo
- *     de página (al llegar a otra página cambia de la pose anterior a la nueva con su propia transición), y al bajar o
- *     subir sigue a la sección que el visitante tiene en pantalla (``SECCIONES``: entre todas las páginas salen las 15
- *     poses de día; un cambio cada 2,5 s como mucho, con ``IntersectionObserver``). De noche duerme. Se hace a un lado si fuera a tapar un botón de la página; en la ficha del celular sube sobre la barra de
- *     «Agregar al carrito».
+ *   · La burbuja reemplaza la de WhatsApp. Sin JS es un enlace a WhatsApp; con JS abre el chat. Es la de Baby Caleb: un
+ *     círculo naranja con el globo de chat en navy, quieta (el robot de D'CASA y sus poses se fueron con la marca,
+ *     2026-11-19). Se hace a un lado si fuera a tapar un botón de la página; en la ficha del celular sube sobre la barra
+ *     de «Agregar al carrito».
  *   · Funciona sobre páginas guardadas en el borde: nada viene personalizado en el HTML. Al abrir, el JS pide un token
  *     CSRF fresco (/dcasa/borde/csrf), el pase (POST /dcasa/brian/v1/pase) y el carrito (GET /dcasa/brian/v1/carrito).
  *   · Los mensajes van DIRECTO al Worker de Juan (POST {worker}/tienda/v1/mensaje, «Authorization: Pase …»). El modelo
@@ -42,37 +42,10 @@ import { registry } from "@web/core/registry";
 // Datos fijos
 // ---------------------------------------------------------------------------------------------------------------------
 
-export const POSES = [
-    "saludando", "con_laptop", "escritorio", "busto_estrella", "bolsita", "mapa", "cinta_metrica", "corazon",
-    "burbuja_chat", "cinco_estrellas", "fidelidad", "durmiendo", "asomado_burbuja", "cama", "cocina", "marco_foto",
-];
-const ENCUADRADOS = new Set(["cama", "escritorio"]); // traen fondo o son anchos: llenan el círculo
-/** La transición con que entra cada pose dentro del chat (las mismas del prototipo). */
-const TRANS_DE_POSE = {
-    saludando: "pop", con_laptop: "sacudida", escritorio: "cruce", busto_estrella: "estrella", bolsita: "salto",
-    mapa: "pendulo", cinta_metrica: "estira", corazon: "latido", burbuja_chat: "desliza", cinco_estrellas: "giro",
-    fidelidad: "volteo", durmiendo: "sueno", asomado_burbuja: "pop", cama: "volteo", cocina: "desliza",
-    marco_foto: "enfoque",
-};
-/** La pose de la burbuja según el tipo de página, y la transición con que llega. */
-const PAGINAS = {
-    inicio: { pose: "asomado_burbuja", trans: "pop" },
-    catalogo: { pose: "con_laptop", trans: "sacudida" },
-    colchones: { pose: "cama", trans: "volteo" },
-    cocina: { pose: "cocina", trans: "desliza" },
-    escritorios: { pose: "escritorio", trans: "cruce" },
-    categoria: { pose: "con_laptop", trans: "sacudida" },
-    ficha: { pose: "marco_foto", trans: "enfoque" },    // arriba están las fotos; las medidas, más abajo
-    carrito: { pose: "bolsita", trans: "salto" },
-    socios: { pose: "fidelidad", trans: "giro" },
-    visitanos: { pose: "mapa", trans: "pendulo" },
-    foto: { pose: "marco_foto", trans: "enfoque" },
-    noche: { pose: "durmiendo", trans: "sueno" },
-    otra: { pose: "asomado_burbuja", trans: "pop" },
-};
 // Sugerencias del saludo (pedido de la dueña, 2026-11-15, «opción 2»): las dos primeras son las categorías con más
-// productos publicados, que manda Odoo con el pase (`sugerencias`); estas, solo si Odoo no mandó ninguna.
-const SUGERENCIAS_DE_FABRICA = ["Colchones", "Salas"];
+// productos publicados, que manda Odoo con el pase (`sugerencias`). De fábrica no hay ninguna: las de antes eran
+// categorías de D'CASA («Colchones», «Salas») y no se inventan otras; sin las de Odoo quedan solo las fijas.
+const SUGERENCIAS_DE_FABRICA = [];
 const INICIO_FIJAS = ["¿Cuánto cuesta el envío?", "Formas de pago"];
 const SIGUE_TRAS_AGREGAR = ["¿Cuánto cuesta el envío?", "Formas de pago", "Seguir viendo"];
 const DISPO = { disponible: ["o_dcbt_dispo_ok", "Disponible"], pocas: ["o_dcbt_dispo_pocas", "Quedan pocas"], agotado: ["o_dcbt_dispo_agotado", "Agotado"] };
@@ -83,7 +56,6 @@ const PLAZO_WORKER_MS = 30000;
 const PLAZO_UBICACION_MS = 8000;
 const CLAVE_CHAT = "dcasa.brian.chat";
 const CLAVE_PASE = "dcasa.brian.pase";
-const CLAVE_POSE = "dcasa.brian.pose";
 /** A3: Andrés ya reaccionó en esta sesión a que el visitante quitó algo (una sola vez; el Worker también lo cuida). */
 const CLAVE_REACCION = "dcasa.brian.reaccion";
 /** Lo que Andrés propone y la página aplica en Odoo con la sesión del visitante (nunca al restaurar la conversación). */
@@ -129,52 +101,18 @@ const ICO = {
     estrella: '<svg viewBox="0 0 24 24" aria-hidden="true"><path class="o_dcbt_relleno" d="m12 3.2 2.7 5.5 6 .9-4.4 4.2 1 6-5.3-2.8-5.3 2.8 1-6-4.4-4.2 6-.9z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
     microfono: `<svg ${TRAZO}><rect x="9" y="2.8" width="6" height="11.4" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5v3.7M8.6 21.2h6.8"/></svg>`,
     equis: `<svg ${TRAZO}><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg>`,
+    // El globo de la burbuja (lucide «message-circle», el de Chatbot.tsx de Baby Caleb) y el corazón de la cabecera.
+    chat: `<svg ${TRAZO}><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22z"/></svg>`,
+    corazon: '<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7z"/></svg>',
 };
 
 const B = "cubic-bezier(.22, 1, .36, 1)";
-/** Cada transición: cómo sale la pose vieja, cómo entra la nueva y, en algunas, qué hace el círculo entero. */
-const TRANS = {
-    pop: { sale: [{ transform: "scale(1)", opacity: 1 }, { transform: "scale(.3)", opacity: 0 }], ds: 160,
-        entra: [{ transform: "scale(.2)", opacity: 0 }, { transform: "scale(1.18)", opacity: 1, offset: 0.55 }, { transform: "scale(.93)", offset: 0.78 }, { transform: "scale(1)", opacity: 1 }], de: 560, retardo: 120 },
-    volteo: { sale: [{ transform: "perspective(240px) rotateY(0deg)" }, { transform: "perspective(240px) rotateY(90deg)" }], ds: 200, easeS: "ease-in",
-        entra: [{ transform: "perspective(240px) rotateY(-90deg)" }, { transform: "perspective(240px) rotateY(14deg)", offset: 0.7 }, { transform: "perspective(240px) rotateY(0deg)" }], de: 420, retardo: 200, easeE: "ease-out" },
-    estira: { origen: "50% 100%", sale: [{ transform: "scale(1, 1)", opacity: 1 }, { transform: "scale(1.35, .25)", opacity: 0 }], ds: 200, easeS: "ease-in",
-        entra: [{ transform: "scale(1.35, .25)", opacity: 0 }, { transform: "scale(.82, 1.22)", opacity: 1, offset: 0.45 }, { transform: "scale(1.08, .92)", offset: 0.7 }, { transform: "scale(.98, 1.02)", offset: 0.86 }, { transform: "scale(1, 1)", opacity: 1 }], de: 640, retardo: 180, easeE: "ease-out" },
-    desliza: { sale: [{ transform: "translateY(0)", opacity: 1 }, { transform: "translateY(-115%)", opacity: 0 }], ds: 320,
-        entra: [{ transform: "translateY(115%)" }, { transform: "translateY(-7%)", offset: 0.7 }, { transform: "translateY(0)" }], de: 480, retardo: 40 },
-    cruce: { sale: [{ transform: "scale(1)", opacity: 1, filter: "blur(0px)" }, { transform: "scale(1.4)", opacity: 0, filter: "blur(3px)" }], ds: 420, easeS: "ease-out",
-        entra: [{ transform: "scale(.7)", opacity: 0 }, { transform: "scale(1)", opacity: 1 }], de: 460, retardo: 0 },
-    sacudida: { caja: [{ transform: "rotate(0deg)" }, { transform: "rotate(-16deg)", offset: 0.12 }, { transform: "rotate(14deg)", offset: 0.26 }, { transform: "rotate(-12deg)", offset: 0.4 }, { transform: "rotate(10deg)", offset: 0.54 }, { transform: "rotate(-6deg)", offset: 0.7 }, { transform: "rotate(3deg)", offset: 0.85 }, { transform: "rotate(0deg)" }], dc: 760,
-        sale: [{ opacity: 1 }, { opacity: 0 }], ds: 120, retardoSale: 260, entra: [{ opacity: 0 }, { opacity: 1 }], de: 120, retardo: 300 },
-    salto: { sale: [{ transform: "translateY(0)", opacity: 1 }, { transform: "translateY(120%)", opacity: 0 }], ds: 220, easeS: "ease-in",
-        entra: [{ transform: "translateY(-130%)" }, { transform: "translateY(0)", offset: 0.5 }, { transform: "translateY(-16%)", offset: 0.68 }, { transform: "translateY(0)", offset: 0.82 }, { transform: "translateY(-5%)", offset: 0.92 }, { transform: "translateY(0)" }], de: 720, retardo: 160, easeE: "linear" },
-    giro: { caja: [{ transform: "rotate(0deg) scale(1)" }, { transform: "rotate(180deg) scale(.82)", offset: 0.5 }, { transform: "rotate(360deg) scale(1)" }], dc: 680, easeC: "cubic-bezier(.6, 0, .3, 1)",
-        sale: [{ opacity: 1 }, { opacity: 0 }], ds: 140, retardoSale: 220, entra: [{ opacity: 0 }, { opacity: 1 }], de: 140, retardo: 280 },
-    pendulo: { origen: "50% -30%", sale: [{ transform: "rotate(0deg)", opacity: 1 }, { transform: "rotate(-75deg)", opacity: 0 }], ds: 260, easeS: "ease-in",
-        entra: [{ transform: "rotate(60deg)", opacity: 0 }, { transform: "rotate(-18deg)", opacity: 1, offset: 0.45 }, { transform: "rotate(10deg)", offset: 0.65 }, { transform: "rotate(-4deg)", offset: 0.82 }, { transform: "rotate(0deg)", opacity: 1 }], de: 860, retardo: 160, easeE: "ease-out" },
-    enfoque: { sale: [{ transform: "scale(1)", opacity: 1 }, { transform: "scale(.6)", opacity: 0 }], ds: 200,
-        entra: [{ transform: "scale(1.9)", opacity: 0, filter: "blur(8px)" }, { transform: "scale(1)", opacity: 1, filter: "blur(0px)" }], de: 540, retardo: 140, flash: true },
-    sueno: { sale: [{ transform: "translateY(0)", opacity: 1 }, { transform: "translateY(14%)", opacity: 0 }], ds: 650, easeS: "ease-in-out",
-        entra: [{ transform: "translateY(-10%) scale(.96)", opacity: 0 }, { transform: "translateY(0) scale(1)", opacity: 1 }], de: 950, retardo: 380, easeE: "ease-in-out" },
-    latido: { sale: [{ opacity: 1, transform: "scale(1)" }, { opacity: 0, transform: "scale(.8)" }], ds: 160,
-        entra: [{ transform: "scale(.6)", opacity: 0 }, { transform: "scale(1.22)", opacity: 1, offset: 0.3 }, { transform: "scale(.96)", offset: 0.5 }, { transform: "scale(1.12)", offset: 0.68 }, { transform: "scale(1)", opacity: 1 }], de: 780, retardo: 120, easeE: "ease-out" },
-    estrella: { sale: [{ transform: "rotate(0deg) scale(1)", opacity: 1 }, { transform: "rotate(160deg) scale(.3)", opacity: 0 }], ds: 220, easeS: "ease-in",
-        entra: [{ transform: "rotate(-200deg) scale(.3)", opacity: 0 }, { transform: "rotate(12deg) scale(1.1)", opacity: 1, offset: 0.7 }, { transform: "rotate(0deg) scale(1)", opacity: 1 }], de: 600, retardo: 160 },
-};
-/** En reposo: un movimiento leve cada tanto (con la burbuja cerrada). */
-const REPOSO = {
-    sacudida: { k: [{ rotate: "0deg" }, { rotate: "-12deg", offset: 0.15 }, { rotate: "11deg", offset: 0.3 }, { rotate: "-9deg", offset: 0.45 }, { rotate: "7deg", offset: 0.6 }, { rotate: "-3deg", offset: 0.8 }, { rotate: "0deg" }], d: 700 },
-    saludo: { k: [{ rotate: "0deg" }, { rotate: "-14deg", offset: 0.25 }, { rotate: "9deg", offset: 0.5 }, { rotate: "-5deg", offset: 0.75 }, { rotate: "0deg" }], d: 1100 },
-    flotar: { k: [{ translate: "0 0" }, { translate: "0 -8px", offset: 0.3 }, { translate: "0 0", offset: 0.6 }, { translate: "0 -4px", offset: 0.8 }, { translate: "0 0" }], d: 1800, e: "ease-in-out" },
-    brinco: { k: [{ translate: "0 0", scale: "1 1" }, { translate: "0 0", scale: "1.1 .88", offset: 0.2 }, { translate: "0 -12px", scale: ".92 1.08", offset: 0.45 }, { translate: "0 0", scale: "1.06 .94", offset: 0.7 }, { translate: "0 0", scale: "1 1" }], d: 800 },
-    latido: { k: [{ scale: "1" }, { scale: "1.12", offset: 0.2 }, { scale: "1", offset: 0.4 }, { scale: "1.08", offset: 0.6 }, { scale: "1" }], d: 900 },
-};
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Funciones puras (se prueban en el navegador: tests/test_navegador.py)
 // ---------------------------------------------------------------------------------------------------------------------
 
-/** El tipo de página para la pose y para el Worker (contrato §2, «pagina»). */
+/** El tipo de página para el Worker (contrato §2, «pagina»). */
 export function tipoDePagina(ruta, doc = document) {
     const r = (ruta || "/").replace(/\/+$/, "") || "/";
     const pagina = { tipo: "otra", producto_id: null, categoria: null };
@@ -201,199 +139,6 @@ export function tipoDePagina(ruta, doc = document) {
         pagina.tipo = "visitanos";
     }
     return pagina;
-}
-
-export function normalizar(texto) {
-    return String(texto || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
-}
-
-/** La pose de la burbuja: la del tipo de página (las categorías con la suya) o, de noche, dormido. */
-export function poseDePagina(pagina, noche, ruta = "") {
-    if (noche) {
-        return PAGINAS.noche;
-    }
-    if (pagina.tipo === "categoria") {
-        const pista = normalizar(`${ruta} ${pagina.categoria || ""}`);
-        if (/colchon/.test(pista)) {
-            return PAGINAS.colchones;
-        }
-        if (/cocina|comedor/.test(pista)) {
-            return PAGINAS.cocina;
-        }
-        if (/oficina|escritorio/.test(pista)) {
-            return PAGINAS.escritorios;
-        }
-        return PAGINAS.categoria;
-    }
-    return PAGINAS[pagina.tipo] || PAGINAS.otra;
-}
-
-// ---------------------------------------------------------------------------------------------------------------------
-// La pose por sección (pedido de la dueña, 2026-11-14: «que el ícono vaya cambiando con el scroll»)
-// ---------------------------------------------------------------------------------------------------------------------
-
-/** Lo mínimo entre dos cambios de pose de la burbuja, y lo que tiene que quedarse quieta una sección para contar. */
-export const MIN_ENTRE_CAMBIOS_MS = 2500;
-const ESTABLE_MS = 450;
-/** La franja de la ventana que decide «la sección que tienes en pantalla»: del 45 % al 50 % de la altura. */
-const FRANJA = "-45% 0px -50% 0px";
-/** Los productos del catálogo van pasando por estas poses de a cuatro (sin repetir la de al lado). */
-const CICLO_CATALOGO = ["corazon", "busto_estrella", "bolsita", "escritorio", "cocina", "con_laptop"];
-const POR_TRAMO = 4;
-
-function poseDeTema(texto, otra) {
-    const t = normalizar(texto);
-    if (/colchon|dormir|recamara|cama/.test(t)) {
-        return "cama";
-    }
-    if (/cocina|comedor|estante|organizacion/.test(t)) {
-        return "cocina";
-    }
-    if (/oficina|escritorio/.test(t)) {
-        return "escritorio";
-    }
-    if (/zapatera/.test(t)) {
-        return "bolsita";
-    }
-    return otra;
-}
-const atributo = (el, sel, nombre) => (el && el.querySelector(sel) ? el.querySelector(sel).getAttribute(nombre) || "" : "");
-const temaDeCarrusel = (el) => poseDeTema((el.closest("section") ? el.closest("section").getAttribute("aria-label") || "" : "") + " " + (el.textContent || ""), "busto_estrella");
-const temaDeTarjeta = (el) => poseDeTema(atributo(el, "img", "src") + " " + (el.textContent || ""), "corazon");
-const PIE = { sel: "#bottom, footer", pose: "saludando" };
-
-/**
- * Las secciones de cada tipo de página y su pose, de arriba abajo (las que existen en website_dcasa y website_sale;
- * ninguna inventada). ``pose``: el nombre, ``null`` = la de la página, o una función ``(elemento, i)`` con ``poses`` (las
- * que puede dar). Si varias cruzan la franja a la vez (una fila de tarjetas, dos columnas), van pasando una por una
- * mientras sigan ahí (``seccionActiva``).
- */
-export const SECCIONES = {
-    inicio: [
-        { sel: ".o_dcasa_hero", pose: null },
-        { sel: ".o_dcasa_beneficios", pose: "saludando" },
-        { sel: ".o_dcasa_bw", pose: "busto_estrella" },
-        { sel: ".o_dcasa_categorias .o_dcasa_section_head", pose: "con_laptop" },
-        { sel: ".o_dcasa_categorias .o_dcasa_cat", pose: temaDeTarjeta, poses: ["corazon", "cama", "bolsita", "cocina", "escritorio"] },
-        { sel: ".o_dcasa_rail .o_dcasa_section_head", pose: temaDeCarrusel, poses: ["busto_estrella", "cama", "cocina", "escritorio", "bolsita"] },
-        { sel: ".o_dcasa_rail .o_dcasa_rail_track", pose: "bolsita" },
-        { sel: ".o_dcasa_split", pose: "corazon" },
-        { sel: ".o_dcasa_socios_band", pose: "fidelidad" },
-        { sel: ".o_dcasa_resenas", pose: "cinco_estrellas" },
-        { sel: ".o_dcasa_galeria", pose: "marco_foto" },
-        { sel: ".o_dcasa_ayuda .o_dcasa_steps", pose: "cinta_metrica" },
-        { sel: ".o_dcasa_ayuda .o_dcasa_faq", pose: "burbuja_chat" },
-        { sel: ".o_dcasa_visita_franja", pose: "mapa" },
-        PIE,
-    ],
-    catalogo: [
-        { sel: ".o_dcasa_sin_resultados", pose: "burbuja_chat" },
-        { sel: "#products_grid .oe_product", pose: (el, i) => (i < POR_TRAMO ? null : CICLO_CATALOGO[(Math.floor(i / POR_TRAMO) - 1) % CICLO_CATALOGO.length]), poses: CICLO_CATALOGO },
-        { sel: "#o_wsale_pager", pose: "burbuja_chat" },
-        { sel: "#bottom, footer", pose: "burbuja_chat" },
-    ],
-    ficha: [
-        { sel: ".o_wsale_product_images", pose: null },
-        { sel: ".o_wsale_product_details_content_section_price, .o_wsale_product_details_content_section_cta", pose: "bolsita" },
-        { sel: ".o_wsale_product_details_content_section_specs, .o_wsale_product_details_content_section_accordion, #product_full_description:not(.oe_empty)", pose: "cinta_metrica" },
-        { sel: ".o_wsale_product_details_content_section_contact", pose: "burbuja_chat" },
-        { sel: "#dcasa-opiniones", pose: "cinco_estrellas" },
-        { sel: ".o_wsale_alternative_products", pose: "corazon" },
-        PIE,
-    ],
-    carrito: [
-        { sel: ".o_wsale_accessory_products", pose: "corazon" },
-        PIE,
-    ],
-    visitanos: [
-        { sel: ".o_dcasa_hero", pose: null },
-        { sel: ".o_dcasa_visita_direccion, .o_dcasa_visita_lista", pose: "saludando" },
-        { sel: ".o_dcasa_visita_horario", pose: "busto_estrella" },
-        { sel: ".o_dcasa_visita_aviso", pose: "burbuja_chat" },
-        { sel: ".o_dcasa_mapa", pose: "mapa" },
-        PIE,
-    ],
-    socios: [PIE],
-    otra: [PIE],
-};
-SECCIONES.categoria = SECCIONES.catalogo;
-
-/** Todas las poses que puede dar un tipo de página (la suya y las de sus secciones). */
-export function posesDeSecciones(tipo, ruta = "") {
-    const propia = poseDePagina({ tipo }, false, ruta).pose;
-    const poses = new Set([propia]);
-    for (const regla of SECCIONES[tipo] || []) {
-        for (const p of typeof regla.pose === "function" ? regla.poses : [regla.pose || propia]) {
-            poses.add(p);
-        }
-    }
-    return poses;
-}
-
-/** Los elementos de las secciones de esta página con su pose, en el orden de la página. */
-export function seccionesDeLaPagina(pagina, ruta = "", doc = document) {
-    const propia = poseDePagina(pagina, false, ruta).pose;
-    const vistos = new Set();
-    const lista = [];
-    for (const regla of SECCIONES[pagina.tipo] || SECCIONES.otra) {
-        doc.querySelectorAll(regla.sel).forEach((el, i) => {
-            if (vistos.has(el)) {
-                return;
-            }
-            const p = typeof regla.pose === "function" ? regla.pose(el, i) : regla.pose;
-            vistos.add(el);
-            lista.push({ el, pose: POSES.includes(p) && p !== "durmiendo" ? p : propia });
-        });
-    }
-    lista.sort((a, b) => (a.el.compareDocumentPosition(b.el) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1));
-    lista.forEach((s, orden) => {
-        s.orden = orden;
-    });
-    return lista;
-}
-
-/**
- * De las secciones que cruzan la franja, la que toca ahora (o ``null``: se queda como está): la primera, en el orden de
- * la página, que todavía no se mostró desde que entró a la franja y con otra pose que la de ahora. Así una fila de
- * tarjetas o dos columnas van pasando por sus poses mientras el visitante se detiene ahí, y la burbuja no vuelve atrás.
- * ``mostradas``: las que ya salieron (se olvidan al salir de la franja).
- */
-export function seccionActiva(visibles, mostradas = new Set(), poseActual = null) {
-    let activa = null;
-    for (const s of visibles) {
-        if (mostradas.has(s) || s.pose === poseActual) {
-            continue;
-        }
-        if (!activa || s.orden < activa.orden) {
-            activa = s;
-        }
-    }
-    return activa;
-}
-
-/** ¿Es fuera del horario de Ajustes de Juan? (hora de Panamá). ``horario``: {inicio, fin, dias, zona, fin_domingo}. */
-export function esDeNoche(horario, fecha = new Date()) {
-    try {
-        const partes = new Intl.DateTimeFormat("en-US", {
-            timeZone: (horario && horario.zona) || "America/Panama", hour: "numeric", minute: "numeric", weekday: "short", hourCycle: "h23",
-        }).formatToParts(fecha);
-        const v = (t) => (partes.find((p) => p.type === t) || {}).value;
-        const dia = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(v("weekday"));
-        const minutos = (Number(v("hour")) % 24) * 60 + Number(v("minute"));
-        const aMin = (hhmm, defecto) => {
-            const m = /^(\d{1,2}):(\d{2})$/.exec(String(hhmm || ""));
-            return m ? Number(m[1]) * 60 + Number(m[2]) : defecto;
-        };
-        const dias = Array.isArray(horario && horario.dias) ? horario.dias : [0, 1, 2, 3, 4, 5, 6];
-        if (!dias.includes(dia)) {
-            return true;
-        }
-        const inicio = aMin(horario && horario.inicio, 9 * 60);
-        const fin = dia === 0 && horario && horario.fin_domingo ? aMin(horario.fin_domingo, 17 * 60) : aMin(horario && horario.fin, 18 * 60);
-        return minutos < inicio || minutos >= fin;
-    } catch {
-        return false;
-    }
 }
 
 /** Una dirección de este mismo sitio (o ``null``): lo que manda el Worker nunca puede llevar a otro lado. */
@@ -439,7 +184,7 @@ export function tituloDeGrupo(texto) {
 
 /** El mensaje que va escrito en WhatsApp: lo del Worker o, si no, lo del carrito (sin datos personales). */
 export function mensajeWhatsApp(carrito, extra) {
-    let texto = "Hola D'CASA, vengo del chat de la web.";
+    let texto = "Hola, vengo del chat de la web.";
     const lineas = (carrito && carrito.lineas) || [];
     if (lineas.length) {
         texto += " Tengo en el carrito: " + lineas.map((l) => `${l.cantidad} × ${l.nombre}`).join("; ") + ".";
@@ -567,21 +312,14 @@ const ico = (nombre, clase) => el("span", { class: clase || "o_dcbt_ico", html: 
 export class ChatBrian {
     constructor(raiz) {
         this.raiz = raiz;
-        this.rutaPoses = raiz.dataset.poses || "/dcasa_brian_tienda/static/src/img/poses/";
+        // El nombre de la tienda (la empresa del sitio, en el HTML como data-marca): el título del chat.
+        this.marca = (raiz.dataset.marca || "").trim().slice(0, 60) || "La tienda";
         this.whatsapp = /^\d{8,15}$/.test(raiz.dataset.whatsapp || "") ? raiz.dataset.whatsapp : "";
-        try {
-            this.horario = JSON.parse(raiz.dataset.horario || "null");
-        } catch {
-            this.horario = null;
-        }
         this.ruta = window.location.pathname;
         this.pagina = tipoDePagina(this.ruta);
-        // De noche el robot de la burbuja duerme, salvo que Gerencia lo apague (Sitio web › Brian de la tienda, en el HTML
-        // como data-dormir; al cambiarlo, el borde rehace las páginas). El chat por dentro decide con el pase.
-        this.noche = raiz.dataset.dormir !== "0" && esDeNoche(this.horario);
         this.estado = {
-            abierto: false, saludado: false, ampliado: false, pausa: false, pose: "saludando",
-            autor: null, posePrevia: null, vistos: [], carrito: null, carritoCambio: false,
+            abierto: false, saludado: false, ampliado: false, pausa: false,
+            autor: null, vistos: [], carrito: null, carritoCambio: false,
             // A5: un grupo por cada respuesta con tarjetas ({id, titulo, claves, abierto}); A1: la hoja del carrito.
             grupos: [], hoja: false,
             // La nota de voz: inactiva · pidiendo (el permiso del micrófono) · grabando · transcribiendo.
@@ -608,8 +346,7 @@ export class ChatBrian {
             type: "button", class: "o_dcbt_burbuja", "aria-label": "Abrir el chat de la tienda", "aria-expanded": "false",
             "aria-controls": "o_dcbt_panel", title: "Chat de la tienda",
         });
-        this.burbujaPose = el("span", { class: "o_dcbt_pose", "aria-hidden": "true" });
-        this.burbuja.append(this.burbujaPose);
+        this.burbuja.append(ico("chat", "o_dcbt_burbuja_ico"));
         if (enlace) {
             this.enlace = enlace;
             enlace.replaceWith(this.burbuja);
@@ -617,10 +354,8 @@ export class ChatBrian {
             this.raiz.append(this.burbuja);
         }
         this.escuchar(this.burbuja, "click", () => this.abrir());
-        this.ponerPoseDeBurbuja();
         this.escuchar(document, "keydown", (ev) => this.alTeclado(ev));
         this.vigilarBotonesDeLaPagina();
-        this.vigilarSecciones();
         this.vigilarCarritoDeLaPagina();
         this.escuchar(document, "visibilitychange", () => {
             if (!document.hidden && this.estado.abierto) {
@@ -635,16 +370,6 @@ export class ChatBrian {
             if (guardado.abierto && !esCelular()) {
                 this.abrir({ sinAnimar: true });
             }
-        }
-        if (!reducir()) {
-            const id = setTimeout(() => {
-                this.reposo();
-                this.intervaloReposo = setInterval(() => this.reposo(), 7000);
-            }, 3400);
-            this.limpiezas.push(() => {
-                clearTimeout(id);
-                clearInterval(this.intervaloReposo);
-            });
         }
     }
 
@@ -672,202 +397,11 @@ export class ChatBrian {
         this.limpiezas.push(() => objetivo.removeEventListener(evento, fn, opciones));
     }
 
-    // ------------------------------------------------------------------ poses
+    // ------------------------------------------------------------------ el avatar
 
-    imgPose(pose) {
-        const nombre = POSES.includes(pose) ? pose : "saludando";
-        const i = new Image();
-        i.src = `${this.rutaPoses}${nombre}.webp`;
-        i.alt = "";
-        i.draggable = false;
-        i.decoding = "async";
-        i.width = 256;
-        i.height = 256;
-        i.className = "o_dcbt_img_pose" + (ENCUADRADOS.has(nombre) ? " o_dcbt_encuadrado" : "");
-        i.dataset.pose = nombre;
-        return i;
-    }
-
-    cajaPose(clase, pose) {
-        const caja = el("span", { class: `o_dcbt_pose ${clase || ""}`.trim(), "aria-hidden": "true" });
-        caja.append(this.imgPose(pose));
-        return caja;
-    }
-
-    cambiarPose(caja, pose, tipo) {
-        const vieja = caja.querySelector("img.o_dcbt_img_pose:not(.o_dcbt_saliendo)");
-        if (vieja && vieja.dataset.pose === pose) {
-            return;
-        }
-        caja.querySelectorAll("img.o_dcbt_saliendo, .o_dcbt_flash").forEach((n) => n.remove());
-        if (caja.getAnimations) {
-            caja.getAnimations().forEach((a) => a.cancel());
-        }
-        const nueva = this.imgPose(pose);
-        if (!vieja || reducir() || !caja.animate) {
-            caja.querySelectorAll("img.o_dcbt_img_pose").forEach((n) => n.remove());
-            caja.append(nueva);
-            return;
-        }
-        vieja.getAnimations().forEach((a) => a.cancel());
-        const t = TRANS[tipo] || TRANS.cruce;
-        vieja.classList.add("o_dcbt_saliendo");
-        vieja.style.transformOrigin = nueva.style.transformOrigin = t.origen || "50% 50%";
-        caja.append(nueva);
-        if (t.caja) {
-            caja.animate(t.caja, { duration: t.dc, easing: t.easeC || "ease-in-out" });
-        }
-        const quitar = () => vieja.remove();
-        vieja.animate(t.sale, { duration: t.ds, delay: t.retardoSale || 0, easing: t.easeS || "ease-in", fill: "forwards" }).finished.then(quitar, quitar);
-        nueva.animate(t.entra, { duration: t.de, delay: t.retardo || 0, easing: t.easeE || B, fill: "backwards" });
-        if (t.flash) {
-            const f = el("span", { class: "o_dcbt_flash" });
-            caja.append(f);
-            const fuera = () => f.remove();
-            f.animate([{ opacity: 0 }, { opacity: 0.85, offset: 0.2 }, { opacity: 0 }], { duration: 420, delay: t.retardo || 0 }).finished.then(fuera, fuera);
-        }
-    }
-
-    /** La burbuja llega con la pose de la página anterior y cambia a la de esta con su transición. */
-    ponerPoseDeBurbuja() {
-        const destino = poseDePagina(this.pagina, this.noche, this.ruta);
-        const previa = leerAlmacen(CLAVE_POSE);
-        guardarAlmacen(CLAVE_POSE, destino.pose);
-        this.poseBurbuja = destino.pose;
-        this.ultimoCambio = Date.now();
-        if (previa && POSES.includes(previa) && previa !== destino.pose && !reducir()) {
-            this.burbujaPose.append(this.imgPose(previa));
-            this.ultimoCambio += 1500;   // el cambio de llegada cuenta para el mínimo entre cambios
-            const id = setTimeout(() => this.cambiarPose(this.burbujaPose, destino.pose, destino.trans), 1500);
-            this.limpiezas.push(() => clearTimeout(id));
-        } else {
-            this.burbujaPose.append(this.imgPose(destino.pose));
-        }
-    }
-
-    // ------------------------------------------------------------------ la pose que sigue a la sección en pantalla
-
-    /** Al bajar o subir, la burbuja cerrada toma la pose de la sección que cruza la franja de la ventana (``SECCIONES``).
-     * Sin cálculos en cada evento de scroll: ``IntersectionObserver``. Empieza cuando el visitante se mueve (al llegar,
-     * la de la página). De noche (dormido) y con movimiento reducido, quieta como siempre. */
-    vigilarSecciones() {
-        if (this.noche || reducir() || !window.IntersectionObserver) {
-            return;
-        }
-        const secciones = seccionesDeLaPagina(this.pagina, this.ruta);
-        if (!secciones.length) {
-            return;
-        }
-        const porElemento = new Map(secciones.map((s) => [s.el, s]));
-        this.visibles = new Set();
-        this.mostradas = new Set();
-        const observador = new window.IntersectionObserver((entradas) => {
-            for (const e of entradas) {
-                const s = porElemento.get(e.target);
-                if (e.isIntersecting) {
-                    this.visibles.add(s);
-                } else {
-                    this.visibles.delete(s);
-                    this.mostradas.delete(s);
-                }
-            }
-            this.programarPoseDeSeccion();
-        }, { rootMargin: FRANJA, threshold: 0 });
-        secciones.forEach((s) => observador.observe(s.el));
-        const alMoverse = () => {
-            if (!this.seMovio) {
-                this.seMovio = true;
-                this.programarPoseDeSeccion();
-            }
-        };
-        this.escuchar(window, "scroll", alMoverse, { passive: true });
-        this.limpiezas.push(() => {
-            observador.disconnect();
-            clearTimeout(this.relojSeccion);
-        });
-    }
-
-    /** La pose de la sección en pantalla, cuando toca: la sección tiene que quedarse un momento (al pasar rápido, cuenta
-     * donde se detiene) y entre dos cambios pasan al menos ``MIN_ENTRE_CAMBIOS_MS``. */
-    programarPoseDeSeccion() {
-        clearTimeout(this.relojSeccion);
-        const activa = this.seMovio && this.laQueToca();
-        if (!activa) {
-            return;
-        }
-        const espera = Math.max(ESTABLE_MS, this.ultimoCambio + MIN_ENTRE_CAMBIOS_MS - Date.now());
-        this.relojSeccion = setTimeout(() => this.ponerPoseDeSeccion(), espera);
-    }
-
-    /** Las que ya tienen la pose de ahora cuentan como mostradas (si no, al cambiar volvería a ellas). */
-    laQueToca() {
-        if (!this.visibles) {
-            return null;
-        }
-        for (const s of this.visibles) {
-            if (s.pose === this.poseBurbuja) {
-                this.mostradas.add(s);
-            }
-        }
-        return seccionActiva(this.visibles, this.mostradas, this.poseBurbuja);
-    }
-
-    ponerPoseDeSeccion() {
-        const activa = this.laQueToca();
-        if (!activa) {
-            return;
-        }
-        // Con el chat abierto o la burbuja apartada no cambia: al cerrarse o volver, se pone al día (``programar…``).
-        if (this.estado.abierto || this.burbuja.hidden || this.burbuja.classList.contains("o_dcbt_aparte") || reducir()) {
-            return;
-        }
-        if (Date.now() - this.ultimoCambio < MIN_ENTRE_CAMBIOS_MS) {
-            this.programarPoseDeSeccion();
-            return;
-        }
-        this.burbuja.getAnimations().forEach((a) => a.cancel());   // el reposo no va encima de una transición
-        this.poseBurbuja = activa.pose;
-        this.ultimoCambio = Date.now();
-        for (const s of this.visibles) {
-            if (s.pose === activa.pose) {
-                this.mostradas.add(s);
-            }
-        }
-        guardarAlmacen(CLAVE_POSE, activa.pose);   // la página siguiente llega con esta
-        this.cambiarPose(this.burbujaPose, activa.pose, TRANS_DE_POSE[activa.pose]);
-        this.programarPoseDeSeccion();   // si en la franja queda otra (una fila, dos columnas), le toca después
-    }
-
-    /** La pose de Brian dentro del chat (el avatar de la cabecera y de los mensajes nuevos). */
-    pose(p) {
-        if (!POSES.includes(p) || this.estado.pose === p) {
-            return;
-        }
-        this.estado.pose = p;
-        if (this.cabPose) {
-            this.cambiarPose(this.cabPose, p, TRANS_DE_POSE[p]);
-        }
-    }
-
-    reposo() {
-        if (this.estado.abierto || this.burbuja.hidden || reducir() || !this.burbuja.animate || this.burbuja.classList.contains("o_dcbt_aparte")) {
-            return;
-        }
-        if (Date.now() - (this.ultimoCambio || 0) < 1800) {
-            return;   // está cambiando de pose: el reposo, en la vuelta siguiente
-        }
-        const actual = this.burbujaPose.querySelector("img.o_dcbt_img_pose:not(.o_dcbt_saliendo)");
-        const dormido = actual && actual.dataset.pose === "durmiendo";
-        const turnos = ["sacudida", "flotar", "saludo", "brinco", "sacudida", "latido"];
-        this.reposoN = (this.reposoN || 0) + 1;
-        const tipo = dormido ? "flotar" : turnos[(this.reposoN - 1) % turnos.length];
-        const r = REPOSO[tipo];
-        this.burbuja.animate(r.k, { duration: dormido ? r.d * 1.8 : r.d, easing: r.e || "ease-in-out" });
-        if (!this.yaAbrio && this.reposoN <= 3) {
-            this.burbuja.classList.remove("o_dcbt_halo");
-            void this.burbuja.offsetWidth;
-            this.burbuja.classList.add("o_dcbt_halo");
-        }
+    /** El avatar de la cabecera y de la presentación: el corazón en un círculo crema, como en el chat de Baby Caleb. */
+    avatar(clase) {
+        return el("span", { class: `o_dcbt_avatar_marca ${clase || ""}`.trim(), "aria-hidden": "true", html: ICO.corazon });
     }
 
     // ------------------------------------------------------------------ la burbuja y la página
@@ -929,11 +463,7 @@ export class ChatBrian {
                 break;
             }
         }
-        const estaba = this.burbuja.classList.contains("o_dcbt_aparte");
         this.burbuja.classList.toggle("o_dcbt_aparte", tapa);
-        if (estaba && !tapa) {
-            this.programarPoseDeSeccion();   // vuelve con la pose de la sección donde quedó
-        }
     }
 
     // ------------------------------------------------------------------ el panel
@@ -942,7 +472,6 @@ export class ChatBrian {
         if (this.panel) {
             return;
         }
-        this.cabPose = this.cajaPose("o_dcbt_avatar_cab", this.estado.pose);
         this.cabPunto = el("span", { class: "o_dcbt_punto" });
         this.cabTexto = el("span", { text: "Asistente de la tienda" });
         this.cabWa = el("a", {
@@ -955,13 +484,13 @@ export class ChatBrian {
         this.cabCarrito.append(this.cabCuenta);
         this.btnAmpliar = el("button", { type: "button", class: "o_dcbt_cab_boton", "aria-pressed": "false", "aria-label": esCelular() ? "Ver los productos en cuadrícula" : "Ampliar el chat", html: ICO.ampliar });
         this.btnCerrar = el("button", { type: "button", class: "o_dcbt_cab_boton", "aria-label": "Cerrar el chat", html: ICO.cerrar });
-        const cab = el("header", { class: "o_dcbt_cab" }, this.cabPose,
-            el("div", { class: "o_dcbt_cab_textos" }, el("h2", { id: "o_dcbt_titulo", text: "D'CASA" }), el("p", { class: "o_dcbt_cab_estado" }, this.cabPunto, this.cabTexto)),
+        const cab = el("header", { class: "o_dcbt_cab" }, this.avatar("o_dcbt_avatar_cab"),
+            el("div", { class: "o_dcbt_cab_textos" }, el("h2", { id: "o_dcbt_titulo", text: this.marca }), el("p", { class: "o_dcbt_cab_estado" }, this.cabPunto, this.cabTexto)),
             this.cabWa, this.cabCarrito, this.btnAmpliar, this.btnCerrar);
         this.aviso = el("p", { class: "o_dcbt_aviso", role: "status", hidden: true });
         this.lista = el("div", { class: "o_dcbt_mensajes", role: "log", "aria-live": "polite", "aria-label": "Conversación" },
-            el("div", { class: "o_dcbt_intro" }, this.cajaPose("o_dcbt_avatar_intro", "asomado_burbuja"),
-                el("p", { class: "o_dcbt_intro_nombre", text: "D'CASA Panamá" })),
+            el("div", { class: "o_dcbt_intro" }, this.avatar("o_dcbt_avatar_intro"),
+                el("p", { class: "o_dcbt_intro_nombre", text: this.marca })),
             el("p", { class: "o_dcbt_dia" }, el("span", { text: "Hoy" })));
         this.verificando = el("p", { class: "o_dcbt_verificando", hidden: true }, ico("escudo"), el("span", { text: "Conexión segura…" }));
         this.cajaTurnstile = el("div", { class: "o_dcbt_turnstile", hidden: true });
@@ -1115,8 +644,7 @@ export class ChatBrian {
         }
         this.estado.abierto = true;
         this.pintarVoz();
-        this.yaAbrio = true;
-        this.burbuja.classList.remove("o_dcbt_halo", "o_dcbt_aparte");
+        this.burbuja.classList.remove("o_dcbt_aparte");
         this.burbuja.classList.add("o_dcbt_ya_entro");
         this.burbuja.setAttribute("aria-expanded", "true");
         this.panel.hidden = false;
@@ -1177,7 +705,6 @@ export class ChatBrian {
             }
             this.burbuja.focus({ preventScroll: true });
             this.acomodarBurbuja();
-            this.programarPoseDeSeccion();
             if (this.estado.carritoCambio && this.pagina.tipo === "carrito") {
                 window.location.reload(); // la página del carrito se pone al día con lo que cambió en el chat
             }
@@ -1257,12 +784,11 @@ export class ChatBrian {
     }
 
     filaBrian(contenido, clase) {
-        const seguida = this.estado.autor === "brian" && this.estado.posePrevia === this.estado.pose;
+        const seguida = this.estado.autor === "brian";
         const fila = el("div", { class: ["o_dcbt_fila o_dcbt_de_brian o_dcbt_entra", seguida ? "o_dcbt_seguida" : "", clase || ""].filter(Boolean).join(" ") });
-        fila.append(this.cajaPose("o_dcbt_avatar", this.estado.pose), contenido);
+        fila.append(contenido);
         this.lista.append(fila);
         this.estado.autor = "brian";
-        this.estado.posePrevia = this.estado.pose;
         this.alFinal();
         return fila;
     }
@@ -1280,11 +806,11 @@ export class ChatBrian {
     }
 
     escribiendo() {
-        const antes = [this.estado.autor, this.estado.posePrevia];
+        const antes = this.estado.autor;
         const fila = this.filaBrian(el("div", { class: "o_dcbt_globo o_dcbt_escribiendo" }, el("i"), el("i"), el("i"), el("span", { class: "visually-hidden", text: "Andrés está escribiendo" })));
         return () => {
             fila.remove();
-            [this.estado.autor, this.estado.posePrevia] = antes;
+            this.estado.autor = antes;
         };
     }
 
@@ -1650,7 +1176,7 @@ export class ChatBrian {
             hijos.push(el("section", { class: "o_dcbt_seccion o_dcbt_seccion_sugeridos" }, cab,
                 el("div", { class: "o_dcbt_rejilla", role: "list" }, ...this.sugeridos.map((p) => this.tarjeta(p)))));
         } else if (!grupos.length) {
-            const vacia = el("div", { class: "o_dcbt_vitrina_vacia" }, this.cajaPose("", "con_laptop"), el("p", { text: "Aquí verás, en cuadrícula, los productos que te muestre Andrés." }));
+            const vacia = el("div", { class: "o_dcbt_vitrina_vacia" }, ico("carrito", "o_dcbt_avatar_marca o_dcbt_vitrina_vacia_ico"), el("p", { text: "Aquí verás, en cuadrícula, los productos que te muestre Andrés." }));
             vacia.append(chipsDeCategorias());
             hijos.push(vacia);
             this.cargarSugeridos();
@@ -2036,9 +1562,7 @@ export class ChatBrian {
     /** Pinta una respuesta del Worker. ``carritoTrasTexto``: la tarjeta del carrito (con lo de Odoo) justo después del
      *  primer texto (el «listo» de una propuesta aplicada), antes de las sugerencias. */
     async pintarRespuesta(r, restaurando = false, { carritoTrasTexto = false } = {}) {
-        if (typeof r.pose === "string") {
-            this.pose(r.pose);
-        }
+        // ``r.pose`` (la pose del robot que todavía manda el Worker) ya no se pinta: el chat no lleva robot.
         const propuestas = [];
         let primero = true;
         let carritoPuesto = !carritoTrasTexto;
@@ -2213,12 +1737,11 @@ export class ChatBrian {
             if (r.ok) {
                 this.estado.carritoCambio = true;
                 this.ponerCarrito(r.carrito, true);
-                this.pose("bolsita");
                 const frase = cantidad > 1 ? `Listo, te puse ${cantidad} en el carrito. Gracias por escogernos.` : "Listo, te lo puse en el carrito. Gracias por escogernos.";
                 this.globo(frase);
                 this.tarjetaCarrito();
                 this.chips(SIGUE_TRAS_AGREGAR);
-                this.anotar({ tipo: "brian", texto: frase, pose: "bolsita" }, { tipo: "carrito" }, { tipo: "chips", opciones: SIGUE_TRAS_AGREGAR });
+                this.anotar({ tipo: "brian", texto: frase }, { tipo: "carrito" }, { tipo: "chips", opciones: SIGUE_TRAS_AGREGAR });
             } else if (r.motivo === "elegir" && r.url) {
                 const frase = "Ese producto tiene opciones para elegir (medida, color o combo): escógela en su ficha y lo agregas desde ahí.";
                 this.globo(frase);
@@ -2289,9 +1812,8 @@ export class ChatBrian {
         this.quitarChips();
         this.cliente("Es otra dirección");
         const frase = "Claro. Escríbeme el barrio, el PH o un punto de referencia que te quede cerca; no necesito la dirección exacta.";
-        this.pose("mapa");
         this.globo(frase);
-        this.anotar({ tipo: "cliente", texto: "Es otra dirección" }, { tipo: "brian", texto: frase, pose: "mapa" });
+        this.anotar({ tipo: "cliente", texto: "Es otra dirección" }, { tipo: "brian", texto: frase });
         this.campo.placeholder = "Barrio, PH o un punto de referencia";
         this.campo.focus({ preventScroll: true });
     }
@@ -2339,7 +1861,6 @@ export class ChatBrian {
             verificacion: "No pude comprobar que la conexión es segura. Inténtalo otra vez o escríbenos por WhatsApp.",
             pase: "No pude comprobar que la conexión es segura. Inténtalo otra vez o escríbenos por WhatsApp.",
         };
-        this.pose("burbuja_chat");
         this.globo(textos[motivo] || textos.verificacion);
         this.tarjetaWA();
         if (pausaDelDia || apagado) {
@@ -2370,7 +1891,6 @@ export class ChatBrian {
                 if (["fallo", "red"].includes(pase.motivo) || !pase.motivo) {
                     // Sin conexión con Odoo: lo dice, ofrece WhatsApp y al volver a abrir lo intenta otra vez.
                     this.estado.saludado = false;
-                    this.pose("burbuja_chat");
                     this.globo("Ahora no me puedo conectar. Inténtalo en un momento o escríbenos por WhatsApp.");
                     this.tarjetaWA();
                     return;
@@ -2378,9 +1898,8 @@ export class ChatBrian {
                 this.sinRespuesta(pase.motivo, null, null);
                 return;
             }
-            // Fuera del horario solo lo dice (y el avatar se duerme) si Gerencia lo pidió; si no, saluda como de día.
+            // Fuera del horario solo lo dice si Gerencia lo pidió; si no, saluda como de día.
             const noche = pase.noche && pase.avisar_cerrado;
-            this.pose(noche ? "durmiendo" : "saludando");
             const quitar = this.escribiendo();
             await pausa(700);
             quitar();
@@ -2388,13 +1907,12 @@ export class ChatBrian {
             const segundo = noche
                 ? "Ahora la tienda está cerrada, pero yo te ayudo con gusto. Si necesitas a una vendedora, te responde por WhatsApp en cuanto abramos" + (pase.horario_texto ? " (atendemos " + pase.horario_texto + ")" : "") + "."
                 : "Con gusto te ayudo a encontrar lo que buscas, ver precios, calcular el envío o dejarte el carrito listo.";
-            this.pose("saludando");
             this.globo(saludo);
             await pausa(500);
             this.globo(segundo);
             const inicio = [...this.sugerenciasDeProductos(), ...INICIO_FIJAS];
             this.chips(inicio);
-            this.anotar({ tipo: "brian", texto: saludo, pose: "saludando" }, { tipo: "brian", texto: segundo }, { tipo: "chips", opciones: inicio });
+            this.anotar({ tipo: "brian", texto: saludo }, { tipo: "brian", texto: segundo }, { tipo: "chips", opciones: inicio });
         });
     }
 
@@ -2493,9 +2011,6 @@ export class ChatBrian {
                     this.ultimoPedido = e.texto;
                 }
             } else if (e.tipo === "brian" && typeof e.texto === "string") {
-                if (e.pose) {
-                    this.pose(e.pose);
-                }
                 this.globo(e.texto);
             } else if (e.tipo === "respuesta" && e.datos) {
                 this.pintarRespuesta(e.datos, true, { carritoTrasTexto: e.carrito === true });

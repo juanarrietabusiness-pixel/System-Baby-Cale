@@ -8,19 +8,20 @@
          marcas en el t-call y la página da error 500; lección del lote 1 de la web). Es la misma para todo visitante:
          la página se puede guardar en el borde. El chat y el carrito los pide el JS (pase, carrito) cuando se abre.
 
-         Sin JavaScript sigue siendo útil: es un enlace a WhatsApp. El JS lo cambia por el botón que abre el chat.
+         Sin JavaScript sigue siendo útil: es un enlace a WhatsApp. El JS lo cambia por el botón que abre el chat. Con
+         la marca Baby Caleb (docs/MARCA_BABY_CALEB.md): el círculo naranja con el globo de chat en navy, como el de
+         Baby-caleb/src/components/Chatbot.tsx (el robot de D'CASA se fue con su marca, 2026-11-19).
          =================================================================== -->
     <template id="burbuja" inherit_id="website.layout" name="D'CASA: Brian de la tienda">
         <xpath expr="//div[@id='wrapwrap']" position="inside">
             <t t-if="website and website._dcasa_brian_en_esta_pagina(request.httprequest.path)">
                 <t t-set="dcbt" t-value="website._dcasa_brian_datos()"/>
                 <aside id="o_dcasa_brian" class="o_dcbt" aria-label="Chat de la tienda"
-                       t-att-data-whatsapp="dcbt['whatsapp']" t-att-data-horario="dcbt['horario']"
-                       t-att-data-poses="dcbt['poses']" t-att-data-dormir="dcbt['dormir']"
+                       t-att-data-whatsapp="dcbt['whatsapp']" t-att-data-marca="dcbt['marca']"
                        t-att-data-turnstile="dcbt['turnstile'] or None">
                     <a class="o_dcbt_burbuja" href="/whatsapp" target="_blank" rel="noopener nofollow"
                        title="Chat de la tienda" aria-label="Escríbenos por WhatsApp (se abre en una pestaña nueva)">
-                        <span class="o_dcbt_pose" aria-hidden="true"/>
+                        <span class="o_dcbt_ico o_dcbt_burbuja_ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22z"/></svg></span>
                     </a>
                 </aside>
             </t>

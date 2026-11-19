@@ -54,7 +54,6 @@ CLAVES_DE_SESION = (SESION_SID, SESION_HORA, SESION_VERIFICADO, SESION_PDF, SESI
 PARAM_ACTIVO = 'dcasa_brian_tienda.activo'
 # Los dos interruptores de la noche (Sitio web › Brian de la tienda; data/parametros.xml, noupdate).
 PARAM_AVISAR_CERRADO = 'dcasa_brian_tienda.avisar_cerrado'   # apagado de fábrica: saluda como de día
-PARAM_DORMIR_DE_NOCHE = 'dcasa_brian_tienda.dormir_de_noche'  # encendido de fábrica: el robot de la burbuja duerme
 SI = ('1', 'true', 'yes', 'si', 'sí')
 PARAMS = {
     'presupuesto_mes_usd': 'dcasa_brian_tienda.presupuesto_mes_usd',
@@ -169,11 +168,6 @@ class DcasaBrianTienda(models.AbstractModel):
     def _avisar_cerrado(self):
         """Fuera del horario, ¿el chat avisa que la tienda está cerrada? Apagado de fábrica: saluda como de día."""
         return self._interruptor(PARAM_AVISAR_CERRADO, False)
-
-    @api.model
-    def _dormir_de_noche(self):
-        """De noche, ¿el robot de la burbuja duerme? Encendido de fábrica."""
-        return self._interruptor(PARAM_DORMIR_DE_NOCHE, True)
 
     @api.model
     def _interruptor(self, parametro, de_fabrica):
