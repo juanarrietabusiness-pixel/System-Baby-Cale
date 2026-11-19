@@ -167,14 +167,16 @@
     }
 }
 
-// Teléfonos angostos (360 px): un poco menos de aire para que «Conversaciones» quepa entera.
+// Teléfonos angostos (360 px): un poco menos de aire para que «Conversaciones» quepa entera. Montserrat es más ancha
+// que la letra de antes: en 700 el nombre llenaba el tercio al píxel y en algún navegador se partía; en 600 sobran
+// unos 5 px.
 @media (max-width: 379.98px) {
     .o_dcasa_tablero .o_dcasa_atajos {
         &[data-modo="compacto"] {
             gap: 6px;
 
-            .o_dcasa_atajo { padding: 10px 3px; }
-            .o_dcasa_atajo_texto strong { letter-spacing: -.02em; }
+            .o_dcasa_atajo { padding: 10px 2px; }
+            .o_dcasa_atajo_texto strong { font-weight: 600; letter-spacing: -.02em; }
         }
         &[data-modo="detalle"] {
             .o_dcasa_atajo { gap: 8px; padding: 10px 8px; }

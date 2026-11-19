@@ -33,7 +33,7 @@
         </xpath>
         <xpath expr="//meta[@name='theme-color']" position="attributes">
             <attribute name="content"></attribute>
-            <attribute name="t-att-content">'#121B23' if color_scheme == 'dark' else '#F9F6ED'</attribute>
+            <attribute name="t-att-content">'#0F161C' if color_scheme == 'dark' else '#F9F6ED'</attribute>
         </xpath>
         <xpath expr="//t[@t-call-assets='web.assets_web_dark']/.." position="attributes">
             <attribute name="t-if">not dcasa_marca.get('hoja') and color_scheme == 'dark'</attribute>

@@ -227,6 +227,19 @@ class TestModoOscuroServidor(HttpCase):
         self.assertTrue(any('web.assets_web_dark.min.css' in e for e in enlaces), enlaces)
         self.assertFalse(any('web.assets_web.min.css' in e for e in enlaces), 'no se cargan las dos hojas a la vez')
 
+    def test_la_barra_del_navegador_toma_el_fondo_de_cada_modo(self):
+        """El color de la barra del navegador del teléfono es el fondo de la página: el crema de día y el navy profundo
+        de noche (el mismo ``--dc-crema`` de ``tokens.dark.scss``), nunca el azul de D'CASA."""
+        def barra(cookies=None):
+            self.authenticate('admin', 'admin')
+            html = self.url_open('/odoo', cookies=cookies).text
+            return re.findall(r'<meta name="theme-color" content="([^"]*)"', html)
+        with open(file_path(f'{CARPETA_OSCURA}/tokens.dark.scss'), encoding='utf-8') as hoja:
+            de_noche = hoja.read()
+        fondo = re.search(r'--dc-crema:\s*(#[0-9A-Fa-f]{6})', de_noche).group(1)
+        self.assertEqual(barra(), ['#F9F6ED'])
+        self.assertEqual(barra({'color_scheme': 'dark'}), [fondo])
+
     def test_con_un_valor_raro_la_hoja_clara(self):
         for valor in ('light', 'oscuro', 'DARK', 'dark2', 'darker', '1', 'true', ''):
             enlaces = self.hojas({'color_scheme': valor})
