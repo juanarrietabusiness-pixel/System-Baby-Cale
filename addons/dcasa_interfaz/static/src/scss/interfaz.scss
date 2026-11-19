@@ -109,12 +109,13 @@
         flex: 1 1 34%;              // tres ya no caben en una fila: quedan de a dos
         min-width: min-content;
         min-height: 44px;
-        padding: 0 6px;
+        padding: 0 4px;
         justify-content: center;
         font-size: .8125rem;
+        letter-spacing: -.01em;     // Montserrat es más ancha que la letra de antes: así siguen de a dos por fila a 360 px
         white-space: nowrap;
 
-        .fa.me-2 { margin-right: 6px !important; }
+        .fa.me-2 { margin-right: 4px !important; }
         // El que queda solo en la última fila (p. ej. «Nuevo cliente» de la vendedora) mide media fila, no entera.
         &:last-child:nth-child(odd):not(.o_dcasa_ver_tienda) { flex: 0 0 calc(50% - 4px); }
         &.o_dcasa_ver_tienda { flex: 0 0 44px; min-width: 44px; padding: 0; }

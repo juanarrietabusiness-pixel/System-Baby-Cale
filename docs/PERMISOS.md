@@ -338,7 +338,7 @@ se instalen `dcasa_base` y Recursos Humanos.
 - **Roles** (`security/dcasa_roles.xml`): la Vendedora implica «Ventas: solo sus documentos»
   (`sales_team.group_sale_salesman`), Facturación e Inventario. **Caja** (`dcasa_base.group_caja`) = Vendedora +
   «Ventas: todos los documentos» (`sales_team.group_sale_salesman_all_leads`), sin contabilidad, costos ni descuento
-  sin tope; Gerencia incluye Caja. Un solo selector «D'CASA»: Vendedora → Caja → Gerencia. Caja no se asigna sola.
+  sin tope; Gerencia incluye Caja. Un solo selector «Baby Caleb» (en D'CASA se llamaba «D'CASA»): Vendedora → Caja → Gerencia. Caja no se asigna sola.
 - **Qué es «suyo»:** pedidos y cotizaciones, `sale.order.user_id`; facturas, notas y recibos, `account.move.invoice_user_id`
   (nunca quién lo creó: Caja crea la factura desde la cotización de la vendedora); cobros, los que registró o los de sus
   facturas. Lo sin vendedora lo ven todas (lo que hace Odoo).
