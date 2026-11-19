@@ -61,3 +61,63 @@ el contenedor no tiene disco) · `dcasa_tienda_borde` (la caché de la tienda).
 | [ ] | Abonos (`dcasa_abonos`) | La hoja «Condiciones de abono» | Memoria, 1 tarea | Hay que quitar también Correo y Camila |
 | [ ] | Juan y Conversaciones (`dcasa_conversaciones`) | La bandeja de WhatsApp, el reparto, el CRM automático y la conexión con Juan | Memoria, **11 tareas**, **IA** (tope de fábrica de Juan 30 USD al mes) | Hay que quitar también Sofía, Camila, Correo, Brian de la tienda y Busca con una foto. El Worker `sistemabk-chatbot` deja de tener a quién preguntar |
 | [ ] | Envíos (`dcasa_envios`) | La calculadora de envíos, los lugares y la tarifa | Memoria | Hay que quitar también Juan y Conversaciones |
+
+## Cuánta memoria gasta cada función (medido el 2026-11-19)
+
+**Cómo se midió.** En una copia local, sin datos reales: 6 productos, sin fotos y un solo usuario. Se instaló todo paso a
+paso, en el orden de las dependencias, en una sola base:
+- Primero, 12 piezas de Odoo.
+- Después, las 32 propias.
+
+Tras cada paso, un proceso nuevo cargó Odoo y se anotó su memoria (RSS). Se midió dos veces, en paralelo, y se tomó el
+promedio. La diferencia con el paso anterior es lo que suma esa función **por estar instalada**. El ruido es de unos
+0,3 MB. PostgreSQL no está incluido: tiene su propia memoria, fijada por `docker/pg.sh` (`shared_buffers` 128 MB).
+
+**Odoo pelado** (Python y el corazón de Odoo) ocupa 109 MB. **Con todo instalado** ocupa 171 MB.
+
+| # | Función | Suma | ¿Se puede quitar? |
+|---|---|---|---|
+| 1 | Contabilidad de Odoo y lo de Panamá | 13,3 MB | No (cimiento) |
+| 2 | Conversaciones de Odoo: chat, **llamadas, videollamadas**, avisos en vivo y OdooBot | 7,5 MB | No: todo depende de ella |
+| 3 | Inventario y entregas de Odoo | 5,8 MB | No (cimiento) |
+| 4 | Motor del sitio web | 3,8 MB | No (cimiento) |
+| 5 | Interfaz: Inicio y panel (`dcasa_interfaz`) | 2,9 MB | No (cimiento) |
+| 6 | Juan y Conversaciones (`dcasa_conversaciones`) | 2,7 MB | Sí, arrastrando a otras 5 |
+| 7 | Empleados de Odoo | 2,7 MB | No: la pide Contactos |
+| 8 | CRM de Odoo | 2,4 MB | No: la pide la base |
+| 9 | Ventas y cotizaciones de Odoo | 2,1 MB | No (cimiento) |
+| 10 | Brian (`dcasa_brian`) | 2,1 MB | No (cimiento) |
+| 11 | Tienda en línea de Odoo: carrito, pagos y registro | 2,1 MB | No (cimiento) |
+| 12 | Compras de Odoo | 1,7 MB | No: la pide la base |
+| 13 | Socios (`dcasa_socios`) | 1,6 MB | No (cimiento) |
+| 14 | Camila | 1,3 MB | Sí |
+| 15 | La tienda propia (`website_dcasa`) | 1,0 MB | No (cimiento) |
+| 16 | Envíos | 0,9 MB | Sí, junto con Juan |
+| 17 | Correo a clientes | 0,9 MB | Sí |
+| 18 | Contabilidad propia (`dcasa_contabilidad`) | 0,9 MB | No (cimiento) |
+| 19 | Base: empresa, ITBMS y roles (`dcasa_base`) | 0,8 MB | No (cimiento) |
+| 20 | Nómina | 0,6 MB | Sí |
+| 21 | Migración | 0,6 MB | Sí |
+| 22 | Sofía | 0,5 MB | Sí |
+| — | Menos de 0,5 MB cada una, dentro del ruido: Consolidación, Contactos propio, Abonos, Códigos de barras, Existencias, Brian de la tienda, Factura con la marca, Sesiones, Catálogo, Catálogo para anuncios, Seguridad propia, Marketing, Mi cuenta, Píxel de Meta, Contactos de Odoo, Busca con una foto, Seguridad de Odoo, Tienda en el borde, Adjuntos en R2, Equipo y Guía | ≤ 0,4 MB | Varias sí |
+
+**Las 19 que se pueden quitar, juntas, suman unos 10 MB** de los 171.
+
+### En uso
+
+Se arrancó el servidor como en producción: un solo proceso, sin tareas programadas para que no metan ruido. Luego se
+abrieron la tienda y el panel (ventas, productos, contactos, facturas, entregas y CRM) y se lanzaron 40 visitas a la vez a
+la tienda. Se comparó con una copia que tiene **solo los cimientos** (las 13).
+
+| Momento | Con todo | Solo cimientos |
+|---|---|---|
+| Recién arrancado | 187 MB | 177 MB |
+| Un día normal, tras usar tienda y panel | **249 MB** (pico 259) | **214 MB** (pico 246) |
+| La primera vez que se abre el panel tras una versión nueva, cuando arma sus archivos de pantalla | **450 MB** (pico 455) | **362 MB** (pico 388) |
+
+**Conclusión.** Quitar todo lo que se puede quitar ahorra unos **35 MB** en un día normal y unos **90 MB** en el pico
+tras una versión nueva. Las llamadas y videollamadas son parte de la función n.º 2 y no se pueden separar.
+
+Esta medición no decide sola el tamaño de la caja. Con datos reales y varias personas a la vez se gasta más, y
+PostgreSQL va aparte. La decisión de caja sale de la gráfica de memoria y procesador de staging en el panel de
+Cloudflare.
