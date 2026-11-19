@@ -80,8 +80,8 @@
     </template>
 
     <!-- Aviso de cookies de Odoo en español y con tuteo (borrador para el abogado, diseño §9.3), con la política de
-         privacidad. Colores de la marca: azul sobre blanco (static/src/scss/meta.scss); nunca amarillo sobre
-         blanco. Solo aparece con el aviso encendido (lo enciende el píxel). Lo de Meta se dice en TODAS las páginas
+         privacidad. Con la marca Baby Caleb (static/src/scss/meta.scss): la tarjeta crema de su aviso de Meta, «Aceptar»
+         naranja con letra navy y «Solo las necesarias» de contorno, del mismo tamaño. Solo aparece con el aviso encendido (lo enciende el píxel). Lo de Meta se dice en TODAS las páginas
          cuando el píxel del sitio de verdad se dibuja (en staging, por ejemplo, no): también en las páginas sin píxel
          (la cuenta, la dirección), porque lo que la persona acepta ahí vale para las demás. -->
     <template id="aviso_cookies_meta" inherit_id="website.cookies_bar" name="D'CASA Meta: aviso de cookies">
@@ -91,7 +91,7 @@
         <xpath expr="//span[hasclass('pe-1')]" position="replace">
             <span class="pe-1">Usamos cookies propias para que la tienda funcione.<t t-if="website._dcasa_meta_pixel_del_sitio()"> Si
                 aceptas, también usamos las de Meta (Facebook e Instagram) para medir y mostrarte anuncios de nuestros
-                muebles.</t></span>
+                productos.</t></span>
         </xpath>
         <xpath expr="//a[hasclass('o_cookies_bar_text_policy')]" position="replace">
             <a href="/privacidad#cookies" class="o_cookies_bar_text_policy btn btn-link btn-sm px-0">Política de privacidad</a>

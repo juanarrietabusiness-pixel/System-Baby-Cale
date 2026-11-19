@@ -4,7 +4,7 @@
  * El botón es una <label> con el <input type="file" accept="image/*"> encima: el toque abre el selector del teléfono
  * (cámara o galería) sin JavaScript. Al elegir la foto:
  *
- *   1. Se ve «Buscando muebles parecidos…» (una capa encima de todo, que el lector de pantalla anuncia).
+ *   1. Se ve «Buscando productos parecidos…» (una capa encima de todo, que el lector de pantalla anuncia).
  *   2. La foto se achica en el navegador: lado mayor de 1024 px como mucho, JPEG (una captura de Instagram o una foto de
  *      12 MP queda en unos cientos de KB). Si el navegador no la puede abrir, se manda tal cual si es JPEG, PNG o WebP
  *      de hasta 1,5 MB; si no, se avisa al lado del botón.
@@ -22,7 +22,7 @@ export const CALIDAD_JPEG = 0.85;
 export const MAX_BYTES = 1536 * 1024;
 export const TIPOS = ["image/jpeg", "image/png", "image/webp"];
 export const RUTA = "/shop/foto";
-export const TEXTO_CARGANDO = "Buscando muebles parecidos…";
+export const TEXTO_CARGANDO = "Buscando productos parecidos…";
 export const TEXTO_NO_ABRE = "Esa foto no la pudimos abrir. Prueba con otra en JPG, PNG o WebP de menos de 1,5 MB.";
 
 /** Medidas para que el lado mayor no pase de `maximo` (nunca agranda). */

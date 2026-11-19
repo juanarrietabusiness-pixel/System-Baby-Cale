@@ -1,8 +1,11 @@
 """«Busca con una foto» en el navegador (static/src/js/buscar_foto.js): la foto se achica antes de subirla (lado mayor
-de 1024 px, JPEG), se ve «Buscando muebles parecidos…», va con un token CSRF y el input no se queda con la foto."""
+de 1024 px, JPEG), se ve «Buscando productos parecidos…», va con un token CSRF y el input no se queda con la foto.
+Y el botón de la cámara lleva la marca Baby Caleb (docs/MARCA_BABY_CALEB.md): en la página, la pastilla naranja con
+letra navy (5.56); en la caja de búsqueda, el ícono navy."""
 from odoo.tests import HttpCase, tagged
 
-# Una «foto» de 3000 × 2000 en PNG (como una captura grande); se intercepta el envío para mirar lo que saldría.
+# Una «foto» de 3000 × 2000 en PNG (como una captura grande, en los colores de la marca); se intercepta el envío para
+# mirar lo que saldría.
 ELEGIR_UNA_FOTO = """
 (async () => {
     const esperar = (ms) => new Promise((ok) => setTimeout(ok, ms));
@@ -12,13 +15,32 @@ ELEGIR_UNA_FOTO = """
     if (input.type !== 'file' || input.accept !== 'image/*' || input.name) {
         throw new Error('El input no es el esperado');
     }
+    // La marca: naranja #EE924A de relleno y navy #1B3246 encima (nunca blanco); en la caja, el ícono navy. Montserrat.
+    const boton = input.closest('label');
+    const estilo = getComputedStyle(boton);
+    if (boton.classList.contains('o_dcasa_foto_boton_grande')) {
+        if (estilo.backgroundColor !== 'rgb(238, 146, 74)' || estilo.color !== 'rgb(27, 50, 70)') {
+            throw new Error('No es el naranja con letra navy: ' + estilo.backgroundColor + ' / ' + estilo.color);
+        }
+        if (estilo.borderTopLeftRadius !== '999px') {
+            throw new Error('El botón no es una pastilla: ' + estilo.borderTopLeftRadius);
+        }
+    } else if (estilo.color !== 'rgb(27, 50, 70)') {
+        throw new Error('El ícono de la cámara no es navy: ' + estilo.color);
+    }
+    if (!estilo.fontFamily.startsWith('Montserrat')) {
+        throw new Error('La letra no es Montserrat: ' + estilo.fontFamily);
+    }
+    if ((estilo.backgroundColor + estilo.color + estilo.borderTopColor).includes('rgb(19, 64, 177)')) {
+        throw new Error('Queda el azul de D’CASA');
+    }
     const lienzo = document.createElement('canvas');
     lienzo.width = 3000;
     lienzo.height = 2000;
     const ctx = lienzo.getContext('2d');
-    ctx.fillStyle = '#1340B1';
+    ctx.fillStyle = '#F9F6ED';
     ctx.fillRect(0, 0, 3000, 2000);
-    ctx.fillStyle = '#FED00F';
+    ctx.fillStyle = '#EE924A';
     ctx.fillRect(600, 400, 1800, 1200);
     const blob = await new Promise((ok) => lienzo.toBlob(ok, 'image/png'));
     const lista = new DataTransfer();
@@ -30,7 +52,7 @@ ELEGIR_UNA_FOTO = """
     for (let i = 0; i < 200 && !enviado; i++) { await esperar(50); }
     if (!enviado) { throw new Error('La foto no se envió'); }
     const capa = document.querySelector('.o_dcasa_foto_cargando');
-    if (!capa || !capa.textContent.includes('Buscando muebles parecidos…')) {
+    if (!capa || !capa.textContent.includes('Buscando productos parecidos…')) {
         throw new Error('No se ve «Buscando…»');
     }
     if (capa.getAttribute('role') !== 'status') { throw new Error('El lector de pantalla no lo anuncia'); }

@@ -349,7 +349,7 @@ class TestBuscarFoto(HttpCase):
                 self.contesta = respuesta_http({'ok': True, 'lectura': leida})
                 respuesta = self.buscar()
                 self.assertEqual(self.estado(respuesta), 'documento')
-                self.assertIn('Esa foto parece un documento; para buscar, sube la foto de un mueble.',
+                self.assertIn('Esa foto parece un documento; para buscar, sube la foto de un producto.',
                               respuesta.text)
                 self.assertEqual(self.nombres(respuesta.text), [], 'Nada parecido se muestra')
                 self.assertNotIn('Lo que vimos', respuesta.text)

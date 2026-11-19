@@ -1,11 +1,28 @@
-// «Busca con una foto» (views/templates.xml). Sistema plano de la marca: azul #1340B1, navy para el texto, el amarillo
-// SOLO sobre azul (la banda de WhatsApp). Botones de 44 px o más (dedo, no cursor); el input de archivo, de 16 px (si no,
-// el iPhone acerca la pantalla al tocarlo).
+// «Busca con una foto» (views/templates.xml), con la marca Baby Caleb (docs/MARCA_BABY_CALEB.md): el botón de la cámara
+// es la pastilla de contorno de la marca (filo naranja, letra en el naranja de texto); en /shop/foto, el botón
+// principal (naranja con letra navy). Crema, navy y la banda verde salvia del final, como la de la web de Baby Caleb.
+// El naranja y el verde son RELLENO: nunca texto ni borde. Botones de 44 px o más (dedo, no cursor); el input de
+// archivo, de 16 px (si no, el iPhone acerca la pantalla al tocarlo). Montserrat (la @font-face la declara
+// website_dcasa). Los colores van escritos aquí mismo, sin variables de website_dcasa.
 
-$dcasa-foto-azul: #1340B1;
-$dcasa-foto-navy: #0E2A6B;
-$dcasa-foto-hueso: #F6F5F2;   // el hueso del sitio (v3, 2026-11-15; antes #F4F1EA)
-$dcasa-foto-gris: #4A5163;
+$foto-bg: #F9F6ED;
+$foto-surface: #F2EFE5;
+$foto-fg: #1B3246;
+$foto-muted: rgba(27, 50, 70, .7);
+$foto-line: rgba(27, 50, 70, .12);
+$foto-accent: #EE924A;
+$foto-accent-hover: #EF9C5A;
+$foto-accent-fg: #1B3246;
+$foto-accent-strong: #985D2F;
+$foto-accent-edge: #C3783D;
+$foto-sage: #91C9A2;
+$foto-sage-strong: #53735C;
+$foto-fuente: 'Montserrat', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+@mixin foto-foco {
+    outline: 2px solid $foto-fg;
+    outline-offset: 2px;
+}
 
 // ---------------------------------------------------------------------------
 // El botón (una <label> con el input de archivo transparente encima)
@@ -20,31 +37,31 @@ $dcasa-foto-gris: #4A5163;
     min-height: 2.75rem;
     min-width: 2.75rem;
     margin: 0;
-    padding: .5rem 1rem;
-    border: 2px solid $dcasa-foto-azul;
-    border-radius: .75rem;
+    padding: .5rem 1.25rem;
+    border: 1px solid $foto-accent-edge;
+    border-radius: 999px;
     background: transparent;
-    color: $dcasa-foto-azul;
-    font-family: 'Oswald', sans-serif;
-    font-weight: 500;
-    letter-spacing: .04em;
-    text-transform: uppercase;
+    color: $foto-accent-strong;
+    font-family: $foto-fuente;
+    font-weight: 700;
+    letter-spacing: 0;
+    text-transform: none;
     cursor: pointer;
     overflow: hidden;
     touch-action: manipulation;
+    transition: background-color .3s ease, color .3s ease;
 
     .fa {
         font-size: 1.15rem;
     }
 
     &:hover {
-        background: $dcasa-foto-azul;
-        color: #FFFFFF;
+        background: $foto-accent;
+        color: $foto-accent-fg;
     }
 
     &:focus-within {
-        outline: 3px solid $dcasa-foto-azul;
-        outline-offset: 2px;
+        @include foto-foco;
     }
 }
 
@@ -60,7 +77,8 @@ $dcasa-foto-gris: #4A5163;
 
 // Dentro de la caja de búsqueda (la de la cabecera, la del menú del celular y la de /shop), al lado de la lupa: el sitio
 // de website_dcasa no dibuja caja (display: contents), así que la cámara se acomoda como un elemento más del
-// «input-group» de Odoo, con el fondo de la caja (sus clases: views/templates.xml) y sin borde propio.
+// «input-group» de Odoo, con el fondo de la caja (sus clases: views/templates.xml) y sin borde propio. El ícono, navy
+// (como la lupa); al pasar, el naranja de texto.
 .input-group .o_dcasa_foto_boton.o_dcasa_foto_en_caja {
     flex: 0 0 auto;
     width: 2.75rem;
@@ -68,11 +86,11 @@ $dcasa-foto-gris: #4A5163;
     padding: 0;
     border: 0;
     border-radius: 0;
-    color: $dcasa-foto-azul;
+    color: $foto-fg;
 
     &:hover {
         background: inherit;
-        color: $dcasa-foto-navy;
+        color: $foto-accent-strong;
     }
 
     &:focus-within {
@@ -80,28 +98,30 @@ $dcasa-foto-gris: #4A5163;
     }
 }
 
-// Grande, en /shop/foto: azul lleno (el CTA de la página).
+// Grande, en /shop/foto: el botón principal de la marca (el CTA de la página).
 .o_dcasa_foto_boton_grande {
     min-height: 3rem;
-    padding-inline: 1.5rem;
-    background: $dcasa-foto-azul;
-    color: #FFFFFF;
+    padding-inline: 1.75rem;
+    border-color: transparent;
+    background: $foto-accent;
+    color: $foto-accent-fg;
+    box-shadow: 0 8px 24px -10px rgba($foto-accent, .7);
 
     &:hover {
-        background: $dcasa-foto-navy;
-        border-color: $dcasa-foto-navy;
+        background: $foto-accent-hover;
+        color: $foto-accent-fg;
     }
 }
 
 .o_dcasa_foto_aviso {
     flex-basis: 100%;
     margin: .5rem 0 0;
-    color: $dcasa-foto-navy;
+    color: $foto-fg;
     font-size: .9375rem;
 }
 
 // ---------------------------------------------------------------------------
-// «Buscando muebles parecidos…»
+// «Buscando productos parecidos…»: un velo navy y la tarjeta crema
 // ---------------------------------------------------------------------------
 
 .o_dcasa_foto_cargando {
@@ -112,16 +132,18 @@ $dcasa-foto-gris: #4A5163;
     align-items: center;
     justify-content: center;
     padding: 1rem;
-    background: rgba($dcasa-foto-navy, .72);
+    background: rgba($foto-fg, .72);
+    font-family: $foto-fuente;
 }
 
 .o_dcasa_foto_cargando_caja {
     width: 100%;
     max-width: 22rem;
     padding: 2rem 1.5rem;
-    border-radius: 1rem;
-    background: #FFFFFF;
-    color: $dcasa-foto-navy;
+    border: 1px solid $foto-line;
+    border-radius: 24px;
+    background: $foto-surface;
+    color: $foto-fg;
     text-align: center;
 }
 
@@ -130,8 +152,8 @@ $dcasa-foto-gris: #4A5163;
     width: 3rem;
     height: 3rem;
     margin-bottom: 1rem;
-    border: 4px solid rgba($dcasa-foto-azul, .18);
-    border-top-color: $dcasa-foto-azul;
+    border: 4px solid rgba($foto-fg, .12);
+    border-top-color: $foto-accent-edge;
     border-radius: 50%;
     animation: o_dcasa_foto_giro .9s linear infinite;
 }
@@ -148,26 +170,54 @@ $dcasa-foto-gris: #4A5163;
 
 .o_dcasa_foto_cargando_titulo {
     margin: 0 0 .35rem;
-    font-family: 'Oswald', sans-serif;
-    font-size: 1.35rem;
-    font-weight: 600;
-    color: $dcasa-foto-azul;
+    font-family: $foto-fuente;
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -.02em;
+    color: $foto-fg;
 }
 
 .o_dcasa_foto_cargando_sub {
     margin: 0;
-    color: $dcasa-foto-gris;
+    color: $foto-muted;
 }
 
 // ---------------------------------------------------------------------------
 // /shop/foto
 // ---------------------------------------------------------------------------
 
+.o_dcasa_foto_pagina {
+    background: $foto-bg;
+    color: $foto-fg;
+    font-family: $foto-fuente;
+}
+
 .o_dcasa_foto_cabeza {
     padding-block: clamp(2rem, 5vw, 3.5rem) 1.5rem;
 
+    // El antetítulo de la marca: 12 px, 700, caja alta y .14em, en el naranja de texto.
+    .o_dcasa_kicker {
+        font-family: $foto-fuente;
+        font-size: .75rem;
+        font-weight: 700;
+        letter-spacing: .14em;
+        text-transform: uppercase;
+        color: $foto-accent-strong;
+    }
+
+    // El titular: Montserrat 700, como frase.
     .o_dcasa_h2 {
         margin-bottom: .75rem;
+        font-family: $foto-fuente;
+        font-weight: 700;
+        letter-spacing: -.03em;
+        line-height: 1.15;
+        text-transform: none;
+        color: $foto-fg;
+    }
+
+    .o_dcasa_lead {
+        color: $foto-muted;
     }
 }
 
@@ -178,16 +228,17 @@ $dcasa-foto-gris: #4A5163;
     max-width: 44rem;
     margin: 1rem 0 0;
     padding: 1rem 1.25rem;
-    border-left: 4px solid $dcasa-foto-azul;
-    border-radius: .5rem;
-    background: $dcasa-foto-hueso;
-    color: $dcasa-foto-navy;
+    border: 1px solid $foto-line;
+    border-left: 4px solid $foto-accent-edge;
+    border-radius: 14px;
+    background: $foto-surface;
+    color: $foto-fg;
     font-size: 1.0625rem;
 
     .fa {
         margin-top: .2rem;
         font-size: 1.35rem;
-        color: $dcasa-foto-azul;
+        color: $foto-accent-strong;
     }
 
     p {
@@ -198,7 +249,7 @@ $dcasa-foto-gris: #4A5163;
 .o_dcasa_foto_vimos {
     display: block;
     margin-top: .35rem;
-    color: $dcasa-foto-gris;
+    color: $foto-muted;
     font-size: .9375rem;
 }
 
@@ -221,11 +272,13 @@ $dcasa-foto-gris: #4A5163;
 
 .o_dcasa_foto_privacidad {
     margin: 1rem 0 0;
-    color: $dcasa-foto-gris;
+    color: $foto-muted;
     font-size: .875rem;
 
     a {
-        color: $dcasa-foto-azul;
+        color: $foto-accent-strong;
+        text-decoration: underline;
+        text-underline-offset: .15em;
     }
 }
 
@@ -255,29 +308,60 @@ $dcasa-foto-gris: #4A5163;
     }
 }
 
-// La franja del final, en hueso (el pie del sitio ya es azul): texto navy y el botón azul (el amarillo solo va sobre azul).
+// La franja del final: la banda verde salvia de Baby Caleb, con todo en navy (6.96) y el botón principal naranja.
 .o_dcasa_foto_whatsapp {
     padding-block: clamp(2.5rem, 6vw, 4rem);
-    background: $dcasa-foto-hueso;
-    color: $dcasa-foto-navy;
+    background: $foto-sage;
+    color: $foto-fg;
+    text-align: center;
 
     p {
         max-width: 36rem;
+        margin-inline: auto;
         font-size: 1.0625rem;
     }
 }
 
 .o_dcasa_foto_whatsapp_titulo {
-    font-family: 'Anton', 'Oswald', sans-serif;
-    font-weight: 400;
-    font-size: clamp(1.75rem, 4vw, 2.75rem);
-    text-transform: uppercase;
-    color: $dcasa-foto-azul;
+    font-family: $foto-fuente;
+    font-weight: 700;
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    letter-spacing: -.03em;
+    line-height: 1.15;
+    text-transform: none;
+    color: $foto-fg;
 }
 
-.o_dcasa_foto_whatsapp_cta {
+.o_dcasa_foto_whatsapp_cta.btn {
+    --bs-btn-color: #{$foto-accent-fg};
+    --bs-btn-bg: #{$foto-accent};
+    --bs-btn-border-color: transparent;
+    --bs-btn-hover-color: #{$foto-accent-fg};
+    --bs-btn-hover-bg: #{$foto-accent-hover};
+    --bs-btn-hover-border-color: transparent;
+    --bs-btn-active-color: #{$foto-accent-fg};
+    --bs-btn-active-bg: #{$foto-accent};
+    --bs-btn-active-border-color: transparent;
     min-height: 3rem;
-    font-family: 'Oswald', sans-serif;
-    font-weight: 500;
-    letter-spacing: .04em;
+    padding-inline: 1.75rem;
+    border-radius: 999px;
+    background-color: $foto-accent;
+    border-color: transparent;   // el naranja es relleno: nunca borde
+    color: $foto-accent-fg;
+    font-family: $foto-fuente;
+    font-weight: 700;
+    letter-spacing: 0;
+    text-transform: none;
+
+    &:hover,
+    &:active {
+        background-color: $foto-accent-hover;
+        border-color: transparent;
+        color: $foto-accent-fg;
+    }
+
+    &:focus-visible {
+        @include foto-foco;
+        box-shadow: none;
+    }
 }
