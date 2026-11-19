@@ -13,11 +13,11 @@ $dc-rojo-fondo: #FDECEC;
 .o_dcasa_bodega {
     height: 100%;
     overflow: auto;
-    background: var(--dc-niebla, #F4F6FA);
+    background: var(--dc-niebla, #F9F6ED);
     padding: 16px;
-    font-family: "Inter", sans-serif;
+    font-family: var(--dc-letra);
     font-size: 16px;
-    color: var(--dc-tinta, #0E1A33);
+    color: var(--dc-tinta, #1B3246);
     -webkit-tap-highlight-color: transparent;
 
     .o_dcasa_bodega_corto { display: none; }
@@ -31,14 +31,14 @@ $dc-rojo-fondo: #FDECEC;
     .o_dcasa_bodega_cabecera {
         display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
         h1 {
-            margin: 0; font-family: "Anton", "Inter", sans-serif; font-weight: 400; letter-spacing: .02em;
-            text-transform: uppercase; font-size: 2rem; line-height: 1.1; color: var(--dc-azul-600, #1340B1);
+            margin: 0; font-family: var(--dc-letra); font-weight: 700; letter-spacing: -.03em;
+            text-transform: none; font-size: 2rem; line-height: 1.1; color: var(--dc-azul-600, #1B3246);
         }
     }
     .o_dcasa_bodega_titulos { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-    .o_dcasa_bodega_subtitulo { margin: 0; color: var(--dc-tinta-2, #44506A); font-weight: 500; }
+    .o_dcasa_bodega_subtitulo { margin: 0; color: var(--dc-tinta-2, #475967); font-weight: 500; }
     .o_dcasa_bodega_refresco { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-    .o_dcasa_bodega_hora { color: var(--dc-tinta-2, #44506A); font-size: .9rem; }
+    .o_dcasa_bodega_hora { color: var(--dc-tinta-2, #475967); font-size: .9rem; }
     .o_dcasa_bodega_cabecera_entrega {
         justify-content: flex-start;
         .o_dcasa_bodega_titulos { flex-direction: row; align-items: center; gap: 12px; flex-wrap: wrap; }
@@ -48,14 +48,14 @@ $dc-rojo-fondo: #FDECEC;
     // --- Botones ------------------------------------------------------------------------------------------------
     .o_dcasa_bodega_boton {
         min-height: 52px; padding: 0 18px; border-radius: 12px; font-weight: 600; font-size: 1rem;
-        border: 1px solid var(--dc-azul-600, #1340B1); background: var(--dc-blanco, #fff);
-        color: var(--dc-azul-600, #1340B1); display: inline-flex; align-items: center; justify-content: center;
+        border: 1px solid var(--dc-azul-600, #1B3246); background: var(--dc-blanco, #F2EFE5);
+        color: var(--dc-azul-600, #1B3246); display: inline-flex; align-items: center; justify-content: center;
         gap: 8px; touch-action: manipulation;
         &:disabled { opacity: .5; }
-        &:focus-visible { outline: none; box-shadow: var(--dc-foco, 0 0 0 3px #C3D2F6); }
+        &:focus-visible { outline: none; box-shadow: var(--dc-foco, 0 0 0 3px #6A9376); }
     }
     .o_dcasa_bodega_boton_primario {
-        background: var(--dc-azul-600, #1340B1); color: var(--dc-blanco, #fff);
+        background: var(--dc-naranja); color: var(--dc-en-naranja);
     }
     .o_dcasa_bodega_volver { min-height: 56px; font-size: 1.05rem; }
 
@@ -64,18 +64,18 @@ $dc-rojo-fondo: #FDECEC;
     .o_dcasa_bodega_fila { display: flex; gap: 8px; }
     .o_dcasa_bodega_texto {
         flex: 1; min-width: 0; min-height: 60px; padding: 0 16px; font-size: 1.25rem;
-        border: 2px solid var(--dc-azul-600, #1340B1); border-radius: 12px; background: var(--dc-blanco, #fff);
-        &:focus { outline: none; box-shadow: var(--dc-foco, 0 0 0 3px #C3D2F6); }
+        border: 2px solid var(--dc-azul-600, #1B3246); border-radius: 12px; background: var(--dc-blanco, #F2EFE5);
+        &:focus { outline: none; box-shadow: var(--dc-foco, 0 0 0 3px #6A9376); }
     }
     .o_dcasa_bodega_camara { min-height: 60px; }
 
     .o_dcasa_bodega_aviso:empty { display: none; }
     .o_dcasa_bodega_msg {
         margin: 0; padding: 12px 14px; border-radius: 10px; font-weight: 500;
-        background: var(--dc-blanco, #fff); border: 1px solid var(--dc-linea, #E2E7F0);
+        background: var(--dc-blanco, #F2EFE5); border: 1px solid var(--dc-linea, #DEDED9);
     }
     .o_dcasa_bodega_msg_ok { border-color: $dc-verde; color: $dc-verde-tinta; background: $dc-verde-fondo; }
-    .o_dcasa_bodega_msg_aviso { border-color: var(--dc-azul-600, #1340B1); color: var(--dc-azul-800, #0E2A6B); }
+    .o_dcasa_bodega_msg_aviso { border-color: var(--dc-azul-600, #1B3246); color: var(--dc-azul-800, #142635); }
     .o_dcasa_bodega_msg_error { border-color: $dc-rojo; color: $dc-rojo-tinta; background: $dc-rojo-fondo; }
 
     // --- Éxito --------------------------------------------------------------------------------------------------
@@ -98,33 +98,33 @@ $dc-rojo-fondo: #FDECEC;
     .o_dcasa_bodega_pestanas, .o_dcasa_bodega_filtros { display: flex; gap: 8px; flex-wrap: wrap; }
     .o_dcasa_bodega_pestana {
         min-height: 52px; padding: 0 16px; border-radius: 999px; font-weight: 600; font-size: 1rem;
-        border: 1px solid var(--dc-azul-600, #1340B1); background: var(--dc-blanco, #fff);
-        color: var(--dc-azul-600, #1340B1); display: inline-flex; align-items: center; gap: 8px;
-        &.o_dcasa_bodega_activa { background: var(--dc-azul-600, #1340B1); color: var(--dc-blanco, #fff); }
+        border: 1px solid var(--dc-azul-600, #1B3246); background: var(--dc-blanco, #F2EFE5);
+        color: var(--dc-azul-600, #1B3246); display: inline-flex; align-items: center; gap: 8px;
+        &.o_dcasa_bodega_activa { background: var(--dc-naranja); border-color: var(--dc-naranja); color: var(--dc-en-naranja); }
     }
     .o_dcasa_bodega_filtro {
         min-height: 44px; padding: 0 14px; border-radius: 999px; font-weight: 600; font-size: .95rem;
-        border: 1px solid var(--dc-linea-fuerte, #CBD3E1); background: var(--dc-blanco, #fff);
-        color: var(--dc-tinta-2, #44506A); display: inline-flex; align-items: center; gap: 8px;
+        border: 1px solid var(--dc-linea-fuerte, #7F8A91); background: var(--dc-blanco, #F2EFE5);
+        color: var(--dc-tinta-2, #475967); display: inline-flex; align-items: center; gap: 8px;
         &.o_dcasa_bodega_activo {
-            background: var(--dc-azul-900, #0B1F52); border-color: var(--dc-azul-900, #0B1F52);
-            color: var(--dc-blanco, #fff);
+            background: var(--dc-salvia); border-color: var(--dc-salvia);
+            color: var(--dc-en-salvia);
         }
     }
     .o_dcasa_bodega_cuenta {
         min-width: 28px; padding: 1px 8px; border-radius: 999px; font-size: .85rem; text-align: center;
-        background: var(--dc-azul-100, #E4ECFD); color: var(--dc-azul-800, #0E2A6B);
+        background: var(--dc-azul-100, #E9EFE2); color: var(--dc-azul-800, #142635);
     }
     .o_dcasa_bodega_activa .o_dcasa_bodega_cuenta, .o_dcasa_bodega_activo .o_dcasa_bodega_cuenta {
-        background: var(--dc-blanco, #fff); color: var(--dc-azul-800, #0E2A6B);
+        background: var(--dc-blanco, #F2EFE5); color: var(--dc-azul-800, #142635);
     }
     .o_dcasa_bodega_filtrando {
         display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
-        padding: 10px 14px; border-radius: 12px; background: var(--dc-azul-50, #F2F6FE);
-        border: 1px solid var(--dc-azul-200, #C3D2F6); color: var(--dc-azul-800, #0E2A6B);
+        padding: 10px 14px; border-radius: 12px; background: var(--dc-azul-50, #E9E7DF);
+        border: 1px solid var(--dc-azul-200, #6A9376); color: var(--dc-azul-800, #142635);
     }
     .o_dcasa_bodega_quitar { min-height: 44px; }
-    .o_dcasa_bodega_nota { margin: 0; color: var(--dc-tinta-2, #44506A); }
+    .o_dcasa_bodega_nota { margin: 0; color: var(--dc-tinta-2, #475967); }
 
     // --- Tarjetas -----------------------------------------------------------------------------------------------
     .o_dcasa_bodega_tarjetas {
@@ -132,20 +132,20 @@ $dc-rojo-fondo: #FDECEC;
     }
     .o_dcasa_bodega_tarjeta {
         display: flex; flex-direction: column; gap: 8px; padding: 16px; border-radius: 16px; cursor: pointer;
-        background: var(--dc-blanco, #fff); border: 1px solid var(--dc-linea, #E2E7F0);
-        border-left: 6px solid var(--dc-linea-fuerte, #CBD3E1); min-width: 0;
-        &:hover { border-color: var(--dc-azul-300, #93AEEE); }
+        background: var(--dc-blanco, #F2EFE5); border: 1px solid var(--dc-linea, #DEDED9);
+        border-left: 6px solid var(--dc-linea-fuerte, #7F8A91); min-width: 0;
+        &:hover { border-color: var(--dc-azul-300, #C3783D); }
     }
     .o_dcasa_bodega_tarjeta_lista { border-left-color: $dc-verde; }
     .o_dcasa_bodega_tarjeta_parcial { border-left-color: $dc-ambar; }
     .o_dcasa_bodega_tarjeta_arriba { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-    .o_dcasa_bodega_numero { font-weight: 700; font-size: 1rem; color: var(--dc-azul-600, #1340B1); overflow-wrap: anywhere; }
+    .o_dcasa_bodega_numero { font-weight: 700; font-size: 1rem; color: var(--dc-azul-600, #1B3246); overflow-wrap: anywhere; }
     .o_dcasa_bodega_cliente {
         margin: 0; font-size: 1.3rem; font-weight: 700; line-height: 1.25; overflow-wrap: anywhere;
-        color: var(--dc-tinta, #0E1A33);
+        color: var(--dc-tinta, #1B3246);
     }
     .o_dcasa_bodega_datos {
-        margin: 0; display: flex; flex-wrap: wrap; gap: 4px 14px; color: var(--dc-tinta-2, #44506A);
+        margin: 0; display: flex; flex-wrap: wrap; gap: 4px 14px; color: var(--dc-tinta-2, #475967);
     }
     .o_dcasa_bodega_atrasada { color: $dc-rojo; font-weight: 600; }
     .o_dcasa_bodega_marcas { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -158,33 +158,33 @@ $dc-rojo-fondo: #FDECEC;
     }
     .o_dcasa_bodega_estado_parcial { background: $dc-ambar-fondo; color: $dc-ambar-tinta; border-color: #F0D29A; }
     .o_dcasa_bodega_estado_esperando, .o_dcasa_bodega_estado_cancelada {
-        background: var(--dc-perla, #ECF0F6); color: var(--dc-tinta-2, #44506A); border-color: var(--dc-linea-fuerte, #CBD3E1);
+        background: var(--dc-perla, #E9E7DF); color: var(--dc-tinta-2, #475967); border-color: var(--dc-linea-fuerte, #7F8A91);
     }
     .o_dcasa_bodega_como_envio {
-        background: var(--dc-azul-50, #F2F6FE); color: var(--dc-azul-700, #0F3591); border-color: var(--dc-azul-200, #C3D2F6);
+        background: var(--dc-azul-50, #E9E7DF); color: var(--dc-azul-700, #172B3D); border-color: var(--dc-azul-200, #6A9376);
     }
-    .o_dcasa_bodega_como_retiro { background: var(--dc-azul-600, #1340B1); color: var(--dc-blanco, #fff); }
+    .o_dcasa_bodega_como_retiro { background: var(--dc-naranja); color: var(--dc-en-naranja); }
     .o_dcasa_bodega_como_sin_definir {
-        background: var(--dc-blanco, #fff); color: var(--dc-tinta-2, #44506A);
-        border: 1px dashed var(--dc-tinta-3, #6B7690);
+        background: var(--dc-blanco, #F2EFE5); color: var(--dc-tinta-2, #475967);
+        border: 1px dashed var(--dc-tinta-3, #5E6D78);
     }
     .o_dcasa_bodega_pago { background: $dc-ambar-fondo; color: $dc-ambar-tinta; border-color: #F0D29A; }
-    .o_dcasa_bodega_resto { background: var(--dc-perla, #ECF0F6); color: var(--dc-tinta-2, #44506A); }
+    .o_dcasa_bodega_resto { background: var(--dc-perla, #E9E7DF); color: var(--dc-tinta-2, #475967); }
     .o_dcasa_bodega_resumen {
         list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px;
         li { overflow-wrap: anywhere; }
     }
-    .o_dcasa_bodega_resumen_cant { color: var(--dc-azul-600, #1340B1); }
-    .o_dcasa_bodega_mas { color: var(--dc-tinta-2, #44506A); font-size: .92rem; }
+    .o_dcasa_bodega_resumen_cant { color: var(--dc-azul-600, #1B3246); }
+    .o_dcasa_bodega_mas { color: var(--dc-tinta-2, #475967); font-size: .92rem; }
     .o_dcasa_bodega_abrir {
         margin-top: auto; min-height: 56px; border: 0; border-radius: 12px; font-size: 1.15rem; font-weight: 700;
-        background: var(--dc-azul-600, #1340B1); color: var(--dc-blanco, #fff);
+        background: var(--dc-naranja); color: var(--dc-en-naranja);
         display: inline-flex; align-items: center; justify-content: center; gap: 10px; touch-action: manipulation;
-        &:focus-visible { outline: none; box-shadow: var(--dc-foco, 0 0 0 3px #C3D2F6); }
+        &:focus-visible { outline: none; box-shadow: var(--dc-foco, 0 0 0 3px #6A9376); }
     }
     .o_dcasa_bodega_vacio {
-        padding: 32px 16px; text-align: center; border-radius: 16px; background: var(--dc-blanco, #fff);
-        border: 1px dashed var(--dc-linea-fuerte, #CBD3E1); color: var(--dc-tinta-2, #44506A); font-size: 1.1rem;
+        padding: 32px 16px; text-align: center; border-radius: 16px; background: var(--dc-blanco, #F2EFE5);
+        border: 1px dashed var(--dc-linea-fuerte, #7F8A91); color: var(--dc-tinta-2, #475967); font-size: 1.1rem;
         display: flex; flex-direction: column; align-items: center; gap: 12px;
         p { margin: 0; }
     }
@@ -196,13 +196,13 @@ $dc-rojo-fondo: #FDECEC;
         .o_dcasa_bodega_cliente_caja { position: sticky; top: 0; }
     }
     .o_dcasa_bodega_cliente_caja, .o_dcasa_bodega_productos {
-        background: var(--dc-blanco, #fff); border: 1px solid var(--dc-linea, #E2E7F0); border-radius: 16px;
+        background: var(--dc-blanco, #F2EFE5); border: 1px solid var(--dc-linea, #DEDED9); border-radius: 16px;
         padding: 16px; display: flex; flex-direction: column; gap: 10px; min-width: 0;
     }
     .o_dcasa_bodega_dato {
-        margin: 0; color: var(--dc-tinta-2, #44506A); overflow-wrap: anywhere;
-        a { color: var(--dc-azul-600, #1340B1); font-weight: 600; }
-        .fa { width: 18px; color: var(--dc-azul-600, #1340B1); }
+        margin: 0; color: var(--dc-tinta-2, #475967); overflow-wrap: anywhere;
+        a { color: var(--dc-azul-600, #1B3246); font-weight: 600; }
+        .fa { width: 18px; color: var(--dc-azul-600, #1B3246); }
     }
     .o_dcasa_bodega_alerta {
         margin: 0; padding: 10px 12px; border-radius: 10px; background: $dc-ambar-fondo; color: $dc-ambar-tinta;
@@ -210,7 +210,7 @@ $dc-rojo-fondo: #FDECEC;
     }
     .o_dcasa_bodega_dato_fila { display: flex; flex-wrap: wrap; gap: 2px 14px; }
     .o_dcasa_bodega_nota_entrega {
-        margin: 0; padding: 10px 12px; border-radius: 10px; background: var(--dc-azul-50, #F2F6FE);
+        margin: 0; padding: 10px 12px; border-radius: 10px; background: var(--dc-azul-50, #E9E7DF);
         white-space: pre-line; overflow-wrap: anywhere;
     }
     .o_dcasa_bodega_imprimir_caja { align-self: flex-start; }
@@ -222,75 +222,76 @@ $dc-rojo-fondo: #FDECEC;
     }
     .o_dcasa_bodega_todo { min-height: 48px; }
     .o_dcasa_bodega_barra {
-        height: 10px; border-radius: 999px; background: var(--dc-perla, #ECF0F6); overflow: hidden;
+        height: 10px; border-radius: 999px; background: var(--dc-perla, #E9E7DF); overflow: hidden;
         span { display: block; height: 100%; background: $dc-verde; transition: width .2s; }
     }
 
     .o_dcasa_bodega_lineas { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
     .o_dcasa_bodega_linea {
         display: grid; grid-template-columns: 76px minmax(0, 1fr) auto; gap: 12px; align-items: center;
-        padding: 12px; border-radius: 14px; border: 2px solid var(--dc-linea, #E2E7F0); background: var(--dc-blanco, #fff);
+        padding: 12px; border-radius: 14px; border: 2px solid var(--dc-linea, #DEDED9); background: var(--dc-blanco, #F2EFE5);
         &.o_dcasa_bodega_linea_lista { border-color: $dc-verde; background: #F4FBF5; }
     }
     .o_dcasa_bodega_foto {
-        width: 76px; height: 76px; object-fit: contain; border-radius: 10px; background: var(--dc-nieve, #FAFBFD);
-        border: 1px solid var(--dc-linea, #E2E7F0);
+        width: 76px; height: 76px; object-fit: contain; border-radius: 10px; background: var(--dc-nieve, #F9F6ED);
+        border: 1px solid var(--dc-linea, #DEDED9);
     }
     .o_dcasa_bodega_linea_datos { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
     .o_dcasa_bodega_linea_nombre { margin: 0; font-weight: 700; font-size: 1.1rem; line-height: 1.3; overflow-wrap: anywhere; }
     .o_dcasa_bodega_linea_ref {
-        margin: 0; display: flex; flex-wrap: wrap; gap: 4px 14px; color: var(--dc-tinta-2, #44506A);
+        margin: 0; display: flex; flex-wrap: wrap; gap: 4px 14px; color: var(--dc-tinta-2, #475967);
     }
-    .o_dcasa_bodega_pedida strong { font-size: 1.15rem; color: var(--dc-tinta, #0E1A33); }
+    .o_dcasa_bodega_pedida strong { font-size: 1.15rem; color: var(--dc-tinta, #1B3246); }
     .o_dcasa_bodega_linea_aviso { margin: 0; color: $dc-ambar-tinta; font-size: .92rem; }
     .o_dcasa_bodega_marcar { display: flex; flex-direction: column; align-items: stretch; gap: 8px; }
     .o_dcasa_bodega_check {
         min-height: 60px; min-width: 150px; padding: 0 16px; border-radius: 12px; font-size: 1.15rem; font-weight: 700;
-        border: 2px solid var(--dc-azul-600, #1340B1); background: var(--dc-blanco, #fff); color: var(--dc-azul-600, #1340B1);
+        border: 2px solid var(--dc-azul-600, #1B3246); background: var(--dc-blanco, #F2EFE5); color: var(--dc-azul-600, #1B3246);
         display: inline-flex; align-items: center; justify-content: center; gap: 10px; touch-action: manipulation;
         .fa { font-size: 1.4rem; }
-        &.o_dcasa_bodega_check_si { background: $dc-verde; border-color: $dc-verde; color: var(--dc-blanco, #fff); }
+        &.o_dcasa_bodega_check_si { background: var(--dc-salvia); border-color: var(--dc-salvia-filo); color: var(--dc-en-salvia); }
     }
     .o_dcasa_bodega_check_todas { min-height: 44px; font-size: 1rem; }
     .o_dcasa_bodega_contador {
         display: flex; align-items: center; gap: 6px;
         button {
             width: 56px; height: 56px; border-radius: 12px; font-size: 1.6rem; font-weight: 700; line-height: 1;
-            border: 2px solid var(--dc-azul-600, #1340B1); background: var(--dc-blanco, #fff);
-            color: var(--dc-azul-600, #1340B1); touch-action: manipulation;
+            border: 2px solid var(--dc-azul-600, #1B3246); background: var(--dc-blanco, #F2EFE5);
+            color: var(--dc-azul-600, #1B3246); touch-action: manipulation;
             &:disabled { opacity: .35; }
         }
     }
     .o_dcasa_bodega_cifra { min-width: 72px; text-align: center; font-size: 1.05rem; strong { font-size: 1.4rem; } }
     .o_dcasa_bodega_salio { color: $dc-verde-tinta; font-size: 1.05rem; }
 
-    // Barra de abajo: azul, fija al fondo de la pantalla mientras se marca.
+    // Barra de abajo: la superficie con su filo (como la barra del teléfono de Baby Caleb), fija al fondo de la
+    // pantalla mientras se marca; el botón de validar, en el naranja con letra navy.
     .o_dcasa_bodega_barra_abajo {
         position: sticky; bottom: 0; margin: 4px -16px 0; padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
-        background: var(--dc-azul-600, #1340B1); display: flex; gap: 10px; z-index: 2;
+        background: var(--dc-blanco); border-top: 1px solid var(--dc-linea); display: flex; gap: 10px; z-index: 2;
     }
     .o_dcasa_bodega_imprimir {
-        background: transparent; color: var(--dc-blanco, #fff); border-color: var(--dc-blanco, #fff); min-height: 64px;
+        background: transparent; color: var(--dc-tinta); border-color: var(--dc-control); min-height: 64px;
     }
     .o_dcasa_bodega_validar {
         flex: 1; min-height: 64px; border: 0; border-radius: 12px; font-size: 1.3rem; font-weight: 700;
-        background: var(--dc-amarillo, #FED00F); color: var(--dc-azul-950, #081640);
+        background: var(--dc-naranja); color: var(--dc-en-naranja);
         display: inline-flex; align-items: center; justify-content: center; gap: 10px; touch-action: manipulation;
         &:disabled { opacity: .6; }
-        &:focus-visible { outline: 3px solid var(--dc-blanco, #fff); outline-offset: 2px; }
+        &:focus-visible { outline: 2px solid var(--dc-tinta); outline-offset: 2px; }
     }
 
     // --- ¿Entregar solo lo marcado? --------------------------------------------------------------------------------
     .o_dcasa_bodega_fondo {
-        position: fixed; inset: 0; z-index: 1050; background: rgba(8, 22, 64, .55);
+        position: fixed; inset: 0; z-index: 1050; background: rgba(27, 50, 70, .55);
         display: flex; align-items: center; justify-content: center; padding: 16px;
     }
     .o_dcasa_bodega_confirmar {
-        width: 100%; max-width: 560px; max-height: 100%; overflow: auto; background: var(--dc-blanco, #fff);
+        width: 100%; max-width: 560px; max-height: 100%; overflow: auto; background: var(--dc-blanco, #F2EFE5);
         border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 12px;
         h2 {
-            margin: 0; font-family: "Anton", "Inter", sans-serif; font-weight: 400; text-transform: uppercase;
-            font-size: 1.6rem; color: var(--dc-azul-600, #1340B1);
+            margin: 0; font-family: var(--dc-letra); font-weight: 700; text-transform: none;
+            font-size: 1.6rem; color: var(--dc-azul-600, #1B3246);
         }
         p { margin: 0; }
     }

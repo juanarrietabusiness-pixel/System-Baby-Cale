@@ -12,7 +12,7 @@
 .o_brian_enviar:disabled { background: var(--dc-perla); color: var(--dc-tinta-2); }
 // El robot de Brian va sobre una ficha clara también de noche: es una ilustración (blanca y azul) y en oscuro se pierde.
 .o_brian_monograma,
-.o_brian_lanzador { background: #E9EEFA; border-color: #9DB3EE; }
+.o_brian_lanzador { background: #F2EFE5; border-color: #EE924A; }
 .o_brian_lanzador:hover { background: #FFFFFF; }
 
 .o_brian_panel { box-shadow: -8px 0 24px rgba(0, 0, 0, .3); }
@@ -29,4 +29,4 @@
 .o_brian_tarjeta_error .o_brian_tarjeta_estado,
 .o_brian_tarjeta_bloqueada .o_brian_tarjeta_estado,
 .o_brian_paso.o_brian_paso_error > .fa { color: var(--dc-mal); }
-.o_brian_soltar { background: rgba(31, 34, 38, .94); }
+.o_brian_soltar { background: rgba(15, 22, 28, .94); }

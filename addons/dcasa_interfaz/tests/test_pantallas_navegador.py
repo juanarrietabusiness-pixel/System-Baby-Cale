@@ -122,7 +122,7 @@ class TestPorDiaEnElNavegador(PantallasMixin, HttpCase):
                 throw new Error('la vendedora está en «Por vendedora»');
             }
             const hoy = document.querySelector('.o_dcasa_es_barra.o_hoy .o_dcasa_es_barra_relleno');
-            igual(getComputedStyle(hoy).backgroundColor, 'rgb(14, 42, 107)', 'la barra de hoy, azul oscuro');
+            igual(getComputedStyle(hoy).backgroundColor, 'rgb(238, 146, 74)', 'la barra de hoy, en el naranja');
             sinScrollDeCostado('estadísticas');
             document.querySelector('.o_dcasa_es_periodo_mes_pasado').click();
             await esperar(() => document.querySelectorAll('.o_dcasa_es_barra').length === __DIAS_MES_PASADO__

@@ -3089,7 +3089,7 @@
    "destino": {
     "menu": "dcasa_interfaz.menu_dcasa_marca_panel"
    },
-   "nota": "Si un color no se lee bien (por ejemplo, uno muy claro con letra blanca encima), el sistema te lo dice y te sugiere uno parecido que sí se lee. Si no subes el ícono, sale del logo. La página web no cambia con esto, ni el logo de las facturas. Con «Volver a la marca de fábrica» todo queda como al principio.",
+   "nota": "El color principal es la letra de títulos y enlaces, y el de acento es el relleno del botón principal, con la letra del principal encima. Si un color no se lee bien (por ejemplo, un principal muy claro sobre el crema del panel), el sistema te lo dice y te sugiere uno parecido que sí se lee. Si no subes el ícono, sale del logo. La página web no cambia con esto, ni el logo de las facturas. Con «Volver a la marca de fábrica» todo queda como al principio.",
    "palabras": [
     "logo del panel",
     "logo del sistema",

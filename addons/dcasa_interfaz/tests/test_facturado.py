@@ -512,7 +512,7 @@ class TestAyudaEnElNavegador(VentasMixin, HttpCase):
             igual([boton.tagName, boton.getAttribute('type'), boton.getAttribute('aria-expanded')],
                   ['BUTTON', 'button', 'false'], 'el ⓘ es un botón cerrado');
             if (!boton.getAttribute('aria-label')) { throw new Error('el ⓘ necesita su nombre para el lector'); }
-            igual(getComputedStyle(boton).color, 'rgb(19, 64, 177)', 'el ⓘ va en azul de la marca');
+            igual(getComputedStyle(boton).color, 'rgb(27, 50, 70)', 'el ⓘ va en el navy de la marca');
             if (boton.getBoundingClientRect().width < 32) { throw new Error('el ⓘ es muy chico para el dedo'); }
             // Con el teclado: se enfoca y se abre (Enter o Espacio en un botón es un clic).
             boton.focus();

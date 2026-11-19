@@ -214,6 +214,8 @@ class DcasaTablero(models.AbstractModel):
         propio = self._solo_lo_propio()
         datos = {
             'saludo': (self.env.user.name or '').split(' ')[0],
+            # El nombre de la empresa en el saludo («Así va el día en Baby Caleb»): la plantilla sirve a cualquiera.
+            'empresa': self.env.company.name or '',
             'fecha': format_date(hoy, "EEEE d 'de' MMMM", locale='es'),
             'moneda': {'simbolo': moneda.symbol, 'antes': moneda.position == 'before'},
             # «tienda»: las cifras de todos; «propio»: solo lo que vendió quien mira.

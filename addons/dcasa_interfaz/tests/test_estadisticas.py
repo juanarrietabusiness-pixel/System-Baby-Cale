@@ -10,26 +10,30 @@ from odoo.tools.safe_eval import safe_eval
 
 from .test_inicio_por_rol import ESPERAR_JS, VentasCommon, VentasMixin
 
-# Un color por familia (decisión de la dueña, 2026-10-16). El amarillo de la marca nunca es de fondo.
-FAMILIAS = {
-    'azul': '#1340B1', 'verde': '#0B6E6E', 'naranja': '#B4531A', 'cielo': '#1E6FC0', 'indigo': '#4B3FA8',
-}
+# Un color por familia (decisión de la dueña, 2026-10-16), con la paleta de Baby Caleb (2026-11-19,
+# docs/MARCA_BABY_CALEB.md): el navy de la marca, el verde salvia fuerte y el naranja fuerte (los tres llevan el trazo
+# crema encima a más de 4.5 a 1). El naranja de relleno solo va de punto: nunca es el fondo del cuadro.
+FAMILIAS = {'navy': '#1B3246', 'salvia': '#53735C', 'naranja': '#985D2F'}
 ICONOS = {
-    'dcasa_interfaz/static/src/img/iconos/ventas.svg': 'azul',
-    'dcasa_interfaz/static/src/img/iconos/crm.svg': 'azul',
-    'dcasa_interfaz/static/src/img/iconos/contactos.svg': 'azul',
-    'dcasa_interfaz/static/src/img/iconos/estadisticas.svg': 'azul',
-    'dcasa_interfaz/static/src/img/iconos/facturacion.svg': 'verde',
-    'dcasa_interfaz/static/src/img/iconos/contabilidad.svg': 'verde',
-    'dcasa_nomina/static/src/img/nomina.svg': 'verde',
+    'dcasa_interfaz/static/src/img/iconos/ventas.svg': 'navy',
+    'dcasa_interfaz/static/src/img/iconos/crm.svg': 'navy',
+    'dcasa_interfaz/static/src/img/iconos/contactos.svg': 'navy',
+    'dcasa_interfaz/static/src/img/iconos/estadisticas.svg': 'navy',
+    'dcasa_interfaz/static/src/img/iconos/inicio.svg': 'navy',
+    'dcasa_interfaz/static/src/img/iconos/ajustes.svg': 'navy',
+    'dcasa_interfaz/static/src/img/iconos/facturacion.svg': 'salvia',
+    'dcasa_interfaz/static/src/img/iconos/contabilidad.svg': 'salvia',
     'dcasa_interfaz/static/src/img/iconos/inventario.svg': 'naranja',
     'dcasa_interfaz/static/src/img/iconos/compras.svg': 'naranja',
     'dcasa_interfaz/static/src/img/iconos/envios.svg': 'naranja',
-    'dcasa_interfaz/static/src/img/iconos/sitio_web.svg': 'cielo',
-    'dcasa_conversaciones/static/description/icon.svg': 'cielo',
-    'dcasa_interfaz/static/src/img/iconos/socios.svg': 'indigo',
-    'dcasa_equipo/static/src/img/empleados.svg': 'indigo',
+    'dcasa_interfaz/static/src/img/iconos/sitio_web.svg': 'navy',
+    'dcasa_conversaciones/static/description/icon.svg': 'navy',
+    'dcasa_interfaz/static/src/img/iconos/socios.svg': 'navy',
+    'dcasa_equipo/static/src/img/empleados.svg': 'navy',
+    'dcasa_marketing/static/src/img/marketing.svg': 'navy',
+    'dcasa_guia/static/src/img/guia.svg': 'navy',
 }
+# (El de Nómina, dcasa_nomina/static/src/img/nomina.svg, es de su módulo: lo pasa a la familia salvia quien lo cuida.)
 
 
 @tagged('post_install', '-at_install')
@@ -167,7 +171,11 @@ class TestEstadisticas(VentasCommon):
                 fondo = re.search(r'<rect[^>]*fill="(#[0-9A-Fa-f]{6})"', archivo.read()).group(1).upper()
             with self.subTest(ruta=ruta):
                 self.assertEqual(fondo, FAMILIAS[familia], 'el fondo es el color de la familia')
-                self.assertNotEqual(fondo, '#FED00F', 'el amarillo nunca es de fondo: tocaría el blanco de la barra')
+                with open(file_path(ruta), encoding='utf-8') as archivo:
+                    dibujo = archivo.read().upper()
+                for de_dcasa in ('#1340B1', '#FED00F', '#FFFFFF'):
+                    self.assertNotIn(de_dcasa, dibujo, 'nada del azul ni del amarillo de D\'CASA; el trazo, en crema')
+                self.assertIn('#F9F6ED', dibujo, 'el trazo en crema')
 
     def test_actualizar_vuelve_a_leer_el_archivo_del_icono(self):
         """Odoo solo guarda la imagen al escribir ``web_icon``: un ícono recoloreado seguiría igual sin este paso."""

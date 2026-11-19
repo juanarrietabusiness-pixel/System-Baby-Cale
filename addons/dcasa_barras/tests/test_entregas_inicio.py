@@ -208,7 +208,7 @@ RENGLON_JS = r"""
     if (!renglon || panel.lastElementChild !== renglon) { throw new Error('el renglón va al final del panel'); }
     const boton = renglon.querySelector('button');
     igual(texto(boton), '1 más espera pago o abono', 'lo que dice el renglón');
-    igual(getComputedStyle(boton).color, 'rgb(68, 80, 106)', 'el renglón, en gris');
+    igual(getComputedStyle(boton).color, 'rgb(71, 89, 103)', 'el renglón, en el gris de apoyo');
     const caja = boton.getBoundingClientRect();
     const dentro = panel.getBoundingClientRect();
     if (caja.height < 30 || caja.left < dentro.left || caja.right > dentro.right + 1) {

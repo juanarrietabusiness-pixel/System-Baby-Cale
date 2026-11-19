@@ -5,8 +5,9 @@ Chrome y a dos anchos (escritorio 1440 y celular 390):
 
 1. **Estilos computados (bloqueante)**: no dependen del motor de dibujo ni de las fuentes del sistema.
    * Sistema plano: ningún degradado ni sombra dramática (sombras de más de 16 px de desenfoque o 8 px de caída).
-   * El amarillo de la marca (#FED00F) solo sobre azul marino: nunca texto amarillo sobre fondo claro, nunca un
-     fondo amarillo rodeado de blanco.
+   * El naranja de la marca de Baby Caleb (#EE924A) es relleno: nunca texto naranja sobre un fondo claro (da 2.2 a 1);
+     lo que va escrito encima del naranja se mide con el contraste (la letra navy da 5.56 a 1; la blanca, 2.37).
+     Y nada del amarillo de D'CASA (#FED00F).
    * Contraste del texto de al menos 4,5:1 (3:1 en texto grande).
    * Foco visible con el teclado de verdad (Tab) en cada control de la pantalla.
 2. **Píxeles contra las referencias** (``tests/referencia/panel-*.webp``, sin pérdida): tolerancia
@@ -156,6 +157,8 @@ AUDITAR = """
             ? '.' + el.className.trim().split(/\\s+/).slice(0, 2).join('.') : '');
         const AMARILLO = [254, 208, 15];
         const esAmarillo = (c) => Math.abs(c[0] - AMARILLO[0]) < 8 && Math.abs(c[1] - AMARILLO[1]) < 12 && Math.abs(c[2] - AMARILLO[2]) < 30;
+        const NARANJA = [238, 146, 74];
+        const esNaranja = (c) => Math.abs(c[0] - NARANJA[0]) < 10 && Math.abs(c[1] - NARANJA[1]) < 26 && Math.abs(c[2] - NARANJA[2]) < 30;
         const faltas = [];
         const elementos = [raiz, ...raiz.querySelectorAll('*')];
         const sombra = /(rgba?\\([^)]*\\))\\s+(-?[\\d.]+)px\\s+(-?[\\d.]+)px\\s+([\\d.]+)px(?:\\s+(-?[\\d.]+)px)?/g;
@@ -175,14 +178,11 @@ AUDITAR = """
             }
             const cs = getComputedStyle(el);
             const color = rgba(cs.color), fondoPropio = rgba(cs.backgroundColor);
-            // El amarillo de la marca solo sobre azul marino.
+            // El naranja de la marca es relleno: nunca letra ni ícono sobre un fondo claro. Y nada del amarillo de D'CASA.
             const tieneTexto = [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim());
-            if (tieneTexto && esAmarillo(color) && luz(fondoDe(el)) > 0.1) { faltas.push('texto amarillo sobre fondo claro en ' + nombre(el)); }
-            if (el !== raiz && fondoPropio[3] > 0.5 && esAmarillo(fondoPropio)) {
-                const padre = fondoDe(el.parentElement);
-                if (luz(padre) > 0.1) { faltas.push('fondo amarillo sobre fondo claro en ' + nombre(el)); }
-            }
-            if (el.matches('.fa') && esAmarillo(color) && luz(fondoDe(el)) > 0.1) { faltas.push('ícono amarillo sobre fondo claro en ' + nombre(el)); }
+            if (tieneTexto && esNaranja(color) && luz(fondoDe(el)) > 0.1) { faltas.push('texto naranja sobre fondo claro en ' + nombre(el)); }
+            if (el.matches('.fa') && esNaranja(color) && luz(fondoDe(el)) > 0.1) { faltas.push('ícono naranja sobre fondo claro en ' + nombre(el)); }
+            if (esAmarillo(color) || (fondoPropio[3] > 0.5 && esAmarillo(fondoPropio))) { faltas.push('el amarillo de D\'CASA en ' + nombre(el)); }
             // Contraste del texto.
             if (tieneTexto && !el.disabled && !el.closest('[disabled], [aria-hidden=true], .o_dcj_solo_lector, .o_dcj_p_chequeo code')) {
                 const grande = parseFloat(cs.fontSize) >= 24 || (parseFloat(cs.fontSize) >= 18.66 && +cs.fontWeight >= 700);
@@ -366,7 +366,7 @@ class TestContratoVisualJuan(PanelUiCase):
         return medido
 
     # ------------------------------------------------------------------ 1. estilos computados (bloqueante)
-    def test_01_sistema_plano_amarillo_sobre_azul_y_contraste(self):
+    def test_01_sistema_plano_naranja_de_relleno_y_contraste(self):
         medido = self._medir_todo()
         for (nombre, ancho), datos in medido.items():
             with self.subTest(pantalla=nombre, ancho=ancho):

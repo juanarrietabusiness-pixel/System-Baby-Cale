@@ -376,7 +376,8 @@ class TestContratoDeLaPantallaReparto(TransactionCase):
         reparto = self.bloque((FUENTES / 'scss' / 'panel_pantallas.scss').read_text(encoding='utf-8'), '.o_dcj_reparto')
         self.assertNotRegex(reparto, r'(linear|radial)-gradient', 'sistema plano: sin degradados')
         self.assertNotRegex(reparto, r'box-shadow', 'sin sombras')
-        self.assertNotIn('FED00F', reparto.upper(), 'el amarillo solo va sobre azul (el aviso marino ya existente)')
+        self.assertNotIn('FED00F', reparto.upper(), 'nada del amarillo de D\'CASA')
+        self.assertNotRegex(reparto, r'(?<![\w-])color:\s*var\(--dc-naranja\)', 'el naranja es relleno, nunca letra')
 
     def test_todo_boton_y_campo_tiene_nombre_para_quien_usa_lector_de_pantalla(self):
         xml = (FUENTES / 'xml' / 'reparto.xml').read_text(encoding='utf-8')

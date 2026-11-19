@@ -20,8 +20,8 @@
     .o_dcasa_cifra:focus-visible,
     .o_dcasa_app:focus-visible { box-shadow: var(--dc-foco); }
 
-    // El punto de la fecha va en azul: el fondo del saludo es blanco y el amarillo no lo toca.
-    .o_dcasa_inicio_fecha::before { background: var(--dc-azul-600); box-shadow: none; }
+    // El punto de la fecha va en el naranja de la marca, sin aro.
+    .o_dcasa_inicio_fecha::before { background: var(--dc-naranja); box-shadow: none; }
 }
 
 // --- Accesos directos -----------------------------------------------------------------------------------------------
@@ -90,7 +90,7 @@
     transition: background-color var(--dc-transicion), color var(--dc-transicion);
 
     &:focus-visible { outline: none; box-shadow: var(--dc-foco); }
-    &.o_activo { background: var(--dc-azul-600); color: var(--dc-blanco); }
+    &.o_activo { background: var(--dc-naranja); color: var(--dc-en-naranja); }
 }
 
 // Los tres tamaños (menos de 768 px). «Grandes» no lleva reglas: es el acceso de siempre, uno por fila.
@@ -399,17 +399,17 @@
         pointer-events: none;
     }
 
-    // Barras redondeadas; la de hoy, resaltada con el azul de la marca.
+    // Barras redondeadas en salvia; la de hoy, resaltada con el naranja de la marca.
     // Al cambiar de base o de vendedora, las barras pasan de un alto al otro en vez de saltar.
     .o_dcasa_grafico_relleno {
         border-radius: 5px 5px 0 0;
-        background: var(--dc-azul-300);
+        background: var(--dc-salvia);
         transform-origin: 50% 100%;
         transition: background var(--dc-transicion), height 320ms var(--dc-curva);
     }
-    .o_dcasa_grafico_barra:hover .o_dcasa_grafico_relleno { background: var(--dc-azul-400); }
+    .o_dcasa_grafico_barra:hover .o_dcasa_grafico_relleno { background: var(--dc-salvia-filo); }
     .o_dcasa_grafico_hoy .o_dcasa_grafico_relleno,
-    .o_dcasa_grafico_hoy:hover .o_dcasa_grafico_relleno { background: var(--dc-azul-600); }
+    .o_dcasa_grafico_hoy:hover .o_dcasa_grafico_relleno { background: var(--dc-naranja); }
     // El monto sobre la barra, con fondo blanco para leerse aunque caiga encima de una línea o de la barra vecina. El
     // de la última barra (hoy) se alinea a su derecha: centrado se salía de la gráfica en el celular.
     .o_dcasa_grafico_monto {
@@ -470,7 +470,7 @@
         display: block;
         height: 100%;
         border-radius: 3px;
-        background: var(--dc-azul-600);
+        background: var(--dc-naranja);
         transform-origin: 0 50%;
         transition: width 320ms var(--dc-curva);
     }

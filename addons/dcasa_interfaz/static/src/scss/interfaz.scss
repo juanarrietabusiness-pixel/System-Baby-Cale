@@ -77,7 +77,7 @@
         width: 7px;
         height: 7px;
         border-radius: 50%;
-        background: var(--dc-amarillo);
+        background: var(--dc-naranja);
         box-shadow: 0 0 0 3px var(--dc-azul-50);
     }
     &::first-letter { text-transform: uppercase; }
@@ -145,15 +145,17 @@
     align-items: center;
     gap: 14px;
     text-align: left;
-    background: var(--dc-azul-600);
-    border: 1px solid var(--dc-azul-600);
+    background: var(--dc-blanco);
+    border: 1px solid var(--dc-linea);
     border-radius: var(--dc-r-md);
     padding: 16px 18px;
     min-height: 72px;
-    color: var(--dc-blanco);
-    transition: background-color var(--dc-transicion), transform var(--dc-transicion);
+    color: var(--dc-tinta);
+    box-shadow: var(--dc-sombra-1);
+    transition: border-color var(--dc-transicion), box-shadow var(--dc-transicion), transform var(--dc-transicion);
 
-    &:hover { background: var(--dc-azul-700); transform: translateY(-1px); }
+    // Como los atajos del panel de Baby Caleb: tarjeta en superficie, el ícono en un cuadro naranja con letra navy.
+    &:hover { border-color: var(--dc-naranja-filo); box-shadow: var(--dc-sombra-2); transform: translateY(-1px); }
     &:focus-visible { outline: none; box-shadow: var(--dc-foco); }
 }
 
@@ -164,8 +166,8 @@
     border-radius: 11px;
     display: grid;
     place-items: center;
-    background: rgba(255, 255, 255, .16);
-    color: var(--dc-blanco);
+    background: var(--dc-naranja);
+    color: var(--dc-en-naranja);
     font-size: 1.1rem;
 }
 
@@ -182,11 +184,11 @@
 
     span {
         font-size: .8rem;
-        color: rgba(255, 255, 255, .82);
+        color: var(--dc-tinta-3);
     }
 }
 
-// El amarillo solo toca el azul: cuántas conversaciones esperan lectura.
+// Cuántas conversaciones esperan lectura: una pastilla naranja con el número en navy.
 .o_dcasa_atajo_cuenta {
     margin-left: auto;
     flex: 0 0 auto;
@@ -196,8 +198,8 @@
     border-radius: 14px;
     display: grid;
     place-items: center;
-    background: var(--dc-amarillo);
-    color: var(--dc-azul-800);
+    background: var(--dc-naranja);
+    color: var(--dc-en-naranja);
     font-weight: 700;
     font-size: .85rem;
 }
@@ -246,11 +248,11 @@
 }
 
 // Variantes del azul según la cifra (misma familia, distinto peso).
-.o_dcasa_cifra_ventas_hoy .o_dcasa_cifra_icono { background: var(--dc-azul-600); color: var(--dc-blanco); }
+.o_dcasa_cifra_ventas_hoy .o_dcasa_cifra_icono { background: var(--dc-naranja); color: var(--dc-en-naranja); }
 .o_dcasa_cifra_cobrado_hoy .o_dcasa_cifra_icono { background: var(--dc-azul-100); color: var(--dc-azul-800); }
 .o_dcasa_cifra_por_cobrar .o_dcasa_cifra_icono { background: var(--dc-perla); color: var(--dc-tinta-2); }
 .o_dcasa_cifra_entregas .o_dcasa_cifra_icono { background: var(--dc-azul-50); color: var(--dc-azul-500); }
-.o_dcasa_cifra_socios .o_dcasa_cifra_icono { background: var(--dc-azul-800); color: var(--dc-amarillo); }
+.o_dcasa_cifra_socios .o_dcasa_cifra_icono { background: var(--dc-salvia); color: var(--dc-en-salvia); }
 
 .o_dcasa_cifra_titulo {
     font-size: .8rem;
@@ -327,13 +329,14 @@
     width: 100%;
     max-width: 28px;
     border-radius: 4px 4px 0 0;
-    background: var(--dc-azul-200);
+    background: var(--dc-salvia);
     transition: background var(--dc-transicion);
 }
 
-.o_dcasa_grafico_barra:hover .o_dcasa_grafico_relleno { background: var(--dc-azul-300); }
+// Los días en salvia; hoy, en el naranja de la marca (como las barras del panel de Baby Caleb).
+.o_dcasa_grafico_barra:hover .o_dcasa_grafico_relleno { background: var(--dc-salvia-filo); }
 .o_dcasa_grafico_hoy .o_dcasa_grafico_relleno,
-.o_dcasa_grafico_hoy:hover .o_dcasa_grafico_relleno { background: var(--dc-azul-600); }
+.o_dcasa_grafico_hoy:hover .o_dcasa_grafico_relleno { background: var(--dc-naranja); }
 
 .o_dcasa_grafico_monto {
     position: absolute;
@@ -347,7 +350,7 @@
     opacity: 0;
     transition: opacity var(--dc-transicion);
 }
-.o_dcasa_grafico_hoy .o_dcasa_grafico_monto { opacity: 1; color: var(--dc-azul-700); }
+.o_dcasa_grafico_hoy .o_dcasa_grafico_monto { opacity: 1; color: var(--dc-tinta); }
 
 .o_dcasa_grafico_dias {
     display: grid;
@@ -362,7 +365,7 @@
         color: var(--dc-tinta-3);
         &::first-letter { text-transform: uppercase; }
     }
-    .o_hoy { color: var(--dc-azul-700); font-weight: 700; }
+    .o_hoy { color: var(--dc-naranja-fuerte); font-weight: 700; }
 }
 
 // Caja de hoy
@@ -409,9 +412,9 @@
 
 .o_dcasa_top_cantidad {
     font-size: .8rem;
-    font-weight: 600;
-    color: var(--dc-azul-700);
-    background: var(--dc-azul-50);
+    font-weight: 700;
+    color: var(--dc-tinta);
+    background: var(--dc-salvia-claro);
     border-radius: 999px;
     padding: 2px 8px;
 }
@@ -449,8 +452,8 @@
 .o_dcasa_app_letra {
     display: grid;
     place-items: center;
-    background: var(--dc-azul-600);
-    color: var(--dc-blanco);
+    background: var(--dc-naranja);
+    color: var(--dc-en-naranja);
     font-weight: 700;
     font-size: 1.2rem;
 }
@@ -546,7 +549,7 @@
 
     &:hover { color: var(--dc-azul-700); }
     &:focus-visible { outline: none; box-shadow: var(--dc-foco); }
-    &.o_activo { background: var(--dc-azul-600); color: var(--dc-blanco); }
+    &.o_activo { background: var(--dc-naranja); color: var(--dc-en-naranja); }
 }
 
 .o_dcasa_rango {
@@ -758,7 +761,7 @@
 
     &:hover { background: var(--dc-azul-50); }
     &:focus-visible { outline: none; box-shadow: var(--dc-foco); }
-    &.o_activo { background: var(--dc-azul-600); color: var(--dc-blanco); }
+    &.o_activo { background: var(--dc-naranja); color: var(--dc-en-naranja); }
 }
 
 .o_dcasa_vendedora {
@@ -845,7 +848,7 @@
 
     &:hover { border-color: var(--dc-azul-300); background: var(--dc-azul-50); }
     &:focus-visible { outline: none; box-shadow: var(--dc-foco); }
-    &.o_activo { background: var(--dc-azul-600); border-color: var(--dc-azul-600); color: var(--dc-blanco); }
+    &.o_activo { background: var(--dc-naranja); border-color: var(--dc-naranja); color: var(--dc-en-naranja); }
 }
 
 .o_dcasa_comparar_mes {
@@ -1100,7 +1103,7 @@
     background: var(--dc-azul-100);
     overflow: hidden;
 
-    span { display: block; height: 100%; background: var(--dc-azul-600); border-radius: 6px; }
+    span { display: block; height: 100%; background: var(--dc-naranja); border-radius: 6px; }
 }
 
 // Palabras de ánimo según lo que lleva y el botón «Ver mis ventas» (pedido de la dueña, 2026-10-16): azul sobre
@@ -1123,7 +1126,8 @@
 
 
 // Cotizaciones abiertas y entregas pendientes: lo que más se usa, con acento (pedido de la dueña, 2026-10-16).
-// Cabecera azul marino de borde a borde con el número en amarillo (el amarillo solo toca el azul); la lista, en blanco.
+// Cabecera en banda salvia de borde a borde, con el título navy y el número en una pastilla naranja; la lista, en la
+// superficie.
 .o_dcasa_lista {
     padding: 0;
     overflow: hidden;
@@ -1140,7 +1144,7 @@
     align-items: center;
     justify-content: space-between;
     gap: 8px 12px;
-    background: var(--dc-azul-800);
+    background: var(--dc-salvia);
     padding: 12px 14px 12px 20px;
 }
 
@@ -1149,11 +1153,11 @@
     display: inline-flex;
     align-items: center;
     gap: 10px;
-    color: var(--dc-blanco);
+    color: var(--dc-en-salvia);
     font-size: 1.05rem;
     font-weight: 700;
 
-    .fa { color: var(--dc-amarillo); }
+    .fa { color: var(--dc-en-salvia); }
 }
 
 .o_dcasa_lista_cuenta {
@@ -1166,10 +1170,10 @@
     border-radius: var(--dc-r-sm);
     font-size: .85rem;
     font-weight: 500;
-    color: var(--dc-azul-100);
+    color: var(--dc-tinta);
 
-    &:hover { background: rgba(255, 255, 255, .12); color: var(--dc-blanco); }
-    &:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--dc-amarillo); }
+    &:hover { background: rgba(27, 50, 70, .08); color: var(--dc-tinta); }
+    &:focus-visible { outline: none; box-shadow: var(--dc-foco); }
 }
 
 .o_dcasa_lista_numero {
@@ -1179,8 +1183,8 @@
     border-radius: 15px;
     display: inline-grid;
     place-items: center;
-    background: var(--dc-amarillo);
-    color: var(--dc-azul-900);
+    background: var(--dc-naranja);
+    color: var(--dc-en-naranja);
     font-weight: 800;
     font-size: .95rem;
 }
@@ -1225,7 +1229,7 @@
     font-weight: 700;
     line-height: 1.5;
     vertical-align: baseline;
-    &.o_dcasa_origen_chatbot { background: var(--dc-azul-50); color: var(--dc-azul-700, #0F3591); }
+    &.o_dcasa_origen_chatbot { background: var(--dc-azul-50); color: var(--dc-azul-700, #172B3D); }
     &.o_dcasa_origen_web { background: var(--dc-niebla); color: var(--dc-azul-900); }
 }
 

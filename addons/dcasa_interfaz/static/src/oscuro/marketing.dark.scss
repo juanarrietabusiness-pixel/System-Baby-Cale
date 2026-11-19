@@ -49,10 +49,10 @@
 
 // El escenario de la foto y la tira de miniaturas eran marino: casi negro, para que la foto mande.
 .o_dcasa_fotos_escenario,
-.o_dcasa_fotos_recorte .o_dcasa_fotos_lienzo { background: #121416; }
-.o_dcasa_fotos_tira { background: #1A1C1F; }
-.o_dcasa_fotos_tarjeta .o_dcasa_fotos_numero { background: #16181B; color: #FFFFFF; }
+.o_dcasa_fotos_recorte .o_dcasa_fotos_lienzo { background: #0F161C; }
+.o_dcasa_fotos_tira { background: #0F161C; }
+.o_dcasa_fotos_tarjeta .o_dcasa_fotos_numero { background: #0F161C; color: #F9F6ED; }
 // Las flechas y el zoom flotan sobre la foto: se quedan claras con su ícono oscuro.
 .o_dcasa_fotos_flecha,
-.o_dcasa_fotos_zoom { color: #16181B; }
+.o_dcasa_fotos_zoom { color: #0F161C; }
 .o_dcasa_fotos_tarjeta.o_dragged { box-shadow: 0 8px 24px rgba(0, 0, 0, .45); }

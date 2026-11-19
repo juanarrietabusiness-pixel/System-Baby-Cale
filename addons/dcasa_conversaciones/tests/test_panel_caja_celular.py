@@ -469,7 +469,7 @@ class TestCajaEnTabletaYComputadoraSigueIgual(PanelUiCase):
     if (rect(document.querySelector(".o_dcj_caja")).height > 100) { throw new Error("la caja vacía mide " + rect(document.querySelector(".o_dcj_caja")).height); }
     nota.click();
     await esperar(() => texto.placeholder === "Nota interna: el cliente no la ve (@ avisa)", "la pista de la nota de siempre");
-    if (getComputedStyle(document.querySelector(".o_dcj_caja")).backgroundColor !== "rgb(255, 255, 255)") { throw new Error("aquí la caja de la nota sigue blanca (solo cambia el texto)"); }
+    if (getComputedStyle(document.querySelector(".o_dcj_caja")).backgroundColor !== "rgb(242, 239, 229)") { throw new Error("aquí la caja de la nota sigue en la superficie crema (solo cambia el texto)"); }
     aqui(".o_dcj_modo button", "Respuesta").click();
     // «Programar» sigue en «Más»; y al tomarla, el botón dice «Devolver al asistente» entero.
     (await masAcciones("Programar")).click();

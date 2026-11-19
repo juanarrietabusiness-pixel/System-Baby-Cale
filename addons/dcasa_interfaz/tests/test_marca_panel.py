@@ -2,21 +2,26 @@
 
 Pedido del dueño: «en Ajustes cada empresa tiene que poder cargar su logo y customizar su interfaz con los colores de
 la empresa; el logo del favicon y el del panel se cargan a mano, y los colores igual. La página web pública se queda
-como está». Aquí se cuida:
+como está». Y desde el 2026-11-19 **la fábrica es la marca de Baby Caleb** (navy de principal, naranja de acento,
+docs/MARCA_BABY_CALEB.md). Aquí se cuida:
 
-* **De fábrica, todo igual que antes**: la página del panel enlaza la misma hoja de Odoo, el mismo logo, favicon,
-  ícono del iPhone, manifiesto y color de la barra (las referencias visuales no se tocan).
+* **De fábrica, la hoja de Odoo tal cual** (ya compilada en crema, navy y naranja): la página del panel enlaza la
+  hoja de Odoo, el logo, favicon, ícono del iPhone y manifiesto de fábrica, y la barra del navegador en el crema.
+* **Las bases instaladas con la fábrica de D'CASA** pasan a la de Baby Caleb (la migración 19.0.1.4.0), y «Volver a
+  la marca de fábrica» no devuelve el azul.
 * **Lo que sube la empresa aparece**: el logo en la barra y en el menú del celular, el favicon, el ícono del iPhone y
   los del manifiesto (hechos de su imagen, en sus tamaños), el color en la barra del navegador y la hoja del panel
   pintada con sus colores, en claro y en oscuro, y los íconos de las apps.
 * **La web no cambia** (portada, tienda, acceso del equipo).
-* **Los colores se validan y se leen**: formato, contraste del principal con el blanco y del acento con el oscuro de
-  la marca, con una sugerencia que sí sirve; y la hoja pintada no tiene más pares ilegibles que la de fábrica.
+* **Los colores se validan y se leen**: formato, contraste del principal con la superficie crema (es la letra) y del
+  acento con el principal (es el relleno del botón principal, con la letra del principal encima), con una sugerencia
+  que sí sirve; y la hoja pintada no tiene más pares ilegibles que la de fábrica.
 * **Permisos**: solo administradores cambian la marca; la hoja de una empresa ajena no se entrega.
 
-Los colores de prueba (un azul marino y un naranja) son solo de prueba: no son la marca de ninguna empresa.
+Los colores de prueba (un verde oscuro y un amarillo) son solo de prueba: no son la marca de ninguna empresa.
 """
 import base64
+import importlib.util
 import io
 import json
 import os
@@ -31,18 +36,23 @@ from odoo.addons.dcasa_interfaz.marca import tinte as modulo_tinte
 from odoo.addons.dcasa_interfaz.marca.tinte import Tinte
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import HttpCase, TransactionCase, new_test_user, tagged
+from odoo.tools import file_path
 
 from .test_inicio_por_rol import ESPERAR_JS
 from .test_modo_oscuro import pares_que_no_se_leen
 
-PRINCIPAL = '#1B3246'
-ACENTO = '#EE924A'
+PRINCIPAL = '#1F4D3A'
+ACENTO = '#F2C14E'
 FABRICA_APPLE = '/dcasa_base/static/img/icono/apple-touch-icon.png'
 FABRICA_FAVICON = '/dcasa_base/static/img/icono/logo-192.png'
 LOGO_DE_FABRICA = '/dcasa_base/static/img/logo.png'
-# La escala de la marca de tokens.scss y los colores de la hoja oscura: lo que más se usa del azul.
-ESCALA = ('#081640', '#0B1F52', '#0E2A6B', '#0F3591', '#1340B1', '#2F5BD3', '#5C82E3', '#93AEEE', '#C3D2F6',
-          '#E4ECFD', '#F2F6FE', '#9DB8F5', '#3A63CF', '#4A72DC', '#0E2F83', '#091F55', '#E7ECF7')
+# La escala del navy de tokens.scss (del más oscuro al principal y los dos más claros): lo que gira con el principal.
+ESCALA = ('#0C171F', '#101E2A', '#142635', '#172B3D', '#1B3246', '#24405A', '#2B4A66')
+# Los tonos del naranja de la marca: el relleno, el del puntero, el apretado, el de letra y el de los bordes.
+NARANJAS = ('#EE924A', '#F1A86E', '#E8853A', '#985D2F', '#C3783D')
+CREMA = '#F9F6ED'
+NAVY = '#1B3246'
+NARANJA = '#EE924A'
 
 
 def imagen(ancho, alto, color=(27, 50, 70, 255), formato='PNG'):
@@ -69,68 +79,105 @@ def selectores(pares):
 class TestColoresDeLaMarca(TransactionCase):
 
     def test_un_color_se_escribe_como_numeral_y_seis_cifras(self):
-        self.assertEqual(C.normalizar('#1340b1'), '#1340B1')
-        self.assertEqual(C.normalizar(' 1340B1 '), '#1340B1')
+        self.assertEqual(C.normalizar('#1b3246'), '#1B3246')
+        self.assertEqual(C.normalizar(' 1B3246 '), '#1B3246')
         self.assertEqual(C.normalizar('#13b'), '#1133BB')
         self.assertIsNone(C.normalizar(''))
         self.assertIsNone(C.normalizar(False))
-        for malo in ('azul', '#12345', '#GGGGGG', 'rgb(1,2,3)', '#1340B1FF', '##1340B1'):
+        for malo in ('azul', '#12345', '#GGGGGG', 'rgb(1,2,3)', '#1B3246FF', '##1B3246'):
             with self.subTest(malo=malo), self.assertRaisesRegex(ValueError, 'no es un color'):
                 C.normalizar(malo)
 
     def test_contraste_segun_wcag(self):
         self.assertAlmostEqual(C.contraste('#FFFFFF', '#000000'), 21, places=1)
-        self.assertAlmostEqual(C.contraste('#1340B1', '#1340B1'), 1)
-        self.assertGreater(C.contraste(C.FABRICA_PRINCIPAL, C.BLANCO), C.MINIMO_TEXTO)
+        self.assertAlmostEqual(C.contraste('#1B3246', '#1B3246'), 1)
+        # Las medidas de Baby-caleb/brand.json (2026-11-09).
+        self.assertAlmostEqual(C.contraste(NAVY, CREMA), 12.21, places=2)
+        self.assertAlmostEqual(C.contraste(NAVY, NARANJA), 5.56, places=2)
+        self.assertAlmostEqual(C.contraste(NARANJA, CREMA), 2.20, places=2)
 
-    def test_los_colores_de_fabrica_se_leen(self):
+    def test_la_fabrica_es_baby_caleb_y_se_lee(self):
+        """El principal de fábrica es el navy (la tinta) y el acento el naranja (el relleno, con letra navy)."""
+        self.assertEqual((C.FABRICA_PRINCIPAL, C.FABRICA_ACENTO), (NAVY, NARANJA))
+        self.assertNotIn(C.DCASA_PRINCIPAL, (C.FABRICA_PRINCIPAL, C.FABRICA_ACENTO), 'el azul de D\'CASA ya no es fábrica')
         self.assertIsNone(C.problema_del_principal(C.FABRICA_PRINCIPAL))
         self.assertIsNone(C.problema_del_acento(C.FABRICA_ACENTO, C.FABRICA_PRINCIPAL))
         self.assertEqual(C.oscuro_de(C.FABRICA_PRINCIPAL), C.OSCURO_DE_FABRICA)
+        self.assertEqual(C.oscuro_de(PRINCIPAL), PRINCIPAL, 'encima del acento va la letra en el principal')
         self.assertTrue(C.como_se_lee(C.FABRICA_PRINCIPAL, C.FABRICA_ACENTO).startswith('Se lee bien'))
+        # Los colores de D'CASA siguen siendo una marca válida para otra empresa (azul de tinta, amarillo de relleno).
+        self.assertIsNone(C.problema_del_principal(C.DCASA_PRINCIPAL))
+        self.assertIsNone(C.problema_del_acento(C.DCASA_ACENTO, C.DCASA_PRINCIPAL))
 
-    def test_el_azul_de_fabrica_va_a_dar_exacto_al_principal_elegido(self):
-        for principal in (PRINCIPAL, '#985D2F', '#0F7B3A', '#B00020', '#555555', '#000000', '#6A1B9A'):
+    def test_el_color_de_fabrica_va_a_dar_exacto_al_elegido(self):
+        for principal in (PRINCIPAL, '#985D2F', '#0F7B3A', '#B00020', '#555555', '#000000', '#6A1B9A', '#1340B1'):
             with self.subTest(principal=principal):
                 giro = C.Giro(principal)
                 self.assertEqual(C.a_hexa(giro(C.a_rgb(C.FABRICA_PRINCIPAL))), principal)
+        for acento in (ACENTO, '#FED00F', '#91C9A2', '#FFB4C8', '#DDDDDD'):
+            with self.subTest(acento=acento):
+                giro = C.GiroDelAcento(acento, PRINCIPAL)
+                self.assertEqual(C.a_hexa(giro(C.a_rgb(C.FABRICA_ACENTO))), acento)
 
-    def test_el_giro_conserva_lo_que_se_leia_con_blanco(self):
-        """Lo que en fábrica se leía con letra blanca (o sobre blanco) se sigue leyendo con cualquier principal
-        válido, también uno más claro que el azul (el que más aprieta)."""
-        for principal in (PRINCIPAL, '#985D2F', '#0F7B3A', '#C2185B', '#767676', '#2E7D32', '#000000'):
+    def test_el_giro_conserva_lo_que_se_leia_sobre_el_crema(self):
+        """Lo que en fábrica se leía como letra sobre la superficie crema se sigue leyendo con cualquier principal
+        válido, también uno más claro que el navy (el que más aprieta); y los tonos del naranja que eran letra o borde
+        siguen siéndolo con cualquier acento."""
+        for principal in (PRINCIPAL, '#985D2F', '#0F7B3A', '#C2185B', '#6C6C6C', '#2E7D32', '#000000', '#1340B1'):
             self.assertIsNone(C.problema_del_principal(principal), principal)
             giro = C.Giro(principal)
             for color in ESCALA:
-                if C.contraste(color, C.BLANCO) >= C.MINIMO_TEXTO:
-                    with self.subTest(principal=principal, color=color):
-                        self.assertGreaterEqual(C.contraste(giro(C.a_rgb(color)), C.BLANCO), C.MINIMO_TEXTO)
+                with self.subTest(principal=principal, color=color):
+                    self.assertGreaterEqual(C.contraste(giro(C.a_rgb(color)), C.SUPERFICIE), C.MINIMO_TEXTO)
+        for acento, principal in ((ACENTO, PRINCIPAL), ('#FED00F', '#1340B1'), ('#7FD1C1', '#3D1F5C'),
+                                  ('#FFFFFF', '#000000')):
+            self.assertIsNone(C.problema_del_acento(acento, principal), acento)
+            giro = C.GiroDelAcento(acento, principal)
+            for color in NARANJAS:
+                antes = C.contraste(color, C.SUPERFICIE)
+                despues = C.a_rgb(giro(C.a_rgb(color)))
+                with self.subTest(acento=acento, color=color):
+                    if antes >= C.MINIMO_TEXTO:
+                        self.assertGreaterEqual(C.contraste(despues, C.SUPERFICIE), C.MINIMO_TEXTO, 'letra')
+                    elif antes >= C.MINIMO_DETALLE:
+                        self.assertGreaterEqual(C.contraste(despues, C.SUPERFICIE), C.MINIMO_DETALLE, 'borde')
+                    if C.contraste(color, C.FABRICA_PRINCIPAL) >= C.MINIMO_TEXTO:
+                        self.assertGreaterEqual(C.contraste(despues, principal), C.MINIMO_TEXTO,
+                                                'relleno con la letra del principal encima')
 
     def test_el_giro_respeta_el_orden_de_claro_a_oscuro(self):
         giro = C.Giro('#985D2F')
-        luces = [C.luz(giro(C.a_rgb(c))) for c in ESCALA[:11]]
+        luces = [C.luz(giro(C.a_rgb(c))) for c in ESCALA]
         self.assertEqual(luces, sorted(luces), 'la escala sigue yendo del más oscuro al más claro')
 
     def test_lo_que_no_es_la_marca_no_cambia(self):
         giro = C.Giro(PRINCIPAL)
-        # grises fríos (letra, líneas), rojo, verde, blanco y negro
-        for color in ('#44506A', '#6B7690', '#E2E7F0', '#F4F6FA', '#DC3545', '#28A745', '#FFFFFF', '#000000'):
+        giro_acento = C.GiroDelAcento(ACENTO, PRINCIPAL)
+        # la crema, la superficie, las líneas y los bordes, la letra de apoyo, la superficie del modo oscuro, el salvia,
+        # el ámbar de los avisos, rojo, verde, blanco y negro
+        for color in ('#F9F6ED', '#F2EFE5', '#DEDED9', '#7F8A91', '#475967', '#5E6D78', '#162129', '#0F161C',
+                      '#91C9A2', '#53735C', '#FFAC00', '#DC3545', '#28A745', '#FFFFFF', '#000000'):
             with self.subTest(color=color):
                 self.assertEqual(C.a_hexa(giro(C.a_rgb(color))), color)
+                self.assertEqual(C.a_hexa(giro_acento(C.a_rgb(color))), color)
 
     def test_un_principal_muy_claro_se_rechaza_con_uno_que_si_sirve(self):
         problema = C.problema_del_principal(ACENTO)
         self.assertIn('muy claro', problema)
         sugerido = re.search(r'Prueba con (#[0-9A-F]{6})', problema).group(1)
-        self.assertGreaterEqual(C.contraste(sugerido, C.BLANCO), C.MINIMO_TEXTO)
+        self.assertGreaterEqual(C.contraste(sugerido, C.SUPERFICIE), C.MINIMO_TEXTO)
         self.assertLess(C.distancia_de_tono(C.hsl(sugerido)[0], C.hsl(ACENTO)[0]), 4, 'el mismo tono')
         self.assertIsNone(C.problema_del_principal(sugerido))
+        # El naranja de fábrica no sirve de principal: es relleno, no letra (2.1 a 1 sobre la superficie).
+        self.assertIn('muy claro', C.problema_del_principal(C.FABRICA_ACENTO))
 
     def test_un_acento_oscuro_se_rechaza_con_uno_que_si_sirve(self):
         problema = C.problema_del_acento('#6A1B9A', C.FABRICA_PRINCIPAL)
         self.assertIn('no se lee', problema)
         sugerido = re.search(r'Prueba con (#[0-9A-F]{6})', problema).group(1)
         self.assertIsNone(C.problema_del_acento(sugerido, C.FABRICA_PRINCIPAL))
+        # El naranja fuerte (el de la letra) tampoco: lleva la letra navy encima y da 2.5 a 1.
+        self.assertIn('no se lee', C.problema_del_acento('#985D2F', C.FABRICA_PRINCIPAL))
         # Un acento claro con un principal oscuro: bien.
         self.assertIsNone(C.problema_del_acento(ACENTO, PRINCIPAL))
 
@@ -139,48 +186,65 @@ class TestColoresDeLaMarca(TransactionCase):
 class TestTinteDeLaHoja(TransactionCase):
 
     def test_de_fabrica_no_cambia_ni_un_byte(self):
-        hoja = ':root{--dc-azul-600: #1340B1}.btn-primary{--btn-bg: #1340B1; color: #FED00F}'
-        for tinte in (Tinte(), Tinte(C.FABRICA_PRINCIPAL, C.FABRICA_ACENTO), Tinte('#1340b1', '')):
+        hoja = ':root{--dc-azul-600: #1B3246}.btn-primary{--btn-bg: #EE924A; color: #1B3246}'
+        for tinte in (Tinte(), Tinte(C.FABRICA_PRINCIPAL, C.FABRICA_ACENTO), Tinte('#1b3246', '')):
             self.assertTrue(tinte.de_fabrica)
             self.assertIs(tinte.css(hoja), hoja)
-            self.assertIs(tinte.svg('<svg fill="#1340B1"/>'), '<svg fill="#1340B1"/>')
+            self.assertIs(tinte.svg('<svg fill="#1B3246"/>'), '<svg fill="#1B3246"/>')
 
-    def test_pinta_cada_forma_en_que_viene_el_azul(self):
+    def test_pinta_cada_forma_en_que_vienen_el_navy_y_el_naranja(self):
         tinte = Tinte(PRINCIPAL, ACENTO)
-        hoja = ('.a{color: #1340B1; border-color: #1340b1}'
-                '.b{background: rgba(19, 64, 177, 0.25); box-shadow: 0 0 0 1px rgb(19,64,177)}'
-                '.c{background-color: #1340B180}'
-                '.d{--primary-rgb: 19, 64, 177; --btn-focus-shadow-rgb: 19, 64, 177}'
-                ".e{--fondo: url(\"data:image/svg+xml,%3csvg fill='%231340B1'/%3e\")}"
-                '.f{color: #FED00F; background: rgba(254, 208, 15, .5)}'
-                '@media (max-width: 767.98px){.g{color: #1340B1 !important}}')
+        hoja = ('.a{color: #1B3246; border-color: #1b3246}'
+                '.b{background: rgba(27, 50, 70, 0.25); box-shadow: 0 0 0 1px rgb(27,50,70)}'
+                '.c{background-color: #1B324680}'
+                '.d{--primary-rgb: 27, 50, 70; --btn-focus-shadow-rgb: 27, 50, 70}'
+                ".e{--fondo: url(\"data:image/svg+xml,%3csvg fill='%231B3246'/%3e\")}"
+                '.f{background: #EE924A; color: #1B3246; border-color: rgba(238, 146, 74, .5)}'
+                '@media (max-width: 767.98px){.g{color: #1B3246 !important}}')
         pintada = tinte.css(hoja)
-        self.assertNotRegex(pintada.lower(), r'1340b1|19, ?64, ?177|fed00f|254, 208, 15')
-        self.assertIn('.a{color: #1B3246; border-color: #1B3246}', pintada)
-        self.assertIn('rgba(27, 50, 70, 0.25)', pintada)
-        self.assertIn('rgb(27, 50, 70)', pintada)
-        self.assertIn('#1B324680', pintada, 'la transparencia del #hex de 8 cifras se queda')
-        self.assertIn('--primary-rgb: 27, 50, 70', pintada)
-        self.assertIn("fill='%231B3246'", pintada)
-        self.assertIn('.f{color: #EE924A; background: rgba(238, 146, 74, .5)}', pintada)
-        self.assertIn('@media (max-width: 767.98px){.g{color: #1B3246 !important}}', pintada, 'el @media intacto')
+        self.assertNotRegex(pintada.lower(), r'1b3246|27, ?50, ?70|ee924a|238, 146, 74')
+        self.assertIn('.a{color: #1F4D3A; border-color: #1F4D3A}', pintada)
+        self.assertIn('rgba(31, 77, 58, 0.25)', pintada)
+        self.assertIn('rgb(31, 77, 58)', pintada)
+        self.assertIn('#1F4D3A80', pintada, 'la transparencia del #hex de 8 cifras se queda')
+        self.assertIn('--primary-rgb: 31, 77, 58', pintada)
+        self.assertIn("fill='%231F4D3A'", pintada)
+        self.assertIn('.f{background: #F2C14E; color: #1F4D3A; border-color: rgba(242, 193, 78, .5)}', pintada,
+                      'el botón principal: el acento de relleno con la letra del principal')
+        self.assertIn('@media (max-width: 767.98px){.g{color: #1F4D3A !important}}', pintada, 'el @media intacto')
+
+    def test_los_tonos_del_naranja_giran_con_el_acento(self):
+        """El puntero, lo apretado, la letra naranja y los bordes naranja siguen al acento de la empresa, y cada uno
+        sigue haciendo su trabajo: la letra se lee sobre el crema y los rellenos llevan la letra del principal."""
+        tinte = Tinte(PRINCIPAL, ACENTO)
+        puntero, apretado, letra, borde = (C.a_rgb(tinte.color(C.a_rgb(c))) for c in NARANJAS[1:])
+        for color in (puntero, apretado, letra, borde):
+            self.assertLess(C.distancia_de_tono(C.hsl(color)[0], C.hsl(ACENTO)[0]), 4, 'el tono del acento')
+        self.assertGreaterEqual(C.contraste(letra, C.SUPERFICIE), C.MINIMO_TEXTO)
+        self.assertGreaterEqual(C.contraste(borde, C.SUPERFICIE), C.MINIMO_DETALLE)
+        for relleno in (puntero, apretado):
+            self.assertGreaterEqual(C.contraste(relleno, PRINCIPAL), C.MINIMO_TEXTO)
+        # Solo con otro principal (el acento de fábrica): el naranja se queda, sus rellenos siguen leyéndose.
+        solo_principal = Tinte(PRINCIPAL, C.FABRICA_ACENTO)
+        self.assertFalse(solo_principal.de_fabrica)
+        self.assertIn('#EE924A', solo_principal.css('.x{background: #EE924A}').upper())
 
     def test_no_pinta_las_paletas_ni_el_contenido_de_la_web(self):
         tinte = Tinte(PRINCIPAL, ACENTO)
-        hoja = ('.o_calendar_renderer .o_calendar_color_45{background: #1340B1}'
-                '.o_kanban_record.o_kanban_color_3::after{background-color: #FED00F}'
-                '.o_cc1 a:not(.btn){color: #1340B1}'
-                ':root{--o-color-1: #1340B1; --o-cc1-link: #1340B1; --dc-azul-600: #1340B1}')
+        hoja = ('.o_calendar_renderer .o_calendar_color_45{background: #1B3246}'
+                '.o_kanban_record.o_kanban_color_3::after{background-color: #EE924A}'
+                '.o_cc1 a:not(.btn){color: #1B3246}'
+                ':root{--o-color-1: #1B3246; --o-cc1-link: #1B3246; --dc-azul-600: #1B3246}')
         pintada = tinte.css(hoja)
-        self.assertIn('.o_calendar_color_45{background: #1340B1}', pintada)
-        self.assertIn('.o_kanban_color_3::after{background-color: #FED00F}', pintada)
-        self.assertIn('.o_cc1 a:not(.btn){color: #1340B1}', pintada)
-        self.assertIn(':root{--o-color-1: #1340B1; --o-cc1-link: #1340B1; --dc-azul-600: #1B3246}', pintada)
+        self.assertIn('.o_calendar_color_45{background: #1B3246}', pintada)
+        self.assertIn('.o_kanban_color_3::after{background-color: #EE924A}', pintada)
+        self.assertIn('.o_cc1 a:not(.btn){color: #1B3246}', pintada)
+        self.assertIn(':root{--o-color-1: #1B3246; --o-cc1-link: #1B3246; --dc-azul-600: #1F4D3A}', pintada)
 
     def test_los_iconos_svg_de_las_apps(self):
-        svg = '<svg><rect fill="#1340B1"/><path stroke="#FFFFFF"/><circle fill="#FED00F"/></svg>'
+        svg = '<svg><rect fill="#1B3246"/><path stroke="#F9F6ED"/><circle fill="#EE924A"/></svg>'
         self.assertEqual(Tinte(PRINCIPAL, ACENTO).svg(svg),
-                         '<svg><rect fill="#1B3246"/><path stroke="#FFFFFF"/><circle fill="#EE924A"/></svg>')
+                         '<svg><rect fill="#1F4D3A"/><path stroke="#F9F6ED"/><circle fill="#F2C14E"/></svg>')
 
 
 # --- La empresa: guardar, validar, permisos ----------------------------------------------------------------------
@@ -206,15 +270,24 @@ class TestMarcaDeLaEmpresa(TransactionCase):
         self.assertEqual(empresa._dcasa_panel_pagina('light'), {})
         self.assertEqual(empresa._dcasa_panel_pagina('dark'), {})
         self.assertEqual(empresa._dcasa_panel_navegador(), {'logo': False, 'nombre': False})
-        self.assertEqual(empresa._dcasa_panel_manifiesto(), {'color': None, 'iconos': None})
+        self.assertEqual(empresa._dcasa_panel_manifiesto(), {'iconos': None})
         self.assertEqual(empresa._dcasa_panel_url_logo(), LOGO_DE_FABRICA)
         nueva = self.env['res.company'].create({'name': 'Empresa nueva de prueba'})
         self.assertEqual((nueva.dcasa_panel_color_principal, nueva.dcasa_panel_color_acento),
                          (C.FABRICA_PRINCIPAL, C.FABRICA_ACENTO), 'una empresa nueva nace con la marca de fábrica')
 
+    def test_el_inicio_saluda_con_el_nombre_de_la_empresa(self):
+        """«Así va el día en …»: el nombre de la empresa, no el de la plantilla de origen."""
+        self.empresa.name = 'Empresa de Prueba'
+        self.assertEqual(self.env['dcasa.tablero'].with_user(self.admin).obtener_datos()['empresa'], 'Empresa de Prueba')
+        with open(file_path('dcasa_interfaz/static/src/xml/inicio.xml'), encoding='utf-8') as archivo:
+            plantilla = archivo.read()
+        self.assertIn('Así va el día en <t t-esc="d.empresa"/>.', plantilla)
+        self.assertNotIn("D'CASA", plantilla)
+
     def test_guardar_normaliza_y_cambia_la_version_solo_si_cambia_algo(self):
         empresa = self.empresa.with_user(self.admin)
-        empresa.write({'dcasa_panel_color_principal': '1b3246', 'dcasa_panel_color_acento': '#ee924a'})
+        empresa.write({'dcasa_panel_color_principal': '1f4d3a', 'dcasa_panel_color_acento': '#f2c14e'})
         self.assertEqual(empresa.dcasa_panel_color_principal, PRINCIPAL)
         self.assertEqual(empresa.dcasa_panel_color_acento, ACENTO)
         version = empresa.dcasa_panel_version
@@ -235,7 +308,7 @@ class TestMarcaDeLaEmpresa(TransactionCase):
     def test_un_color_mal_escrito_o_que_no_se_lee_no_se_guarda(self):
         self.rechazado({'dcasa_panel_color_principal': 'azul'}, 'no es un color')
         self.rechazado({'dcasa_panel_color_principal': ACENTO}, r'muy claro.*Prueba con #')
-        self.rechazado({'dcasa_panel_color_acento': '#0E2A6B'}, 'acento .* no se lee')
+        self.rechazado({'dcasa_panel_color_acento': '#985D2F'}, 'acento .* no se lee')   # el naranja de letra
         self.assertEqual(self.empresa.dcasa_panel_color_principal, C.FABRICA_PRINCIPAL)
 
     def test_el_logo_tiene_que_ser_una_imagen_que_se_pueda_achicar(self):
@@ -275,7 +348,10 @@ class TestMarcaDeLaEmpresa(TransactionCase):
         self.assertEqual(guardados.dcasa_panel_color_principal, PRINCIPAL)
         accion = guardados.action_dcasa_panel_fabrica()
         self.assertEqual(accion, {'type': 'ir.actions.client', 'tag': 'reload'}, 'el panel se recarga ya pintado')
-        self.assertTrue(self.empresa._dcasa_panel_resumen()['todo_de_fabrica'])
+        resumen = self.empresa._dcasa_panel_resumen()
+        self.assertTrue(resumen['todo_de_fabrica'])
+        self.assertEqual((resumen['color_principal'], resumen['color_acento']), (NAVY, NARANJA),
+                         'la fábrica es la de Baby Caleb: nada del azul ni del amarillo de D\'CASA')
         with self.assertRaises(AccessError):
             guardados.with_user(self.gerencia).action_dcasa_panel_fabrica()
 
@@ -303,13 +379,63 @@ class TestMarcaDeLaEmpresa(TransactionCase):
                     if (m.get('webIconData') or '').startswith('data:image/svg+xml;base64,')}
         antes = iconos(self.admin)
         ventas = antes.get('sale.sale_menu_root')
-        self.assertIn('#1340B1', ventas)
+        self.assertIn(NAVY, ventas, 'de fábrica, el cuadro navy con el punto naranja')
+        self.assertIn(NARANJA, ventas)
         self.empresa.write({'dcasa_panel_color_principal': PRINCIPAL, 'dcasa_panel_color_acento': ACENTO})
         despues = iconos(self.admin)
-        self.assertNotIn('#1340B1', despues['sale.sale_menu_root'])
+        self.assertNotIn(NAVY, despues['sale.sale_menu_root'])
         self.assertIn(PRINCIPAL, despues['sale.sale_menu_root'])
         self.assertIn(ACENTO, despues['sale.sale_menu_root'])
         self.assertEqual(despues['sale.sale_menu_root'], Tinte(PRINCIPAL, ACENTO).svg(ventas))
+
+
+# --- Las bases que se instalaron con la fábrica de D'CASA -----------------------------------------------------------
+
+@tagged('post_install', '-at_install')
+class TestMigracionDeLaFabrica(TransactionCase):
+    """Una base instalada antes del 2026-11-19 (staging) guarda los colores de fábrica de entonces, los de D'CASA: al
+    actualizar pasan a los de Baby Caleb sin que nadie toque Ajustes; un color que la empresa sí eligió se queda."""
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        ruta = file_path('dcasa_interfaz/migrations/19.0.1.4.0/post-migrate.py')
+        especificacion = importlib.util.spec_from_file_location('dcasa_interfaz_migracion_marca', ruta)
+        cls.migracion = importlib.util.module_from_spec(especificacion)
+        especificacion.loader.exec_module(cls.migracion)
+
+    def guardado(self, empresa, principal, acento):
+        """Como lo dejó la versión anterior: directo en la base, sin las reglas de ahora."""
+        self.env.cr.execute('UPDATE res_company SET dcasa_panel_color_principal = %s, dcasa_panel_color_acento = %s, '
+                            'dcasa_panel_version = NULL WHERE id = %s', (principal, acento, empresa.id))
+        empresa.invalidate_recordset()
+
+    def migrar(self):
+        self.migracion.migrate(self.env.cr, '19.0.1.3.0')
+        self.env.invalidate_all()
+
+    def test_la_fabrica_de_dcasa_pasa_a_la_de_baby_caleb(self):
+        empresa = self.env.company
+        self.guardado(empresa, C.DCASA_PRINCIPAL, C.DCASA_ACENTO)
+        self.assertFalse(empresa._dcasa_panel_tinte().de_fabrica, 'antes: el panel se pintaría de azul')
+        self.migrar()
+        self.assertEqual((empresa.dcasa_panel_color_principal, empresa.dcasa_panel_color_acento), (NAVY, NARANJA))
+        self.assertTrue(empresa._dcasa_panel_tinte().de_fabrica, 'ahora la hoja de Odoo tal cual: Baby Caleb')
+        self.assertTrue(empresa.dcasa_panel_version, 'los navegadores piden lo nuevo')
+        self.assertEqual(empresa._dcasa_panel_pagina('light'), {})
+        version = empresa.dcasa_panel_version
+        self.migrar()
+        self.assertEqual(empresa.dcasa_panel_version, version, 'se puede repetir sin cambiar nada')
+
+    def test_lo_que_la_empresa_eligio_se_queda(self):
+        empresa = self.env.company
+        self.guardado(empresa, PRINCIPAL, C.DCASA_ACENTO)
+        self.migrar()
+        self.assertEqual((empresa.dcasa_panel_color_principal, empresa.dcasa_panel_color_acento), (PRINCIPAL, NARANJA))
+        # Si con el cambio el par dejara de leerse, la empresa vuelve entera a la fábrica.
+        self.guardado(empresa, '#985D2F', C.DCASA_ACENTO)
+        self.migrar()
+        self.assertEqual((empresa.dcasa_panel_color_principal, empresa.dcasa_panel_color_acento), (NAVY, NARANJA))
 
 
 # --- La página del panel, sus hojas e íconos ------------------------------------------------------------------------
@@ -340,10 +466,10 @@ class TestMarcaEnLaPagina(HttpCase):
         self.assertRegex(html, r'href="/web/assets/[^"]*web\.assets_web\.min\.css"')
         self.assertIn(f'<link rel="apple-touch-icon" href="{FABRICA_APPLE}"/>', html)
         self.assertIn(f'href="{FABRICA_FAVICON}"', html)
-        self.assertIn('<meta name="theme-color" content="#1340B1"/>', html)
+        self.assertIn(f'<meta name="theme-color" content="{CREMA}"/>', html)
         self.assertEqual(self.info(html)['dcasa_marca'], {'logo': False, 'nombre': False})
         manifiesto = self.url_open('/web/manifest.webmanifest').json()
-        self.assertEqual(manifiesto['theme_color'], '#1340B1')
+        self.assertEqual(manifiesto['theme_color'], CREMA)
         self.assertTrue(all(i['src'].startswith('/dcasa_base/static/img/icono/') for i in manifiesto['icons']))
 
     def test_con_sus_colores_el_panel_enlaza_la_hoja_pintada(self):
@@ -352,7 +478,7 @@ class TestMarcaEnLaPagina(HttpCase):
         self.poner(dcasa_panel_color_principal=PRINCIPAL, dcasa_panel_color_acento=ACENTO)
         html = self.pagina()
         self.assertNotIn(original, html, 'no se cargan las dos hojas')
-        self.assertIn(f'<meta name="theme-color" content="{PRINCIPAL}"/>', html)
+        self.assertIn(f'<meta name="theme-color" content="{CREMA}"/>', html, 'la barra del navegador: el crema')
         enlace = re.search(r'href="(/dcasa_interfaz/marca/hoja/[^"]*web\.assets_web\.min\.css)"', html).group(1)
         self.assertIn(f'/{self.empresa.id}/{self.empresa.dcasa_panel_version}/', enlace)
         respuesta = self.url_open(enlace)
@@ -363,10 +489,12 @@ class TestMarcaEnLaPagina(HttpCase):
         self.assertEqual(pintada, Tinte(PRINCIPAL, ACENTO).css(fabrica), 'la hoja de Odoo, solo con otros colores')
         self.assertIn('o_dcasa_inicio', pintada)
         self.assertRegex(pintada, rf'--dc-azul-600: {PRINCIPAL}')
-        self.assertRegex(pintada, rf'\.btn-primary\{{[^}}]*--btn-bg: {PRINCIPAL}')
+        self.assertRegex(pintada, rf'\.btn-primary\{{[^}}]*--btn-bg: {ACENTO}')
+        self.assertRegex(pintada, rf'\.btn-primary\{{[^}}]*--btn-color: {PRINCIPAL}')
         self.assertRegex(pintada, rf'--dc-amarillo: {ACENTO}')
-        # El azul de fábrica solo queda en lo que no es la marca: paletas de categorías y colores de la web.
-        for regla in re.findall(r'([^{}]*)\{([^{}]*#1340B1[^{}]*)\}', pintada, re.I):
+        self.assertRegex(pintada, rf'--dc-naranja: {ACENTO}')
+        # El navy y el naranja de fábrica solo quedan en lo que no es la marca: paletas de categorías y colores de la web.
+        for regla in re.findall(r'([^{}]*)\{([^{}]*(?:#1B3246|#EE924A)[^{}]*)\}', pintada, re.I):
             with self.subTest(regla=regla[0][-80:]):
                 self.assertRegex(regla[0] + regla[1], modulo_tinte._INTOCABLES.pattern + r'|--o-c(?:olor|c)')
         # Con los colores de antes, la página vuelve a la hoja de Odoo.
@@ -375,7 +503,8 @@ class TestMarcaEnLaPagina(HttpCase):
 
     def test_la_hoja_pintada_se_lee_como_la_de_fabrica_en_claro_y_en_oscuro(self):
         """La red de pares ilegibles del modo oscuro, sobre las dos hojas pintadas: ninguna regla propia nueva."""
-        self.poner(dcasa_panel_color_principal='#985D2F', dcasa_panel_color_acento='#FFD166')
+        # Un principal más claro que el navy (el que más aprieta) y un acento muy claro que lleva su letra encima.
+        self.poner(dcasa_panel_color_principal='#985D2F', dcasa_panel_color_acento='#FFF0D0')
         for cookies, archivo in ((None, 'web.assets_web.min.css'), ({'color_scheme': 'dark'},
                                                                      'web.assets_web_dark.min.css')):
             with self.subTest(hoja=archivo):
@@ -458,7 +587,7 @@ class TestMarcaEnLaPagina(HttpCase):
             ('192x192', 'any'): f'{base}/icono-192.png', ('512x512', 'any'): f'{base}/icono-512.png',
             ('192x192', 'maskable'): f'{base}/icono-maskable-192.png',
             ('512x512', 'maskable'): f'{base}/icono-maskable-512.png'})
-        self.assertEqual(manifiesto['theme_color'], '#1340B1', 'sin colores propios, el azul de siempre')
+        self.assertEqual(manifiesto['theme_color'], CREMA, 'la barra del navegador, en el crema de la página')
         _dibujo, caja = self.assertIcono(f'{base}/icono-512.png', 512, False)
         ancho, alto = caja[2] - caja[0], caja[3] - caja[1]
         self.assertAlmostEqual(ancho / alto, 480 / 192, delta=0.08, msg='el logo entero, sin deformar')
@@ -546,8 +675,10 @@ class TestMarcaEnElNavegador(HttpCase):
             await esperar(() => logo.complete && logo.naturalWidth > 0, 'que el logo cargue');
             const boton = await esperar(() => document.querySelector('.o_dcasa_inicio_accesos .btn-primary'),
                                         'el botón principal del Inicio');
-            const fondo = getComputedStyle(boton).backgroundColor;
-            if (fondo !== 'rgb(27, 50, 70)') {{ throw new Error('el botón principal sale ' + fondo); }}
+            // El botón principal: el acento de la empresa de relleno, con la letra en su principal.
+            const fondo = getComputedStyle(boton).backgroundColor, letra = getComputedStyle(boton).color;
+            if (fondo !== 'rgb(242, 193, 78)') {{ throw new Error('el botón principal sale ' + fondo); }}
+            if (letra !== 'rgb(31, 77, 58)') {{ throw new Error('la letra del botón principal sale ' + letra); }}
             const hojas = [...document.querySelectorAll('link[rel="stylesheet"]')].map((l) => l.href);
             if (!hojas.some((h) => h.includes('/dcasa_interfaz/marca/hoja/'))) {{
                 throw new Error('hojas: ' + JSON.stringify(hojas));

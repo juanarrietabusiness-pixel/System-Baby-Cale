@@ -612,15 +612,16 @@ class TestInicioEnElNavegador(VentasMixin, HttpCase):
             await esperar(() => document.querySelector('.o_dcasa_ventas'), 'el panel de ventas');
             await esperar(() => document.querySelector('.o_dcasa_lista_cotizaciones'), 'las cotizaciones abiertas');
             await esperar(() => document.querySelector('.o_dcasa_lista_entregas'), 'las entregas pendientes');
-            // Cotizaciones y entregas, justo debajo de los accesos azules y con cabecera de acento (2026-10-16).
+            // Cotizaciones y entregas, justo debajo de los accesos y con cabecera de acento (2026-10-16): la banda salvia
+            // de Baby Caleb con el número en una pastilla naranja.
             const listas = document.querySelector('.o_dcasa_listas');
             if (document.querySelector('.o_dcasa_atajos').nextElementSibling !== listas) {
-                throw new Error('las cotizaciones y las entregas van justo debajo de los accesos azules');
+                throw new Error('las cotizaciones y las entregas van justo debajo de los accesos');
             }
             const fondo = getComputedStyle(listas.querySelector('.o_dcasa_lista_cabeza')).backgroundColor;
-            igual(fondo, 'rgb(14, 42, 107)', 'la cabecera de las listas va en azul marino');
+            igual(fondo, 'rgb(145, 201, 162)', 'la cabecera de las listas va en la banda salvia');
             const numero = getComputedStyle(listas.querySelector('.o_dcasa_lista_numero')).backgroundColor;
-            igual(numero, 'rgb(254, 208, 15)', 'el número va en amarillo, sobre el azul');
+            igual(numero, 'rgb(238, 146, 74)', 'el número va en la pastilla naranja, sobre la banda salvia');
             igual(textos('.o_dcasa_ganancia .o_dcasa_ventas_etiqueta'), ['Ganancia bruta'], 'el nombre de la ganancia');
             await esperar(() => document.querySelector('.o_dcasa_semana'), 'las barras de la semana');
             const botones = textos('.o_dcasa_inicio_accesos .btn');

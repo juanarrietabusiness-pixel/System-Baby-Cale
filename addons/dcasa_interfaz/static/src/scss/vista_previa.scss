@@ -20,9 +20,9 @@
     gap: 16px;
 
     h1 {
-        font-family: "Anton", "Oswald", sans-serif;
-        text-transform: uppercase;
-        letter-spacing: .01em;
+        font-family: var(--dc-letra);
+        text-transform: none;
+        letter-spacing: -.03em;
         font-size: 1.5rem;
         line-height: 1.1;
         color: var(--dc-azul-800);
@@ -80,11 +80,11 @@
     }
 
     &.o_activo {
-        background: var(--dc-azul-600);
-        color: var(--dc-blanco);
+        background: var(--dc-naranja);
+        color: var(--dc-en-naranja);
 
         small {
-            color: var(--dc-azul-200);
+            color: var(--dc-en-naranja);
         }
     }
 

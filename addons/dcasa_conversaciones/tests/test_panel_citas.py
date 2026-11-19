@@ -116,7 +116,7 @@ class TestCitasEnElNavegador(PanelUiCase):
     if (!entregado.classList.contains("o_dcj_palomitas_entregado") || checks(entregado) !== 2) { throw new Error("entregado: dos palomitas"); }
     if (!leido.classList.contains("o_dcj_palomitas_leido") || checks(leido) !== 2) { throw new Error("leído: dos palomitas"); }
     const gris = getComputedStyle(entregado).color, azul = getComputedStyle(leido).color;
-    if (gris === azul || azul !== "rgb(19, 64, 177)") { throw new Error("leído va en el azul de la marca y entregado en gris: " + gris + " / " + azul); }
+    if (gris === azul || azul !== "rgb(27, 50, 70)") { throw new Error("leído va en el navy de la marca y entregado en gris: " + gris + " / " + azul); }
     if (!fallido.querySelector(".fa-exclamation-triangle") || !fallido.textContent.includes("No llegó") || !fallido.title.includes("24 horas")) {
         throw new Error("no llegó: ícono, palabra y el motivo al pasar el mouse: " + fallido.title);
     }

@@ -20,7 +20,9 @@ from odoo.addons.dcasa_conversaciones.models import crm_reglas as CRM
 from odoo.tests import HttpCase, new_test_user, tagged
 from odoo.tests.common import ChromeBrowser
 
-AZUL = 'rgb(19, 64, 177)'   # #1340B1
+NAVY = 'rgb(27, 50, 70)'          # #1B3246, la letra de Baby Caleb
+NARANJA = 'rgb(238, 146, 74)'     # #EE924A, el relleno
+SUPERFICIE = 'rgb(242, 239, 229)'   # #F2EFE5
 
 
 @tagged('post_install', '-at_install')
@@ -90,7 +92,8 @@ class TestPantallaDeSofia(HttpCase):
             if (!titulo.textContent.includes('Hoy sin falta')) {
                 throw new Error('La primera sección no es «Hoy sin falta»: ' + titulo.textContent);
             }
-            if (getComputedStyle(titulo).backgroundColor !== 'AZUL') {
+            // Una franja naranja con el título navy: imposible de confundir con lo demás.
+            if (getComputedStyle(titulo).backgroundColor !== 'NARANJA' || getComputedStyle(titulo).color !== 'NAVY') {
                 throw new Error('«Hoy sin falta» no se distingue: ' + getComputedStyle(titulo).backgroundColor);
             }
             const cuenta = Number(titulo.querySelector('.o_sofia_seccion_cuenta').textContent);
@@ -125,7 +128,7 @@ class TestPantallaDeSofia(HttpCase):
             }
             sinErrores();
             console.log('test successful');
-        })();""".replace('AZUL', AZUL)
+        })();""".replace('NARANJA', NARANJA).replace('NAVY', NAVY)
         self.browser_js('/odoo/sofia', codigo, login='ana_pantalla', timeout=120)
 
     # ------------------------------------------------------------------ Filtros con conteos
@@ -426,7 +429,8 @@ class TestPantallaDeSofia(HttpCase):
         """La dueña (2026-11-07): «cuando paso el puntero se pone todo en blanco… así con todos los botones de Sofía,
         excepto los que tienen fondo azul». El estilo fijaba el fondo blanco y Bootstrap ponía el texto blanco al pasar
         el puntero. Con un movimiento de ratón de verdad (protocolo de Chrome), cada botón blanco de una tarjeta tiene
-        que seguir leyéndose: azul sobre blanco en reposo, blanco sobre azul con el puntero encima."""
+        que seguir leyéndose. Con la marca de Baby Caleb: navy sobre la superficie en reposo y navy sobre el naranja con
+        el puntero encima (nunca letra blanca sobre el naranja)."""
         with self._chrome(1366, 768, 'ana_pantalla') as browser:
             self._abrir(browser)
             botones = self._js(browser, """(() => {
@@ -445,8 +449,8 @@ class TestPantallaDeSofia(HttpCase):
                     return {{x: r.left + r.width / 2, y: r.top + r.height / 2, texto: b.textContent.trim(),
                              color: s.color, fondo: s.backgroundColor}};
                 }})()""")
-                self.assertEqual((caja['color'], caja['fondo']), (AZUL, 'rgb(255, 255, 255)'),
-                                 f'«{caja["texto"]}» en reposo: azul sobre blanco')
+                self.assertEqual((caja['color'], caja['fondo']), (NAVY, SUPERFICIE),
+                                 f'«{caja["texto"]}» en reposo: navy sobre la superficie')
                 browser._websocket_request('Input.dispatchMouseEvent', params={
                     'type': 'mouseMoved', 'x': caja['x'], 'y': caja['y']})
                 self._js(browser, 'new Promise((ok) => setTimeout(ok, 300))')
@@ -458,6 +462,6 @@ class TestPantallaDeSofia(HttpCase):
                 self.assertTrue(encima['hover'], f'el puntero no quedó sobre «{caja["texto"]}»')
                 self.assertNotEqual(encima['color'], encima['fondo'],
                                     f'«{caja["texto"]}» se borra con el puntero encima: {encima}')
-                self.assertEqual((encima['color'], encima['fondo']), ('rgb(255, 255, 255)', AZUL),
-                                 f'«{caja["texto"]}» con el puntero encima: blanco sobre azul')
+                self.assertEqual((encima['color'], encima['fondo']), (NAVY, NARANJA),
+                                 f'«{caja["texto"]}» con el puntero encima: navy sobre el naranja')
                 browser._websocket_request('Input.dispatchMouseEvent', params={'type': 'mouseMoved', 'x': 2, 'y': 2})

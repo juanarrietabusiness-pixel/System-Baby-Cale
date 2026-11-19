@@ -417,8 +417,9 @@ class TestPantallaLlevame(BaseCase):
     def test_los_estilos_son_planos_y_sin_amarillo(self):
         css = self.scss.lower()
         self.assertNotIn('gradient', css, 'Sistema plano: sin degradados')
-        for amarillo in ('#fed00f', 'dc-amarillo', 'yellow'):
-            self.assertNotIn(amarillo, css, 'El amarillo nunca toca el blanco')
+        for de_dcasa in ('#fed00f', 'dc-amarillo', 'yellow', '#1340b1', 'anton', 'oswald'):
+            self.assertNotIn(de_dcasa, css, 'nada del amarillo, el azul ni las letras de D\'CASA')
+        self.assertNotRegex(css, r'(?<![\w-])color:\s*var\(--dc-naranja\)', 'el naranja es relleno, nunca letra')
         self.assertIn('.o_dcasa_guia_cinta', css)
 
     def test_los_botones_se_dejan_tocar_en_el_celular(self):
