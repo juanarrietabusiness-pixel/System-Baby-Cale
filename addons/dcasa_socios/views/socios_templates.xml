@@ -9,12 +9,12 @@
 
     <template id="socios_layout" name="Socios: marco">
         <t t-call="website.layout">
-            <t t-set="additional_title">Socios D'CASA</t>
+            <t t-set="additional_title">Socios Baby Caleb</t>
             <div id="wrap" class="o_dcasa_socios">
                 <div class="o_dcasa_socios_head o_cc o_cc4">
                     <div class="container py-4">
                         <p class="o_dcasa_kicker mb-1">Programa de socios</p>
-                        <h1 class="o_dcasa_display mb-0" t-out="titulo or 'Socios D’CASA'"/>
+                        <h1 class="o_dcasa_display mb-0" t-out="titulo or 'Socios Baby Caleb'"/>
                     </div>
                 </div>
                 <div class="o_dcasa_band" aria-hidden="true"/>
@@ -35,7 +35,7 @@
 
     <template id="socios_inicio" name="Socios: entrar">
         <t t-call="dcasa_socios.socios_layout">
-            <t t-set="titulo">Tus puntos D'CASA</t>
+            <t t-set="titulo">Tus puntos Baby Caleb</t>
             <div t-if="ficha_sin_celular" class="alert alert-info">
                 Tienes cuenta en la tienda, pero tu ficha no tiene un celular de Panamá o ese celular ya es de otra
                 cuenta de socio. Si ya eres socio, entra abajo con tu celular y tu PIN; si no, escríbenos por WhatsApp
@@ -56,7 +56,7 @@
                             <button type="submit" class="btn btn-primary btn-lg w-100 mt-3">Entrar</button>
                         </form>
                         <p class="mt-3 mb-0">¿Primera vez? <a href="/socios/registro">Regístrate con tu celular</a>.<t
-                            t-if="programa_disponible"> Si ya compraste en D'CASA, tus puntos te están esperando.</t></p>
+                            t-if="programa_disponible"> Si ya compraste en Baby Caleb, tus puntos te están esperando.</t></p>
                     </div>
                 </div>
                 <div class="col-lg-7">
@@ -374,7 +374,7 @@
                     <div class="o_dcasa_socios_card">
                         <h2 class="h5">¿Ya eres socio?</h2>
                         <p t-if="canje_disponible">Entra con tu celular y tu PIN para pedir un premio. Si todavía no, regístrate: tus compras en
-                            D'CASA ya pueden estar sumando puntos.</p>
+                            Baby Caleb ya pueden estar sumando puntos.</p>
                         <p t-else="" t-out="no_disponible"/>
                         <a href="/socios" class="btn btn-primary w-100 o_dcasa_socios_btn_toque">Entrar</a>
                         <a href="/socios/registro" class="btn btn-outline-primary w-100 mt-2 o_dcasa_socios_btn_toque">Hazte socio</a>

@@ -1,47 +1,230 @@
-// Mi cuenta D'CASA (/mi-cuenta). Sistema plano de la marca: tarjetas blancas sobre hueso, el azul manda y el amarillo
-// SOLO va sobre azul (el saldo de puntos, el botón de premios, la sección activa de la barra). Móvil primero: letra de
-// 17 px, botones de 48 px, nada se sale del ancho de la pantalla.
+// Mi cuenta (/mi-cuenta) con la marca Baby Caleb (docs/MARCA_BABY_CALEB.md): fondo crema, tarjetas `surface` con filo
+// `line` y radio de 16 px, texto navy, botón principal en pastilla naranja con letra navy y el verde salvia de relleno
+// (la placa de puntos, la sección abierta de la barra). El naranja y el verde son RELLENO: nunca texto ni borde; para
+// texto en naranja va `accent-strong` y para bordes e íconos `accent-edge`. Montserrat para todo (la @font-face la
+// declara website_dcasa). Móvil primero: letra de 17 px, botones de 48 px, campos de 16 px y nada se sale de lado.
+//
+// Los colores van escritos aquí mismo, sin variables de website_dcasa: esta pantalla se ve igual aunque cambie el tema.
 
-$mc-azul: #1340B1;
-$mc-azul-osc: #0F3591;
-$mc-amarillo: #FED00F;
-$mc-navy: #0E2A6B;
-$mc-tinta: #1B2233;
-$mc-gris: #4A5163;      // 7.9:1 sobre blanco
-$mc-hueso: #F6F5F2;   // el hueso del sitio (v3, 2026-11-15; antes #F4F1EA)
-$mc-verde: #1E7B34;     // 5.4:1 sobre blanco
-$mc-rojo: #B42318;      // 6.0:1 sobre blanco
-$mc-borde: rgba($mc-azul, .12);
+$mc-bg: #F9F6ED;
+$mc-surface: #F2EFE5;
+$mc-fg: #1B3246;                    // 12.21 sobre bg · 11.47 sobre surface
+$mc-muted: rgba(27, 50, 70, .7);    // 4.95 sobre bg · 4.80 sobre surface
+$mc-line: rgba(27, 50, 70, .12);    // filos que separan
+$mc-control: rgba(27, 50, 70, .55); // borde de lo que se toca o se llena (3.26)
+$mc-accent: #EE924A;                // relleno: nunca texto ni borde
+$mc-accent-fg: #1B3246;             // lo que va encima del naranja (5.56)
+$mc-accent-strong: #985D2F;         // texto en naranja (4.90 · 4.60)
+$mc-accent-edge: #C3783D;           // bordes e íconos naranja (3.20 · 3.01)
+$mc-sage: #91C9A2;                  // relleno verde: nunca texto ni borde
+$mc-sage-strong: #53735C;           // texto verde (4.92 · 4.62)
+$mc-verde: #1E7B34;                 // estado «bien»: 4.93 sobre bg · 4.64 sobre surface
+$mc-rojo: #B42318;                  // estado «error»: 6.08 sobre bg · 5.71 sobre surface
+$mc-fuente: 'Montserrat', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+$mc-sombra: 0 4px 20px -2px rgba(27, 50, 70, .05);
+$mc-resplandor: 0 8px 24px -10px rgba($mc-accent, .7);   // el resplandor suave del naranja, pegado al botón
 $mc-barra-alto: 4.25rem;
 $mc-escritorio: 992px;
+
+@mixin mc-foco {
+    outline: 2px solid $mc-fg;
+    outline-offset: 2px;
+}
+
+@mixin mc-antetitulo {
+    font-family: $mc-fuente;
+    font-size: .75rem;
+    font-weight: 700;
+    letter-spacing: .14em;
+    line-height: 1.3;
+    text-transform: uppercase;
+}
+
+// El botón principal y el de contorno de la marca, con las variables de Bootstrap (así el hover, el activo y el
+// deshabilitado de Odoo salen con estos colores y no con los del tema).
+@mixin mc-btn-principal {
+    --bs-btn-color: #{$mc-accent-fg};
+    --bs-btn-bg: #{$mc-accent};
+    --bs-btn-border-color: transparent;
+    --bs-btn-hover-color: #{$mc-accent-fg};
+    --bs-btn-hover-bg: #{mix($mc-accent, $mc-bg, 90%)};
+    --bs-btn-hover-border-color: transparent;
+    --bs-btn-active-color: #{$mc-accent-fg};
+    --bs-btn-active-bg: #{$mc-accent};
+    --bs-btn-active-border-color: transparent;
+    --bs-btn-disabled-color: #{$mc-accent-fg};
+    --bs-btn-disabled-bg: #{$mc-accent};
+    --bs-btn-disabled-border-color: transparent;
+    color: $mc-accent-fg;
+    background-color: $mc-accent;
+    border-color: transparent;   // el naranja es relleno: nunca borde
+    border-radius: 999px;
+    font-family: $mc-fuente;
+    font-weight: 700;
+    text-transform: none;
+    letter-spacing: 0;
+    box-shadow: $mc-resplandor;
+
+    &:hover,
+    &:focus-visible,
+    &:active {
+        color: $mc-accent-fg;
+        background-color: mix($mc-accent, $mc-bg, 90%);
+        border-color: transparent;
+    }
+}
+
+@mixin mc-btn-contorno {
+    --bs-btn-color: #{$mc-accent-strong};
+    --bs-btn-bg: transparent;
+    --bs-btn-border-color: #{$mc-accent-edge};
+    --bs-btn-hover-color: #{$mc-accent-fg};
+    --bs-btn-hover-bg: #{$mc-accent};
+    --bs-btn-hover-border-color: #{$mc-accent-edge};
+    --bs-btn-active-color: #{$mc-accent-fg};
+    --bs-btn-active-bg: #{$mc-accent};
+    --bs-btn-active-border-color: #{$mc-accent-edge};
+    color: $mc-accent-strong;
+    background-color: transparent;
+    border: 1px solid $mc-accent-edge;
+    border-radius: 999px;
+    font-family: $mc-fuente;
+    font-weight: 700;
+    text-transform: none;
+    letter-spacing: 0;
+
+    &:hover,
+    &:focus-visible,
+    &:active {
+        color: $mc-accent-fg;
+        background-color: $mc-accent;
+        border-color: $mc-accent-edge;
+    }
+}
 
 // ---------------------------------------------------------------------------
 // Marco
 // ---------------------------------------------------------------------------
 
 .o_dcasa_mc {
-    background: $mc-hueso;
-    color: $mc-tinta;
+    background: $mc-bg;
+    color: $mc-fg;
+    font-family: $mc-fuente;
     font-size: 1.0625rem;
-    line-height: 1.5;
+    line-height: 1.6;
 
-    // Cabecera más baja que la de /socios: aquí se viene a ver lo propio, no la foto.
+    // La cabecera es la de website_dcasa (cabecera_pagina, la misma de /socios y las legales): aquí solo más baja,
+    // porque se viene a ver lo propio.
     .o_dcasa_cabecera_pagina .o_dcasa_hero_inner {
         padding-block: 1.25rem 1.75rem;
     }
 
     .o_dcasa_cabecera_pagina .o_dcasa_display {
-        font-size: clamp(2rem, 7vw, 3.25rem);
+        font-size: clamp(1.875rem, 6.5vw, 3rem);
         overflow-wrap: anywhere;
     }
 
-    // Enlaces dentro del texto: subrayados (el azul solo no basta, WCAG 1.4.1).
+    // Enlaces dentro del texto: subrayados (el color solo no basta, WCAG 1.4.1), en el naranja de texto.
     p a:not(.btn),
     li a:not(.btn):not(.o_dcasa_mc_compra),
     .o_dcasa_mc_volver {
-        color: $mc-azul;
+        color: $mc-accent-strong;
         text-decoration: underline;
         text-underline-offset: .15em;
+
+        &:hover {
+            color: $mc-fg;
+        }
+    }
+
+    a:focus-visible,
+    button:focus-visible,
+    summary:focus-visible,
+    .btn:focus-visible {
+        @include mc-foco;
+        box-shadow: none;
+    }
+
+    .btn {
+        font-family: $mc-fuente;
+        text-transform: none;
+        letter-spacing: 0;
+    }
+
+    .btn-primary {
+        @include mc-btn-principal;
+    }
+
+    .btn-outline-primary {
+        @include mc-btn-contorno;
+    }
+
+    .btn-link {
+        --bs-btn-color: #{$mc-accent-strong};
+        --bs-btn-hover-color: #{$mc-fg};
+        color: $mc-accent-strong;
+        font-weight: 700;
+        text-decoration: underline;
+        text-underline-offset: .15em;
+    }
+
+    // Campos: 16 px (el iPhone no hace zoom), 44 px o más de alto, radio de 14 px y el borde `control`.
+    .form-control,
+    .form-select {
+        min-height: 48px;
+        font-family: $mc-fuente;
+        font-size: 1rem;
+        color: $mc-fg;
+        background-color: $mc-bg;
+        border: 1px solid $mc-control;
+        border-radius: 14px;
+
+        &::placeholder {
+            color: $mc-muted;
+        }
+
+        &:focus {
+            border-color: $mc-fg;
+            box-shadow: none;
+            @include mc-foco;
+        }
+    }
+
+    label {
+        color: $mc-fg;
+    }
+
+    // Los avisos de Bootstrap con la paleta: crema y navy; los estados con su color medido sobre crema.
+    .alert {
+        --bs-alert-color: #{$mc-fg};
+        --bs-alert-bg: #{$mc-surface};
+        --bs-alert-border-color: #{$mc-line};
+        color: $mc-fg;
+        background-color: $mc-surface;
+        border: 1px solid $mc-line;
+        border-radius: 14px;
+    }
+
+    .alert-success {
+        --bs-alert-bg: #{rgba($mc-sage, .25)};
+        --bs-alert-border-color: #{$mc-sage-strong};
+        background-color: rgba($mc-sage, .25);
+        border-color: $mc-sage-strong;
+    }
+
+    .alert-warning {
+        --bs-alert-bg: #{rgba($mc-accent, .18)};
+        --bs-alert-border-color: #{$mc-accent-edge};
+        background-color: rgba($mc-accent, .18);
+        border-color: $mc-accent-edge;
+    }
+
+    .alert-danger {
+        --bs-alert-color: #{$mc-rojo};
+        --bs-alert-border-color: #{$mc-rojo};
+        color: $mc-rojo;
+        background-color: $mc-bg;
+        border-color: $mc-rojo;
     }
 }
 
@@ -67,7 +250,8 @@ $mc-escritorio: 992px;
 }
 
 // ---------------------------------------------------------------------------
-// Navegación: en el celular, barra fija abajo con icono y texto; en la computadora, columna izquierda.
+// Navegación: en el celular, barra fija abajo con icono y texto; en la computadora, columna izquierda. La sección
+// abierta va en una píldora verde salvia con letra navy (6.96).
 // ---------------------------------------------------------------------------
 
 .o_dcasa_mc_nav {
@@ -76,9 +260,11 @@ $mc-escritorio: 992px;
     z-index: 1031;   // sobre el contenido fijo de Odoo (1030), bajo el menú del celular (1045) y los modales
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    background: $mc-azul;
-    border-top: 1px solid rgba(#FFFFFF, .25);
-    padding-bottom: env(safe-area-inset-bottom);
+    gap: .25rem;
+    background: $mc-surface;
+    border-top: 1px solid $mc-line;
+    box-shadow: 0 -4px 20px -2px rgba(27, 50, 70, .08);
+    padding: .35rem .35rem calc(.35rem + env(safe-area-inset-bottom));
 
     @media (min-width: $mc-escritorio) {
         position: sticky;
@@ -86,10 +272,10 @@ $mc-escritorio: 992px;
         z-index: auto;
         display: flex;
         flex-direction: column;
-        gap: .25rem;
-        background: #FFFFFF;
-        border: 2px solid $mc-borde;
-        border-radius: 1rem;
+        background: $mc-surface;
+        border: 1px solid $mc-line;
+        border-radius: 16px;
+        box-shadow: $mc-sombra;
         padding: .5rem;
     }
 }
@@ -100,35 +286,35 @@ $mc-escritorio: 992px;
     align-items: center;
     justify-content: center;
     gap: .15rem;
-    min-height: $mc-barra-alto;
+    min-height: calc(#{$mc-barra-alto} - .7rem);
     padding: .35rem .25rem;
-    color: #FFFFFF;
+    border-radius: 14px;
+    color: $mc-fg;
     text-decoration: none;
-    font-family: 'Oswald', sans-serif;
-    font-size: .9375rem;
-    letter-spacing: .02em;
+    font-family: $mc-fuente;
+    font-size: .875rem;
+    font-weight: 600;
     line-height: 1.2;
     text-align: center;
 
     .fa {
-        font-size: 1.35rem;
+        font-size: 1.3rem;
     }
 
-    &:hover,
-    &:focus-visible {
-        color: $mc-amarillo;
-        background: $mc-azul-osc;
+    &:hover {
+        color: $mc-fg;
+        background: rgba($mc-fg, .06);
     }
 
-    // La sección abierta: amarillo sobre navy (nunca sobre blanco).
     &[aria-current='page'] {
-        color: $mc-amarillo;
-        background: $mc-navy;
+        color: $mc-fg;
+        background: $mc-sage;
+        font-weight: 700;
     }
 
     &:focus-visible {
-        outline: 3px solid #FFFFFF;
-        outline-offset: -3px;
+        @include mc-foco;
+        outline-offset: -2px;
     }
 
     @media (min-width: $mc-escritorio) {
@@ -137,31 +323,13 @@ $mc-escritorio: 992px;
         gap: .75rem;
         min-height: 3rem;
         padding: .5rem 1rem;
-        border-radius: .75rem;
-        color: $mc-azul;
-        font-size: 1.05rem;
-        text-transform: uppercase;
+        font-size: 1rem;
         text-align: left;
 
         .fa {
             width: 1.5rem;
             font-size: 1.15rem;
             text-align: center;
-        }
-
-        &:hover,
-        &:focus-visible {
-            color: $mc-navy;
-            background: rgba($mc-azul, .08);
-        }
-
-        &[aria-current='page'] {
-            color: #FFFFFF;
-            background: $mc-azul;
-        }
-
-        &:focus-visible {
-            outline-color: $mc-navy;
         }
     }
 }
@@ -189,9 +357,10 @@ $mc-escritorio: 992px;
 .o_dcasa_mc_tarjeta,
 .o_dcasa_mc_pendiente,
 .o_dcasa_mc_estado {
-    background: #FFFFFF;
-    border: 2px solid $mc-borde;
-    border-radius: 1rem;
+    background: $mc-surface;
+    border: 1px solid $mc-line;
+    border-radius: 16px;
+    box-shadow: $mc-sombra;
     padding: 1.25rem;
 
     @media (min-width: 576px) {
@@ -200,57 +369,54 @@ $mc-escritorio: 992px;
 }
 
 .o_dcasa_mc_pendiente {
-    border-color: rgba($mc-azul, .4);
+    border-color: $mc-accent-edge;
 }
 
+// Titulares: Montserrat 700, como frase (nunca en caja alta).
 .o_dcasa_mc_h2 {
-    font-family: 'Oswald', sans-serif;
-    font-size: 1.35rem;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: .02em;
-    color: $mc-navy;
+    font-family: $mc-fuente;
+    font-size: 1.375rem;
+    font-weight: 700;
+    letter-spacing: -.03em;
+    line-height: 1.15;
+    text-transform: none;
+    color: $mc-fg;
     margin-bottom: .75rem;
 }
 
 .o_dcasa_mc_h3 {
-    font-family: 'Oswald', sans-serif;
-    font-size: 1.1rem;
-    font-weight: 500;
-    text-transform: uppercase;
-    color: $mc-navy;
+    font-family: $mc-fuente;
+    font-size: 1.125rem;
+    font-weight: 700;
+    letter-spacing: -.02em;
+    line-height: 1.2;
+    text-transform: none;
+    color: $mc-fg;
     margin: 1.25rem 0 .5rem;
 }
 
+// Antetítulo: 12 px, 700, caja alta y .14em, en el naranja de texto.
 .o_dcasa_mc_kicker {
-    font-family: 'Oswald', sans-serif;
-    font-size: 1rem;
-    font-weight: 500;
-    letter-spacing: .06em;
-    text-transform: uppercase;
-    color: $mc-gris;
+    @include mc-antetitulo;
+    color: $mc-accent-strong;
     margin-bottom: .5rem;
 }
 
-.o_dcasa_mc_cuantas {
-    color: $mc-gris;
-    font-size: 1rem;
-}
-
+.o_dcasa_mc_cuantas,
 .o_dcasa_mc_nota {
-    color: $mc-gris;
+    color: $mc-muted;
     font-size: 1rem;
 }
 
 .o_dcasa_mc_mensaje {
     font-weight: 600;
-    color: $mc-navy;
+    color: $mc-fg;
 }
 
 .o_dcasa_mc_vacio {
-    background: #FFFFFF;
-    border: 2px dashed $mc-borde;
-    border-radius: 1rem;
+    background: $mc-surface;
+    border: 2px dashed rgba($mc-fg, .2);
+    border-radius: 16px;
     padding: 1.25rem;
 }
 
@@ -259,7 +425,9 @@ $mc-escritorio: 992px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.05rem;
+    padding-inline: 1.5rem;
+    border-radius: 999px;
+    font-size: 1rem;
     text-align: center;
 }
 
@@ -272,7 +440,7 @@ $mc-escritorio: 992px;
 }
 
 .o_dcasa_mc_aviso {
-    border-radius: .75rem;
+    border-radius: 14px;
 }
 
 // ---------------------------------------------------------------------------
@@ -280,30 +448,34 @@ $mc-escritorio: 992px;
 // ---------------------------------------------------------------------------
 
 .o_dcasa_mc_falta {
-    font-family: 'Oswald', sans-serif;
-    font-size: 1.15rem;
-    color: $mc-navy;
+    font-family: $mc-fuente;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: $mc-fg;
     margin-bottom: .5rem;
 
     strong {
         display: block;
-        font-family: 'Anton', 'Oswald', sans-serif;
-        font-weight: 400;
-        font-size: clamp(2.5rem, 11vw, 3.5rem);
-        line-height: 1.05;
-        color: $mc-azul;
+        font-family: $mc-fuente;
+        font-weight: 700;
+        font-size: clamp(2.25rem, 10vw, 3.25rem);
+        letter-spacing: -.03em;
+        line-height: 1.1;
+        color: $mc-accent-strong;   // monto destacado: el naranja de texto
         overflow-wrap: anywhere;
     }
 }
 
 .o_dcasa_mc_pagada {
-    font-family: 'Oswald', sans-serif;
-    font-size: 1.35rem;
-    text-transform: uppercase;
+    font-family: $mc-fuente;
+    font-size: 1.375rem;
+    font-weight: 700;
+    letter-spacing: -.02em;
+    text-transform: none;
     color: $mc-verde;
 }
 
-// Barra de pago: <progress> nativo, plano (pista azul clara, avance azul).
+// Barra de pago: <progress> nativo, plano: pista navy muy clara y avance en el naranja de relleno.
 .o_dcasa_mc_barra {
     appearance: none;
     -webkit-appearance: none;
@@ -312,42 +484,42 @@ $mc-escritorio: 992px;
     height: .875rem;
     border: 0;
     border-radius: 999px;
-    background: rgba($mc-azul, .14);
-    color: $mc-azul;
+    background: rgba($mc-fg, .1);
+    color: $mc-accent-edge;   // el avance en los navegadores que pintan la barra con `color`
     overflow: hidden;
     margin: .5rem 0 .35rem;
 
     &::-webkit-progress-bar {
-        background: rgba($mc-azul, .14);
+        background: rgba($mc-fg, .1);
         border-radius: 999px;
     }
 
     &::-webkit-progress-value {
-        background: $mc-azul;
+        background: $mc-accent;
         border-radius: 999px;
     }
 
     &::-moz-progress-bar {
-        background: $mc-azul;
+        background: $mc-accent;
         border-radius: 999px;
     }
 }
 
-// Dentro de la placa azul: pista blanca translúcida, avance amarillo (amarillo sobre azul).
+// Dentro de la placa verde de puntos: pista crema translúcida y avance navy.
 .o_dcasa_mc_barra_azul {
-    background: rgba(#FFFFFF, .25);
-    color: $mc-amarillo;
+    background: rgba($mc-bg, .55);
+    color: $mc-fg;
 
     &::-webkit-progress-bar {
-        background: rgba(#FFFFFF, .25);
+        background: rgba($mc-bg, .55);
     }
 
     &::-webkit-progress-value {
-        background: $mc-amarillo;
+        background: $mc-fg;
     }
 
     &::-moz-progress-bar {
-        background: $mc-amarillo;
+        background: $mc-fg;
     }
 }
 
@@ -390,7 +562,7 @@ $mc-escritorio: 992px;
     text-align: center;
     font-size: .9375rem;
     line-height: 1.25;
-    color: $mc-gris;
+    color: $mc-muted;
     overflow-wrap: anywhere;
 
     // La raya que une un punto con el anterior.
@@ -401,7 +573,8 @@ $mc-escritorio: 992px;
         left: calc(-50% + 1rem);
         right: calc(50% + 1rem);
         height: 3px;
-        background: rgba($mc-azul, .18);
+        border-radius: 999px;
+        background: rgba($mc-fg, .15);
     }
 
     &:first-child::before {
@@ -409,46 +582,49 @@ $mc-escritorio: 992px;
     }
 }
 
+// El punto que falta lleva el borde `control` (3.26): se distingue del fondo aunque no esté lleno.
 .o_dcasa_mc_paso_punto {
     position: relative;
     z-index: 1;
     width: 1.75rem;
     height: 1.75rem;
     border-radius: 50%;
-    border: 3px solid rgba($mc-azul, .3);
-    background: #FFFFFF;
-    color: #FFFFFF;
+    border: 2px solid $mc-control;
+    background: $mc-bg;
+    color: $mc-accent-fg;
     font-size: .8rem;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
+// Lo hecho: punto naranja con la palomita navy (5.56) y la raya en el filo naranja.
 .o_dcasa_mc_paso_hecho {
-    color: $mc-navy;
+    color: $mc-fg;
 
     &::before {
-        background: $mc-azul;
+        background: $mc-accent-edge;
     }
 
     .o_dcasa_mc_paso_punto {
-        background: $mc-azul;
-        border-color: $mc-azul;
+        background: $mc-accent;
+        border-color: $mc-accent-edge;
     }
 }
 
 .o_dcasa_mc_paso_actual {
-    color: $mc-navy;
+    color: $mc-fg;
     font-weight: 700;
 
     .o_dcasa_mc_paso_punto {
-        border-color: $mc-azul;
-        outline: 3px solid rgba($mc-azul, .18);
+        border-color: $mc-accent-edge;
+        box-shadow: 0 0 0 3px rgba($mc-accent, .3);   // el halo de «en curso» (relleno, no borde)
     }
 }
 
 // ---------------------------------------------------------------------------
-// Tarjetas de compra
+// Tarjetas de compra (como las tarjetas de artículo de Baby Caleb: surface, filo `line`, radio 16 y, al pasar, el filo
+// naranja)
 // ---------------------------------------------------------------------------
 
 .o_dcasa_mc_lista {
@@ -464,40 +640,41 @@ $mc-escritorio: 992px;
     align-items: center;
     gap: .875rem;
     min-height: 48px;
-    background: #FFFFFF;
-    border: 2px solid $mc-borde;
-    border-radius: 1rem;
+    background: $mc-surface;
+    border: 1px solid $mc-line;
+    border-radius: 16px;
+    box-shadow: $mc-sombra;
     padding: .875rem;
-    color: $mc-tinta;
+    color: $mc-fg;
     text-decoration: none;
+    transition: border-color .3s ease, transform .3s ease;
 
-    &:hover,
-    &:focus-visible {
-        color: $mc-tinta;
-        border-color: $mc-azul;
+    &:hover {
+        color: $mc-fg;
+        border-color: $mc-accent-edge;
     }
 
     &:focus-visible {
-        outline: 3px solid $mc-navy;
-        outline-offset: 2px;
+        color: $mc-fg;
+        @include mc-foco;
     }
 }
 
 .o_dcasa_mc_compra_alerta {
-    border-color: rgba($mc-azul, .45);
+    border-color: $mc-accent-edge;
 }
 
 .o_dcasa_mc_compra_cancelada {
-    background: rgba(#FFFFFF, .6);
+    background: $mc-bg;
 }
 
 .o_dcasa_mc_foto {
     flex: 0 0 auto;
     width: 4.5rem;
     height: 4.5rem;
-    border-radius: .75rem;
-    background: rgba($mc-azul, .08);
-    color: $mc-azul;
+    border-radius: 12px;
+    background: $mc-bg;
+    color: $mc-sage-strong;
     font-size: 1.75rem;
     display: flex;
     align-items: center;
@@ -507,7 +684,7 @@ $mc-escritorio: 992px;
     img {
         width: 100%;
         height: 100%;
-        object-fit: cover;
+        object-fit: contain;
         display: block;
     }
 }
@@ -528,52 +705,56 @@ $mc-escritorio: 992px;
     small {
         font-weight: 400;
         font-size: 1rem;
-        color: $mc-gris;
+        color: $mc-muted;
     }
 }
 
 .o_dcasa_mc_compra_meta,
 .o_dcasa_mc_compra_total {
-    color: $mc-gris;
+    color: $mc-muted;
     font-size: 1rem;
 }
 
 .o_dcasa_mc_compra_total strong {
-    color: $mc-tinta;
+    color: $mc-fg;
 }
 
 .o_dcasa_mc_compra_flecha {
     flex: 0 0 auto;
-    color: $mc-azul;
+    color: $mc-accent-edge;
 }
 
 .o_dcasa_mc_compra_pago {
     padding: .25rem .875rem 0;
 }
 
+// Insignias: pastilla de 12 px, 700, en caja alta, verde salvia claro con letra navy (como las de Baby Caleb).
 .o_dcasa_mc_etiqueta {
     display: inline-block;
-    padding: .15rem .65rem;
+    padding: .25rem .75rem;
     border-radius: 999px;
-    font-size: .9375rem;
-    font-weight: 600;
+    font-size: .75rem;
+    font-weight: 700;
+    letter-spacing: .08em;
     line-height: 1.4;
-    background: rgba($mc-tinta, .08);
-    color: $mc-tinta;
+    text-transform: uppercase;
+    background: rgba($mc-fg, .07);
+    color: $mc-fg;
 }
 
+// Lo que pide algo (falta pagar): el naranja de relleno con letra navy.
 .o_dcasa_mc_etiqueta_alerta {
-    background: $mc-azul;
-    color: #FFFFFF;
+    background: $mc-accent;
+    color: $mc-accent-fg;
 }
 
 .o_dcasa_mc_etiqueta_ok {
-    background: rgba($mc-azul, .1);
-    color: $mc-navy;
+    background: rgba($mc-sage, .3);
+    color: $mc-fg;
 }
 
 .o_dcasa_mc_etiqueta_cancelada {
-    color: $mc-gris;
+    color: $mc-muted;
 }
 
 // Detalle: foto, nombre y estado arriba.
@@ -588,14 +769,15 @@ $mc-escritorio: 992px;
     }
 
     .o_dcasa_mc_h2 {
-        text-transform: none;
         font-size: 1.25rem;
         overflow-wrap: anywhere;
 
         small {
-            font-family: 'Inter', sans-serif;
+            font-family: $mc-fuente;
+            font-weight: 400;
+            letter-spacing: 0;
             font-size: 1rem;
-            color: $mc-gris;
+            color: $mc-muted;
         }
     }
 }
@@ -617,7 +799,7 @@ $mc-escritorio: 992px;
         align-items: flex-start;
         gap: 1rem;
         padding: .75rem 0;
-        border-bottom: 1px solid rgba($mc-azul, .1);
+        border-bottom: 1px solid $mc-line;
 
         > :first-child {
             min-width: 0;
@@ -655,7 +837,7 @@ $mc-escritorio: 992px;
 
     dt {
         font-weight: 400;
-        color: $mc-gris;
+        color: $mc-muted;
     }
 
     dd {
@@ -666,13 +848,13 @@ $mc-escritorio: 992px;
 }
 
 .o_dcasa_mc_cuentas_saldo {
-    border-top: 2px solid rgba($mc-azul, .15);
+    border-top: 2px solid rgba($mc-fg, .15);
     margin-top: .25rem;
     padding-top: .6rem !important;
 
     dt,
     dd {
-        color: $mc-navy;
+        color: $mc-fg;
         font-weight: 700;
         font-size: 1.1rem;
     }
@@ -683,13 +865,13 @@ $mc-escritorio: 992px;
 
     > div {
         padding: .6rem 0;
-        border-bottom: 1px solid rgba($mc-azul, .1);
+        border-bottom: 1px solid $mc-line;
     }
 
     dt {
         font-weight: 400;
         font-size: 1rem;
-        color: $mc-gris;
+        color: $mc-muted;
     }
 
     dd {
@@ -712,45 +894,55 @@ $mc-escritorio: 992px;
 }
 
 // ---------------------------------------------------------------------------
-// Puntos: la placa azul (el amarillo solo aquí dentro)
+// Puntos: la placa verde salvia con todo en navy (6.96), como la banda verde de la web de Baby Caleb
 // ---------------------------------------------------------------------------
 
 .o_dcasa_mc_puntos {
-    background: $mc-azul;
-    color: #FFFFFF;
-    border-radius: 1rem;
+    background: $mc-sage;
+    color: $mc-fg;
+    border-radius: 24px;
     padding: 1.5rem;
     margin-bottom: 1.5rem;
 
     .o_dcasa_mc_kicker {
-        color: rgba(#FFFFFF, .88);
+        color: $mc-fg;   // el naranja de texto no llega a AA sobre el verde (2.81): navy
     }
 
     p a:not(.btn) {
-        color: #FFFFFF;
+        color: $mc-fg;
+    }
+
+    a:focus-visible,
+    .btn:focus-visible {
+        outline-color: $mc-fg;
     }
 }
 
 .o_dcasa_mc_puntos_n {
-    font-family: 'Anton', 'Oswald', sans-serif;
+    font-family: $mc-fuente;
+    font-weight: 700;
     font-size: clamp(3rem, 14vw, 4.5rem);
+    letter-spacing: -.03em;
     line-height: 1;
-    color: $mc-amarillo;
+    color: $mc-fg;
     margin: .25rem 0 .5rem;
 }
 
 .o_dcasa_mc_puntos_activa {
-    font-family: 'Anton', 'Oswald', sans-serif;
-    font-size: 2rem;
-    line-height: 1.1;
-    text-transform: uppercase;
-    color: $mc-amarillo;
+    font-family: $mc-fuente;
+    font-weight: 700;
+    font-size: 1.75rem;
+    letter-spacing: -.03em;
+    line-height: 1.15;
+    text-transform: none;
+    color: $mc-fg;
 }
 
 .o_dcasa_mc_puntos .o_dcasa_mc_codigo_claro {
-    font-family: 'Oswald', sans-serif;
+    font-family: $mc-fuente;
+    font-weight: 700;
     letter-spacing: .12em;
-    color: $mc-amarillo;
+    color: $mc-fg;
 }
 
 .o_dcasa_mc_puntos_ctas {
@@ -763,38 +955,29 @@ $mc-escritorio: 992px;
     }
 }
 
+// «Ver premios», «Activar mis puntos»: el botón principal (naranja con letra navy) sobre la placa verde.
 .o_dcasa_mc_btn_amarillo {
-    background: $mc-amarillo;
-    color: $mc-navy;
+    @include mc-btn-principal;
+    box-shadow: none;
     border: 0;
-    font-family: 'Oswald', sans-serif;
-    text-transform: uppercase;
-    letter-spacing: .04em;
-
-    &:hover,
-    &:focus-visible {
-        background: #FFFFFF;
-        color: $mc-azul;
-    }
-
-    &:focus-visible {
-        outline: 3px solid #FFFFFF;
-        outline-offset: 2px;
-    }
 }
 
+// «Invitar a un amigo»: contorno navy sobre el verde (6.96).
 .o_dcasa_mc_btn_claro {
     background: transparent;
-    color: #FFFFFF;
-    border: 2px solid rgba(#FFFFFF, .8);
-    font-family: 'Oswald', sans-serif;
-    text-transform: uppercase;
-    letter-spacing: .04em;
+    color: $mc-fg;
+    border: 1px solid $mc-fg;
+    border-radius: 999px;
+    font-family: $mc-fuente;
+    font-weight: 700;
+    text-transform: none;
+    letter-spacing: 0;
 
     &:hover,
     &:focus-visible {
-        background: #FFFFFF;
-        color: $mc-azul;
+        background: rgba($mc-bg, .5);
+        color: $mc-fg;
+        border-color: $mc-fg;
     }
 }
 
@@ -803,8 +986,8 @@ $mc-escritorio: 992px;
     justify-content: space-between;
     align-items: center;
     gap: 1rem;
-    border: 1px solid rgba($mc-azul, .15);
-    border-radius: .75rem;
+    border: 1px solid $mc-line;
+    border-radius: 14px;
     padding: 1rem;
 
     & + & {
@@ -839,8 +1022,8 @@ $mc-escritorio: 992px;
         align-items: center;
         min-height: 48px;
         cursor: pointer;
-        color: $mc-azul;
-        font-weight: 600;
+        color: $mc-accent-strong;
+        font-weight: 700;
     }
 
     img {
@@ -848,6 +1031,7 @@ $mc-escritorio: 992px;
         margin: .5rem auto 0;
         max-width: 100%;
         height: auto;
+        border-radius: 14px;
     }
 }
 
@@ -867,83 +1051,59 @@ $mc-escritorio: 992px;
     .btn {
         white-space: normal;
     }
+
+    label {
+        display: block;
+        font-weight: 600;
+        margin: .85rem 0 .3rem;
+    }
 }
 
 // ---------------------------------------------------------------------------
-// Páginas de Odoo que siguen en /my (detalle del pedido y de la factura, direcciones, seguridad): el «secundario» del
-// tema es el amarillo y ahí cae sobre blanco («Volver a pedir», «Pagar ahora», «Descartar», la etiqueta de devolución,
-// el indicador de carga). Se vuelve azul: el amarillo nunca toca el blanco.
+// Páginas de Odoo que siguen en /my (detalle del pedido y de la factura, direcciones, seguridad): sus botones y avisos
+// del «secundario» del tema salen con la marca Baby Caleb, escrita aquí (no dependen de la paleta del tema): el
+// secundario es la pastilla de contorno; los rellenos, verde salvia con letra navy.
 // ---------------------------------------------------------------------------
 
 #wrapwrap.o_portal {
-    .btn-secondary {
-        --bs-btn-color: #FFFFFF;
-        --bs-btn-bg: #{$mc-azul};
-        --bs-btn-border-color: #{$mc-azul};
-        --bs-btn-hover-color: #FFFFFF;
-        --bs-btn-hover-bg: #{$mc-navy};
-        --bs-btn-hover-border-color: #{$mc-navy};
-        --bs-btn-active-color: #FFFFFF;
-        --bs-btn-active-bg: #{$mc-navy};
-        --bs-btn-active-border-color: #{$mc-navy};
-        --bs-btn-disabled-color: #FFFFFF;
-        --bs-btn-disabled-bg: #{$mc-azul};
-        --bs-btn-disabled-border-color: #{$mc-azul};
-        color: #FFFFFF;
-        background-color: $mc-azul;
-        border-color: $mc-azul;
-
-        &:hover,
-        &:focus-visible,
-        &:active {
-            color: #FFFFFF;
-            background-color: $mc-navy;
-            border-color: $mc-navy;
-        }
-    }
-
+    .btn-secondary,
     .btn-outline-secondary {
-        --bs-btn-color: #{$mc-azul};
-        --bs-btn-border-color: #{$mc-azul};
-        --bs-btn-hover-color: #FFFFFF;
-        --bs-btn-hover-bg: #{$mc-azul};
-        --bs-btn-hover-border-color: #{$mc-azul};
-        color: $mc-azul;
-        border-color: $mc-azul;
+        @include mc-btn-contorno;
     }
 
     .text-o-color-2,
     .text-secondary {
-        color: $mc-azul !important;
+        color: $mc-accent-strong !important;
     }
 
     .text-bg-secondary,
     .bg-secondary {
-        background-color: $mc-azul !important;
-        color: #FFFFFF !important;
+        background-color: $mc-sage !important;
+        color: $mc-fg !important;
     }
 
     .alert-secondary {
-        --bs-alert-color: #{$mc-navy};
-        --bs-alert-bg: #{rgba($mc-azul, .08)};
-        --bs-alert-border-color: #{rgba($mc-azul, .25)};
-        color: $mc-navy;
-        background-color: rgba($mc-azul, .08);
-        border-color: rgba($mc-azul, .25);
+        --bs-alert-color: #{$mc-fg};
+        --bs-alert-bg: #{$mc-surface};
+        --bs-alert-border-color: #{$mc-line};
+        color: $mc-fg;
+        background-color: $mc-surface;
+        border-color: $mc-line;
     }
 }
 
 // ---------------------------------------------------------------------------
 // Tus opiniones (lote 2 de la web): elegir de 1 a 5 estrellas con el dedo (48 px) o el teclado (radios de verdad).
-// Las estrellas en el ámbar de las de Google, como en la ficha; nunca el amarillo de marca sobre blanco.
+// Las estrellas en el ámbar de las de Google, como en la ficha.
 // ---------------------------------------------------------------------------
 $mc-estrella: #F5B300;
 $mc-estrella-vacia: #D5D0C4;
 
 .o_dcasa_mc_opinar {
-    background: #FFFFFF;
-    border: 2px solid $mc-borde;
-    border-radius: 1rem;
+    background: $mc-surface;
+    border: 1px solid $mc-line;
+    border-radius: 16px;
+    box-shadow: $mc-sombra;
     padding: 1.25rem;
     margin-bottom: 1rem;
 }
@@ -958,7 +1118,7 @@ $mc-estrella-vacia: #D5D0C4;
 .o_dcasa_mc_opinar_nombre {
     font-size: 1.0625rem;
     font-weight: 700;
-    color: $mc-navy;
+    color: $mc-fg;
     margin: 0;
     overflow-wrap: anywhere;
 }
@@ -972,7 +1132,7 @@ $mc-estrella-vacia: #D5D0C4;
 .o_dcasa_mc_elegir_titulo {
     display: block;
     font-weight: 600;
-    color: $mc-tinta;
+    color: $mc-fg;
     margin-bottom: .35rem;
     float: none;
     width: auto;
@@ -999,7 +1159,7 @@ $mc-estrella-vacia: #D5D0C4;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: .5rem;
+    border-radius: 12px;
     cursor: pointer;
 
     svg {
@@ -1017,8 +1177,7 @@ $mc-estrella-vacia: #D5D0C4;
 }
 
 .o_dcasa_mc_elegir_radio:focus-visible + .o_dcasa_mc_elegir_estrella {
-    outline: 3px solid $mc-azul;
-    outline-offset: 2px;
+    @include mc-foco;
 }
 
 .o_dcasa_mc_opinar_texto {
@@ -1027,9 +1186,9 @@ $mc-estrella-vacia: #D5D0C4;
 }
 
 .o_dcasa_mc_enviada {
-    background: #FFFFFF;
-    border: 2px solid $mc-borde;
-    border-radius: 1rem;
+    background: $mc-surface;
+    border: 1px solid $mc-line;
+    border-radius: 16px;
     padding: 1rem 1.25rem;
 
     .o_dcasa_estrellas {
@@ -1045,7 +1204,7 @@ $mc-estrella-vacia: #D5D0C4;
     justify-content: space-between;
     gap: .35rem .75rem;
     margin-bottom: .35rem;
-    color: $mc-navy;
+    color: $mc-fg;
 }
 
 .o_dcasa_mc_enviada_texto {
@@ -1055,10 +1214,10 @@ $mc-estrella-vacia: #D5D0C4;
 }
 
 .o_dcasa_mc_opinion_aprobada {
-    background: rgba($mc-verde, .1);
-    color: $mc-verde;
+    background: rgba($mc-sage, .3);
+    color: $mc-fg;
 }
 
 .o_dcasa_mc_opinion_rechazada {
-    color: $mc-gris;
+    color: $mc-muted;
 }

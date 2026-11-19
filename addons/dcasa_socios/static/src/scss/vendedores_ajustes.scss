@@ -1,15 +1,18 @@
-// Ajustes › Programa de vendedores (pantalla de Gerencia y bloque dentro de Ajustes).
-// Sistema plano de la marca: sin degradados ni sombras; azul para lo importante, rojo apagado para lo que no deja
-// guardar. Pocas reglas, solo para que la escalera y el resumen de costo se lean bien en computador y en celular.
+// Ajustes › Programa de vendedores (pantalla de Gerencia y bloque dentro de Ajustes), con la marca Baby Caleb del panel
+// (docs/MARCA_BABY_CALEB.md): crema y navy, el filo naranja para lo importante (`accent-edge`, 3.20: es borde, nunca
+// texto), radio de 14 px y el rojo de los estados para lo que no deja guardar (medido sobre su fondo: 8.2). Pocas
+// reglas, solo para que la escalera y el resumen de costo se lean bien en computador y en celular. Los colores van
+// escritos aquí, sin depender de la paleta del panel.
 
-$dcasa-vend-azul: #1340B1;
-$dcasa-vend-navy: #0E1A33;
-$dcasa-vend-fondo: #F4F6FA;
-$dcasa-vend-borde: #E2E7F0;
-$dcasa-vend-texto-suave: #44506A;
+$dcasa-vend-acento: #C3783D;                     // accent-edge: borde e íconos naranja
+$dcasa-vend-navy: #1B3246;                       // fg
+$dcasa-vend-fondo: #F2EFE5;                      // surface
+$dcasa-vend-borde: rgba(27, 50, 70, .12);        // line
+$dcasa-vend-texto-suave: rgba(27, 50, 70, .7);   // muted: 4.80 sobre surface · 5.14 sobre blanco
 $dcasa-vend-rojo: #8A1C14;
 $dcasa-vend-rojo-fondo: #FDEDEC;
 $dcasa-vend-rojo-borde: #F1C0BC;
+$dcasa-vend-radio: 14px;
 
 // Las cajas anchas (el resumen y la escalera) ocupan todo el ancho; los textos y el motivo, todo el ancho de su caja.
 .o_setting_box.o_dcasa_vend_ancho {
@@ -28,8 +31,8 @@ $dcasa-vend-rojo-borde: #F1C0BC;
 .o_dcasa_vend_resumen {
     background: $dcasa-vend-fondo;
     border: 1px solid $dcasa-vend-borde;
-    border-left: 4px solid $dcasa-vend-azul;
-    border-radius: 4px;
+    border-left: 4px solid $dcasa-vend-acento;
+    border-radius: $dcasa-vend-radio;
     color: $dcasa-vend-navy;
     padding: .75rem 1rem;
     width: 100%;
@@ -51,7 +54,7 @@ $dcasa-vend-rojo-borde: #F1C0BC;
 .o_dcasa_vend_problemas {
     background: $dcasa-vend-rojo-fondo;
     border: 1px solid $dcasa-vend-rojo-borde;
-    border-radius: 4px;
+    border-radius: $dcasa-vend-radio;
     color: $dcasa-vend-rojo;
     margin-bottom: .75rem;
     padding: .5rem .75rem;

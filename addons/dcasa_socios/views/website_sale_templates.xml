@@ -13,7 +13,7 @@
                 <div class="o_dcasa_carrito_puntos_placa">
                     <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
                         <div>
-                            <p class="o_dcasa_kicker mb-1">Socios D'CASA</p>
+                            <p class="o_dcasa_kicker mb-1">Socios Baby Caleb</p>
                             <h2 id="dcasa_puntos_titulo" class="h5 mb-0">
                                 <t t-if="dcasa_premio_aplicado">Tu premio está aplicado</t>
                                 <t t-else="">Usar mis puntos</t>
@@ -30,11 +30,11 @@
                             <strong t-out="dcasa_premio_aplicado.premio_nombre"/>:
                             <t t-out="dcasa_fmt_dolares(0 - int(round(dcasa_premio_aplicado.valor * 100)))"/>
                             con <t t-out="dcasa_fmt_puntos(dcasa_premio_aplicado.puntos)"/> puntos
-                            (código <span class="o_dcasa_socios_codigo text-white" t-out="dcasa_premio_aplicado.codigo"/>).
+                            (código <span class="o_dcasa_socios_codigo" t-out="dcasa_premio_aplicado.codigo"/>).
                         </p>
                         <form action="/socios/carrito/quitar" method="post">
                             <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
-                            <button type="submit" class="btn btn-outline-light o_dcasa_socios_btn_toque">Quitar el premio y recuperar mis puntos</button>
+                            <button type="submit" class="btn o_dcasa_carrito_btn_placa o_dcasa_socios_btn_toque">Quitar el premio y recuperar mis puntos</button>
                         </form>
                     </t>
                     <t t-elif="dcasa_saldo &lt; dcasa_minimo">
@@ -68,7 +68,7 @@
                                     <input id="dcasa_puntos_libres" name="puntos" type="number" inputmode="numeric" class="form-control"
                                            t-att-min="dcasa_minimo" t-att-max="dcasa_puntos_libres_max" step="1"
                                            t-att-value="dcasa_puntos_libres_max" required="required"/>
-                                    <button type="submit" class="btn btn-outline-light o_dcasa_socios_btn_toque">Aplicar</button>
+                                    <button type="submit" class="btn o_dcasa_carrito_btn_placa o_dcasa_socios_btn_toque">Aplicar</button>
                                 </div>
                             </form>
                         </t>
@@ -76,13 +76,13 @@
                 </div>
             </t>
             <div t-elif="dcasa_socio_pin" class="o_dcasa_carrito_puntos_nota">
-                <p class="o_dcasa_kicker mb-1">Socios D'CASA</p>
+                <p class="o_dcasa_kicker mb-1">Socios Baby Caleb</p>
                 <p class="mb-0">Tienes <strong t-out="dcasa_fmt_puntos(dcasa_socio_pin.dcasa_saldo)"/> puntos. Para usarlos en esta
                     compra <a t-attf-href="/web/login?redirect=/shop/cart">entra con tu cuenta de la tienda</a> (el mismo celular), o
                     <a href="/socios/premios">pide un premio</a> y díctanos el código al coordinar tu pedido.</p>
             </div>
             <div t-else="" class="o_dcasa_carrito_puntos_nota">
-                <p class="o_dcasa_kicker mb-1">Socios D'CASA</p>
+                <p class="o_dcasa_kicker mb-1">Socios Baby Caleb</p>
                 <p class="mb-0">¿Eres socio? <a t-attf-href="/web/login?redirect=/shop/cart">Entra con tu cuenta de la tienda</a>
                     para usar tus puntos en esta compra. Esta compra suma puntos cuando quede pagada.
                     <a href="/socios">Más sobre el programa</a>.</p>
