@@ -1,8 +1,12 @@
 """Comprobante de pago (G4): el PDF con la marca, claro, y su envío por correo respetando el interruptor."""
 import ast
+import re
 from datetime import date
 from unittest.mock import patch
 
+from lxml import html as lxml_html
+
+from odoo.addons.dcasa_invoice.tests import marca
 from odoo.exceptions import AccessError, UserError
 from odoo.tests import new_test_user, tagged
 
@@ -55,6 +59,36 @@ class TestComprobante(NominaCommon):
         self.assertIn('362.75', html)          # 512.75 − 150 de la cuota
         self.assertIn('150.00', html)          # lo que le queda después de esta quincena
         self.assertNotIn('BORRADOR', html)
+
+    def test_el_comprobante_dice_el_nombre_de_la_empresa_y_no_el_de_dcasa(self):
+        planilla = self._planilla_lista()
+        html = self._html(self._linea(planilla, self.ana))
+        cuerpo = lxml_html.fromstring(html).xpath("//div[contains(@class, 'o_dcasa_comprobante')]")[0].text_content()
+        texto = ' '.join(cuerpo.split())
+        self.assertIn(f'los paga {self.company.name} a nombre tuyo', texto)
+        self.assertIn(f'Por {self.company.name}', texto)
+        self.assertNotIn("D'CASA", texto)
+
+    def test_la_hoja_del_comprobante_es_la_de_baby_caleb(self):
+        """El neto en navy sobre el relleno naranja y el borrador en una tarjeta crema con el filo naranja: nada del
+        azul de D'CASA y el naranja nunca de letra (docs/MARCA_BABY_CALEB.md)."""
+        hoja = marca.css_de_los_informes(self, '/dcasa_nomina/static/src/scss/comprobante.scss')
+        marca.sin_rastro_de_dcasa(self, hoja, 'comprobante.scss')
+        self.assertEqual(marca.letra_de_relleno(hoja), [])
+        plano = hoja.lower().replace(' ', '')
+        neto = re.search(r'\.o_dcasa_comprobante\.o_dcasa_comprobante_netotd\{([^}]*)\}', plano)
+        self.assertTrue(neto, 'no encontré el estilo del neto')
+        self.assertIn(f'background-color:#{marca.NARANJA}', neto.group(1))
+        self.assertIn(f'color:#{marca.NAVY}', neto.group(1))
+
+    def test_el_correo_del_comprobante_lleva_la_marca(self):
+        planilla = self._planilla_lista()
+        cuerpo = str(self._linea(planilla, self.ana)._cuerpo_correo_comprobante())
+        arbol = marca.correo_con_la_marca(self, cuerpo, 'correo del comprobante')
+        (titular,) = arbol.iter('h1')
+        self.assertEqual(titular.text_content(), 'Tu comprobante de pago')
+        self.assertIn(f'color:#{marca.NAVY}', marca.estilo(titular))
+        self.assertNotIn('text-transform', marca.estilo(titular), 'el titular, como frase')
 
     def test_el_comprobante_de_una_planilla_sin_confirmar_dice_borrador(self):
         planilla = self._planilla_lista(confirmar=False)

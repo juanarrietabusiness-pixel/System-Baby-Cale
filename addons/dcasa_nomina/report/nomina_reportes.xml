@@ -99,12 +99,12 @@
                             <tr><td>Recibes</td><td class="text-end" t-out="o.neto" t-options="{'widget': 'monetary', 'display_currency': moneda}"/></tr>
                         </table>
                         <p class="o_dcasa_comprobante_nota mt-3">
-                            Los descuentos de seguro social, seguro educativo e impuesto sobre la renta los paga D'CASA a
-                            nombre tuyo. ¿Dudas con tu pago? Pregúntale a la administración.
+                            Los descuentos de seguro social, seguro educativo e impuesto sobre la renta los paga
+                            <t t-out="o.company_id.name"/> a nombre tuyo. ¿Dudas con tu pago? Pregúntale a la administración.
                         </p>
                         <div class="row o_dcasa_comprobante_firmas">
                             <div class="col-6"><div class="o_dcasa_comprobante_linea"/>Recibí conforme</div>
-                            <div class="col-6"><div class="o_dcasa_comprobante_linea"/>Por D'CASA</div>
+                            <div class="col-6"><div class="o_dcasa_comprobante_linea"/>Por <t t-out="o.company_id.name"/></div>
                         </div>
                     </div>
                 </t>

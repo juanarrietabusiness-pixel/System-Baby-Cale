@@ -14,7 +14,11 @@ from odoo.exceptions import AccessError, UserError
 from odoo.tools import email_normalize, format_date
 
 GRUPO = 'dcasa_nomina.group_nomina'
-AZUL = '#1340B1'
+# Marca Baby Caleb (docs/MARCA_BABY_CALEB.md): letra navy; lo secundario en navy al 70 % (ya mezclado con el blanco).
+TINTA = '#1B3246'
+TINTA_SUAVE = '#5F707E'
+# Montserrat si el cliente de correo la tiene; si no, Arial o Helvetica (en un correo no se cargan fuentes).
+LETRA = "Montserrat,Arial,Helvetica,sans-serif"
 
 
 class DcasaNominaLinea(models.Model):
@@ -47,13 +51,13 @@ class DcasaNominaLinea(models.Model):
             pago=format_date(self.env, planilla.fecha_pago, date_format='dd/MM/yyyy'), neto=neto)
         empresa = self.company_id.name or ''
         return Markup(
-            '<div style="font-family:Inter,Arial,Helvetica,sans-serif;font-size:15px;line-height:1.5;color:#1B2233;'
-            'max-width:560px;">'
-            '<h1 style="margin:0 0 12px 0;font-family:Anton,Impact,Arial,sans-serif;font-weight:normal;font-size:24px;'
-            'text-transform:uppercase;color:%s;">%s</h1><p style="margin:0 0 12px 0;">%s</p>'
-            '<p style="margin:0;color:#6B6B6B;font-size:13px;">%s · %s</p></div>'
-        ) % (AZUL, escape(self.env._('Tu comprobante de pago')), escape(texto), escape(empresa),
-             escape(self.env._('Este correo es personal: no lo reenvíes.')))
+            '<div style="font-family:%(letra)s;font-size:16px;line-height:1.6;color:%(tinta)s;max-width:560px;">'
+            '<h1 style="margin:0 0 12px 0;font-family:%(letra)s;font-weight:bold;font-size:24px;line-height:1.15;'
+            'letter-spacing:-0.5px;color:%(tinta)s;">%(titulo)s</h1><p style="margin:0 0 12px 0;">%(texto)s</p>'
+            '<p style="margin:0;color:%(suave)s;font-size:13px;">%(empresa)s · %(aviso)s</p></div>'
+        ) % {'letra': Markup(LETRA), 'tinta': Markup(TINTA), 'suave': Markup(TINTA_SUAVE),
+             'titulo': escape(self.env._('Tu comprobante de pago')), 'texto': escape(texto), 'empresa': escape(empresa),
+             'aviso': escape(self.env._('Este correo es personal: no lo reenvíes.'))}
 
     def action_enviar_comprobante(self):
         """Botón «Enviar» de la línea: su comprobante a su correo."""

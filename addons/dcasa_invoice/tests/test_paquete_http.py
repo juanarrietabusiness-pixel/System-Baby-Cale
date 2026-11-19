@@ -236,7 +236,8 @@ class TestPaquetePdfDeVerdad(PaqueteHttpComun):
             factura, ['cliente', 'copia', 'entrega'])
         self.assertTrue(contenido.startswith(b'%PDF'))
         self.assertEqual(nombre, f"Documentos-{factura.name.replace('/', '-')}.pdf")
-        self.assertIn(b'Anton', contenido, 'salió con los estilos de D\'CASA (wkhtmltopdf cargó el CSS)')
+        self.assertIn(b'Montserrat', contenido, 'salió con la letra de la marca (wkhtmltopdf cargó el CSS)')
+        self.assertNotIn(b'Anton', contenido, 'ni rastro de la letra de D\'CASA')
         flujos = self._paginas(contenido)
         self.assertEqual(len(flujos), 3, 'la nota de entrega, la factura y su copia')
         self.assertEqual([tiene_la_cinta(flujo) for flujo in flujos], [False, False, True],

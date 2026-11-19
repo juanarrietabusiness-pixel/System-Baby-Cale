@@ -4,8 +4,11 @@ OFX y CAMT)."""
 import base64
 from datetime import date
 
+from lxml import html as lxml_html
+
 from odoo.addons.dcasa_contabilidad.controllers.main import _filas_planas, libro_excel
 from odoo.addons.dcasa_contabilidad.wizard.importar_extracto import leer_camt, leer_csv, leer_ofx
+from odoo.addons.dcasa_invoice.tests import marca
 from odoo.exceptions import AccessError, UserError
 from odoo.tests import new_test_user, tagged
 
@@ -300,6 +303,48 @@ class TestFase1(ContabilidadCommon):
             textos = archivo.read('xl/sharedStrings.xml').decode()
         self.assertNotIn('<f>', hoja)
         self.assertIn('=HYPERLINK', textos)
+
+    def test_el_excel_lleva_la_marca_de_baby_caleb(self):
+        """El título en navy y la cabecera de la tabla en el relleno verde con la letra navy (6.96): nada del azul de
+        D'CASA ni letra blanca."""
+        import io  # noqa: PLC0415
+        import zipfile  # noqa: PLC0415
+        self._factura(50.0)
+        datos = self.reportes.obtener('balance_comprobacion', DESDE, HASTA)
+        with zipfile.ZipFile(io.BytesIO(libro_excel(datos))) as archivo:
+            estilos = archivo.read('xl/styles.xml').decode().upper()
+        self.assertIn('FF91C9A2', estilos, 'la cabecera en el verde salvia')
+        self.assertIn('FF1B3246', estilos, 'la letra en navy')
+        self.assertNotIn('FF1340B1', estilos, "nada del azul de D'CASA")
+        self.assertNotIn('<COLOR RGB="FFFFFFFF"/>', estilos, 'nada de letra blanca')
+
+    def test_los_reportes_en_pdf_llevan_la_marca_de_baby_caleb(self):
+        """La hoja del reporte (sus estilos van dentro del HTML): letra navy y de 12 px (el piso de la marca), la
+        cabecera en el relleno verde con la letra navy, los totales con el filete naranja y nada de D'CASA."""
+        self._factura(100.0)
+        for reporte in ('balance_comprobacion', 'estado_resultados'):
+            html, _formato = self.env['ir.actions.report']._render_qweb_html(
+                'dcasa_contabilidad.reporte_contable', self.company.ids,
+                data={'reporte': reporte, 'desde': DESDE, 'hasta': HASTA})
+            (hoja,) = lxml_html.fromstring(html.decode()).xpath("//div[contains(@class, 'o_dcasa_reporte_pdf')]/style")
+            css = hoja.text.lower().replace(' ', '')
+            with self.subTest(reporte=reporte):
+                marca.sin_rastro_de_dcasa(self, css, reporte)
+                self.assertEqual(marca.letra_de_relleno(css), [])
+                self.assertIn(f'.o_dcasa_reporte_pdf{{font-size:12px;color:#{marca.NAVY};}}', css)
+                self.assertIn(f'background:#{marca.SALVIA};color:#{marca.NAVY}!important', css)
+                self.assertIn(f'.o_dcasa_reporte_pdf.tottd{{font-weight:700;border-top:2pxsolid#{marca.NARANJA};}}',
+                              css)
+
+    def test_el_cheque_lleva_la_letra_y_los_colores_de_baby_caleb(self):
+        """El cheque (sin el papel de la empresa, con sus estilos en línea): Montserrat y navy, el talón con la
+        cabecera verde y la letra navy; nada del azul ni de Inter de D'CASA."""
+        vista = self.env.ref('dcasa_contabilidad.cheque')
+        arch = vista.arch_db
+        marca.sin_rastro_de_dcasa(self, arch, 'cheque.xml')
+        self.assertEqual(marca.letra_de_relleno(arch), [])
+        self.assertIn("font-family: 'DCASA Montserrat', Montserrat, Arial, Helvetica, sans-serif", arch)
+        self.assertIn('<tr style="background: #91C9A2; color: #1B3246;">', arch)
 
     # ------------------------------------------------------------------
     # Resumen de la dueña

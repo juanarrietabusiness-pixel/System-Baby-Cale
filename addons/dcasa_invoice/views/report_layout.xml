@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Formato de documentos D'CASA (hoja carta).
-         Cabecera: la placa a la izquierda, datos de la empresa a la derecha y la banda
-         «azul arriba, amarillo abajo» como separador.
+    <!-- Formato de documentos de la empresa (hoja carta), con la marca Baby Caleb (docs/MARCA_BABY_CALEB.md; los
+         colores y la letra viven en static/src/scss/report_dcasa.scss).
+         Cabecera: el logo a la izquierda, datos de la empresa a la derecha y el filete naranja
+         como separador.
          Cuerpo: título del documento y, debajo, la rejilla Cliente | Entrega | Datos que
          cada reporte arma en la variable «address» (si un reporte trae además un
          «information_block», se imprime a su lado).

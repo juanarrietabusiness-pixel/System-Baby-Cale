@@ -2,7 +2,7 @@
 <odoo>
     <!-- El código QR de uso INTERNO de un documento: el equipo lo escanea y se abre ese documento en el sistema.
          No lleva datos del cliente (solo la dirección corta del documento) y no se ofrece al cliente: por eso no tiene
-         invitación, solo la nota «Uso interno». Plano, azul/navy sobre blanco, al final del documento.
+         invitación, solo la nota «Uso interno». Plano, navy sobre blanco, al final del documento.
          Variable: registro (factura, cotización, compra o entrega). Si el documento no debe llevarlo (interruptor de
          la empresa apagado, factura en borrador), no se imprime NADA. -->
     <template id="dcasa_qr_documento" name="D'CASA: código QR de uso interno">
@@ -23,14 +23,16 @@
                 <meta name="viewport" content="width=device-width, initial-scale=1"/>
                 <meta name="robots" content="noindex"/>
                 <title t-out="titulo"/>
+                <!-- Marca Baby Caleb (docs/MARCA_BABY_CALEB.md): crema y navy, Montserrat, el filete naranja arriba y el
+                     botón en pastilla naranja con la letra navy (5.56). -->
                 <style>
-                    @font-face { font-family: 'DCASA Anton'; src: url('/dcasa_invoice/static/src/fonts/Anton-Regular.ttf') format('truetype'); }
-                    @font-face { font-family: 'DCASA Inter'; font-weight: 400; src: url('/dcasa_invoice/static/src/fonts/Inter-Regular.ttf') format('truetype'); }
-                    body { margin: 0; background: #FFFFFF; color: #0B2A6F; font-family: 'DCASA Inter', 'Helvetica Neue', Arial, sans-serif; border-top: 8px solid #1340B1; }
-                    main { max-width: 32rem; margin: 0 auto; padding: 3.5rem 1.25rem; }
-                    h1 { margin: 0 0 1rem; color: #1340B1; font-family: 'DCASA Anton', Impact, sans-serif; font-weight: 400; font-size: 2rem; text-transform: uppercase; letter-spacing: .02em; }
-                    p { font-size: 1.05rem; line-height: 1.5; margin: 0 0 1.5rem; }
-                    a { display: inline-block; padding: .75rem 1.4rem; background: #1340B1; color: #FFFFFF; font-weight: 700; text-decoration: none; }
+                    @font-face { font-family: 'DCASA Montserrat'; font-weight: 100 900; font-display: swap; src: url('/dcasa_base/static/src/fonts/montserrat-latin-var.woff2') format('woff2'); }
+                    body { margin: 0; background: #F9F6ED; color: #1B3246; font-family: 'DCASA Montserrat', Montserrat, Arial, Helvetica, sans-serif; border-top: 6px solid #EE924A; }
+                    main { max-width: 32rem; margin: 0 auto; padding: 3.5rem 16px; }
+                    h1 { margin: 0 0 1rem; color: #1B3246; font-weight: 700; font-size: 2rem; line-height: 1.15; letter-spacing: -0.03em; }
+                    p { font-size: 1.05rem; line-height: 1.6; margin: 0 0 1.5rem; }
+                    a { display: inline-block; min-height: 44px; box-sizing: border-box; padding: .8rem 1.6rem; border-radius: 999px; background: #EE924A; color: #1B3246; font-weight: 700; text-decoration: none; }
+                    a:focus-visible { outline: 2px solid #1B3246; outline-offset: 2px; }
                 </style>
             </head>
             <body>

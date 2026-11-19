@@ -75,6 +75,10 @@ def sin_referencia(descripcion, referencia):
 # (medido: una fila de un renglón mide 20 a escala 1, 15,4 a 0,7 y 13,4 a 0,6). Las letras por renglón son las de la
 # columna más angosta (la copia de la empresa, que lleva además la referencia interna; caben unas 72) y en mayúsculas,
 # que es como se escriben los muebles.
+# Con Montserrat (la letra de Baby Caleb, 2026-11-19) cada letra es más ancha que con la de antes: un 6 % en las
+# mayúsculas normales y un 5 % en el texto de las condiciones, medido con los anchos de sus TTF. En los muebles las 60
+# letras siguen del lado seguro (caben unas 68); en las condiciones no está anotado cuánto sobraba, así que se achica
+# en la misma proporción: de 115 a 109.
 ALTO_DISPONIBLE = 600
 ALTO_FIJO = 205
 ALTO_ENCABEZADO_TABLA = (8, 10)
@@ -84,7 +88,7 @@ LETRAS_POR_RENGLON_MUEBLE = 60
 ALTO_TITULO_CONDICIONES = 16
 ALTO_ENTRE_CONDICIONES = 2
 ALTO_RENGLON_CONDICION = 12
-LETRAS_POR_RENGLON_CONDICION = 115
+LETRAS_POR_RENGLON_CONDICION = 109
 # Solo se achica la tabla de los muebles (las condiciones, los totales y las firmas siempre en su tamaño). Más chica que
 # esto ya no se lee bien: en vez de achicarla más, la lista se corta y la última fila dice cuántos muebles más hay
 # (están todos en la factura, que va en la hoja de al lado).

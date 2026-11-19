@@ -136,8 +136,9 @@ comprobante con «cuota 2 de 4» y lo que le queda por pagar). Reglas:
 
 ## Comprobante de pago (G4, 2026-10-22)
 
-En la planilla, cada colaborador tiene **«Comprobante»** (PDF con la marca D'CASA: datos de la persona y del periodo,
-ingresos y descuentos uno por uno, los adelantos con su saldo, **«Recibes»** en una franja azul y las firmas) y
+En la planilla, cada colaborador tiene **«Comprobante»** (PDF con la marca de la empresa: datos de la persona y del periodo,
+ingresos y descuentos uno por uno, los adelantos con su saldo, **«Recibes»** en una franja naranja con la letra navy y las
+firmas) y
 **«Enviar»** (por correo). Arriba, **«Enviar comprobantes por correo»** los manda a todos. El de una planilla sin
 confirmar sale con la marca **BORRADOR** y no se envía.
 

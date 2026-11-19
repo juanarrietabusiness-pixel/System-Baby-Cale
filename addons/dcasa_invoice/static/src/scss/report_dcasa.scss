@@ -1,50 +1,51 @@
-// Formato de documentos D'CASA — tokens del ADN (01_brand_guidelines.md §3).
-// Regla dura: el amarillo nunca toca el blanco sin el azul de por medio.
-// Sistema plano: sin degradados ni sombras.
-$dcasa-azul: #1340B1;
-$dcasa-amarillo: #FED00F;
-$dcasa-navy: #0B2A6F;
-$dcasa-grafito: #3A3A3A;
-$dcasa-gris: #6B6B6B;
-$dcasa-linea: #D9DEEA;
-$dcasa-fondo: #F3F5FA;
+// Formato de documentos con la marca Baby Caleb (docs/MARCA_BABY_CALEB.md, «Documentos y correos»).
+// * El texto va en navy; lo secundario, en navy al 70 % (muted, ya mezclado con el blanco del papel: 5.12).
+// * El naranja y el verde son RELLENO y FILETE (rayas, bandas, el total, las píldoras): nunca letra. Lo que va encima
+//   de un relleno se escribe en navy (5.56 sobre naranja, 6.96 sobre verde).
+// * El papel es blanco (se imprime); el crema y la superficie se usan en bloques suaves, no de fondo de la hoja.
+// * Montserrat en todo, sin caja alta en los títulos. Plano: sin degradados ni sombras.
+// * Nada del azul ni del amarillo de D'CASA.
+$dcasa-tinta: #1B3246;          // fg
+$dcasa-tinta-suave: #5F707E;    // muted sobre blanco (rgba(27, 50, 70, .7) ya mezclado): 5.12
+$dcasa-linea: #E4E6E9;          // line sobre blanco (rgba(27, 50, 70, .12))
+$dcasa-control: #828E99;        // control sobre blanco (rgba(27, 50, 70, .55)): 3.34, lo que se llena a mano
+$dcasa-crema: #F9F6ED;          // bg
+$dcasa-superficie: #F2EFE5;     // surface
+$dcasa-naranja: #EE924A;        // accent: relleno y filete
+$dcasa-naranja-filo: #C3783D;   // accent-edge: borde naranja que tiene que verse (3.46 sobre blanco)
+$dcasa-salvia: #91C9A2;         // sage: relleno y filete
+$dcasa-salvia-filo: #6A9376;    // sage-edge: borde verde que tiene que verse (3.47 sobre blanco)
 
-// Tipografía de marca, alojada en el módulo (sin Google): wkhtmltopdf no sale a internet.
-// Inter en el cuerpo; Anton en el título; Oswald (la trae Odoo) en subtítulos y columnas.
+// Montserrat alojada en dcasa_base, en TTF fijos (wkhtmltopdf no lee woff2 ni fuentes variables y no sale a internet).
+// QtWebKit elige entre normal (400) y negrita (700); 500 y 600 los usa el HTML del informe en el navegador.
 @font-face {
-    font-family: 'DCASA Inter';
+    font-family: 'DCASA Montserrat';
     font-weight: 400;
-    src: url('/dcasa_invoice/static/src/fonts/Inter-Regular.ttf') format('truetype');
+    src: url('/dcasa_base/static/src/fonts/Montserrat-Regular.ttf') format('truetype');
 }
 @font-face {
-    font-family: 'DCASA Inter';
+    font-family: 'DCASA Montserrat';
+    font-weight: 500;
+    src: url('/dcasa_base/static/src/fonts/Montserrat-Medium.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'DCASA Montserrat';
     font-weight: 600;
-    src: url('/dcasa_invoice/static/src/fonts/Inter-SemiBold.ttf') format('truetype');
+    src: url('/dcasa_base/static/src/fonts/Montserrat-SemiBold.ttf') format('truetype');
 }
 @font-face {
-    font-family: 'DCASA Inter';
+    font-family: 'DCASA Montserrat';
     font-weight: 700;
-    src: url('/dcasa_invoice/static/src/fonts/Inter-Bold.ttf') format('truetype');
-}
-@font-face {
-    font-family: 'DCASA Anton';
-    font-weight: 400;
-    src: url('/dcasa_invoice/static/src/fonts/Anton-Regular.ttf') format('truetype');
-}
-@font-face {
-    font-family: 'DCASA Oswald';
-    font-weight: 600;
-    src: url('/web/static/fonts/google/Oswald/Oswald-SemiBold.ttf') format('truetype');
+    src: url('/dcasa_base/static/src/fonts/Montserrat-Bold.ttf') format('truetype');
 }
 
-$dcasa-cuerpo: 'DCASA Inter', 'Inter', 'Helvetica Neue', Arial, sans-serif;
-$dcasa-titular: 'DCASA Anton', 'Anton', 'Oswald', Impact, sans-serif;
-$dcasa-subtitulo: 'DCASA Oswald', 'Oswald', 'Arial Narrow', sans-serif;
+$dcasa-letra: 'DCASA Montserrat', 'Montserrat', Arial, Helvetica, sans-serif;
 
 .o_dcasa_header.header,
 .o_report_layout_dcasa.article,
 .o_dcasa_footer.footer {
-    font-family: $dcasa-cuerpo;
+    font-family: $dcasa-letra;
+    color: $dcasa-tinta;
 }
 
 // ---------------------------------------------------------------------------
@@ -56,21 +57,23 @@ $dcasa-subtitulo: 'DCASA Oswald', 'Oswald', 'Arial Narrow', sans-serif;
         max-width: 190px;
     }
     .o_dcasa_company {
-        color: $dcasa-grafito;
+        color: $dcasa-tinta-suave;
         font-size: 0.8rem;
-        line-height: 1.35;
+        line-height: 1.4;
         li.fw-bold {
-            color: $dcasa-azul;
+            color: $dcasa-tinta;
             font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: -0.01em;
         }
     }
-    // "Azul arriba, amarillo abajo": la banda de la placa como separador.
+    // El filete naranja de la marca como separador: una pastilla larga, plana.
     .o_dcasa_band {
-        margin-top: 6px;
-        height: 11px;
-        border-top: 4px solid $dcasa-azul;
-        border-bottom: 2px solid $dcasa-azul;  // el amarillo, siempre entre azul
-        background-color: $dcasa-amarillo;
+        margin-top: 8px;
+        height: 5px;
+        border: 0;
+        border-radius: 999px;
+        background-color: $dcasa-naranja;
     }
 }
 
@@ -78,42 +81,45 @@ $dcasa-subtitulo: 'DCASA Oswald', 'Oswald', 'Arial Narrow', sans-serif;
 // Cuerpo
 // ---------------------------------------------------------------------------
 .o_report_layout_dcasa {
-    color: $dcasa-grafito;
+    color: $dcasa-tinta;
     font-size: 0.86rem;
 
+    // Titulares de la marca: Montserrat 700, como frase (nunca en caja alta).
     .o_dcasa_title,
     h2 {
-        color: $dcasa-azul;
-        font-family: $dcasa-titular;
-        font-weight: 400;
-        font-size: 1.7rem;
-        text-transform: uppercase;
-        letter-spacing: .02em;
+        color: $dcasa-tinta;
+        font-family: $dcasa-letra;
+        font-weight: 700;
+        font-size: 1.6rem;
+        line-height: 1.15;
+        letter-spacing: -0.03em;
+        text-transform: none;
         margin: 0 0 10px;
     }
 
     // Rejilla Cliente | Entrega | Datos
     .o_dcasa_rejilla {
         .o_dcasa_celda {
-            border-top: 2px solid $dcasa-azul;
+            border-top: 2px solid $dcasa-naranja;
             padding-top: 6px;
             min-height: 1px;
         }
     }
+    // Antetítulo: 12 px, 700, caja alta y espaciado .14em (en navy: es letra sobre el papel).
     .o_dcasa_bloque_titulo {
-        font-family: $dcasa-subtitulo;
-        font-weight: 600;
+        font-family: $dcasa-letra;
+        font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: .06em;
-        font-size: .72rem;
-        color: $dcasa-azul;
+        letter-spacing: .14em;
+        font-size: .75rem;
+        color: $dcasa-tinta;
         margin-bottom: 2px;
     }
     .o_dcasa_cliente {
         line-height: 1.35;
         .o_dcasa_cliente_nombre {
             font-weight: 700;
-            color: $dcasa-navy;
+            color: $dcasa-tinta;
         }
     }
     .o_dcasa_tabla_datos {
@@ -126,12 +132,12 @@ $dcasa-subtitulo: 'DCASA Oswald', 'Oswald', 'Arial Narrow', sans-serif;
             background: none !important;
         }
         th {
-            font-family: $dcasa-subtitulo;
-            font-weight: 600;
+            font-family: $dcasa-letra;
+            font-weight: 700;
             text-transform: uppercase;
             letter-spacing: .04em;
-            font-size: .7rem;
-            color: $dcasa-azul;
+            font-size: .75rem;
+            color: $dcasa-tinta-suave;
             padding: 1px 8px 1px 0;
             white-space: nowrap;
             vertical-align: top;
@@ -143,16 +149,34 @@ $dcasa-subtitulo: 'DCASA Oswald', 'Oswald', 'Arial Narrow', sans-serif;
         }
     }
 
-    // Tabla de líneas
+    // Odoo pone una raya casi negra bajo toda cabecera de tabla y sobre los totales (report_tables.scss,
+    // «o_table_standard»): aquí la cabecera ya lleva su filete naranja y los totales separan con el canto de la marca.
+    &.o_table_standard table:not(.o_ignore_layout_styling) thead {
+        border-bottom: 0;
+    }
+    &.o_table_standard .o_total_table:not(.o_ignore_layout_styling),
+    &.o_table_standard .o_total_table:not(.o_ignore_layout_styling) .o_total {
+        border-top: 1px solid $dcasa-linea;
+    }
+
+    // Las rayas entre filas de cualquier tabla de Bootstrap (planilla, liquidación…): el canto suave de la marca, no el
+    // gris casi negro que Odoo le da a los informes.
+    .table {
+        --bs-table-border-color: #{$dcasa-linea};
+        --bs-border-color: #{$dcasa-linea};
+        border-color: $dcasa-linea;
+    }
+
+    // Tabla de líneas: la cabecera en navy con el filete naranja debajo.
     table.o_main_table thead th,
     table thead th {
-        color: $dcasa-azul;
-        font-family: $dcasa-subtitulo;
-        font-weight: 600;
+        color: $dcasa-tinta;
+        font-family: $dcasa-letra;
+        font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: .03em;
-        font-size: .74rem;
-        border-bottom: 2px solid $dcasa-azul;
+        letter-spacing: .04em;
+        font-size: .75rem;
+        border-bottom: 2px solid $dcasa-naranja;
         vertical-align: bottom;
     }
     table.o_main_table tbody td {
@@ -163,32 +187,35 @@ $dcasa-subtitulo: 'DCASA Oswald', 'Oswald', 'Arial Narrow', sans-serif;
     .o_dcasa_td_codigo {
         width: 1%;
         white-space: nowrap;
-        color: $dcasa-gris;
+        color: $dcasa-tinta-suave;
         font-size: .8rem;
     }
+    // Píldora: relleno verde con la letra navy (6.96), en caja alta de 12 px.
     .o_dcasa_etiqueta {
         display: inline-block;
         margin-left: 6px;
-        padding: 0 6px;
-        font-family: $dcasa-subtitulo;
-        font-size: .68rem;
+        padding: 0 8px;
+        border-radius: 999px;
+        font-family: $dcasa-letra;
+        font-weight: 700;
+        font-size: .75rem;
         text-transform: uppercase;
         letter-spacing: .04em;
-        color: #FFFFFF;
-        background-color: $dcasa-azul;
+        color: $dcasa-tinta;
+        background-color: $dcasa-salvia;
     }
-    // Flete y servicios: su bloque, con el título en azul sobre fondo claro.
+    // Flete y servicios: su bloque, con el título en navy sobre la superficie crema y el filete naranja.
     .o_dcasa_servicios {
         .o_dcasa_servicios_titulo td {
             padding-top: 8px;
-            font-family: $dcasa-subtitulo;
-            font-weight: 600;
+            font-family: $dcasa-letra;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: .05em;
-            font-size: .74rem;
-            color: $dcasa-azul;
-            background-color: $dcasa-fondo;
-            border-bottom: 1px solid $dcasa-azul;
+            letter-spacing: .04em;
+            font-size: .75rem;
+            color: $dcasa-tinta;
+            background-color: $dcasa-superficie;
+            border-bottom: 1px solid $dcasa-naranja;
         }
     }
 
@@ -197,75 +224,79 @@ $dcasa-subtitulo: 'DCASA Oswald', 'Oswald', 'Arial Narrow', sans-serif;
         margin-top: 1rem !important;
     }
 
-    // Totales: el total en azul con texto blanco. Se fuerza en los hijos porque Odoo pinta
-    // el importe con el color primario de la empresa (azul sobre azul).
+    // Totales: el total sobre el relleno naranja con la letra navy (5.56). Se fuerza en los hijos porque Odoo pinta
+    // el importe con el color primario de la empresa.
     .o_total_table td {
         padding: 3px 10px;
     }
     #total .o_total td,
     .o_total td {
-        background-color: $dcasa-azul;
-        color: #FFFFFF;
+        background-color: $dcasa-naranja;
+        color: $dcasa-tinta;
+        font-weight: 700;
         padding: 6px 10px;
 
         * {
-            color: #FFFFFF !important;
+            color: $dcasa-tinta !important;
         }
     }
     .o_dcasa_descuento td,
     .o_dcasa_abono td,
     .o_dcasa_pagado td {
-        color: $dcasa-gris;
+        color: $dcasa-tinta-suave;
         font-size: .82rem;
     }
     .o_dcasa_por_pagar td {
-        color: $dcasa-navy;
-        border-top: 1px solid $dcasa-azul;
+        color: $dcasa-tinta;
+        border-top: 1px solid $dcasa-naranja;
     }
 
-    // ABONO: lo que le falta pagar al cliente, en grande, bajo los totales. Azul y navy sobre blanco (nunca
-    // amarillo sobre blanco), plano: un marco azul, sin fondo de color ni sombra.
+    // ABONO: lo que le falta pagar al cliente, en grande, bajo los totales. Una tarjeta de la marca: superficie crema,
+    // filo naranja y radio de 16 px; la letra en navy. Plana, sin sombra.
     .o_dcasa_saldo {
         margin: 4px 0 8px;
-        padding: 8px 12px;
-        border: 2px solid $dcasa-azul;
-        background-color: #FFFFFF;
+        padding: 8px 14px;
+        border: 2px solid $dcasa-naranja;
+        border-radius: 16px;
+        background-color: $dcasa-superficie;
         text-align: right;
         line-height: 1.2;
 
         .o_dcasa_saldo_titulo {
-            font-family: $dcasa-subtitulo;
-            font-weight: 600;
-            letter-spacing: .06em;
-            font-size: .8rem;
-            color: $dcasa-azul;
+            font-family: $dcasa-letra;
+            font-weight: 700;
+            letter-spacing: .14em;
+            font-size: .75rem;
+            color: $dcasa-tinta;
         }
         .o_dcasa_saldo_monto {
-            font-family: $dcasa-titular;
+            font-family: $dcasa-letra;
+            font-weight: 700;
             font-size: 2rem;
             line-height: 1.15;
-            color: $dcasa-navy;
+            letter-spacing: -0.03em;
+            color: $dcasa-tinta;
         }
         .o_dcasa_saldo_detalle {
             font-size: .82rem;
-            color: $dcasa-grafito;
+            color: $dcasa-tinta;
         }
         .o_dcasa_saldo_vencido {
             margin-top: 4px;
             padding-top: 4px;
             border-top: 1px solid $dcasa-linea;
             font-size: .8rem;
-            font-weight: 600;
-            color: $dcasa-navy;
+            font-weight: 700;
+            color: $dcasa-tinta;
         }
     }
 
-    // Etiquetas de fecha/origen: Odoo usa el color secundario (amarillo);
-    // el amarillo nunca va sobre blanco.
+    // Etiquetas de fecha/origen: Odoo las pinta con el color secundario de la empresa (el naranja), que no se lee como
+    // letra (2.37 sobre blanco): van en navy.
     #informations strong,
     #informations .fw-bold,
     strong {
-        color: $dcasa-azul !important;
+        color: $dcasa-tinta !important;
     }
 
     // Lo que acompaña a los totales por la izquierda (pago, socios, factura electrónica, términos):
@@ -280,41 +311,43 @@ $dcasa-subtitulo: 'DCASA Oswald', 'Oswald', 'Arial Narrow', sans-serif;
         margin-top: 0 !important;
     }
 
-    // Cómo se pagó: una línea sobria (sin sello de goma de imitación).
+    // Cómo se pagó: una línea sobria con el filete naranja (sin sello de goma de imitación).
     .o_dcasa_pago {
         margin: 12px 0 8px;
         padding: 6px 12px;
-        border-left: 4px solid $dcasa-azul;
-        color: $dcasa-grafito;
+        border-left: 4px solid $dcasa-naranja;
+        color: $dcasa-tinta;
         font-size: .86rem;
 
         strong {
-            color: $dcasa-azul;
+            color: $dcasa-tinta;
         }
     }
 
-    // Programa de socios (el contenido lo pone dcasa_socios).
+    // Programa de socios (el contenido lo pone dcasa_socios): superficie crema con el filete verde.
     .o_dcasa_socios_factura {
         margin: 8px 0;
         padding: 8px 12px;
-        border-left: 6px solid $dcasa-azul;
-        background-color: $dcasa-fondo;
-        color: $dcasa-grafito;
+        border-left: 6px solid $dcasa-salvia;
+        border-radius: 0 16px 16px 0;
+        background-color: $dcasa-superficie;
+        color: $dcasa-tinta;
         font-size: .84rem;
         line-height: 1.4;
 
         .o_dcasa_socios_titulo {
-            font-family: $dcasa-subtitulo;
-            font-weight: 600;
+            font-family: $dcasa-letra;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: .05em;
-            color: $dcasa-azul;
+            letter-spacing: .14em;
+            font-size: .75rem;
+            color: $dcasa-tinta;
         }
         .o_dcasa_socios_codigo {
-            font-family: $dcasa-subtitulo;
-            font-weight: 600;
+            font-family: $dcasa-letra;
+            font-weight: 700;
             font-size: 1.05rem;
-            color: $dcasa-navy;
+            color: $dcasa-tinta;
             letter-spacing: .06em;
         }
     }
@@ -332,17 +365,18 @@ $dcasa-subtitulo: 'DCASA Oswald', 'Oswald', 'Arial Narrow', sans-serif;
         padding-top: 8px;
         border-top: 1px solid $dcasa-linea;
         font-size: .76rem;
-        line-height: 1.35;
-        color: $dcasa-gris;
+        line-height: 1.4;
+        color: $dcasa-tinta-suave;
 
         .o_dcasa_legal {
             margin-bottom: 4px;
             strong {
-                color: $dcasa-azul;
-                font-family: $dcasa-subtitulo;
+                color: $dcasa-tinta;
+                font-family: $dcasa-letra;
+                font-weight: 700;
                 text-transform: uppercase;
                 letter-spacing: .04em;
-                font-size: .72rem;
+                font-size: .75rem;
                 margin-right: 6px;
             }
         }
@@ -351,46 +385,55 @@ $dcasa-subtitulo: 'DCASA Oswald', 'Oswald', 'Arial Narrow', sans-serif;
     .o_dcasa_en_letras {
         margin-bottom: 4px;
     }
+
+    // Los enlaces (términos, portal) en navy y subrayados: el azul de Bootstrap no es de la marca.
+    a {
+        color: $dcasa-tinta;
+        text-decoration: underline;
+    }
 }
 
 // «con ITBMS» / «sin ITBMS» bajo el título de la columna
 .o_dcasa_th_nota {
-    font-size: .66rem;
+    font-size: .75rem;
     font-weight: 400;
     text-transform: none;
     letter-spacing: 0;
-    color: $dcasa-gris;
+    color: $dcasa-tinta-suave;
 }
 
 // ---------------------------------------------------------------------------
 // Pie: dos líneas de contacto, altura fija, sin párrafos largos que se corten
 // ---------------------------------------------------------------------------
 .o_dcasa_footer {
-    border-top: 2px solid $dcasa-azul;
+    border-top: 2px solid $dcasa-naranja;
     padding-top: 5px;
-    font-size: 0.74rem;
+    font-size: 0.75rem;
     line-height: 1.4;
-    color: $dcasa-grafito;
+    color: $dcasa-tinta-suave;
 
     .o_dcasa_contact_item + .o_dcasa_contact_item::before {
         content: ' · ';
-        color: $dcasa-azul;
+        color: $dcasa-tinta-suave;
     }
     .o_dcasa_tagline {
-        color: $dcasa-azul;
-        font-family: $dcasa-subtitulo;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: .05em;
+        color: $dcasa-tinta;
+        font-family: $dcasa-letra;
+        font-weight: 700;
+        text-transform: none;
+        letter-spacing: 0;
         p {
             margin: 0;
         }
+    }
+    .text-muted {
+        color: $dcasa-tinta-suave !important;
     }
 }
 
 // ---------------------------------------------------------------------------
 // Código QR de uso interno (factura, cotización, entrega y compra): pequeño, plano, al final de la hoja.
-// Azul/navy sobre blanco; nada de amarillo. Sin él (interruptor apagado) no existe en el HTML.
+// Navy sobre blanco. Sin él (interruptor apagado) no existe en el HTML.
 // ---------------------------------------------------------------------------
 .o_dcasa_qr {
     margin-top: 12px;
@@ -411,12 +454,12 @@ $dcasa-subtitulo: 'DCASA Oswald', 'Oswald', 'Arial Narrow', sans-serif;
     }
     .o_dcasa_qr_texto {
         margin-top: 6px;   // el texto no se pega al cuadro: la cámara necesita un borde en blanco alrededor
-        font-family: $dcasa-subtitulo;
-        font-weight: 600;
-        font-size: .6rem;
+        font-family: $dcasa-letra;
+        font-weight: 700;
+        font-size: .75rem;
         letter-spacing: .08em;
         text-transform: uppercase;
-        color: $dcasa-navy;
+        color: $dcasa-tinta;
     }
 }
 .o_dcasa_qr_limpio {
@@ -426,14 +469,15 @@ $dcasa-subtitulo: 'DCASA Oswald', 'Oswald', 'Arial Narrow', sans-serif;
 // ---------------------------------------------------------------------------
 // Nota de entrega FÁCIL DE LEER (la que va a bodega; solo con el interruptor de la empresa encendido).
 // Para personas con dislexia, autismo, poca lectura u otro idioma: se ve más de lo que se lee.
-// * Letra sin adornos (Inter), grande, alineada a la izquierda, sin cursivas, sin subrayados, sin mayúsculas largas.
+// * Letra sin adornos (Montserrat), grande, alineada a la izquierda, sin cursivas, sin subrayados, sin mayúsculas largas.
 // * Cada producto es una fila con sus cuatro cosas siempre en el mismo lugar: casilla, foto, nombre y cantidad.
 // * La cantidad es un número grande y una fila de dibujitos (uno por pieza); el color nunca es lo único que informa.
-// * Azul sobre blanco; el amarillo solo sobre el azul. Plano, sin sombras. Sin flex ni grid: wkhtmltopdf es antiguo.
+// * Navy sobre blanco; el naranja y el verde de relleno, con la letra navy encima. Plano, sin sombras. Sin flex ni grid:
+//   wkhtmltopdf es antiguo.
 // ---------------------------------------------------------------------------
 .o_dcasa_entrega_facil {
-    color: $dcasa-navy;
-    font-family: $dcasa-cuerpo;
+    color: $dcasa-tinta;
+    font-family: $dcasa-letra;
     font-size: .95rem;
     line-height: 1.45;
     letter-spacing: .01em;
@@ -443,8 +487,8 @@ $dcasa-subtitulo: 'DCASA Oswald', 'Oswald', 'Arial Narrow', sans-serif;
         margin: 6px 0 10px;
         .o_df_numero_nota {
             margin-left: 10px;
-            color: $dcasa-navy;
-            font-family: $dcasa-cuerpo;
+            color: $dcasa-tinta;
+            font-family: $dcasa-letra;
             font-size: 1rem;
             font-weight: 700;
             letter-spacing: .04em;
@@ -454,7 +498,7 @@ $dcasa-subtitulo: 'DCASA Oswald', 'Oswald', 'Arial Narrow', sans-serif;
     }
 
     .o_df_etiqueta {
-        color: $dcasa-grafito;
+        color: $dcasa-tinta-suave;
         font-size: .85rem;
         font-weight: 700;
         letter-spacing: .02em;
@@ -468,7 +512,7 @@ $dcasa-subtitulo: 'DCASA Oswald', 'Oswald', 'Arial Narrow', sans-serif;
             width: 33%;
             padding: 6px 10px 6px 0;
             border: 0;
-            border-top: 3px solid $dcasa-azul;
+            border-top: 3px solid $dcasa-naranja;
             vertical-align: top;
         }
         .o_df_dato {
@@ -495,8 +539,8 @@ $dcasa-subtitulo: 'DCASA Oswald', 'Oswald', 'Arial Narrow', sans-serif;
             height: 1.7em;
             margin-right: 6px;
             border-radius: 50%;
-            background-color: $dcasa-azul;
-            color: #FFFFFF;
+            background-color: $dcasa-naranja;
+            color: $dcasa-tinta;
             font-weight: 700;
             line-height: 1.7em;
             text-align: center;
@@ -512,7 +556,7 @@ $dcasa-subtitulo: 'DCASA Oswald', 'Oswald', 'Arial Narrow', sans-serif;
         }
         th {
             padding: 4px 8px;
-            color: $dcasa-grafito;
+            color: $dcasa-tinta-suave;
             font-size: .85rem;
             font-weight: 700;
             text-align: left;
@@ -549,11 +593,13 @@ $dcasa-subtitulo: 'DCASA Oswald', 'Oswald', 'Arial Narrow', sans-serif;
         }
     }
 
+    // La casilla que se marca a mano: borde navy (se tiene que ver bien al imprimir), esquinas suaves.
     .o_df_casilla {
         display: inline-block;
         width: 26px;
         height: 26px;
-        border: 3px solid $dcasa-azul;
+        border: 3px solid $dcasa-tinta;
+        border-radius: 6px;
         background-color: #FFFFFF;
     }
 
@@ -565,8 +611,8 @@ $dcasa-subtitulo: 'DCASA Oswald', 'Oswald', 'Arial Narrow', sans-serif;
     .o_df_sin_foto {
         width: 22mm;
         height: 22mm;
-        border: 2px dashed $dcasa-gris;
-        color: $dcasa-grafito;
+        border: 2px dashed $dcasa-control;
+        color: $dcasa-tinta-suave;
         font-size: .85rem;
         font-weight: 700;
         line-height: 22mm;
@@ -583,8 +629,9 @@ $dcasa-subtitulo: 'DCASA Oswald', 'Oswald', 'Arial Narrow', sans-serif;
         .o_df_codigo_valor {
             display: inline-block;
             padding: 1px 8px;
-            border: 2px solid $dcasa-azul;
-            background-color: $dcasa-fondo;
+            border: 2px solid $dcasa-salvia-filo;
+            border-radius: 8px;
+            background-color: $dcasa-superficie;
             font-size: 1rem;
             font-weight: 700;
             letter-spacing: .1em;
@@ -592,17 +639,18 @@ $dcasa-subtitulo: 'DCASA Oswald', 'Oswald', 'Arial Narrow', sans-serif;
     }
     .o_df_detalle {
         margin-top: 4px;
-        color: $dcasa-grafito;
+        color: $dcasa-tinta-suave;
         font-size: .95rem;
     }
 
-    // Cantidad: número grande (blanco sobre azul; la unidad en amarillo, que solo toca el azul) y un dibujito por pieza
+    // Cantidad: número grande en navy sobre el relleno naranja (5.56) y un dibujito por pieza
     .o_df_cantidad {
         display: inline-block;
         min-width: 15mm;
         padding: 2px 10px 3px;
-        background-color: $dcasa-azul;
-        color: #FFFFFF;
+        border-radius: 10px;
+        background-color: $dcasa-naranja;
+        color: $dcasa-tinta;
         text-align: center;
         .o_df_numero {
             display: block;
@@ -610,10 +658,10 @@ $dcasa-subtitulo: 'DCASA Oswald', 'Oswald', 'Arial Narrow', sans-serif;
             font-weight: 700;
             line-height: 1.15;
         }
-        // Solo si la medida no es la unidad de siempre (metros, por ejemplo): el amarillo solo toca el azul.
+        // Solo si la medida no es la unidad de siempre (metros, por ejemplo): navy sobre el naranja, más chica.
         .o_df_unidad {
             display: block;
-            color: $dcasa-amarillo;
+            color: $dcasa-tinta;
             font-size: .8rem;
             font-weight: 600;
         }
@@ -636,8 +684,9 @@ $dcasa-subtitulo: 'DCASA Oswald', 'Oswald', 'Arial Narrow', sans-serif;
     span.o_df_icono_caja {
         width: 6mm;
         height: 6mm;
-        border: 2px solid $dcasa-azul;
-        background-color: $dcasa-fondo;
+        border: 2px solid $dcasa-salvia-filo;
+        border-radius: 3px;
+        background-color: $dcasa-superficie;
     }
     .o_df_mas {
         font-size: 1.1rem;
@@ -647,7 +696,8 @@ $dcasa-subtitulo: 'DCASA Oswald', 'Oswald', 'Arial Narrow', sans-serif;
         display: inline-block;
         margin-top: 6px;
         padding: 1px 8px;
-        border: 2px solid $dcasa-navy;
+        border: 2px solid $dcasa-tinta;
+        border-radius: 999px;
         font-weight: 700;
     }
 
@@ -682,8 +732,8 @@ $dcasa-subtitulo: 'DCASA Oswald', 'Oswald', 'Arial Narrow', sans-serif;
             white-space: nowrap;
         }
         .o_df_total_numero {
-            background-color: $dcasa-azul;
-            color: #FFFFFF;
+            background-color: $dcasa-naranja;
+            color: $dcasa-tinta;
             font-size: 1.5rem;
             font-weight: 700;
             text-align: center;
@@ -695,9 +745,10 @@ $dcasa-subtitulo: 'DCASA Oswald', 'Oswald', 'Arial Narrow', sans-serif;
     }
     .o_df_subtitulo {
         margin: 0 0 6px;
-        font-family: $dcasa-cuerpo;
+        font-family: $dcasa-letra;
         font-size: 1.1rem;
         font-weight: 700;
+        letter-spacing: -0.01em;
     }
 
     .o_df_firmas {
@@ -712,7 +763,7 @@ $dcasa-subtitulo: 'DCASA Oswald', 'Oswald', 'Arial Narrow', sans-serif;
         }
         .o_df_raya {
             height: 30px;
-            border-bottom: 2px solid $dcasa-navy;
+            border-bottom: 2px solid $dcasa-tinta;
         }
         .o_df_firma {
             max-height: 4cm;
@@ -800,26 +851,31 @@ $dcasa-subtitulo: 'DCASA Oswald', 'Oswald', 'Arial Narrow', sans-serif;
             width: 18px;
             height: 18px;
             border-width: 2px;
+            border-radius: 4px;
         }
         .o_df_foto {
             max-width: 13mm;
             max-height: 13mm;
         }
+        // «Sin foto» en dos renglones, como en la de siempre: el cuadro es de 13 mm y la letra no baja de 12 px.
         .o_df_sin_foto {
             width: 13mm;
             height: 13mm;
             border-width: 1px;
-            font-size: .65rem;
-            line-height: 13mm;
+            font-size: .75rem;
+            line-height: 1.1;
+            padding-top: 2.5mm;
         }
+        // Montserrat es más ancha que la letra de antes (un 7 % en negrita, medido con sus anchos): el nombre baja de
+        // .92rem a .86rem para que los diez productos sigan en los mismos renglones y quepan en una hoja.
         .o_df_nombre {
-            font-size: .92rem;
+            font-size: .86rem;
             line-height: 1.2;
         }
         .o_df_codigo {
             margin-top: 1px;
             .o_df_etiqueta {
-                font-size: .7rem;
+                font-size: .75rem;
             }
             .o_df_codigo_valor {
                 padding: 0 5px;
@@ -838,7 +894,7 @@ $dcasa-subtitulo: 'DCASA Oswald', 'Oswald', 'Arial Narrow', sans-serif;
                 line-height: 1.3;
             }
             .o_df_unidad {
-                font-size: .6rem;
+                font-size: .75rem;
             }
         }
         .o_df_iconos {

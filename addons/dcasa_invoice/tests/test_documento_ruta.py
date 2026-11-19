@@ -9,6 +9,7 @@ from urllib.parse import parse_qs, quote, urlsplit
 from odoo import Command
 from odoo.tests import HttpCase, new_test_user, tagged
 
+from . import marca
 from .documentos import DocumentosDePrueba
 
 GRUPOS_DEL_EQUIPO = ('account.group_account_invoice,sales_team.group_sale_manager,purchase.group_purchase_user,'
@@ -161,6 +162,19 @@ class TestDocumentoRuta(DocumentosDePrueba, HttpCase):
             self.assertIn('No encontramos el documento', respuesta.text)
             self.assertIn('Ir al sistema', respuesta.text)
             self.assertNoRevelaNada(respuesta)
+
+    def test_el_aviso_lleva_la_marca_de_baby_caleb(self):
+        """La página del aviso: crema y navy, Montserrat (la del sistema, en woff2: es un navegador, no wkhtmltopdf), el
+        titular como frase y el botón en pastilla naranja con la letra navy; nada de D'CASA."""
+        self.authenticate('qr_equipo', 'qr_equipo')
+        pagina = self.ir('FAC', 'INV/2099/99999').text
+        marca.sin_rastro_de_dcasa(self, pagina, 'aviso del QR')
+        self.assertEqual(marca.letra_de_relleno(pagina), [])
+        plano = pagina.lower().replace(' ', '')
+        self.assertIn('/dcasa_base/static/src/fonts/montserrat-latin-var.woff2', plano)
+        self.assertIn(f'background:#{marca.CREMA};color:#{marca.NAVY}', plano)
+        self.assertIn(f'border-radius:999px;background:#{marca.NARANJA};color:#{marca.NAVY}', plano)
+        self.assertNotIn('text-transform', plano, 'el titular, como frase')
 
     def test_una_factura_de_proveedor_no_se_abre_con_el_tipo_factura(self):
         """FAC es solo factura o nota de crédito de CLIENTE: las de proveedores no llevan QR."""

@@ -5,7 +5,12 @@ import json
 from odoo import http
 from odoo.http import content_disposition, request
 
-AZUL = '#1340B1'
+# Marca Baby Caleb (docs/MARCA_BABY_CALEB.md): el título en navy y la cabecera de la tabla en el relleno verde con la
+# letra navy (6.96); lo secundario en navy al 70 % ya mezclado con el blanco (5.12). La letra, la que Excel tenga:
+# Montserrat no viaja dentro del archivo.
+TINTA = '#1B3246'
+TINTA_SUAVE = '#5F707E'
+SALVIA = '#91C9A2'
 
 
 # Reportes que se miden «a una fecha» (saldo al corte) y no «de un periodo».
@@ -182,9 +187,9 @@ def libro_excel(datos):
     salida = io.BytesIO()
     libro = xlsxwriter.Workbook(salida, {'in_memory': True})
     hoja = libro.add_worksheet(datos['titulo'][:31])
-    titulo = libro.add_format({'bold': True, 'font_size': 14, 'font_color': AZUL})
-    sub = libro.add_format({'font_color': '#5B6478'})
-    enc_f = libro.add_format({'bold': True, 'bg_color': AZUL, 'font_color': '#FFFFFF', 'border': 0})
+    titulo = libro.add_format({'bold': True, 'font_size': 14, 'font_color': TINTA})
+    sub = libro.add_format({'font_color': TINTA_SUAVE})
+    enc_f = libro.add_format({'bold': True, 'bg_color': SALVIA, 'font_color': TINTA, 'border': 0})
     monto = libro.add_format({'num_format': '#,##0.00;[Red]-#,##0.00'})
     monto_b = libro.add_format({'num_format': '#,##0.00;[Red]-#,##0.00', 'bold': True, 'top': 1})
     texto_b = libro.add_format({'bold': True, 'top': 1})

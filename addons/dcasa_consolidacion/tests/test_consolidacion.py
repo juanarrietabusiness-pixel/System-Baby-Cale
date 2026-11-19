@@ -1,7 +1,9 @@
+from lxml import html as lxml_html
 from markupsafe import escape
 from psycopg2.errors import CheckViolation, UniqueViolation
 
 from odoo import Command
+from odoo.addons.dcasa_invoice.tests import marca
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.service.model import get_public_method
 from odoo.tests import tagged
@@ -520,6 +522,21 @@ class TestConsolidacion(ConsolidacionCommon):
             contenido, _formato = reporte._render_qweb_pdf('dcasa_consolidacion.accion_reporte_consolidacion',
                                                            consolidacion.ids)
             self.assertIn(titulo, contenido.decode(), tipo)
+
+    def test_el_pdf_lleva_la_marca_de_baby_caleb(self):
+        """La hoja (sus estilos van dentro del HTML): letra navy de 12 px (el piso de la marca), la cabecera con el
+        filete naranja, el consolidado en la superficie crema y nada del azul de D'CASA (docs/MARCA_BABY_CALEB.md)."""
+        self.venta_entre_empresas(self.empresa_a, self.empresa_b, 1000.0, pagar=900.0)
+        html, _formato = self.env['ir.actions.report']._render_qweb_html(
+            'dcasa_consolidacion.reporte_consolidacion', self.consolidacion('balance').ids)
+        (hoja,) = lxml_html.fromstring(html.decode()).xpath(
+            "//div[contains(@class, 'o_dcasa_consolidacion_pdf')]/style")
+        css = hoja.text.lower().replace(' ', '')
+        marca.sin_rastro_de_dcasa(self, css, 'consolidacion_pdf.xml')
+        self.assertEqual(marca.letra_de_relleno(css), [])
+        self.assertIn(f'.o_dcasa_consolidacion_pdf{{font-size:12px;color:#{marca.NAVY};}}', css)
+        self.assertIn(f'border-bottom:2pxsolid#{marca.NARANJA}', css)
+        self.assertIn('.o_dcasa_consolidacion_pdf.consolidado{font-weight:700;background:#f2efe5;}', css)
 
     def test_no_se_imprime_lo_que_no_se_ha_calculado(self):
         consolidacion = self.consolidacion(calcular=False)
