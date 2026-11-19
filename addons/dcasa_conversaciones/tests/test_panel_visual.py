@@ -182,7 +182,7 @@ AUDITAR = """
             const tieneTexto = [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim());
             if (tieneTexto && esNaranja(color) && luz(fondoDe(el)) > 0.1) { faltas.push('texto naranja sobre fondo claro en ' + nombre(el)); }
             if (el.matches('.fa') && esNaranja(color) && luz(fondoDe(el)) > 0.1) { faltas.push('ícono naranja sobre fondo claro en ' + nombre(el)); }
-            if (esAmarillo(color) || (fondoPropio[3] > 0.5 && esAmarillo(fondoPropio))) { faltas.push('el amarillo de D\'CASA en ' + nombre(el)); }
+            if (esAmarillo(color) || (fondoPropio[3] > 0.5 && esAmarillo(fondoPropio))) { faltas.push("el amarillo de D'CASA en " + nombre(el)); }
             // Contraste del texto.
             if (tieneTexto && !el.disabled && !el.closest('[disabled], [aria-hidden=true], .o_dcj_solo_lector, .o_dcj_p_chequeo code')) {
                 const grande = parseFloat(cs.fontSize) >= 24 || (parseFloat(cs.fontSize) >= 18.66 && +cs.fontWeight >= 700);
@@ -450,7 +450,7 @@ class TestContratoVisualJuan(PanelUiCase):
         fotos_del_mes = self.env['dcasa.juan.panel']._ahora_local().date()
         for dia in range(1, fotos_del_mes.day):
             self.env['dcasa.juan.costo.dia']._guardar(fotos_del_mes.replace(day=dia), round(dia * 0.35, 2))
-        buscar = 'await buscarEnElCatalogo("cama");'
+        buscar = 'await buscarEnElCatalogo("pañales");'
         escritorio = (
             ('conversaciones', ACCION, VENDEDORA, '', '.o_dcj_fila'),
             ('hilo', ACCION, VENDEDORA, 'await abrirConversacion("Karen");', '.o_dcj_fila'),

@@ -46,6 +46,11 @@ $o-main-link-color: $dc-bc-navy;
 $o-form-lightsecondary: $dc-bc-control;
 $o-shadow-color: $dc-bc-navy;
 
+// Los estados de relleno (insignias «Pagado», «Por facturar»…): el verde salvia fuerte y un verde azulado oscuro, que
+// llevan la letra crema encima a más de 4.5 (el verde y el celeste de Odoo daban 3.1 y 3.0 con letra blanca).
+$o-success: #53735C;
+$o-info: #23657A;
+
 // Los estados escritos sobre el crema: medidos a 4.5 sobre la superficie (los de Odoo daban 4.1 a 4.4).
 $o-theme-text-colors: (
     "success": #53735C,

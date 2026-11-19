@@ -367,3 +367,9 @@ $dcasa-alerta: #D92D20;
 
     > .btn { white-space: nowrap; }
 }
+
+// --- Ajustes en el celular: las pestañas de arriba, como frase (Odoo las pone en caja alta) -------------------------
+// La marca de Baby Caleb no escribe nada en caja alta salvo los antetítulos chicos (docs/MARCA_BABY_CALEB.md).
+@include media-breakpoint-down(md) {
+    .o_base_settings_view .o_form_renderer .o_setting_container .settings_tab .tab .app_name { text-transform: none; }
+}
