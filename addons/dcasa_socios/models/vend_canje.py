@@ -32,9 +32,10 @@ class DcasaPremio(models.Model):
             minimo = RV.puntos_minimos_de_premio(premio.costo, por_dolar, reglas)
             if premio.costo and premio.puntos < minimo:
                 raise ValidationError(self.env._(
-                    'El premio «%(premio)s» cuesta %(costo)s a D’CASA y pide %(puntos)s puntos: '
+                    'El premio «%(premio)s» cuesta %(costo)s a %(empresa)s y pide %(puntos)s puntos: '
                     'tiene que pedir al menos %(minimo)s (su costo en puntos, con el margen que exige el programa).',
-                    premio=premio.name, costo=premio.costo, puntos=premio.puntos, minimo=minimo))
+                    premio=premio.name, costo=premio.costo, empresa=self.env.company.name, puntos=premio.puntos,
+                    minimo=minimo))
 
     @api.model
     def _catalogo(self, tipo=None):

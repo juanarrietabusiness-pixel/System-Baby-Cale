@@ -102,7 +102,8 @@
             <t t-set="disable_footer">1</t>
             <style>
                 .o_dcasa_enrolar_2fa { color: #1B3246; font-family: Montserrat, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-                .o_dcasa_enrolar_2fa .card-title { font-weight: 700; letter-spacing: -.02em; color: #1B3246; }
+                .o_dcasa_enrolar_2fa .card-title { font-family: inherit; font-weight: 700; font-size: 1.375rem;
+                    letter-spacing: -.02em; line-height: 1.2; text-transform: none; color: #1B3246; }
                 .o_dcasa_enrolar_2fa .text-muted { color: rgba(27, 50, 70, .7) !important; }
                 .o_dcasa_enrolar_2fa img { border-radius: 14px; }
                 .o_dcasa_enrolar_2fa .form-control { min-height: 48px; font-size: 16px; color: #1B3246;

@@ -1,5 +1,5 @@
 {
-    'name': "D'CASA Panamá — Tienda en el borde",
+    'name': "Baby Caleb — Tienda en el borde",
     'summary': 'Caché en el borde del HTML de Odoo para visitantes anónimos y aviso de cambios',
     'description': """
 Caché en el borde (Worker de Cloudflare) del HTML que dibuja Odoo: una sola fuente de diseño.

@@ -17,7 +17,7 @@
                 </button>
             </xpath>
             <notebook position="inside">
-                <page string="Vendedor D'CASA" name="dcasa_vendedor" groups="sales_team.group_sale_salesman"
+                <page string="Vendedor Baby Caleb" name="dcasa_vendedor" groups="sales_team.group_sale_salesman"
                       invisible="parent_id">
                     <div invisible="dcasa_vendedor_codigo" class="mb-3">
                         <p class="text-muted">No es vendedor del programa. Para afiliarlo hace falta su cédula o RUC y
@@ -119,7 +119,7 @@
         <field name="view_ids" eval="[(5, 0, 0), (0, 0, {'view_mode': 'list', 'view_id': ref('view_partner_vendedores_list')}), (0, 0, {'view_mode': 'form', 'view_id': ref('base.view_partner_form')})]"/>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">Aún no hay vendedores</p>
-            <p>Se afilian desde la ficha de la persona (pestaña «Vendedor D'CASA»), en caja o en Gerencia.</p>
+            <p>Se afilian desde la ficha de la persona (pestaña «Vendedor Baby Caleb»), en caja o en Gerencia.</p>
         </field>
     </record>
 

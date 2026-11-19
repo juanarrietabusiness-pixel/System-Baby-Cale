@@ -32,7 +32,7 @@ class DcasaPremio(models.Model):
     puntos = fields.Integer(required=True)
     currency_id = fields.Many2one('res.currency', default=lambda self: self.env.company.currency_id)
     valor = fields.Monetary(help='Lo que el socio cree que recibe (el importe del descuento).')
-    costo = fields.Monetary(help='Lo que de verdad le cuesta a D’CASA. Es lo que responde '
+    costo = fields.Monetary(help='Lo que de verdad le cuesta a la tienda. Es lo que responde '
                                  '«¿cuánto nos ha costado el programa?».')
     stock_limitado = fields.Boolean(string='Stock limitado')
     stock = fields.Integer(help='Cuántos quedan. En 0 deja de ofrecerse solo.')
@@ -373,7 +373,8 @@ class DcasaCanje(models.Model):
             if Movimiento.search_count([('partner_id', '=', socio.id), ('tipo', '=', 'cumpleanos'),
                                         ('ocurrido_en', '>=', inicio_anio)], limit=1):
                 continue
+            empresa = socio.sudo().company_id.name or self.env.company.name
             Movimiento._asentar(socio, 'cumpleanos', puntos, 'sistema',
-                                motivo='¡Feliz cumpleaños! Un regalo de parte de D’CASA.')
+                                motivo=f'¡Feliz cumpleaños! Un regalo de parte de {empresa}.')
             felicitados |= socio
         return felicitados

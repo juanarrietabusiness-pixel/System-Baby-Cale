@@ -7,7 +7,7 @@ from . import reglas as R
 from . import reglas_vendedores as RV
 
 ESTADOS_VENDEDOR = [('activo', 'Activo'), ('suspendido', 'Suspendido')]
-TIPOS_VENDEDOR = [('empleado', 'Empleado de D’CASA'), ('externo', 'Persona de afuera')]
+TIPOS_VENDEDOR = [('empleado', 'Empleado de Baby Caleb'), ('externo', 'Persona de afuera')]
 GRUPO_VENDEDORA = 'sales_team.group_sale_salesman'
 GRUPO_GERENTE = 'sales_team.group_sale_manager'
 # Versión de los términos del programa de vendedores (sube cuando cambian las condiciones).

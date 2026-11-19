@@ -1,5 +1,5 @@
 {
-    'name': "D'CASA Panamá — Meta: píxel y ventas (Conversions API)",
+    'name': "Baby Caleb — Meta: píxel y ventas (Conversions API)",
     'summary': 'Píxel de Meta con consentimiento y las compras pagadas de la web y de la tienda hacia la Conversions '
                'API, con cola, reintentos y botón de prueba. Todo apagado de fábrica.',
     'description': """

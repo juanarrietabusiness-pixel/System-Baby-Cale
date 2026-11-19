@@ -46,3 +46,8 @@ class TestMarcaAviso(SitioMetaCase):
         self.assertIn('anuncios de nuestros', aviso)
         self.assertIn('productos', aviso)
         self.assertNotIn('muebles', aviso)
+
+    def test_el_nombre_del_modulo_no_es_el_de_la_plantilla_de_origen(self):
+        modulo = self.env['ir.module.module'].search([('name', '=', MODULO.name)])
+        self.assertTrue(modulo.shortdesc.startswith('Baby Caleb — '), modulo.shortdesc)
+        self.assertNotIn("D'CASA", modulo.shortdesc + (modulo.summary or ''))

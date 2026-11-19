@@ -1,4 +1,5 @@
 import os
+from urllib.parse import unquote
 
 from odoo.addons.dcasa_base.nombres import nombre_en_mayusculas
 from odoo.addons.dcasa_catalogo import catalogo as C
@@ -228,6 +229,10 @@ class TestCatalogoBabyCaleb(TransactionCase):
         self.assertTrue(accion['url'].startswith('https://wa.me/50761234567?text='))
         self.assertIn(orden.name, accion['url'])
         self.assertEqual(orden.state, 'sent')
+        # El mensaje dice la empresa (Ajustes › Empresa), nunca el nombre de la plantilla de origen.
+        texto = unquote(accion['url'].split('?text=', 1)[1])
+        self.assertIn(f' de {orden.company_id.name} por ', texto)
+        self.assertNotIn("D'CASA", texto)
 
     def test_migracion_pasa_del_incluido_al_que_se_suma(self):
         """Bases cargadas con «ITBMS 7% incluido»: cambia el impuesto, no el precio."""

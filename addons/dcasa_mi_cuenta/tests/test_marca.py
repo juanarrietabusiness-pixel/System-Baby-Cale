@@ -38,3 +38,8 @@ class TestMarcaMiCuenta(HttpCase):
         html = self.url_open('/mi-cuenta').text
         self.assertIn('o_dcasa_mc', html)
         self.assertNotIn('split-hoy', html, 'la foto de la sala (D’CASA) se fue de Mi cuenta')
+
+    def test_el_nombre_del_modulo_no_es_el_de_la_plantilla_de_origen(self):
+        modulo = self.env['ir.module.module'].search([('name', '=', MODULO.name)])
+        self.assertTrue(modulo.shortdesc.startswith('Baby Caleb — '), modulo.shortdesc)
+        self.assertNotIn("D'CASA", modulo.shortdesc + (modulo.summary or ''))

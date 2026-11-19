@@ -1,5 +1,5 @@
 {
-    'name': "D'CASA Panamá — Brian de la tienda",
+    'name': "Baby Caleb — Brian de la tienda",
     'summary': 'El chat de ventas de la tienda web: Brian busca muebles, calcula el envío y deja el carrito listo',
     'description': """
 «Brian de la tienda» (docs/BRIAN_TIENDA.md). Viene ENCENDIDO: la dueña lo aprobó el 2026-11-13.

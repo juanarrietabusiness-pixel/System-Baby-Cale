@@ -16,7 +16,7 @@
                 </button>
             </xpath>
             <notebook position="inside">
-                <page string="Socio D'CASA" name="dcasa_socio" groups="sales_team.group_sale_salesman"
+                <page string="Socio Baby Caleb" name="dcasa_socio" groups="sales_team.group_sale_salesman"
                       invisible="parent_id">
                     <div invisible="dcasa_socio_codigo" class="mb-3">
                         <p class="text-muted">Todavía no está en el programa. Se le abre la ficha sola con su

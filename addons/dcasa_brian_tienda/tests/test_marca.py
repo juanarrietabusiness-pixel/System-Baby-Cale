@@ -43,3 +43,8 @@ class TestMarcaChat(TiendaCase):
         codigo = '\n'.join(linea for linea in js.splitlines() if not linea.lstrip().startswith(('*', '/*', '//')))
         for de_origen in ("\"D'CASA", "D'CASA Panamá", 'Hola D', '.webp', 'Colchones", "Salas'):
             self.assertNotIn(de_origen, codigo)
+
+    def test_el_nombre_del_modulo_no_es_el_de_la_plantilla_de_origen(self):
+        modulo = self.env['ir.module.module'].search([('name', '=', MODULO.name)])
+        self.assertTrue(modulo.shortdesc.startswith('Baby Caleb — '), modulo.shortdesc)
+        self.assertNotIn("D'CASA", modulo.shortdesc + (modulo.summary or ''))

@@ -1,5 +1,5 @@
 {
-    'name': "D'CASA Panamá — Busca con una foto",
+    'name': "Baby Caleb — Busca con una foto",
     'summary': 'En la tienda web: subes la foto de un mueble y salen los productos publicados que se le parecen',
     'description': """
 «Busca con una foto» en la tienda web (docs/CATALOGO.md › Busca con una foto). Viene ENCENDIDO (la dueña dijo que sí).

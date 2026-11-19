@@ -46,3 +46,8 @@ class TestMarcaBuscarFoto(HttpCase):
         self.assertIn('Toma una foto de un producto', cuerpo)
         self.assertNotIn('cama queen', cuerpo)
         self.assertNotIn('mueble', cuerpo.split('o_dcasa_foto_privacidad')[0], 'la política (texto legal) no se toca')
+
+    def test_el_nombre_del_modulo_no_es_el_de_la_plantilla_de_origen(self):
+        modulo = self.env['ir.module.module'].search([('name', '=', MODULO.name)])
+        self.assertTrue(modulo.shortdesc.startswith('Baby Caleb — '), modulo.shortdesc)
+        self.assertNotIn("D'CASA", modulo.shortdesc + (modulo.summary or ''))

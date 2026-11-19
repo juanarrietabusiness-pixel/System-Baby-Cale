@@ -1,9 +1,9 @@
 {
-    'name': "D'CASA Panamá — Socios (puntos y referidos)",
-    'summary': "Programa de puntos y referidos de D'CASA dentro de Odoo: puntos automáticos al pagarse "
+    'name': "Baby Caleb — Socios (puntos y referidos)",
+    'summary': "Programa de puntos y referidos de la tienda dentro de Odoo: puntos automáticos al pagarse "
                "la factura, referidos, premios, canjes, cumpleaños y app del socio con celular + PIN",
     'description': """
-Socios D'CASA
+Socios
 =============
 
 Reglas del programa diseñado por Abrinay (repositorio DCasa-Referidos), llevadas

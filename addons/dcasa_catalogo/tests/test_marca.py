@@ -39,3 +39,8 @@ class TestMarcaCatalogo(TransactionCase):
         texto = sin_comentarios((MODULO / 'static/src/combo/armar_combo.scss').read_text(encoding='utf-8'))
         self.assertIn('var(--dc-naranja, #EE924A)', texto, 'el naranja del panel (Ajustes › Marca del panel)')
         self.assertNotIn('--dc-azul', texto, 'ya no lee la escala azul de D’CASA')
+
+    def test_el_nombre_del_modulo_no_es_el_de_la_plantilla_de_origen(self):
+        modulo = self.env['ir.module.module'].search([('name', '=', MODULO.name)])
+        self.assertTrue(modulo.shortdesc.startswith('Baby Caleb — '), modulo.shortdesc)
+        self.assertNotIn("D'CASA", modulo.shortdesc + (modulo.summary or ''))
