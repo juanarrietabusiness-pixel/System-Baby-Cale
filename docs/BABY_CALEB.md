@@ -77,7 +77,9 @@ del puente. Ya en uso en la cuenta y **no se tocan**: `babycaleb-web`, `babycale
   volvería a llevar el dominio. Pasos en `docs/DOMINIO.md` (Fase B, paso 2); candado en
   `edge/test/dominio-babycaleb.test.ts`.
 - Cobros en línea del sistema nuevo (hoy Tilopay y Yappy viven en la web actual, en `babycaleb.com`).
-- Qué herramientas se quitan para bajar costos (el dueño no quiere el sistema dormido, 2026-11-19). Lo que más pesa es la
+- Qué herramientas se quitan para bajar costos (el dueño no quiere el sistema dormido, 2026-11-19). La lista para
+  marcar está en [HERRAMIENTAS_BABY_CALEB.md](HERRAMIENTAS_BABY_CALEB.md). El dueño ya dijo que quitará las llamadas y
+  videollamadas y las notificaciones de fábrica: son parte de `mail`, así que se esconden, no se desinstalan. Lo que más pesa es la
   memoria **reservada** de la caja: se paga se use o no. La CPU se paga solo por uso. Quitar herramientas baja la cuenta
   sobre todo si permite una caja más chica. Cajas posibles para producción, 24/7, con los precios de Cloudflare del
   2026-11-19 (cálculo nuestro, sin contar la CPU):
