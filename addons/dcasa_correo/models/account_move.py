@@ -82,13 +82,13 @@ class AccountMove(models.Model):
         pagada = move._dcasa_is_paid() and not con_saldo
         if con_saldo:
             asunto = self.env._('Recibimos tu abono · Factura %s', numero)
-            titular = self.env._('RECIBIMOS TU ABONO')
+            titular = self.env._('Recibimos tu abono')
         elif pagada:
             asunto = self.env._('Tu factura %s está pagada', numero)
-            titular = self.env._('¡TU COMPRA ESTÁ PAGADA!')
+            titular = self.env._('¡Tu compra está pagada!')
         else:
             asunto = self.env._('Tu factura %(numero)s de %(empresa)s', numero=numero, empresa=move.company_id.name)
-            titular = self.env._('TU FACTURA')
+            titular = self.env._('Tu factura')
         puntos_compra = sum(move.dcasa_compra_ids.filtered(lambda c: not c.anulada_en).mapped('puntos'))
         enlaces = correo._enlaces()
         return {

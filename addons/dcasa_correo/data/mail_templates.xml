@@ -3,7 +3,9 @@
      escrita a mano: los montos y fechas salen de la factura (_dcasa_estado_abono) y los puntos, del libro de Socios.
      El botón, el enlace de WhatsApp y el pie los pone el layout (views/layout_correo.xml). Se actualizan con el módulo
      (noupdate="0"): se cambian aquí, con su prueba, no en la pantalla. Baby Caleb (2026-11-18): el mismo texto; solo
-     cambia la empresa, que sale de la ficha de la empresa (company_id.name). -->
+     cambia la empresa, que sale de la ficha de la empresa (company_id.name). Colores de la marca Baby Caleb
+     (2026-11-19, docs/MARCA_BABY_CALEB.md): el texto va sobre la superficie de la tarjeta (#F2EFE5): navy, lo secundario
+     en navy al 70 % ya mezclado (#5C6B76, 4.78), las rayas en #D8D8D2 y los enlaces de acción en #985D2F (4.60). -->
 <odoo>
     <data noupdate="0">
 
@@ -22,36 +24,36 @@
     <t t-set="v" t-value="object._dcasa_correo_valores()"/>
     <t t-if="v['con_saldo']">
         <p style="margin:0 0 16px 0;">Gracias por tu pago<t t-if="v['nombre']">, <t t-out="v['nombre']"/></t>. Así va tu compra:</p>
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;margin:0 0 16px 0;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;margin:0 0 16px 0;font-family:Montserrat, Arial, Helvetica, sans-serif;font-size:16px;line-height:1.6;color:#1B3246;">
             <tr>
-                <td style="padding:8px 0;border-bottom:1px solid #E3E6EE;color:#4A5163;">Total de tu compra</td>
-                <td align="right" style="padding:8px 0;border-bottom:1px solid #E3E6EE;" t-out="v['total']"/>
+                <td style="padding:8px 0;border-bottom:1px solid #D8D8D2;color:#5C6B76;">Total de tu compra</td>
+                <td align="right" style="padding:8px 0;border-bottom:1px solid #D8D8D2;" t-out="v['total']"/>
             </tr>
             <tr>
-                <td style="padding:8px 0;border-bottom:1px solid #E3E6EE;color:#4A5163;">Ya pagaste</td>
-                <td align="right" style="padding:8px 0;border-bottom:1px solid #E3E6EE;" t-out="v['pagado']"/>
+                <td style="padding:8px 0;border-bottom:1px solid #D8D8D2;color:#5C6B76;">Ya pagaste</td>
+                <td align="right" style="padding:8px 0;border-bottom:1px solid #D8D8D2;" t-out="v['pagado']"/>
             </tr>
             <tr>
                 <td style="padding:12px 0 8px 0;font-weight:bold;">Te falta</td>
-                <td align="right" style="padding:12px 0 8px 0;font-size:24px;font-weight:bold;color:#1340B1;" t-out="v['saldo']"/>
+                <td align="right" style="padding:12px 0 8px 0;font-size:24px;font-weight:bold;color:#1B3246;" t-out="v['saldo']"/>
             </tr>
             <tr t-if="v['vence']">
-                <td style="padding:4px 0;color:#4A5163;">Tienes hasta el</td>
+                <td style="padding:4px 0;color:#5C6B76;">Tienes hasta el</td>
                 <td align="right" style="padding:4px 0;font-weight:bold;" t-out="v['vence']"/>
             </tr>
         </table>
         <p t-if="v['vencido']" style="margin:0 0 12px 0;font-weight:bold;">Esa fecha ya pasó: escríbenos por WhatsApp.</p>
-        <p style="margin:0;color:#4A5163;">Tu abono de la factura <t t-out="v['numero']"/> va adjunto en PDF.</p>
+        <p style="margin:0;color:#5C6B76;">Tu abono de la factura <t t-out="v['numero']"/> va adjunto en PDF.</p>
     </t>
     <t t-elif="v['pagada']">
         <p style="margin:0 0 12px 0;">Gracias por tu compra<t t-if="v['nombre']">, <t t-out="v['nombre']"/></t>. Tu factura <strong t-out="v['numero']"/> quedó pagada por completo.</p>
         <p t-if="v['puntos_compra']" style="margin:0 0 12px 0;">Con esta compra sumaste <strong><t t-out="v['puntos_compra']"/> puntos</strong>.</p>
-        <p t-if="v['opinar']" style="margin:0 0 12px 0;">¿Qué tal tu compra? Cuéntanos en <a t-att-href="v['opinar']" style="color:#1340B1;font-weight:bold;">Mi cuenta › Tus opiniones</a>: la leemos y la publicamos en la tienda.</p>
-        <p style="margin:0;color:#4A5163;">Tu factura va adjunta en PDF.</p>
+        <p t-if="v['opinar']" style="margin:0 0 12px 0;">¿Qué tal tu compra? Cuéntanos en <a t-att-href="v['opinar']" style="color:#985D2F;font-weight:bold;">Mi cuenta › Tus opiniones</a>: la leemos y la publicamos en la tienda.</p>
+        <p style="margin:0;color:#5C6B76;">Tu factura va adjunta en PDF.</p>
     </t>
     <t t-else="">
         <p style="margin:0 0 12px 0;">Hola<t t-if="v['nombre']"> <t t-out="v['nombre']"/></t>: te enviamos tu factura <strong t-out="v['numero']"/> por <strong t-out="v['total']"/>.</p>
-        <p style="margin:0;color:#4A5163;">Va adjunta en PDF.</p>
+        <p style="margin:0;color:#5C6B76;">Va adjunta en PDF.</p>
     </t>
 </div>
             </field>
@@ -73,7 +75,7 @@
     <t t-set="v" t-value="object._dcasa_correo_valores()"/>
     <p style="margin:0 0 12px 0;">Hola<t t-if="v['nombre']"> <t t-out="v['nombre']"/></t>: te enviamos la cotización <strong t-out="v['numero']"/> por <strong t-out="v['total']"/><t t-if="v['con_itbms']"> (con ITBMS)</t>.</p>
     <p t-if="v['valida_hasta']" style="margin:0 0 12px 0;">Es válida hasta el <t t-out="v['valida_hasta']"/>.</p>
-    <p style="margin:0;color:#4A5163;">Va adjunta en PDF. Para confirmarla o cambiar algo, escríbenos por WhatsApp.</p>
+    <p style="margin:0;color:#5C6B76;">Va adjunta en PDF. Para confirmarla o cambiar algo, escríbenos por WhatsApp.</p>
 </div>
             </field>
         </record>
@@ -94,25 +96,25 @@
 <div>
     <t t-set="v" t-value="object._dcasa_correo_valores()"/>
     <p style="margin:0 0 16px 0;">Hola<t t-if="v['nombre']"> <t t-out="v['nombre']"/></t>: te recordamos que el abono de tu factura <strong t-out="v['numero']"/> vence pronto.</p>
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;margin:0 0 16px 0;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;margin:0 0 16px 0;font-family:Montserrat, Arial, Helvetica, sans-serif;font-size:16px;line-height:1.6;color:#1B3246;">
         <tr>
-            <td style="padding:8px 0;border-bottom:1px solid #E3E6EE;color:#4A5163;">Total de tu compra</td>
-            <td align="right" style="padding:8px 0;border-bottom:1px solid #E3E6EE;" t-out="v['total']"/>
+            <td style="padding:8px 0;border-bottom:1px solid #D8D8D2;color:#5C6B76;">Total de tu compra</td>
+            <td align="right" style="padding:8px 0;border-bottom:1px solid #D8D8D2;" t-out="v['total']"/>
         </tr>
         <tr>
-            <td style="padding:8px 0;border-bottom:1px solid #E3E6EE;color:#4A5163;">Ya pagaste</td>
-            <td align="right" style="padding:8px 0;border-bottom:1px solid #E3E6EE;" t-out="v['pagado']"/>
+            <td style="padding:8px 0;border-bottom:1px solid #D8D8D2;color:#5C6B76;">Ya pagaste</td>
+            <td align="right" style="padding:8px 0;border-bottom:1px solid #D8D8D2;" t-out="v['pagado']"/>
         </tr>
         <tr>
             <td style="padding:12px 0 8px 0;font-weight:bold;">Te falta</td>
-            <td align="right" style="padding:12px 0 8px 0;font-size:24px;font-weight:bold;color:#1340B1;" t-out="v['saldo']"/>
+            <td align="right" style="padding:12px 0 8px 0;font-size:24px;font-weight:bold;color:#1B3246;" t-out="v['saldo']"/>
         </tr>
         <tr t-if="v['vence']">
-            <td style="padding:4px 0;color:#4A5163;">Tienes hasta el</td>
+            <td style="padding:4px 0;color:#5C6B76;">Tienes hasta el</td>
             <td align="right" style="padding:4px 0;font-weight:bold;" t-out="v['vence']"/>
         </tr>
     </table>
-    <p style="margin:0;color:#4A5163;">Puedes pasar por la tienda o escribirnos por WhatsApp para completarlo. Si ya pagaste, no hagas caso a este correo.</p>
+    <p style="margin:0;color:#5C6B76;">Puedes pasar por la tienda o escribirnos por WhatsApp para completarlo. Si ya pagaste, no hagas caso a este correo.</p>
 </div>
             </field>
         </record>
@@ -132,10 +134,10 @@
 <div style="text-align:center;">
     <t t-set="v" t-value="object.env['dcasa.correo']._valores_bienvenida(object)"/>
     <p style="margin:0 0 12px 0;">Gracias por tu compra. En Mi cuenta ves tus compras, tus pagos y tus puntos.</p>
-    <p t-if="v['acceso'] == 'pin'" style="margin:0;color:#4A5163;">Entra con tu celular y tu PIN.</p>
-    <p t-elif="v['acceso'] == 'tienda'" style="margin:0;color:#4A5163;">Entra con el correo y la contraseña de tu cuenta de la tienda en línea.</p>
-    <p t-elif="v['acceso'] == 'registro'" style="margin:0;color:#4A5163;">La primera vez, toca «¿Primera vez? Hazte socio» y regístrate con tu celular, el código de socio que viene en tu factura y un PIN que tú eliges.</p>
-    <p t-else="" style="margin:0;color:#4A5163;">Para entrar la primera vez, escríbenos por WhatsApp y te ayudamos.</p>
+    <p t-if="v['acceso'] == 'pin'" style="margin:0;color:#5C6B76;">Entra con tu celular y tu PIN.</p>
+    <p t-elif="v['acceso'] == 'tienda'" style="margin:0;color:#5C6B76;">Entra con el correo y la contraseña de tu cuenta de la tienda en línea.</p>
+    <p t-elif="v['acceso'] == 'registro'" style="margin:0;color:#5C6B76;">La primera vez, toca «¿Primera vez? Hazte socio» y regístrate con tu celular, el código de socio que viene en tu factura y un PIN que tú eliges.</p>
+    <p t-else="" style="margin:0;color:#5C6B76;">Para entrar la primera vez, escríbenos por WhatsApp y te ayudamos.</p>
 </div>
             </field>
         </record>
@@ -152,7 +154,7 @@
 <div>
     <t t-set="v" t-value="object.env['dcasa.correo']._valores_prueba(object)"/>
     <p style="margin:0 0 12px 0;">Hola<t t-if="v['nombre']"> <t t-out="v['nombre']"/></t>:</p>
-    <p style="margin:0;">Este es un correo de prueba de <t t-out="object.company_id.name"/>. Si lo ves con el logo, el azul y el botón, el correo funciona.</p>
+    <p style="margin:0;">Este es un correo de prueba de <t t-out="object.company_id.name"/>. Si lo ves con el logo, los colores y el botón, el correo funciona.</p>
 </div>
             </field>
         </record>

@@ -93,7 +93,8 @@ class TestAjustes(CorreoCase):
         self.assertEqual(datos['to'], [self.admin.email])
         self.assertIn('Este es un correo de prueba', datos['html'])
         self.assertIn('Escríbenos por WhatsApp', datos['html'])
-        self.assertIn('CORREO DE PRUEBA', datos['html'])
+        # El titular, como frase (marca Baby Caleb: nunca en caja alta).
+        self.assertRegex(datos['html'], r'<h1[^>]*>Correo de prueba</h1>')
 
     def test_si_resend_rechaza_la_prueba_el_error_se_ve_sin_la_clave(self):
         self.con_clave()

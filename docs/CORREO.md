@@ -16,11 +16,15 @@ Cuando esté encendido, a cada cliente le llega:
 | **La cotización** | Abres la venta › «Enviar», o en Conversaciones › Cotización › **«Enviar por correo»** | La cotización en PDF |
 | **El correo de prueba** | Ajustes › Correo a clientes › «Enviar correo de prueba» | Te llega a ti, para ver cómo se ve |
 
-Todos salen limpios (lo pidió la dueña el 17/10/2026): el logo arriba con la dirección pública del sitio, el titular en
-azul, pocas líneas, **un solo botón azul con letra blanca** («Entrar a Mi cuenta» en la bienvenida, «Ver en Mi cuenta» en
-la factura y el abono, «Escríbenos por WhatsApp» en la cotización y la prueba), debajo, si el botón no es el de WhatsApp,
-solo el enlace de texto **«¿Dudas? Escríbenos por WhatsApp»**, y un pie corto (nombre, dirección y WhatsApp de la
-empresa). Sin amarillo, sin degradados ni sombras. Salen desde **D'CASA Panamá &lt;ventas@dcasapty.com&gt;**; si el cliente
+Todos salen limpios (lo pidió la dueña el 17/10/2026) y con la marca de Baby Caleb (2026-11-19,
+[MARCA_BABY_CALEB.md](MARCA_BABY_CALEB.md)): la página crema y la tarjeta en la superficie, el logo arriba con la
+dirección pública del sitio, el titular en navy (Montserrat, como frase: nunca en mayúsculas), pocas líneas, **un solo
+botón en pastilla naranja con la letra navy** («Entrar a Mi cuenta» en la bienvenida, «Ver en Mi cuenta» en la factura y
+el abono, «Escríbenos por WhatsApp» en la cotización y la prueba), debajo, si el botón no es el de WhatsApp, solo el
+enlace de texto **«¿Dudas? Escríbenos por WhatsApp»** (en el naranja oscuro de letra, `#985D2F`), y un pie corto
+(nombre, dirección y WhatsApp de la empresa). Estilos en línea, sin `<style>` ni fuentes que descargar: Montserrat si el
+cliente de correo la tiene y, si no, Arial o Helvetica. El botón es texto sobre su color de fondo: se lee aunque el
+cliente no cargue las imágenes. Sin degradados ni sombras. Salen desde **D'CASA Panamá &lt;ventas@dcasapty.com&gt;**; si el cliente
 contesta, la respuesta llega a **info@dcasapty.com**. (En el correo, el botón principal lleva a Mi cuenta por pedido de
 la dueña; WhatsApp sigue siendo el CTA único del sitio.)
 
@@ -90,7 +94,7 @@ correo dueño de la cuenta. Para probar:
 2. Odoo › Ventas › Configuración › **Correo a clientes**. En **Remitente** pon por ahora `onboarding@resend.dev` y
    guarda.
 3. Toca **«Enviar correo de prueba»**. Te tiene que llegar «Correo de prueba de D'CASA». Ábrelo **en el celular**: tiene
-   que verse el logo, el azul y el botón amarillo de WhatsApp. Si no llega, mira también en spam.
+   que verse el logo, el crema y el botón naranja de WhatsApp. Si no llega, mira también en spam.
 4. Si sale un error, la pantalla lo dice con las palabras de Resend (por ejemplo, que el dominio no está verificado).
 5. **El interruptor «Enviar correos a clientes» se queda apagado.** Sin dominio, a los clientes no les llegaría.
 

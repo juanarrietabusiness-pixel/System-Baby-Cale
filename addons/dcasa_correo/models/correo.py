@@ -41,7 +41,6 @@ NOMBRE = 'Baby Caleb'
 RESPONDER_A = 'babycalebpanama@gmail.com'
 
 TEXTO_WHATSAPP = 'Hola Baby Caleb, te escribo por el correo que me mandaron.'
-AZUL = '#1340B1'
 
 
 def correo_valido(texto):
@@ -219,24 +218,24 @@ class DcasaCorreo(models.AbstractModel):
 
     @api.model
     def _titular(self, registro):
-        """El titular de la banda azul cuando el correo no trae uno (p. ej. el botón «Enviar» de Odoo)."""
+        """El titular del correo cuando no trae uno (p. ej. el botón «Enviar» de Odoo)."""
         modelo = getattr(registro, '_name', '') if registro is not None else ''
         if modelo == 'account.move' and registro:
             registro = registro[:1].sudo()
             if registro.move_type == 'out_invoice':
                 return registro._dcasa_correo_valores()['titular']
             if registro.move_type == 'out_refund':
-                return self.env._('TU NOTA DE CRÉDITO')
-            return self.env._('TU DOCUMENTO')
+                return self.env._('Tu nota de crédito')
+            return self.env._('Tu documento')
         if modelo == 'sale.order' and registro:
-            return self.env._('TU COTIZACIÓN') if registro[:1].state in ('draft', 'sent') else self.env._('TU PEDIDO')
+            return self.env._('Tu cotización') if registro[:1].state in ('draft', 'sent') else self.env._('Tu pedido')
         if modelo == 'res.partner' and registro:
             nombre = self._primer_nombre(registro[:1].sudo())
             if nombre:
                 return self.env._('¡Te damos la bienvenida, %s!', nombre)
             return self.env._('¡Te damos la bienvenida!')
         if modelo == 'res.users':
-            return self.env._('CORREO DE PRUEBA')
+            return self.env._('Correo de prueba')
         return self.env.company.name or NOMBRE
 
     @api.model
@@ -281,7 +280,6 @@ class DcasaCorreo(models.AbstractModel):
             # «¿Dudas? Escríbenos por WhatsApp» como enlace de texto, solo si el botón no es ya el de WhatsApp.
             'whatsapp_aparte': boton['url'] != whatsapp,
             'pie': self._pie(company),
-            'azul': AZUL,
         }
 
     # ------------------------------------------------------------------

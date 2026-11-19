@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- El correo de D'CASA (reglas de marca de CLAUDE.md y lo que pidió la dueña el 17/10/2026: corto, limpio y con un solo
-     botón). Tablas de 600 px con estilos en línea (sin <style>, sin JS, sin degradados ni sombras): logo arriba con la
-     dirección pública del sitio, el titular en azul, el texto, UN botón azul #1340B1 con letra blanca («Entrar a Mi
-     cuenta», «Ver en Mi cuenta» o «Escríbenos por WhatsApp», según el correo), debajo, si el botón no es el de WhatsApp,
-     solo el enlace de texto «¿Dudas? Escríbenos por WhatsApp», y un pie corto (nombre, dirección y WhatsApp de la
-     empresa). Sin amarillo: así nunca toca el blanco. No usa el botón de acceso de Odoo: ningún enlace lleva
-     access_token. -->
+<!-- El correo con la marca Baby Caleb (docs/MARCA_BABY_CALEB.md, «Documentos y correos») y lo que pidió la dueña el
+     17/10/2026: corto, limpio y con un solo botón. Tablas de 600 px con estilos en línea (sin <style>, sin JS, sin
+     @font-face ni woff2, sin degradados ni sombras): página crema (#F9F6ED) y la tarjeta en la superficie (#F2EFE5) con
+     su canto y radio de 24 px; logo arriba con la dirección pública del sitio, el titular en navy (Montserrat 700, como
+     frase), el texto en navy y UN botón en pastilla naranja (#EE924A) con la letra navy (#1B3246, 5.56) —«Entrar a Mi
+     cuenta», «Ver en Mi cuenta» o «Escríbenos por WhatsApp», según el correo—. El botón es una celda con su color de
+     fondo (bgcolor) y su texto: se lee aunque el cliente de correo no cargue imágenes. Debajo, si el botón no es el de
+     WhatsApp, solo el enlace de texto «¿Dudas? Escríbenos por WhatsApp» (en el naranja de letra, #985D2F, 4.60 sobre la
+     superficie), y un pie corto (nombre, dirección y WhatsApp de la empresa). Letra: Montserrat si el cliente de
+     correo la tiene; si no, Arial o Helvetica. No usa el botón de acceso de Odoo: ningún enlace lleva access_token. -->
 <odoo>
     <template id="layout_correo" name="D'CASA: correo con la marca">
 <t t-set="dcasa" t-value="dcasa or company.env['dcasa.correo'].sudo()._contexto_layout(record, message, company)"/>
@@ -17,24 +20,24 @@
     <meta name="color-scheme" content="light"/>
     <meta name="supported-color-schemes" content="light"/>
 </head>
-<body style="margin:0;padding:0;background-color:#F4F1EA;">
-<div style="display:none;max-height:0;overflow:hidden;font-size:1px;line-height:1px;color:#F4F1EA;opacity:0;" t-out="dcasa['preencabezado']"/>
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;background-color:#F4F1EA;">
+<body style="margin:0;padding:0;background-color:#F9F6ED;">
+<div style="display:none;max-height:0;overflow:hidden;font-size:1px;line-height:1px;color:#F9F6ED;opacity:0;" t-out="dcasa['preencabezado']"/>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#F9F6ED" style="width:100%;background-color:#F9F6ED;">
     <tr>
         <td align="center" style="padding:24px 12px;">
-            <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;border-collapse:separate;background-color:#FFFFFF;border-radius:12px;">
+            <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" bgcolor="#F2EFE5" style="width:100%;max-width:600px;border-collapse:separate;background-color:#F2EFE5;border:1px solid #DEDED9;border-radius:24px;">
                 <tr>
                     <td align="center" style="padding:28px 24px 4px 24px;">
-                        <a t-att-href="dcasa['enlaces']['base'] or None" style="text-decoration:none;"><img t-att-src="dcasa['enlaces']['logo']" width="150" t-att-alt="company.name" style="display:block;width:150px;max-width:150px;height:auto;border:0;"/></a>
+                        <a t-att-href="dcasa['enlaces']['base'] or None" style="text-decoration:none;"><img t-att-src="dcasa['enlaces']['logo']" width="150" t-att-alt="company.name" style="display:block;width:150px;max-width:150px;height:auto;border:0;border-radius:16px;font-family:Montserrat, Arial, Helvetica, sans-serif;font-size:16px;font-weight:bold;line-height:1.3;color:#1B3246;"/></a>
                     </td>
                 </tr>
                 <tr>
                     <td align="center" style="padding:18px 28px 0 28px;">
-                        <h1 style="margin:0;font-family:Anton, Impact, 'Arial Narrow Bold', Arial, sans-serif;font-size:26px;line-height:1.2;font-weight:normal;letter-spacing:0.5px;text-transform:uppercase;color:#1340B1;" t-out="dcasa['titular']"/>
+                        <h1 style="margin:0;font-family:Montserrat, Arial, Helvetica, sans-serif;font-size:26px;line-height:1.15;font-weight:bold;letter-spacing:-0.8px;color:#1B3246;" t-out="dcasa['titular']"/>
                     </td>
                 </tr>
                 <tr>
-                    <td style="padding:18px 28px 4px 28px;font-family:Inter, Arial, Helvetica, sans-serif;font-size:16px;line-height:1.55;color:#1B2233;">
+                    <td style="padding:18px 28px 4px 28px;font-family:Montserrat, Arial, Helvetica, sans-serif;font-size:16px;line-height:1.6;color:#1B3246;">
                         <t t-out="message.body"/>
                     </td>
                 </tr>
@@ -42,16 +45,16 @@
                     <td align="center" style="padding:20px 28px 8px 28px;">
                         <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:separate;">
                             <tr>
-                                <td align="center" bgcolor="#1340B1" style="background-color:#1340B1;border-radius:8px;">
-                                    <a t-att-href="dcasa['boton']['url']" target="_blank" style="display:inline-block;padding:14px 32px;font-family:Inter, Arial, Helvetica, sans-serif;font-size:16px;font-weight:bold;line-height:1.2;color:#FFFFFF;text-decoration:none;border-radius:8px;" t-out="dcasa['boton']['texto']"/>
+                                <td align="center" bgcolor="#EE924A" style="background-color:#EE924A;border-radius:999px;">
+                                    <a t-att-href="dcasa['boton']['url']" target="_blank" style="display:inline-block;padding:15px 34px;font-family:Montserrat, Arial, Helvetica, sans-serif;font-size:16px;font-weight:bold;line-height:1.2;color:#1B3246;text-decoration:none;border-radius:999px;" t-out="dcasa['boton']['texto']"/>
                                 </td>
                             </tr>
                         </table>
                     </td>
                 </tr>
                 <tr t-if="dcasa['whatsapp_aparte']">
-                    <td align="center" style="padding:6px 28px 28px 28px;font-family:Inter, Arial, Helvetica, sans-serif;font-size:14px;line-height:1.5;">
-                        <a t-att-href="dcasa['whatsapp']" target="_blank" style="color:#1340B1;text-decoration:underline;">¿Dudas? Escríbenos por WhatsApp</a>
+                    <td align="center" style="padding:6px 28px 28px 28px;font-family:Montserrat, Arial, Helvetica, sans-serif;font-size:14px;line-height:1.5;">
+                        <a t-att-href="dcasa['whatsapp']" target="_blank" style="color:#985D2F;font-weight:bold;text-decoration:underline;">¿Dudas? Escríbenos por WhatsApp</a>
                     </td>
                 </tr>
                 <tr t-else="">
@@ -60,8 +63,8 @@
             </table>
             <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;">
                 <tr>
-                    <td align="center" style="padding:18px 24px 4px 24px;font-family:Inter, Arial, Helvetica, sans-serif;font-size:12px;line-height:1.6;color:#4A5163;">
-                        <span style="font-weight:bold;color:#1B2233;" t-out="pie['nombre']"/>
+                    <td align="center" style="padding:18px 24px 4px 24px;font-family:Montserrat, Arial, Helvetica, sans-serif;font-size:12px;line-height:1.6;color:#5E6D78;">
+                        <span style="font-weight:bold;color:#1B3246;" t-out="pie['nombre']"/>
                         <t t-if="pie['direccion']"><br/><t t-out="pie['direccion']"/></t>
                         <t t-if="pie['whatsapp']"><br/>WhatsApp <t t-out="pie['whatsapp']"/></t>
                     </td>
