@@ -68,12 +68,12 @@ class BrianHerramientasMarca(models.AbstractModel):
     @api.model
     @herramienta(
         nombre='cambiar_colores_del_panel',
-        descripcion='Cambia el color principal (la tinta: letra, títulos, enlaces, íconos; va sobre el crema del panel) '
-                    'o el de acento (el relleno del botón principal y de lo elegido, con la letra del principal '
+        descripcion='Cambia el color principal (la tinta: letra, títulos, enlaces, íconos; va sobre el crema del '
+                    'panel) o el de acento (el relleno del botón principal y de lo elegido, con la letra del principal '
                     'encima) del panel. Si un color no se lee, dice cuál sí sirve.',
         parametros={'principal': PARAM_COLOR, 'acento': PARAM_COLOR},
         nivel='construccion', categoria='general', grupos=ADMIN,
-        ejemplos=['pon el panel en verde oscuro #1F4D3A → principal=#1F4D3A',
+        ejemplos=['pon el panel en verde oscuro #173A2B → principal=#173A2B',
                   'el acento en amarillo #F2C14E → acento=#F2C14E'],
     )
     def _h_cambiar_colores_del_panel(self, principal=None, acento=None):

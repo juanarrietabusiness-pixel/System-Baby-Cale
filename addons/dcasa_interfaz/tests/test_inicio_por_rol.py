@@ -612,8 +612,8 @@ class TestInicioEnElNavegador(VentasMixin, HttpCase):
             await esperar(() => document.querySelector('.o_dcasa_ventas'), 'el panel de ventas');
             await esperar(() => document.querySelector('.o_dcasa_lista_cotizaciones'), 'las cotizaciones abiertas');
             await esperar(() => document.querySelector('.o_dcasa_lista_entregas'), 'las entregas pendientes');
-            // Cotizaciones y entregas, justo debajo de los accesos y con cabecera de acento (2026-10-16): la banda salvia
-            // de Baby Caleb con el número en una pastilla naranja.
+            // Cotizaciones y entregas, justo debajo de los accesos y con cabecera de acento (2026-10-16): la banda
+            // salvia de Baby Caleb con el número en una pastilla naranja.
             const listas = document.querySelector('.o_dcasa_listas');
             if (document.querySelector('.o_dcasa_atajos').nextElementSibling !== listas) {
                 throw new Error('las cotizaciones y las entregas van justo debajo de los accesos');

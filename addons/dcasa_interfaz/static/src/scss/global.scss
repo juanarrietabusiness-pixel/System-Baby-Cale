@@ -74,8 +74,10 @@ $dcasa-alerta: #D92D20;
 
     &:focus-within {
         background: var(--dc-blanco);
+        // El buscador recibe el foco solo al abrir cada lista: un filo navy de 2 px (el borde y su sombra), sin el aro
+        // doble del foco con teclado, que aquí estaría siempre encendido.
         border-color: var(--dc-tinta) !important;
-        box-shadow: var(--dc-foco);
+        box-shadow: 0 0 0 1px var(--dc-tinta);
     }
 }
 

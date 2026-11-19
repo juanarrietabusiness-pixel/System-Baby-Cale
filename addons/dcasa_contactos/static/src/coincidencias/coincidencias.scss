@@ -17,7 +17,7 @@
         gap: 6px 12px;
         padding: 8px 10px;
         border-radius: 6px;
-        background: rgba(255, 255, 255, 0.55);
+        background: rgba(249, 246, 237, 0.6);   // el crema, apenas encima del aviso
     }
     .o_dcasa_coincidencia_datos {
         min-width: 0;
@@ -41,5 +41,5 @@
 // Los datos del cliente en la cotización y la factura: con su línea siempre a la vista, para que se note que se
 // escriben ahí (Odoo solo la muestra al pasar el mouse).
 .o_form_view .o_dcasa_dato_cliente .o_input {
-    border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+    border-bottom: 1px solid var(--dc-control, #7F8A91);   // el borde de lo que se llena (3:1)
 }

@@ -155,7 +155,8 @@ class TestConfiguracionTienda(TransactionCase):
 
     def test_interfaz_con_la_marca(self):
         """La marca de Baby Caleb (docs/MARCA_BABY_CALEB.md): el navy de Odoo, el botón principal naranja con letra
-        navy, el crema de fondo y Montserrat (embebida) para todo; nada del azul, el amarillo ni las letras de D'CASA."""
+        navy, el crema de fondo y Montserrat (embebida) para todo; nada del azul, el amarillo ni las letras de
+        D'CASA."""
         from odoo.tools.misc import file_open
         with file_open('dcasa_base/static/src/scss/primary_variables.scss') as archivo:
             variables = archivo.read()

@@ -44,7 +44,7 @@
 
 .o_dcasa_cifra_ventas_hoy .o_dcasa_cifra_icono,
 .o_dcasa_app_letra { background: var(--dc-relleno); color: var(--dc-en-relleno); }
-.o_dcasa_cifra_socios .o_dcasa_cifra_icono { background: var(--dc-cabeza); }
+.o_dcasa_cifra_socios .o_dcasa_cifra_icono { background: var(--dc-cabeza); color: var(--dc-naranja); }
 .o_dcasa_cifra_entregas .o_dcasa_cifra_icono { color: var(--dc-azul-600); }
 
 // Pastillas y opciones elegidas.
@@ -75,6 +75,8 @@
 .o_dcasa_lista_cabeza { background: var(--dc-cabeza); }
 .o_dcasa_inicio .o_dcasa_lista_cabeza h2,
 .o_dcasa_inicio .o_dcasa_lista_cabeza .h2 { color: var(--dc-en-cabeza); }
+// El ícono del título: el naranja (en claro va navy sobre la banda salvia; de noche la banda es oscura).
+.o_dcasa_inicio .o_dcasa_lista_cabeza h2 .fa { color: var(--dc-naranja); }
 .o_dcasa_lista_cuenta {
     color: var(--dc-en-cabeza-2);
 
@@ -121,7 +123,7 @@
 // === reponer.scss ==============================================================================================================
 .o_dcasa_reponer_numero { background: var(--dc-relleno); color: var(--dc-en-relleno); }
 .o_dcasa_reponer_cuenta.o_cuenta_ya,
-.o_dcasa_reponer_aviso.o_aviso_ya { background: var(--dc-cabeza); }
+.o_dcasa_reponer_aviso.o_aviso_ya { background: var(--dc-cabeza); color: var(--dc-en-cabeza); }
 
 // === vista_previa.scss ============================================================================================================
 .o_dcasa_vp_dispositivo.o_activo {

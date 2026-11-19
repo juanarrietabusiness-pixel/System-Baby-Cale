@@ -19,7 +19,7 @@
         &:focus-visible { outline-color: var(--dc-azul-600); }
     }
 
-    .o_de_aviso { background: var(--dc-cabeza); color: var(--dc-en-cabeza); }
+    .o_de_aviso { background: var(--dc-cabeza); color: var(--dc-en-cabeza); strong { color: var(--dc-en-cabeza); } }
     .o_de_aviso_enlace { color: var(--dc-azul-600); }
 
     .o_de_filtro { background: transparent; border-color: var(--dc-linea-fuerte); }
@@ -42,6 +42,6 @@
 
 .o_dcasa_envios_tarifa {
     .o_dcasa_envios_ficha { background: var(--dc-relleno); color: var(--dc-en-relleno); }
-    .o_dcasa_envios_aviso { background: var(--dc-cabeza); color: var(--dc-en-cabeza); }
+    .o_dcasa_envios_aviso { background: var(--dc-cabeza); color: var(--dc-en-cabeza); b { color: var(--dc-en-cabeza); } }
     .o_dcasa_envios_aviso_chip { color: var(--dc-en-amarillo); }
 }

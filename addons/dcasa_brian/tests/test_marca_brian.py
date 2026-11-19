@@ -13,7 +13,7 @@ from odoo.tests import HttpCase, new_test_user, tagged
 
 from .common import BrianCase
 
-PRINCIPAL = '#1F4D3A'   # verde oscuro: solo de prueba, no es la marca de nadie
+PRINCIPAL = '#173A2B'   # verde oscuro: solo de prueba, no es la marca de nadie
 ACENTO = '#F2C14E'      # amarillo: solo de prueba
 HERRAMIENTAS = {'ver_marca_del_panel': 'lectura', 'cambiar_colores_del_panel': 'construccion',
                 'poner_imagen_del_panel': 'construccion', 'volver_a_la_marca_de_fabrica': 'sensible'}
@@ -60,7 +60,7 @@ class TestMarcaConBrian(BrianCase):
         self.assertEqual(datos['abrir']['accion'], self.env.ref('dcasa_interfaz.action_dcasa_marca_panel').id)
 
     def test_cambiar_los_colores(self):
-        datos = self.ok(self.ejecutar('cambiar_colores_del_panel', {'principal': '1f4d3a', 'acento': ACENTO}))
+        datos = self.ok(self.ejecutar('cambiar_colores_del_panel', {'principal': '173a2b', 'acento': ACENTO}))
         self.assertIn('Listo', datos['mensaje'])
         empresa = self.env.company
         self.assertEqual((empresa.dcasa_panel_color_principal, empresa.dcasa_panel_color_acento), (PRINCIPAL, ACENTO))

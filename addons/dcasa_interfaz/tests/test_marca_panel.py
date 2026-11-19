@@ -41,7 +41,7 @@ from odoo.tools import file_path
 from .test_inicio_por_rol import ESPERAR_JS
 from .test_modo_oscuro import pares_que_no_se_leen
 
-PRINCIPAL = '#1F4D3A'
+PRINCIPAL = '#173A2B'
 ACENTO = '#F2C14E'
 FABRICA_APPLE = '/dcasa_base/static/img/icono/apple-touch-icon.png'
 FABRICA_FAVICON = '/dcasa_base/static/img/icono/logo-192.png'
@@ -99,7 +99,7 @@ class TestColoresDeLaMarca(TransactionCase):
     def test_la_fabrica_es_baby_caleb_y_se_lee(self):
         """El principal de fábrica es el navy (la tinta) y el acento el naranja (el relleno, con letra navy)."""
         self.assertEqual((C.FABRICA_PRINCIPAL, C.FABRICA_ACENTO), (NAVY, NARANJA))
-        self.assertNotIn(C.DCASA_PRINCIPAL, (C.FABRICA_PRINCIPAL, C.FABRICA_ACENTO), 'el azul de D\'CASA ya no es fábrica')
+        self.assertNotIn(C.DCASA_PRINCIPAL, (C.FABRICA_PRINCIPAL, C.FABRICA_ACENTO), 'el azul de D\'CASA no es fábrica')
         self.assertIsNone(C.problema_del_principal(C.FABRICA_PRINCIPAL))
         self.assertIsNone(C.problema_del_acento(C.FABRICA_ACENTO, C.FABRICA_PRINCIPAL))
         self.assertEqual(C.oscuro_de(C.FABRICA_PRINCIPAL), C.OSCURO_DE_FABRICA)
@@ -123,7 +123,7 @@ class TestColoresDeLaMarca(TransactionCase):
         """Lo que en fábrica se leía como letra sobre la superficie crema se sigue leyendo con cualquier principal
         válido, también uno más claro que el navy (el que más aprieta); y los tonos del naranja que eran letra o borde
         siguen siéndolo con cualquier acento."""
-        for principal in (PRINCIPAL, '#985D2F', '#0F7B3A', '#C2185B', '#6C6C6C', '#2E7D32', '#000000', '#1340B1'):
+        for principal in (PRINCIPAL, '#985D2F', '#0F7B3A', '#C2185B', '#6C6C6C', '#256B29', '#000000', '#1340B1'):
             self.assertIsNone(C.problema_del_principal(principal), principal)
             giro = C.Giro(principal)
             for color in ESCALA:
@@ -203,15 +203,15 @@ class TestTinteDeLaHoja(TransactionCase):
                 '@media (max-width: 767.98px){.g{color: #1B3246 !important}}')
         pintada = tinte.css(hoja)
         self.assertNotRegex(pintada.lower(), r'1b3246|27, ?50, ?70|ee924a|238, 146, 74')
-        self.assertIn('.a{color: #1F4D3A; border-color: #1F4D3A}', pintada)
-        self.assertIn('rgba(31, 77, 58, 0.25)', pintada)
-        self.assertIn('rgb(31, 77, 58)', pintada)
-        self.assertIn('#1F4D3A80', pintada, 'la transparencia del #hex de 8 cifras se queda')
-        self.assertIn('--primary-rgb: 31, 77, 58', pintada)
-        self.assertIn("fill='%231F4D3A'", pintada)
-        self.assertIn('.f{background: #F2C14E; color: #1F4D3A; border-color: rgba(242, 193, 78, .5)}', pintada,
+        self.assertIn('.a{color: #173A2B; border-color: #173A2B}', pintada)
+        self.assertIn('rgba(23, 58, 43, 0.25)', pintada)
+        self.assertIn('rgb(23, 58, 43)', pintada)
+        self.assertIn('#173A2B80', pintada, 'la transparencia del #hex de 8 cifras se queda')
+        self.assertIn('--primary-rgb: 23, 58, 43', pintada)
+        self.assertIn("fill='%23173A2B'", pintada)
+        self.assertIn('.f{background: #F2C14E; color: #173A2B; border-color: rgba(242, 193, 78, .5)}', pintada,
                       'el botón principal: el acento de relleno con la letra del principal')
-        self.assertIn('@media (max-width: 767.98px){.g{color: #1F4D3A !important}}', pintada, 'el @media intacto')
+        self.assertIn('@media (max-width: 767.98px){.g{color: #173A2B !important}}', pintada, 'el @media intacto')
 
     def test_los_tonos_del_naranja_giran_con_el_acento(self):
         """El puntero, lo apretado, la letra naranja y los bordes naranja siguen al acento de la empresa, y cada uno
@@ -239,12 +239,12 @@ class TestTinteDeLaHoja(TransactionCase):
         self.assertIn('.o_calendar_color_45{background: #1B3246}', pintada)
         self.assertIn('.o_kanban_color_3::after{background-color: #EE924A}', pintada)
         self.assertIn('.o_cc1 a:not(.btn){color: #1B3246}', pintada)
-        self.assertIn(':root{--o-color-1: #1B3246; --o-cc1-link: #1B3246; --dc-azul-600: #1F4D3A}', pintada)
+        self.assertIn(':root{--o-color-1: #1B3246; --o-cc1-link: #1B3246; --dc-azul-600: #173A2B}', pintada)
 
     def test_los_iconos_svg_de_las_apps(self):
         svg = '<svg><rect fill="#1B3246"/><path stroke="#F9F6ED"/><circle fill="#EE924A"/></svg>'
         self.assertEqual(Tinte(PRINCIPAL, ACENTO).svg(svg),
-                         '<svg><rect fill="#1F4D3A"/><path stroke="#F9F6ED"/><circle fill="#F2C14E"/></svg>')
+                         '<svg><rect fill="#173A2B"/><path stroke="#F9F6ED"/><circle fill="#F2C14E"/></svg>')
 
 
 # --- La empresa: guardar, validar, permisos ----------------------------------------------------------------------
@@ -279,7 +279,8 @@ class TestMarcaDeLaEmpresa(TransactionCase):
     def test_el_inicio_saluda_con_el_nombre_de_la_empresa(self):
         """«Así va el día en …»: el nombre de la empresa, no el de la plantilla de origen."""
         self.empresa.name = 'Empresa de Prueba'
-        self.assertEqual(self.env['dcasa.tablero'].with_user(self.admin).obtener_datos()['empresa'], 'Empresa de Prueba')
+        datos = self.env['dcasa.tablero'].with_user(self.admin).obtener_datos()
+        self.assertEqual(datos['empresa'], 'Empresa de Prueba')
         with open(file_path('dcasa_interfaz/static/src/xml/inicio.xml'), encoding='utf-8') as archivo:
             plantilla = archivo.read()
         self.assertIn('Así va el día en <t t-esc="d.empresa"/>.', plantilla)
@@ -287,7 +288,7 @@ class TestMarcaDeLaEmpresa(TransactionCase):
 
     def test_guardar_normaliza_y_cambia_la_version_solo_si_cambia_algo(self):
         empresa = self.empresa.with_user(self.admin)
-        empresa.write({'dcasa_panel_color_principal': '1f4d3a', 'dcasa_panel_color_acento': '#f2c14e'})
+        empresa.write({'dcasa_panel_color_principal': '173a2b', 'dcasa_panel_color_acento': '#f2c14e'})
         self.assertEqual(empresa.dcasa_panel_color_principal, PRINCIPAL)
         self.assertEqual(empresa.dcasa_panel_color_acento, ACENTO)
         version = empresa.dcasa_panel_version
@@ -493,10 +494,14 @@ class TestMarcaEnLaPagina(HttpCase):
         self.assertRegex(pintada, rf'\.btn-primary\{{[^}}]*--btn-color: {PRINCIPAL}')
         self.assertRegex(pintada, rf'--dc-amarillo: {ACENTO}')
         self.assertRegex(pintada, rf'--dc-naranja: {ACENTO}')
-        # El navy y el naranja de fábrica solo quedan en lo que no es la marca: paletas de categorías y colores de la web.
-        for regla in re.findall(r'([^{}]*)\{([^{}]*(?:#1B3246|#EE924A)[^{}]*)\}', pintada, re.I):
-            with self.subTest(regla=regla[0][-80:]):
-                self.assertRegex(regla[0] + regla[1], modulo_tinte._INTOCABLES.pattern + r'|--o-c(?:olor|c)')
+        # El navy y el naranja de fábrica solo quedan en lo que no es la marca: las paletas, los colores de la web y la
+        # letra sobre el salvia (--dc-en-salvia, que no gira: el salvia tampoco).
+        self.assertIn('--dc-en-salvia: #1B3246', pintada)
+        for selector, cuerpo in re.findall(r'([^{}]*)\{([^{}]*)\}', pintada):
+            cuerpo = modulo_tinte._PROTEGIDAS.sub('', cuerpo)
+            if re.search(r'#1B3246|#EE924A', cuerpo, re.I):
+                with self.subTest(regla=selector[-80:]):
+                    self.assertRegex(selector, modulo_tinte._INTOCABLES.pattern)
         # Con los colores de antes, la página vuelve a la hoja de Odoo.
         self.poner(dcasa_panel_color_principal=C.FABRICA_PRINCIPAL, dcasa_panel_color_acento=C.FABRICA_ACENTO)
         self.assertIn(original, self.pagina())
@@ -678,7 +683,7 @@ class TestMarcaEnElNavegador(HttpCase):
             // El botón principal: el acento de la empresa de relleno, con la letra en su principal.
             const fondo = getComputedStyle(boton).backgroundColor, letra = getComputedStyle(boton).color;
             if (fondo !== 'rgb(242, 193, 78)') {{ throw new Error('el botón principal sale ' + fondo); }}
-            if (letra !== 'rgb(31, 77, 58)') {{ throw new Error('la letra del botón principal sale ' + letra); }}
+            if (letra !== 'rgb(23, 58, 43)') {{ throw new Error('la letra del botón principal sale ' + letra); }}
             const hojas = [...document.querySelectorAll('link[rel="stylesheet"]')].map((l) => l.href);
             if (!hojas.some((h) => h.includes('/dcasa_interfaz/marca/hoja/'))) {{
                 throw new Error('hojas: ' + JSON.stringify(hojas));

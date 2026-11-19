@@ -347,7 +347,7 @@ Todo lo que se dice queda también en la **ficha del cliente** (Contactos), en e
 ## Trabajo en equipo y reparto
 
 * **Cliente esperando.** Si una persona tiene la conversación y el cliente lleva más de *Avisar si un cliente espera* (10 minutos
-  por defecto; 0 = apagado) sin respuesta, la lista dice «Espera N min» (en marino con amarillo pasado el umbral) y el
+  por defecto; 0 = apagado) sin respuesta, la lista dice «Espera N min» (en la pastilla salvia con letra navy pasado el umbral) y el
   mantenimiento de cada 5 minutos avisa **una vez por espera** por Telegram a quien la atiende (si nadie, o no tiene Telegram, a
   las personas de siempre). Solo en horario laboral (se puede cambiar) y no avisa de esperas de más de un día. Si el cliente
   vuelve a escribir y nadie contesta, avisa otra vez.

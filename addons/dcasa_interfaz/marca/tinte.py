@@ -34,7 +34,10 @@ _REGLA = re.compile(r'([^{}]*)\{([^{}]*)\}')
 _INTOCABLES = re.compile(
     r'o_calendar_color|o_cw_filter_color|o_colorlist|o_tag_color|o_kanban_color|o_color_\d|o_cc\d|o_colored_level'
     r'|bg-o-color|text-o-color|o_theme_preview|o_configurator|o_website_loader')
-_PROTEGIDAS = re.compile(r'--(?:o-color-\d+|o-cc\d[\w-]*)\s*:[^;}]*')
+# Y la letra sobre el salvia (--dc-en-salvia): el salvia no es de la marca de la empresa y no gira, así que su letra
+# tampoco: el navy de Baby Caleb encima del salvia da 6.96 a 1 con cualquier principal (el principal puede ser tan claro
+# como #985D2F, que sobre el salvia no llegaría ni a 3).
+_PROTEGIDAS = re.compile(r'--(?:o-color-\d+|o-cc\d[\w-]*|dc-en-salvia)\s*:[^;}]*')
 
 
 class Tinte:

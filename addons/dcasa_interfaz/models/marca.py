@@ -300,9 +300,26 @@ class ResConfigSettings(models.TransientModel):
 
     dcasa_panel_logo = fields.Image(related='company_id.dcasa_panel_logo', readonly=False)
     dcasa_panel_icono = fields.Image(related='company_id.dcasa_panel_icono', readonly=False)
-    dcasa_panel_color_principal = fields.Char(related='company_id.dcasa_panel_color_principal', readonly=False)
-    dcasa_panel_color_acento = fields.Char(related='company_id.dcasa_panel_color_acento', readonly=False)
+    # Los dos colores se guardan juntos (un solo write): campos «related» los escribirían uno por uno, y el par
+    # intermedio (el principal nuevo con el acento de antes) podría no leerse y frenar un par final que sí se lee.
+    dcasa_panel_color_principal = fields.Char(
+        'Color principal del panel', compute='_compute_dcasa_panel_colores', inverse='_inverse_dcasa_panel_colores',
+        readonly=False)
+    dcasa_panel_color_acento = fields.Char(
+        'Color de acento del panel', compute='_compute_dcasa_panel_colores', inverse='_inverse_dcasa_panel_colores',
+        readonly=False)
     dcasa_panel_lectura = fields.Char('Cómo se va a leer', compute='_compute_dcasa_panel_lectura')
+
+    @api.depends('company_id.dcasa_panel_color_principal', 'company_id.dcasa_panel_color_acento')
+    def _compute_dcasa_panel_colores(self):
+        for ajustes in self:
+            ajustes.dcasa_panel_color_principal = ajustes.company_id.dcasa_panel_color_principal
+            ajustes.dcasa_panel_color_acento = ajustes.company_id.dcasa_panel_color_acento
+
+    def _inverse_dcasa_panel_colores(self):
+        for ajustes in self:
+            ajustes.company_id.write({campo: ajustes[campo]
+                                      for campo in ('dcasa_panel_color_principal', 'dcasa_panel_color_acento')})
 
     @api.depends('dcasa_panel_color_principal', 'dcasa_panel_color_acento')
     def _compute_dcasa_panel_lectura(self):

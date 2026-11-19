@@ -219,7 +219,7 @@ El panel (`<aside id="o_brian_panel">`) lleva **siempre** una clase `o_brian_ava
 
 Las clases existen en `brian_panel.scss` **intencionalmente vacías**: cuando se dibuje el avatar
 (ronda posterior) se cuelga de ellas sin tocar el JS, p. ej. `.o_brian_avatar_trabajando
-.o_brian_monograma { … }`. Reglas de marca de siempre: plano, sin degradados, sin amarillo sobre
+.o_brian_monograma { … }`. Reglas de marca (las de Baby Caleb): plano, sin degradados, sin naranja como letra sobre
 blanco.
 
 ## Adjuntos que Brian lee

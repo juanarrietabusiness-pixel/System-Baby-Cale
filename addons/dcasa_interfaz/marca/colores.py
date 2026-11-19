@@ -169,12 +169,12 @@ def aclarar_hasta(color, contra, minimo=MINIMO_TEXTO):
 
 
 def _luz_maxima(contra, minimo):
-    """La luz más alta que todavía se distingue a ``minimo``:1 de ``contra`` (más claro), con margen para el redondeo."""
+    """La luz más alta que todavía se distingue a ``minimo``:1 de ``contra`` (más claro), con margen de redondeo."""
     return (luz(contra) + 0.05) / minimo - 0.05 - 0.002
 
 
 def _luz_minima(contra, minimo):
-    """La luz más baja que todavía se distingue a ``minimo``:1 de ``contra`` (más oscuro), con margen para el redondeo."""
+    """La luz más baja que todavía se distingue a ``minimo``:1 de ``contra`` (más oscuro), con margen de redondeo."""
     return minimo * (luz(contra) + 0.05) - 0.05 + 0.002
 
 

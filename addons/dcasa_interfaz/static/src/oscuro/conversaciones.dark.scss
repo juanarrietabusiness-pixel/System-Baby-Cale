@@ -89,7 +89,13 @@
     .o_dcj_enlace { color: #FFC9C4; }
 }
 .o_dcj_p_aviso.o_dcj_p_aviso_ok { background: var(--dc-bien-fondo); border-color: var(--dc-bien-linea); color: #B8E8CF; }
-.o_dcj_p_aviso.o_dcj_p_aviso_atencion { background: var(--dc-cabeza); border-color: var(--dc-linea-fuerte); }
+.o_dcj_p_aviso.o_dcj_p_aviso_atencion {
+    background: var(--dc-cabeza);
+    border-color: var(--dc-linea-fuerte);
+    color: var(--dc-en-cabeza);
+
+    > .fa, .o_dcj_enlace, strong { color: var(--dc-en-cabeza); }
+}
 .o_dcj .o_dcj_caja .o_dcj_sugerencia.o_dcj_sugerencia_error { background: var(--dc-mal-fondo); color: var(--dc-tinta); }
 
 .o_dcj_p_peligro {
