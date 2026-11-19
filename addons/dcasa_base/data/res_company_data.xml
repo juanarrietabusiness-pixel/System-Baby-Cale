@@ -11,10 +11,11 @@
             <field name="phone">+507 6757-5065</field>
             <field name="email">babycalebpanama@gmail.com</field>
             <field name="logo" type="base64" file="dcasa_base/static/img/logo.png"/>
-            <field name="primary_color">#1340B1</field>
-            <!-- Secundario navy, no amarillo: Odoo lo usa para texto sobre blanco
-                 en los documentos y el amarillo nunca toca el blanco. -->
-            <field name="secondary_color">#0E2A6B</field>
+            <!-- La marca de Baby Caleb (docs/MARCA_BABY_CALEB.md): Odoo los usa en los documentos y los correos. El
+                 principal es el navy, que lleva texto encima; el secundario, el naranja, solo para filetes y rellenos
+                 (nunca texto). Las bases ya instaladas los reciben por migrations/19.0.1.10.0. -->
+            <field name="primary_color">#1B3246</field>
+            <field name="secondary_color">#EE924A</field>
         </record>
     </data>
 </odoo>

@@ -1,11 +1,17 @@
-// Pulido global de Odoo con el sistema de diseño D'CASA: superficies blancas sobre
-// blanco frío, bordes finos, radios suaves, foco visible y números tabulares.
+// Pulido global de Odoo con la marca de Baby Caleb (docs/MARCA_BABY_CALEB.md): superficies crema sobre el crema de la
+// página, letra navy, el botón principal en naranja con letra navy, bordes finos, radio de 14 px, foco navy visible y
+// números tabulares. Montserrat para todo; los titulares en 700 y como frase (nunca en caja alta).
 
 .o_web_client {
     background-color: var(--dc-niebla);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    font-feature-settings: "cv11", "ss01";
+
+    h1, .h1, h2, .h2 {
+        font-weight: 700;
+        letter-spacing: -.03em;
+        line-height: 1.15;
+    }
 }
 
 // --- Barra superior -------------------------------------------------------------
@@ -61,14 +67,14 @@ $dcasa-alerta: #D92D20;
 }
 
 .o_searchview {
-    border-radius: var(--dc-r-sm) !important;
-    border-color: var(--dc-linea) !important;
+    border-radius: var(--dc-r-md) !important;
+    border-color: var(--dc-linea-fuerte) !important;
     background: var(--dc-niebla);
     transition: border-color var(--dc-transicion), background var(--dc-transicion), box-shadow var(--dc-transicion);
 
     &:focus-within {
         background: var(--dc-blanco);
-        border-color: var(--dc-azul-400) !important;
+        border-color: var(--dc-tinta) !important;
         box-shadow: var(--dc-foco);
     }
 }
@@ -79,17 +85,25 @@ $dcasa-alerta: #D92D20;
 }
 
 // --- Botones ------------------------------------------------------------------------
+// El principal: naranja con letra navy y un resplandor suave del mismo naranja al pasar el puntero (lo único que no es
+// plano, como en la web de Baby Caleb). Nunca letra blanca sobre el naranja: daría 2.37 a 1.
 .o_web_client .btn {
-    border-radius: var(--dc-r-sm);
-    font-weight: 500;
+    border-radius: var(--dc-r-md);
+    font-weight: 600;
 
     &:focus-visible { box-shadow: var(--dc-foco); }
 }
 
 .o_web_client .btn-primary {
-    background-color: var(--dc-azul-600);
-    border-color: var(--dc-azul-600);
-    &:hover, &:active { background-color: var(--dc-azul-700); border-color: var(--dc-azul-700); }
+    background-color: var(--dc-naranja);
+    border-color: var(--dc-naranja);
+    color: var(--dc-en-naranja);
+    font-weight: 700;
+    &:hover { background-color: var(--dc-naranja-puntero); border-color: var(--dc-naranja-puntero);
+              color: var(--dc-en-naranja); box-shadow: 0 4px 14px -6px rgba(238, 146, 74, .7); }
+    &:active, &.active { background-color: var(--dc-naranja-pulsado); border-color: var(--dc-naranja-pulsado);
+                         color: var(--dc-en-naranja); }
+    &:focus-visible { box-shadow: var(--dc-foco); }
 }
 
 .o_web_client .btn-secondary {
@@ -122,8 +136,8 @@ $dcasa-alerta: #D92D20;
 
         .o_data_row {
             > td { border-color: var(--dc-perla); }
-            &:hover > td { background-color: var(--dc-azul-50); }
-            &.o_data_row_selected > td { background-color: var(--dc-azul-100); }
+            &:hover > td { background-color: var(--dc-crema); }
+            &.o_data_row_selected > td { background-color: var(--dc-salvia-claro); }
         }
 
         tfoot td { background: var(--dc-nieve); }
@@ -163,7 +177,7 @@ $dcasa-alerta: #D92D20;
 .o_input:focus,
 .o_field_widget input:focus,
 .o_field_widget textarea:focus {
-    border-color: var(--dc-azul-500) !important;
+    border-color: var(--dc-tinta) !important;
 }
 
 // Pestañas del formulario
@@ -177,9 +191,10 @@ $dcasa-alerta: #D92D20;
         border-bottom: 2px solid transparent;
         &:hover { color: var(--dc-tinta); }
         &.active {
-            color: var(--dc-azul-700);
+            color: var(--dc-tinta);
+            font-weight: 700;
             background: transparent;
-            border-bottom-color: var(--dc-azul-600);
+            border-bottom-color: var(--dc-naranja-filo);
         }
     }
 }
@@ -187,14 +202,15 @@ $dcasa-alerta: #D92D20;
 // Botones inteligentes (Puntos, Facturas…)
 .o_form_view .oe_button_box .oe_stat_button {
     border-radius: var(--dc-r-sm);
-    &:hover { background: var(--dc-azul-50); }
-    .o_stat_value { color: var(--dc-azul-700); font-variant-numeric: tabular-nums; }
+    &:hover { background: var(--dc-crema); }
+    .o_stat_value { color: var(--dc-tinta); font-variant-numeric: tabular-nums; }
 }
 
 // Barra de estado (Cotización → Orden de venta)
 .o_statusbar_status .o_arrow_button.o_arrow_button_current {
-    color: var(--dc-azul-700) !important;
-    background-color: var(--dc-azul-50) !important;
+    color: var(--dc-en-naranja) !important;
+    background-color: var(--dc-naranja) !important;
+    font-weight: 700;
 }
 
 // --- Kanban ---------------------------------------------------------------------------
@@ -204,7 +220,7 @@ $dcasa-alerta: #D92D20;
     box-shadow: none;
     transition: border-color var(--dc-transicion), box-shadow var(--dc-transicion);
 
-    &:hover { border-color: var(--dc-azul-300); box-shadow: var(--dc-sombra-2); }
+    &:hover { border-color: var(--dc-naranja-filo); box-shadow: var(--dc-sombra-2); }
 }
 
 // --- Ajustes -------------------------------------------------------------------------
@@ -223,8 +239,8 @@ $dcasa-alerta: #D92D20;
 
     .dropdown-item {
         border-radius: 6px;
-        &:hover, &:focus { background: var(--dc-niebla); }
-        &.active, &:active { background: var(--dc-azul-50); color: var(--dc-azul-700); }
+        &:hover, &:focus { background: var(--dc-crema); }
+        &.active, &:active { background: var(--dc-salvia-claro); color: var(--dc-tinta); }
     }
 }
 

@@ -1,21 +1,12 @@
-// Interfaz de Odoo con la marca D'CASA.
-
+// Interfaz de Odoo con la marca de Baby Caleb: Montserrat para todo (docs/MARCA_BABY_CALEB.md).
+//
+// Un solo archivo variable (de 100 a 900, solo latino: el español entra entero) que sirve al panel y a la web; los PDF
+// usan los .ttf fijos (wkhtmltopdf no lee woff2). Licencia: fonts/OFL-Montserrat.txt.
 @font-face {
-    font-family: "Inter";
-    src: url("/dcasa_base/static/src/fonts/Inter-Regular.ttf") format("truetype");
-    font-weight: 400;
-    font-display: swap;
-}
-@font-face {
-    font-family: "Inter";
-    src: url("/dcasa_base/static/src/fonts/Inter-SemiBold.ttf") format("truetype");
-    font-weight: 500 600;
-    font-display: swap;
-}
-@font-face {
-    font-family: "Inter";
-    src: url("/dcasa_base/static/src/fonts/Inter-Bold.ttf") format("truetype");
-    font-weight: 700;
+    font-family: "Montserrat";
+    src: url("/dcasa_base/static/src/fonts/montserrat-latin-var.woff2") format("woff2");
+    font-weight: 100 900;
+    font-style: normal;
     font-display: swap;
 }
 
@@ -30,6 +21,7 @@
     -webkit-touch-callout: none;
 }
 
+// Lo seleccionado con el dedo o el ratón: el naranja de la marca, suave (la letra navy se sigue leyendo encima).
 ::selection {
-    background: rgba(19, 64, 177, .18);
+    background: rgba(238, 146, 74, .35);
 }

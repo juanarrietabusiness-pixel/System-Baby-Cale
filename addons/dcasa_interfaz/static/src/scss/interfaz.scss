@@ -1,15 +1,9 @@
-// «Inicio» de D'CASA con el sistema de diseño (tokens.scss): superficies blancas sobre
-// blanco frío, variantes del azul de la marca y el amarillo como detalle mínimo.
+// «Inicio» con el sistema de diseño (tokens.scss), la marca de Baby Caleb: tarjetas en superficie sobre el crema,
+// letra navy y el naranja de relleno (con letra navy encima).
 //
 // Varias clases de aquí las comparten otras pantallas (Estadísticas, Por día, Movimientos, Valor del inventario).
 // Lo que es SOLO del Inicio (los tamaños de los accesos en el celular, los contadores, las barras de proporción, el
 // movimiento) vive en tablero.scss, colgado de `.o_dcasa_tablero`.
-
-@font-face {
-    font-family: "Anton";
-    src: url("/dcasa_interfaz/static/src/fonts/Anton-Regular.ttf") format("truetype");
-    font-display: swap;
-}
 
 // «Enterprise» → «En desarrollo»
 .o_dcasa_en_desarrollo {

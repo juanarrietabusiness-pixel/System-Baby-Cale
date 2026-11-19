@@ -1,23 +1,128 @@
-// Odoo por dentro con la marca D'CASA.
-// Paleta: escala de azules D'CASA (navy → celeste muy claro) y blancos fríos; el
-// amarillo queda para detalles mínimos. Letra Inter (embebida, sin Google).
-$o-community-color: #1340B1;
-$o-enterprise-color: #1340B1;
-$o-brand-odoo: #1340B1;
-$o-brand-primary: #1340B1;
-$o-system-fonts: ("Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif,
-                  "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji");
+// Odoo por dentro con la marca de Baby Caleb (docs/MARCA_BABY_CALEB.md, pedido del dueño del 2026-11-19).
+// Crema de fondo y superficie para lo que era blanco, navy para la letra (#1B3246, el principal de la marca del panel),
+// el botón principal en naranja (#EE924A) con letra navy —nunca blanca— y Montserrat para todo (embebida, sin Google:
+// backend.scss). Los neutros (líneas, letra de apoyo, grises) son el navy mezclado con el crema: nada de blancos ni
+// grises fríos. El modo oscuro pisa todo esto desde dcasa_interfaz/static/src/oscuro/primary_variables.dark.scss.
+$dc-bc-crema: #F9F6ED;          // bg
+$dc-bc-superficie: #F2EFE5;     // surface
+$dc-bc-navy: #1B3246;           // fg
+$dc-bc-apagado: #5E6D78;        // muted (el navy al 70 % sobre el crema)
+$dc-bc-linea: #DEDED9;          // line (el navy al 12 % sobre el crema)
+$dc-bc-control: #7F8A91;        // control (el navy al 55 % sobre el crema): borde de lo que se toca
+$dc-bc-naranja: #EE924A;        // accent: relleno, con letra navy encima (5.56)
+$dc-bc-naranja-puntero: #F1A86E;    // el naranja con un 20 % de blanco, al pasar el puntero (navy 6.6)
+$dc-bc-naranja-pulsado: #E8853A;    // el naranja apretado (navy 4.93)
+$dc-bc-naranja-fuerte: #985D2F; // accent-strong: letra naranja sobre crema
+$dc-bc-naranja-filo: #C3783D;   // accent-edge: bordes naranja
+$dc-bc-salvia-claro: #E9EFE2;   // el salvia al 15 % sobre el crema: fondo de lo elegido
 
-// Fondo general blanco frío; barra superior blanca y liviana (la marca vive en la barra lateral).
-$o-webclient-background-color: #F4F6FA;
+$o-community-color: $dc-bc-navy;
+$o-enterprise-color: $dc-bc-navy;
+$o-brand-odoo: $dc-bc-navy;
+$o-brand-primary: $dc-bc-navy;
+$o-system-fonts: ("Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+                  sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji");
+$o-headings-font-family: o-add-unicode-support-font($o-system-fonts);
+
+// El blanco de Odoo es la superficie crema y los grises van del crema al navy (el navy al 3, 7, 12, 25, 45, 70, 80 y
+// 90 %): las líneas, los fondos suaves y la letra gris de Odoo salen tibios, no fríos.
+$o-white: $dc-bc-superficie;
+$o-gray-100: #F3F0E8;
+$o-gray-200: #EAE8E1;
+$o-gray-300: $dc-bc-linea;
+$o-gray-400: #C2C5C3;
+$o-gray-500: #959EA2;
+$o-gray-600: $dc-bc-apagado;
+$o-gray-700: #475967;
+$o-gray-800: #314657;
+$o-gray-900: $dc-bc-navy;
+
+$o-webclient-background-color: $dc-bc-crema;
+$o-view-background-color: $dc-bc-superficie;
+$o-main-text-color: $dc-bc-navy;
+$o-main-headings-color: $dc-bc-navy;
+$o-main-color-muted: $dc-bc-apagado;
+$o-main-link-color: $dc-bc-navy;
+$o-form-lightsecondary: $dc-bc-control;
+$o-shadow-color: $dc-bc-navy;
+
+// Los estados escritos sobre el crema: medidos a 4.5 sobre la superficie (los de Odoo daban 4.1 a 4.4).
+$o-theme-text-colors: (
+    "success": #53735C,
+    "info": #23657A,
+    "warning": #855700,
+    "danger": #B3261E,
+);
+
+// Lo elegido (el renglón de una lista, la categoría del panel de búsqueda): salvia claro con letra navy.
+$o-component-active-color: $dc-bc-navy;
+$o-component-active-bg: $dc-bc-salvia-claro;
+$o-component-active-border: $dc-bc-naranja-filo;
+$o-list-group-active-color: $dc-bc-navy;
+$o-list-group-active-bg: $dc-bc-salvia-claro;
+
+// Texto sobre fondos de color (Bootstrap elige): navy sobre lo claro, crema sobre lo oscuro.
+$color-contrast-dark: $dc-bc-navy;
+$color-contrast-light: $dc-bc-crema;
+$headings-font-weight: 700;
+
+// El botón principal: naranja con letra navy (Baby Caleb, «accent-fg»). El de contorno: filo naranja y letra
+// naranja fuerte. El secundario: superficie con el borde de lo que se toca.
+$o-btns-bs-override: (
+    "primary": (
+        background: $dc-bc-naranja,
+        border: $dc-bc-naranja,
+        color: $dc-bc-navy,
+
+        hover-background: $dc-bc-naranja-puntero,
+        hover-border: $dc-bc-naranja-puntero,
+        hover-color: $dc-bc-navy,
+
+        active-background: $dc-bc-naranja-pulsado,
+        active-border: $dc-bc-naranja-pulsado,
+        active-color: $dc-bc-navy,
+    ),
+    "secondary": (
+        background: $dc-bc-superficie,
+        border: $dc-bc-control,
+        color: $dc-bc-navy,
+
+        hover-background: $dc-bc-crema,
+        hover-border: $dc-bc-navy,
+        hover-color: $dc-bc-navy,
+
+        active-background: $dc-bc-salvia-claro,
+        active-border: $dc-bc-navy,
+        active-color: $dc-bc-navy,
+    ),
+);
+$o-btns-bs-outline-override: (
+    "primary": (
+        background: transparent,
+        border: $dc-bc-naranja-filo,
+        color: $dc-bc-naranja-fuerte,
+
+        hover-background: $dc-bc-naranja,
+        hover-border: $dc-bc-naranja,
+        hover-color: $dc-bc-navy,
+
+        active-background: $dc-bc-naranja-pulsado,
+        active-border: $dc-bc-naranja-pulsado,
+        active-color: $dc-bc-navy,
+    ),
+);
+
+// Barra de arriba: la superficie con su filo (como la cabecera del panel de Baby Caleb); la marca vive en la barra
+// lateral.
 $o-navbar-height: 56px;
-$o-navbar-background: #FFFFFF;
-$o-navbar-border-bottom: 1px solid #E2E7F0;
-$o-navbar-entry-color: #44506A;
-$o-navbar-entry-color--hover: #0E1A33;
-$o-navbar-entry-bg--hover: rgba(19, 64, 177, .06);
-$o-navbar-entry-color--active: #1340B1;
-$o-navbar-entry-bg--active: rgba(19, 64, 177, .08);
-$o-navbar-brand-color: #0E1A33;
-$o-navbar-badge-bg: #1340B1;
+$o-navbar-background: $dc-bc-superficie;
+$o-navbar-border-bottom: 1px solid $dc-bc-linea;
+$o-navbar-entry-color: $dc-bc-navy;
+$o-navbar-entry-color--hover: $dc-bc-navy;
+$o-navbar-entry-bg--hover: rgba(27, 50, 70, .06);
+$o-navbar-entry-color--active: $dc-bc-navy;
+$o-navbar-entry-bg--active: rgba(27, 50, 70, .08);
+$o-navbar-brand-color: $dc-bc-navy;
+$o-navbar-badge-bg: $dc-bc-naranja;
+$o-navbar-badge-color: $dc-bc-navy;
 $o-navbar-badge-text-shadow: none;

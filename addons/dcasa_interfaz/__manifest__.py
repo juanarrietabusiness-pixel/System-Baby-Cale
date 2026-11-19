@@ -33,7 +33,7 @@ La interfaz de trabajo de D'CASA, hecha a medida:
   (barra lateral, menú del celular, favicon, app instalable y colores) los toma en caliente, sin recompilar los estilos.
   La página web pública no cambia. Ver docs/MARCA_DEL_PANEL.md.
 """,
-    'version': '19.0.1.3.0',
+    'version': '19.0.1.4.0',
     'category': 'Hidden',
     'author': "D'CASA Panamá",
     'website': 'https://dcasapty.com',

@@ -15,7 +15,8 @@
 
     <!-- Al agregar el panel a la pantalla de inicio del celular (2026-10-22: «estrictamente el logo»). En el iPhone, el
          logo sobre blanco y sin transparencia (lo transparente lo pinta de negro); en Android, el manifiesto
-         (controllers/webmanifest.py). Y el color de la barra del navegador: el azul de la marca.
+         (controllers/webmanifest.py). Y el color de la barra del navegador: el crema de la página (la marca de Baby Caleb;
+         de noche, el oscuro de la página), con cualquier color de la empresa.
 
          La marca de cada empresa (2026-11-18, models/marca.py): `dcasa_marca` viene vacío si todo es de fábrica, y
          entonces la página sale exactamente como antes (los mismos enlaces). Si la empresa puso sus colores, en lugar de
@@ -32,7 +33,7 @@
         </xpath>
         <xpath expr="//meta[@name='theme-color']" position="attributes">
             <attribute name="content"></attribute>
-            <attribute name="t-att-content">dcasa_marca.get('color') or '#1340B1'</attribute>
+            <attribute name="t-att-content">'#121B23' if color_scheme == 'dark' else '#F9F6ED'</attribute>
         </xpath>
         <xpath expr="//t[@t-call-assets='web.assets_web_dark']/.." position="attributes">
             <attribute name="t-if">not dcasa_marca.get('hoja') and color_scheme == 'dark'</attribute>

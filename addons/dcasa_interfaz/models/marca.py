@@ -6,14 +6,16 @@ pública NO cambia: la programa el equipo, no el usuario.
 
 * **Campos propios** (no ``res.company.logo`` ni ``primary_color``/``secondary_color``): esos son de los documentos
   (factura, cotización, correos) y del sitio, y se imprimen sobre papel blanco; los del panel tienen reglas de lectura
-  propias (letra blanca sobre el principal, el acento sobre el oscuro). Así cambiar uno no cambia el otro.
-* **De fábrica = el aspecto de hoy.** Sin logo ni ícono, y con los colores de fábrica, la página del panel sale igual
-  que antes, byte por byte: mismas direcciones de imagen y la misma hoja de estilos de Odoo.
+  propias (el principal es la letra sobre el crema, el acento es el relleno con la letra del principal encima). Así
+  cambiar uno no cambia el otro.
+* **De fábrica = la marca de Baby Caleb** (2026-11-19): crema, navy (principal ``#1B3246``) y naranja (acento
+  ``#EE924A``), ya compilados en la hoja de Odoo. Sin logo ni ícono, y con los colores de fábrica, la página del panel
+  enlaza la hoja de Odoo tal cual y los íconos de siempre.
 * **En caliente.** Los colores no recompilan nada: la página enlaza la hoja compilada pintada con los colores de la
   empresa (``controllers/marca.py`` y ``marca/tinte.py``). Al guardar, el panel se recarga y ya se ve.
-* **Lo que se guarda se valida aquí** (y lo mismo dicen Ajustes y Brian): el principal lleva letra blanca y va como
-  letra sobre blanco, así que pide 4.5:1 con el blanco; el acento va sobre el oscuro de la marca, con letra oscura, y
-  pide 4.5:1 con él (y 3:1 con el principal). Si no llega, se dice por qué y qué color sí sirve.
+* **Lo que se guarda se valida aquí** (y lo mismo dicen Ajustes y Brian): el principal es la letra de títulos y enlaces
+  sobre el crema, así que pide 4.5:1 con la superficie crema (#F2EFE5); el acento es el relleno del botón principal y
+  lleva encima la letra en el principal, así que pide 4.5:1 con él. Si no llega, se dice por qué y qué color sí sirve.
 * Quién: los administradores (Ajustes), como los datos de la empresa (Ajustes › Empresas).
 """
 import base64
@@ -77,12 +79,12 @@ class ResCompany(models.Model):
              'Mejor cuadrado. Si no lo subes, sale del logo del panel.')
     dcasa_panel_color_principal = fields.Char(
         'Color principal del panel', default=C.FABRICA_PRINCIPAL,
-        help='Botones, enlaces, lo que está elegido y lo activo de la barra de la izquierda. Lleva letra blanca '
-             'encima.')
+        help='La tinta de tu marca: la letra, los títulos, los enlaces, los íconos y lo activo de la barra de la '
+             'izquierda. Tiene que ser oscuro: va como letra sobre el crema del panel.')
     dcasa_panel_color_acento = fields.Char(
         'Color de acento del panel', default=C.FABRICA_ACENTO,
-        help='Detalles sobre el color oscuro de la marca: insignias, números destacados, puntos. Nunca va sobre '
-             'blanco y lleva letra oscura encima.')
+        help='El relleno de tu marca: el botón principal, lo elegido, las barras y los puntos. Tiene que ser claro y '
+             'vivo: lleva encima la letra en el color principal y nunca se usa como letra.')
     dcasa_panel_version = fields.Char(
         'Versión de la marca del panel', readonly=True, copy=False,
         help='Cambia cada vez que cambia la marca del panel: así los navegadores piden la hoja y los íconos nuevos.')
@@ -241,7 +243,6 @@ class ResCompany(models.Model):
         datos = {}
         tinte = self._dcasa_panel_tinte()
         if not tinte.de_fabrica:
-            datos['color'] = tinte.principal
             hoja = self._dcasa_panel_url_hoja(esquema)
             if hoja:
                 datos['hoja'] = hoja
@@ -260,15 +261,15 @@ class ResCompany(models.Model):
         return {'logo': self._dcasa_panel_url_logo(imagenes), 'nombre': self.sudo().name}
 
     def _dcasa_panel_manifiesto(self):
-        """El color y los íconos de la app instalable (``None`` = los de fábrica)."""
+        """Los íconos de la app instalable (``None`` = los de fábrica). El color de la barra no cambia con la marca:
+        es el crema de la página del panel (``controllers/webmanifest.py``)."""
         self.ensure_one()
-        tinte = self._dcasa_panel_tinte()
         iconos = None
         imagenes = self._dcasa_panel_imagenes()
         if imagenes:
             iconos = [{'src': self._dcasa_panel_url_icono(nombre, imagenes), 'sizes': tamano, 'type': 'image/png',
                        'purpose': uso} for nombre, tamano, uso in ICONOS_DEL_MANIFIESTO]
-        return {'color': None if tinte.de_fabrica else tinte.principal, 'iconos': iconos}
+        return {'iconos': iconos}
 
     def _dcasa_panel_resumen(self):
         """La marca del panel en palabras (para Brian y las pruebas)."""
