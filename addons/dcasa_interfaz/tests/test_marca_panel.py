@@ -390,6 +390,55 @@ class TestMarcaDeLaEmpresa(TransactionCase):
         self.assertEqual(despues['sale.sale_menu_root'], Tinte(PRINCIPAL, ACENTO).svg(ventas))
 
 
+# --- Ningún texto que se vea dice el nombre de la plantilla de origen ------------------------------------------------
+
+@tagged('post_install', '-at_install')
+class TestSinElNombreDeOrigen(TransactionCase):
+    """Pedido del coordinador (2026-11-19): en las pantallas del panel ningún texto dice «D'CASA» ni su dirección (La
+    Chorrera). Donde se puede va el nombre de la empresa (``user.activeCompany`` en el navegador, ``res.company.name``
+    en el servidor); donde no, uno neutro. Los comentarios y los nombres técnicos se quedan; la presentación de los
+    asistentes («Juan de D'CASA») es el trabajo de los nombres configurables."""
+
+    PANTALLAS = (
+        'dcasa_interfaz/static/src/xml/inicio.xml',
+        'dcasa_interfaz/static/src/js/sin_odoo.js',
+        'dcasa_brian/static/src/xml/brian_panel.xml',
+        'dcasa_brian/static/src/js/brian_panel.js',
+        'dcasa_conversaciones/static/src/xml/ficha.xml',
+        'dcasa_contactos/static/src/coincidencias/coincidencias.js',
+        'dcasa_marketing/static/src/js/foto_campo.js',
+        'dcasa_envios/static/src/xml/calculadora.xml',
+        'dcasa_envios/views/choferes_templates.xml',
+        'dcasa_envios/views/tarifa_views.xml',
+        'dcasa_guia/data/guia.json',
+    )
+
+    @staticmethod
+    def sin_comentarios(texto):
+        texto = re.sub(r'<!--.*?-->|/\*.*?\*/', '', texto, flags=re.S)
+        return '\n'.join(linea for linea in texto.splitlines() if not linea.lstrip().startswith(('//', '*')))
+
+    def test_las_pantallas_no_dicen_dcasa(self):
+        for ruta in self.PANTALLAS:
+            with self.subTest(ruta=ruta), open(file_path(ruta), encoding='utf-8') as archivo:
+                texto = self.sin_comentarios(archivo.read())
+                for de_origen in ("D'CASA", 'D&apos;CASA', 'D’CASA', 'La Chorrera'):
+                    self.assertNotIn(de_origen, texto)
+
+    def test_el_nombre_es_el_de_la_empresa(self):
+        """Los textos que nombran a la empresa lo leen de ella: en el navegador, de la compañía con que se entró."""
+        for ruta, texto in (('dcasa_interfaz/static/src/js/sin_odoo.js', 'user.activeCompany?.name'),
+                            ('dcasa_brian/static/src/js/brian_panel.js', 'user.activeCompany?.name'),
+                            ('dcasa_conversaciones/static/src/js/ficha.js', 'user.activeCompany?.name'),
+                            ('dcasa_envios/static/src/js/calculadora.js', 'user.activeCompany?.name'),
+                            ('dcasa_envios/views/choferes_templates.xml', '<t t-esc="empresa"/>')):
+            with self.subTest(ruta=ruta), open(file_path(ruta), encoding='utf-8') as archivo:
+                self.assertIn(texto, archivo.read())
+        self.env.company.name = 'Empresa de Prueba'
+        socios = next(c for c in self.env['dcasa.tablero'].obtener_datos()['cifras'] if c['clave'] == 'socios')
+        self.assertEqual(socios['titulo'], 'Socios Empresa de Prueba')
+
+
 # --- Las bases que se instalaron con la fábrica de D'CASA -----------------------------------------------------------
 
 @tagged('post_install', '-at_install')
@@ -497,8 +546,8 @@ class TestMarcaEnLaPagina(HttpCase):
         # El navy y el naranja de fábrica solo quedan en lo que no es la marca: las paletas, los colores de la web y la
         # letra sobre el salvia (--dc-en-salvia, que no gira: el salvia tampoco).
         self.assertIn('--dc-en-salvia: #1B3246', pintada)
-        for selector, cuerpo in re.findall(r'([^{}]*)\{([^{}]*)\}', pintada):
-            cuerpo = modulo_tinte._PROTEGIDAS.sub('', cuerpo)
+        for selector, declaraciones in re.findall(r'([^{}]*)\{([^{}]*)\}', pintada):
+            cuerpo = modulo_tinte._PROTEGIDAS.sub('', declaraciones)
             if re.search(r'#1B3246|#EE924A', cuerpo, re.I):
                 with self.subTest(regla=selector[-80:]):
                     self.assertRegex(selector, modulo_tinte._INTOCABLES.pattern)

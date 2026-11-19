@@ -30,7 +30,7 @@
         <aside id="o_brian_panel" class="o_brian_panel d-print-none" t-ref="panel"
                t-att-class="clasesPanel" t-att-data-avatar="estadoAvatar"
                t-att-aria-hidden="abierto.abierto ? 'false' : 'true'"
-               aria-label="Brian, el asistente de D'CASA"
+               t-att-aria-label="etiquetaPanel"
                t-on-keydown="alTeclaPanel"
                t-on-dragenter="alArrastrar" t-on-dragover="alArrastrar"
                t-on-dragleave="alSalirArrastre" t-on-drop="alSoltar">

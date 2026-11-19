@@ -48,7 +48,7 @@
 
                 <!-- Socios: solo lectura -->
                 <section t-if="f.socio.es_socio" class="o_dcj_tarjeta">
-                    <h3>Socios D'CASA</h3>
+                    <h3 t-esc="nombreDelPrograma"/>
                     <p class="o_dcj_puntos_socio">
                         <strong t-out="numero(f.socio.puntos)"/> <span>puntos</span>
                     </p>

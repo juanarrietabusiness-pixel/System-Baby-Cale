@@ -405,13 +405,19 @@ class TestRutasDeChoferes(ChoferesComun, HttpCase):
 
     # --- «Usar mi ubicación» apagado (de fábrica; decisión de la dueña, 2026-11-09) ----------------------------
     def test_sin_permiso_de_gerencia_solo_se_calcula_desde_dcasa(self):
-        """Por defecto los choferes solo buscan el lugar y ven el precio desde D'CASA: el botón no sale y la ruta de
+        """Por defecto los choferes solo buscan el lugar y ven el precio desde la tienda: el botón no sale y la ruta de
         la ubicación no existe. Gerencia lo enciende si quiere."""
         self.tarifa_g.write({'choferes_ubicacion': False})
         html = self.pagina().text
         self.assertNotIn('Usar mi ubicación', html)
         self.assertNotIn('class="ubicacion"', html)
-        self.assertIn("El precio es desde D'CASA hasta el lugar que busques.", html)
+        self.assertIn('El precio es desde la tienda hasta el lugar que busques.', html)
+        # Ni el nombre ni la dirección de D'CASA: el de la empresa, en el título y en la franja de arriba.
+        self.assertNotIn("D'CASA", html.replace('&#39;', "'"))
+        self.assertNotIn('La Chorrera', html)
+        nombre = self.env.company.name
+        self.assertIn(f'<title>Envíos {nombre} · choferes</title>', html)
+        self.assertIn(f'{nombre} · envíos desde la tienda', html)
         self.assertNoExiste(self.post('cerca', {'lat': VILLA[0], 'lon': VILLA[1]}))
         self.assertEqual(self.post('buscar', {'texto': 'villa prueba'}).status_code, 200, 'buscar sigue igual')
         self.tarifa_g.write({'choferes_ubicacion': True})

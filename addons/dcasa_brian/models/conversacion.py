@@ -320,7 +320,7 @@ class BrianConversacion(models.Model):
     def estado_proveedor(self):
         """Estado del proveedor de IA (sin la clave). Solo usuarios internos: el portal no usa Brian."""
         if not self.env.su and not self.env.user.has_group('base.group_user'):
-            raise AccessError(self.env._('Brian es solo para el equipo de D’CASA.'))
+            raise AccessError(self.env._('Brian es solo para el equipo de %s.', self.env.company.name))
         estado = self.env['brian.proveedores'].estado()
         # ¿El micrófono? Las notas de voz se pasan a texto en el Worker de Juan; el audio no se guarda (models/voz.py).
         estado['voz'] = self.env['dcasa.brian.voz'].disponible()
@@ -355,7 +355,7 @@ class BrianConversacion(models.Model):
         se puede calcular no sale.
         """
         if not self.env.su and not self.env.user.has_group('base.group_user'):
-            raise AccessError(self.env._('Brian es solo para el equipo de D’CASA.'))
+            raise AccessError(self.env._('Brian es solo para el equipo de %s.', self.env.company.name))
         usuario = self.env.user
         pastillas = []
 

@@ -20,12 +20,16 @@ import { KanbanRenderer } from "@web/views/kanban/kanban_renderer";
 import { UpgradeBooleanField } from "@web/webclient/settings_form_view/fields/upgrade_boolean_field";
 import { SaleActionHelper } from "@sale/js/sale_action_helper/sale_action_helper";
 import { StockActionHelper } from "@stock/views/stock_empty_list_help";
+import { user } from "@web/core/user";
+
+// El nombre de la empresa (la plantilla sirve a cualquiera): el de la compañía con que entró la persona.
+const nombreDeLaEmpresa = () => user.activeCompany?.name || "Baby Caleb";
 
 patch(UpgradeBooleanField.prototype, {
     async onChange() {
         this.props.record.update({ [this.props.name]: false });
         this.env.services.notification.add(
-            "Esta función la estamos desarrollando a la medida de D'CASA.",
+            `Esta función la estamos desarrollando a la medida de ${nombreDeLaEmpresa()}.`,
             { title: "En desarrollo", type: "info" }
         );
     },
@@ -83,7 +87,10 @@ for (const Ayuda of [SaleActionHelper, StockActionHelper]) {
     patch(Ayuda.prototype, listaVacia);
 }
 
-Dialog.defaultProps = { ...Dialog.defaultProps, title: "D'CASA" };
+// Las ventanas sin título propio dicen el nombre de la empresa (un «getter»: se lee al abrir cada ventana).
+const propsDeLaVentana = { ...Dialog.defaultProps };
+Object.defineProperty(propsDeLaVentana, "title", { enumerable: true, get: nombreDeLaEmpresa });
+Dialog.defaultProps = propsDeLaVentana;
 
 const menuUsuario = registry.category("user_menuitems");
 for (const clave of ["documentation", "support", "shortcuts", "odoo_account"]) {

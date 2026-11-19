@@ -201,6 +201,7 @@ class EnlaceChoferes(http.Controller):
         base = RUTA.replace('<string:token>', token)
         html = request.env['ir.qweb']._render('dcasa_envios.choferes_pagina', {
             'nonce': nonce,
+            'empresa': request.env.company.sudo().name,
             'ruta_buscar': base + '/buscar',
             'ruta_cerca': base + '/cerca',
             'con_ubicacion': request.env['dcasa.envio.tarifa'].sudo()._choferes_con_ubicacion(),

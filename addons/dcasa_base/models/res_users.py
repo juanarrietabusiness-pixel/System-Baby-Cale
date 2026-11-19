@@ -143,5 +143,5 @@ class ResUsers(models.Model):
         if con_caja:
             return False
         _logger.warning("D'CASA permisos: nadie tiene el rol Caja: asígnalo antes de abrir (Ajustes › Usuarios › "
-                        "la persona que cobra › «D'CASA: Caja», o Brian: «ponle el rol cajero a …»).")
+                        "la persona que cobra › el rol «Caja», o Brian: «ponle el rol cajero a …»).")
         return True

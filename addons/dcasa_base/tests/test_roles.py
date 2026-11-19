@@ -12,12 +12,13 @@ def crear_usuario(env, login, *grupos):
 
 @tagged('post_install', '-at_install')
 class TestRoles(TransactionCase):
-    """Roles «D'CASA / Vendedora», «D'CASA / Caja» y «D'CASA / Gerencia» (UI-02, UI-03; Caja desde 2026-10-17)."""
+    """Roles «Baby Caleb / Vendedora», «Baby Caleb / Caja» y «Baby Caleb / Gerencia» (UI-02, UI-03; Caja desde
+    2026-10-17). El selector lleva el nombre de la empresa de esta copia, no el de D'CASA."""
 
     def test_vendedora_vende_cobra_y_despacha(self):
         """La Vendedora es «Ventas: solo sus documentos» (ve solo lo suyo), no «todos los documentos»."""
         vendedora = self.env.ref('dcasa_base.group_vendedora')
-        self.assertEqual(vendedora.full_name, "D'CASA / Vendedora")
+        self.assertEqual(vendedora.full_name, 'Baby Caleb / Vendedora')
         implicados = vendedora.all_implied_ids
         for xmlid in ('sales_team.group_sale_salesman', 'account.group_account_invoice', 'stock.group_stock_user'):
             self.assertIn(self.env.ref(xmlid), implicados, xmlid)
@@ -29,7 +30,7 @@ class TestRoles(TransactionCase):
 
     def test_caja_factura_y_cobra_todo_sin_contabilidad(self):
         caja = self.env.ref('dcasa_base.group_caja')
-        self.assertEqual(caja.full_name, "D'CASA / Caja")
+        self.assertEqual(caja.full_name, 'Baby Caleb / Caja')
         self.assertEqual(caja.privilege_id, self.env.ref('dcasa_base.res_groups_privilege_dcasa'))
         implicados = caja.all_implied_ids
         for xmlid in ('dcasa_base.group_vendedora', 'sales_team.group_sale_salesman_all_leads',
@@ -55,7 +56,7 @@ class TestRoles(TransactionCase):
 
     def test_gerencia_controla_sin_ser_admin_tecnico(self):
         gerencia = self.env.ref('dcasa_base.group_gerencia')
-        self.assertEqual(gerencia.full_name, "D'CASA / Gerencia")
+        self.assertEqual(gerencia.full_name, 'Baby Caleb / Gerencia')
         implicados = gerencia.all_implied_ids
         for xmlid in ('dcasa_base.group_vendedora', 'dcasa_base.group_caja', 'sales_team.group_sale_manager',
                       'account.group_account_user',

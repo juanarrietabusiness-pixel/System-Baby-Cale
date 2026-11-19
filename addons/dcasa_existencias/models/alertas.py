@@ -108,7 +108,8 @@ class DcasaExistenciasAlertas(models.AbstractModel):
                                self._cierre(config, hoy), self._mermas(config, hoy)) if b]
         if not bloques:
             return ''
-        partes = [self.env._("D'CASA · alertas de bodega del %s", hoy.strftime('%d/%m/%Y'))]
+        partes = [self.env._('%(empresa)s · alertas de bodega del %(fecha)s', empresa=self.env.company.name,
+                             fecha=hoy.strftime('%d/%m/%Y'))]
         partes += ['\n'.join(b) for b in bloques]
         return '\n\n'.join(partes)
 

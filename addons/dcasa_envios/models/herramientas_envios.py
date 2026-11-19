@@ -79,7 +79,7 @@ class BrianHerramientasEnvios(models.AbstractModel):
         respuesta = {'tarifa': self._envio_tarifa(datos['tarifa']), 'encontrados': datos['total']}
         if not datos['total']:
             respuesta['no_encontrado'] = (f'No encontré «{lugar}». Si es un lugar nuevo, mídelo en Google Maps («Cómo '
-                                          'llegar» en carro desde D\'CASA) y pásame los km, o agrégalo en Envíos › '
+                                          'llegar» en carro desde la tienda) y pásame los km, o agrégalo en Envíos › '
                                           'Calculadora.')
             if datos['sugerencias']:
                 respuesta['quisiste_decir'] = [s['nombre'] for s in datos['sugerencias']]

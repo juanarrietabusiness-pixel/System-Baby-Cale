@@ -62,7 +62,7 @@ MAX_PARTES_QUE_SUBEN = 100
 # dos días de «No llegó» por el método de pago de Meta (131042) sin que nadie se enterara.
 CODIGOS_DE_CUENTA = {
     131042: ('Meta dice que hay un problema con el método de pago de la cuenta de WhatsApp Business. Arréglalo en '
-             'business.facebook.com › Facturación y pagos › la cuenta de WhatsApp de D\'CASA.'),
+             'business.facebook.com › Facturación y pagos › la cuenta de WhatsApp de la empresa.'),
     131031: 'Meta bloqueó la cuenta de WhatsApp Business. Revísala en el WhatsApp Manager de Meta.',
     131048: ('Meta está frenando los mensajes de este número porque muchos se marcaron como spam o se bloquearon. '
              'Revisa la calidad del número en el WhatsApp Manager de Meta.'),
@@ -811,7 +811,8 @@ class DcasaMensaje(models.Model):
             texto = armar(
                 self.env._('⚠️ WhatsApp no está entregando los mensajes'),
                 self.env._('%(que)s Código de Meta: %(codigo)s.', que=que, codigo=codigo),
-                self.env._('Mientras tanto, los mensajes de D\'CASA a los clientes salen con «No llegó».'),
+                self.env._('Mientras tanto, los mensajes de %s a los clientes salen con «No llegó».',
+                           self.env.company.name),
                 self.env._('Cuando se arregle, hay que volver a escribirles a esos clientes.'))
             enviados = 0
             try:

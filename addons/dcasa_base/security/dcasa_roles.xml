@@ -2,18 +2,19 @@
 <odoo>
     <!--
         Roles de la tienda (UI-02, UI-03, ronda 3 §4.1; Caja desde el 2026-10-17).
-        En la ficha del usuario aparecen como un solo selector «D'CASA»: Vendedora, Caja o Gerencia.
+        En la ficha del usuario aparecen como un solo selector con el nombre de la empresa («Baby Caleb»): Vendedora, Caja
+        o Gerencia. (En la plantilla de origen decía «D'CASA»; el registro no es noupdate, así que -u lo actualiza.)
         Cada rol se arma con grupos estándar de Odoo; las reglas de «solo lo suyo» están en
         dcasa_reglas_contables.xml y dcasa_reglas_ventas.xml (ver docs/PERMISOS.md).
     -->
     <record id="module_category_dcasa" model="ir.module.category">
-        <field name="name">D'CASA</field>
-        <field name="description">Roles de la tienda D'CASA Panamá.</field>
+        <field name="name">Baby Caleb</field>
+        <field name="description">Roles de la tienda.</field>
         <field name="sequence">1</field>
     </record>
 
     <record id="res_groups_privilege_dcasa" model="res.groups.privilege">
-        <field name="name">D'CASA</field>
+        <field name="name">Baby Caleb</field>
         <field name="description">Rol en la tienda: Vendedora (vende y factura lo suyo), Caja (factura y cobra todo) o Gerencia (además anula, devuelve dinero y controla).</field>
         <field name="placeholder">Sin rol</field>
         <field name="sequence">1</field>

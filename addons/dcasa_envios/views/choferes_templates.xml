@@ -13,7 +13,7 @@
     <meta name="robots" content="noindex, nofollow"/>
     <meta name="referrer" content="no-referrer"/>
     <meta name="theme-color" content="#F9F6ED"/>
-    <title>Envíos D'CASA · choferes</title>
+    <title>Envíos <t t-esc="empresa"/> · choferes</title>
     <style t-att-nonce="nonce"><![CDATA[
         @font-face { font-family: 'Montserrat'; font-weight: 100 900; font-display: swap;
                      src: url('/dcasa_base/static/src/fonts/montserrat-latin-var.woff2') format('woff2'); }
@@ -73,7 +73,7 @@
 <body class="choferes" t-att-data-buscar="ruta_buscar" t-att-data-cerca="ruta_cerca">
     <header class="cab">
         <div class="caja">
-            <p class="marca">D'CASA Panamá · envíos desde la tienda</p>
+            <p class="marca"><t t-esc="empresa"/> · envíos desde la tienda</p>
             <h1>¿Cuánto cuesta el envío?</h1>
             <form class="buscar" role="search" novalidate="novalidate">
                 <label for="q">Busca el barrio, edificio o lugar</label>
@@ -86,7 +86,7 @@
                 <button type="button" class="ubicacion">Usar mi ubicación</button>
                 <p class="privado">Tu ubicación solo se usa para buscar el lugar más cercano; no se guarda.</p>
             </t>
-            <p t-else="" class="privado">El precio es desde D'CASA hasta el lugar que busques.</p>
+            <p t-else="" class="privado">El precio es desde la tienda hasta el lugar que busques.</p>
         </div>
     </header>
     <main class="caja">

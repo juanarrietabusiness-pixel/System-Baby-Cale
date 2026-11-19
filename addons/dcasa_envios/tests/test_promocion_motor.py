@@ -109,7 +109,7 @@ class TestPromocionDeEnvio(BaseCase):
                 self.assertEqual((resultado['motivo'], resultado['precio_final'], resultado['ahorro']),
                                  (P.GRATIS, 0.0, 35.0))
                 self.assertEqual(resultado['frase'], "Con la promoción de noviembre, como tu compra pasa de $200 sin "
-                                                     "ITBMS, D'CASA te regala el envío: te sale gratis (te ahorras "
+                                                     "ITBMS, te regalamos el envío: te sale gratis (te ahorras "
                                                      "$35). La promoción es hasta el 30 de noviembre; después, el "
                                                      "envío vuelve a su precio normal.")
                 self.assertEqual(papeles(P.respaldo(resultado)), (35.0, 0.0, 35.0, True, False, 200.0, None))
@@ -121,7 +121,7 @@ class TestPromocionDeEnvio(BaseCase):
                 self.assertEqual((resultado['motivo'], resultado['precio_final'], resultado['ahorro']),
                                  (P.ABONO, 70.0, 20.0))
                 self.assertEqual(resultado['frase'], "Con la promoción de noviembre, como tu compra pasa de $200 sin "
-                                                     "ITBMS, D'CASA te abona $20 del envío: te queda en $70. La "
+                                                     "ITBMS, te abonamos $20 del envío: te queda en $70. La "
                                                      "promoción es hasta el 30 de noviembre; después, el envío vuelve "
                                                      "a su precio normal.")
                 self.assertFalse(resultado['menciona_gratis'], 'en una zona con abono no se dice «gratis»')
@@ -213,7 +213,7 @@ class TestPromocionDeEnvio(BaseCase):
         self.assertEqual(P.con_lo_prometido(terminos, 90.0, compra(300.0, colchon=True))['motivo'], P.COLCHON)
         self.assertEqual(P.con_lo_prometido(terminos, 0.0, compra(300.0))['motivo'], P.SIN_PRECIO)
         self.assertEqual(P.recordar(terminos, ahora),
-                         "Tu cotización ya tiene la promoción de noviembre, así que D'CASA te abona $20 del envío: te "
+                         "Tu cotización ya tiene la promoción de noviembre, así que te abonamos $20 del envío: te "
                          'queda en $70.')
         self.assertEqual(P.recordar(terminos, P.con_lo_prometido(terminos, 90.0, compra(150.0))), '')
 
@@ -222,14 +222,14 @@ class TestPromocionDeEnvio(BaseCase):
         gratis = self.aplicar(precio=15.0)
         self.assertEqual((gratis['motivo'], gratis['aplica'], gratis['condicional'], gratis['precio_final'],
                           gratis['precio_si_aplica']), (P.SIN_COMPRA, False, True, None, 0.0))
-        self.assertEqual(gratis['frase'], "Con la promoción de noviembre, en compras de más de $200 sin ITBMS, D'CASA "
-                                          "te regala el envío: te sale gratis (te ahorras $15). La promoción es hasta "
-                                          "el 30 de noviembre; después, el envío vuelve a su precio normal. No aplica "
-                                          "si la compra lleva colchón.")
+        self.assertEqual(gratis['frase'], "Con la promoción de noviembre, en compras de más de $200 sin ITBMS, "
+                                          "te regalamos el envío: te sale gratis (te ahorras $15). La promoción es "
+                                          "hasta el 30 de noviembre; después, el envío vuelve a su precio normal. No "
+                                          "aplica si la compra lleva colchón.")
         self.assertEqual(papeles(P.respaldo(gratis)), (15.0, 0.0, 15.0, True, True, 200.0, None))
         abono = self.aplicar(precio=90.0, prov='Colón', dist='Colón')
-        self.assertEqual(abono['frase'], "Con la promoción de noviembre, en compras de más de $200 sin ITBMS, D'CASA "
-                                         "te abona $20 del envío: te queda en $70. La promoción es hasta el 30 de "
+        self.assertEqual(abono['frase'], "Con la promoción de noviembre, en compras de más de $200 sin ITBMS, "
+                                         "te abonamos $20 del envío: te queda en $70. La promoción es hasta el 30 de "
                                          "noviembre; después, el envío vuelve a su precio normal. No aplica si la "
                                          "compra lleva colchón.")
         self.assertEqual(papeles(P.respaldo(abono)), (90.0, 70.0, 20.0, False, True, 200.0, None),
@@ -240,7 +240,7 @@ class TestPromocionDeEnvio(BaseCase):
         abono = self.aplicar(precio=105.0, prov='Colón', dist='Colón', datos=compra(450.0))
         self.assertEqual(P.con_el_precio_normal(abono, 'Sabanitas (Colón)'),
                          "El envío a Sabanitas (Colón) cuesta normalmente $105. Con la promoción de noviembre, como "
-                         "tu compra pasa de $200 sin ITBMS, D'CASA te abona $20 del envío: te queda en $85. La "
+                         "tu compra pasa de $200 sin ITBMS, te abonamos $20 del envío: te queda en $85. La "
                          "promoción es hasta el 30 de noviembre; después, el envío vuelve a su precio normal.")
         con_cargos = P.con_el_precio_normal(abono, 'Sabanitas (Colón)', 'Tarifa $100 + peaje $5.')
         self.assertTrue(con_cargos.startswith('El envío a Sabanitas (Colón) cuesta normalmente $105. Tarifa $100 + '

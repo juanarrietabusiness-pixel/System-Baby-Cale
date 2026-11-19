@@ -314,8 +314,8 @@ class JuanAjustes(models.Model):
     busqueda_semantica = fields.Boolean(
         'Buscar en el conocimiento por significado', default=False, tracking=True,
         help='Además de las palabras, el asistente encuentra la entrada que habla de lo mismo aunque use otras (por '
-             'ejemplo «¿instalan los muebles?» → «armado a domicilio»). Usa Workers AI dentro de la cuenta de '
-             'Cloudflare de D\'CASA (cuesta centavos al mes): el Worker de Juan necesita el binding «AI». Si algo '
+             'ejemplo «¿hacen envíos?» → «entrega a domicilio»). Usa Workers AI dentro de la cuenta de '
+             'Cloudflare de la empresa (cuesta centavos al mes): el Worker de Juan necesita el binding «AI». Si algo '
              'falla, el asistente sigue buscando por palabras. Solo completa lo que las palabras no encontraron.')
     reparto_modo = fields.Selection(
         [('manual', 'Nadie: la toma quien quiera'),
