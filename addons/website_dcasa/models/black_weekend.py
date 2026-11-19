@@ -41,9 +41,12 @@ ZONA = pytz.timezone('America/Panama')
 RUTA = '/black-weekend'
 # La página de cualquier campaña (Black Friday, …); /black-weekend lleva aquí (controllers/main.py).
 RUTA_PROMOCIONES = '/promociones'
-# Imagen para compartir (redes): la gráfica 115.png de la dueña completa (decisión suya del 2026-10-02).
+# Imagen para compartir (redes): la de las cajas Nateen de la web de Baby Caleb (Baby-caleb/public/img/
+# promo-nateen-familia.png, en JPEG). La de antes era una gráfica de muebles con la marca de la tienda de origen.
 OG_IMAGEN = '/website_dcasa/static/src/img/black_weekend/og.jpg'
-OG_ANCHO, OG_ALTO = 1080, 1350
+OG_ANCHO, OG_ALTO = 1200, 850
+OG_ALT = 'Cajas de pañales Nateen, hipoalergénicos y sin cloro'
+
 _COMBO = re.compile(r'^\s*(Combo con colchón)\s*(.*?)\s*\$\s*([\d,]+(?:\.\d+)?)\s*$', re.I)
 _MESES = ('enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre',
           'octubre', 'noviembre', 'diciembre')
@@ -333,10 +336,7 @@ class Website(models.Model):
         items = self._dcasa_bw_productos() if items is None else items
         fechas = self._dcasa_bw_fechas()
         nombre = self._dcasa_campana_nombre()
-        if nombre == 'Black Weekend':
-            return (f"Black Weekend en {MARCA}{(' ' + fechas) if fechas else ''}: {len(items)} camas y bases "
-                    'seleccionadas, con el precio de la cama sola y el del combo con colchón (+ ITBMS). '
-                    f'{COBERTURA}. Escríbenos por WhatsApp.')
+        # La misma frase para todas las campañas (la de «camas y bases» era de la tienda de muebles de origen).
         return (f"{nombre} en {MARCA}{(' ' + fechas) if fechas else ''}: {len(items)} productos "
                 f'seleccionados (+ ITBMS). {COBERTURA}. Escríbenos por WhatsApp.')
 
@@ -368,5 +368,5 @@ class Website(models.Model):
         if clave == 'og:image':
             meta['og:image:width'] = str(OG_ANCHO)
             meta['og:image:height'] = str(OG_ALTO)
-            meta['og:image:alt'] = "Black Weekend en D'CASA Panamá: cama tapizada King beige (ref. 888K)"
+            meta['og:image:alt'] = OG_ALT
         return meta

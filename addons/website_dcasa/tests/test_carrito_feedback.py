@@ -177,4 +177,5 @@ class TestCarritoFeedback(ChromeMovilCase):
             if nombre == 'barra':
                 continue
             self.assertEqual(abre, nombre in nuevas, f'enlace «{nombre}»')
-        self.assertEqual(r['barra'], {'posicion': 'fixed', 'alto': '3px', 'fondo': 'rgb(19, 64, 177)'})
+        # La barra fina de arriba: el naranja de Baby Caleb (relleno: una barra, nunca texto).
+        self.assertEqual(r['barra'], {'posicion': 'fixed', 'alto': '3px', 'fondo': 'rgb(238, 146, 74)'})

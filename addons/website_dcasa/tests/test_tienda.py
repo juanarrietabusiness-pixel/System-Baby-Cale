@@ -63,9 +63,12 @@ class TestTiendaConfigurada(TransactionCase):
     def test_no_promete_entregas_a_todo_panama(self):
         """Al interior todavía no se entrega (decisión de la dueña, 2026-10-17): ni la barra de arriba, ni la portada,
         ni el pie, ni las copias viejas de la portada prometen «todo Panamá». Baby Caleb (2026-11-18): la barra de
-        arriba y la portada dicen su cobertura, Ciudad de Panamá (content.json › nap › address)."""
-        cobertura = {'website.layout': 'Entrega a domicilio — Ciudad de Panamá',
-                     'website.homepage': 'Venta 100% online con entrega a domicilio — Ciudad de Panamá'}
+        arriba y la portada dicen su cobertura, Ciudad de Panamá (content.json › nap › address). Con la marca de Baby
+        Caleb (2026-11-19) ya no hay barra de arriba: lo dicen el pie (en todas las páginas) y la cobertura de la
+        portada (S18Coverage.tsx, website_dcasa.seccion_visitanos)."""
+        cobertura = {'website.layout': 'Venta 100% online con entrega a domicilio en Ciudad de Panamá.',
+                     'website.homepage': 'Lo más buscado',
+                     'website_dcasa.seccion_visitanos': 'Venta 100% online con entrega a domicilio — Ciudad de Panamá'}
         for xmlid, frase in cobertura.items():
             arco = etree.tostring(self.env.ref(xmlid).with_context(lang='es_419')._get_combined_arch(),
                                   encoding='unicode')

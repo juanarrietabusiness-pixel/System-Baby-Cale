@@ -45,8 +45,10 @@ class TestSitioFase0(HttpCase):
     # -- Hero / LCP ---------------------------------------------------------------------------
 
     def test_imagen_principal_no_es_perezosa(self):
-        """Odoo pone loading="lazy" a toda <img> sin atributo: la imagen LCP lo lleva explícito."""
-        casos = (('/', 'hero.webp'), ('/visitanos', 'insp-3.webp'))  # la foto del hero de cada página
+        """Odoo pone loading="lazy" a toda <img> sin atributo: la imagen LCP lo lleva explícito. La de la portada es la
+        foto del bebé de babycaleb.com (hero-bebe), en WebP, con srcset de 800 y 1200, ancho, alto y texto alternativo.
+        Las cabeceras de las páginas interiores ya no llevan foto (marca de Baby Caleb, 2026-11-19)."""
+        casos = (('/', 'hero-bebe-1200.webp'),)
         for ruta, foto in casos:
             img = re.search(rf'<img[^>]*src="/website_dcasa/static/src/img/{re.escape(foto)}"[^>]*>',
                             self.url_open(ruta).text)
@@ -55,6 +57,17 @@ class TestSitioFase0(HttpCase):
             self.assertIn('loading="eager"', etiqueta, ruta)
             self.assertIn('fetchpriority="high"', etiqueta, ruta)
             self.assertNotIn('loading="lazy"', etiqueta, ruta)
+            self.assertIn('hero-bebe-800.webp 800w', etiqueta)
+            self.assertIn('hero-bebe-1200.webp 1200w', etiqueta)
+            self.assertRegex(etiqueta, r'width="\d+"')
+            self.assertRegex(etiqueta, r'height="\d+"')
+            self.assertIn('alt="Bebé recién nacido cuidado con Nateen"', etiqueta)
+        for archivo in ('hero-bebe-800.webp', 'hero-bebe-1200.webp'):
+            foto = self.url_open(f'/website_dcasa/static/src/img/{archivo}')
+            self.assertEqual(foto.status_code, 200, archivo)
+            self.assertEqual(foto.content[8:12], b'WEBP', archivo)
+        visitanos = self.url_open('/visitanos').text
+        self.assertNotRegex(visitanos, r'<img[^>]*static/src/img/(insp|split|hero|cat)-', 'sin fotos de muebles')
 
     # -- Rendimiento (auditoría ronda 4): fuentes locales y fotos de la tienda ----------------
 
@@ -64,7 +77,8 @@ class TestSitioFase0(HttpCase):
         return self.url_open(enlace.group(1)).text
 
     def test_fuentes_autoalojadas_sin_google(self):
-        """Anton, Oswald e Inter salen del módulo: ni @import ni preconnect a Google Fonts."""
+        """Montserrat, la letra de Baby Caleb, sale del módulo: ni @import ni preconnect a Google Fonts. Anton, Oswald e
+        Inter (la letra de D'CASA) ya no se cargan en el sitio."""
         for ruta in ('/', '/shop'):
             html = self.url_open(ruta).text
             self.assertNotIn('fonts.googleapis.com', html, ruta)
@@ -72,7 +86,7 @@ class TestSitioFase0(HttpCase):
         css = self._css_del_sitio(self.url_open('/').text)
         self.assertNotIn('fonts.googleapis.com', css)
         self.assertNotIn('fonts.gstatic.com', css)
-        fuentes = (('anton-latin', 'Anton'), ('oswald-latin-var', 'Oswald'), ('inter-latin-var', 'Inter'))
+        fuentes = (('montserrat-latin-var', 'Montserrat'),)
         for archivo, familia in fuentes:
             regla = re.search(r'@font-face\s*\{[^}]*font-family:\s*["\']?' + familia + r'["\']?;[^}]*\}', css)
             self.assertTrue(regla, familia)
@@ -82,24 +96,28 @@ class TestSitioFase0(HttpCase):
             self.assertTrue(url, familia)
             self.assertEqual(url.group(1), f'/website_dcasa/static/src/fonts/{archivo}.woff2')
             self.assertRegex(regla.group(0), r'font-display:\s*swap')
+            self.assertRegex(regla.group(0), r'font-weight:\s*100 900', 'la variable entera: de 100 a 900')
             fuente = self.url_open(f'/website_dcasa/static/src/fonts/{archivo}.woff2')
             self.assertEqual(fuente.status_code, 200, archivo)
             self.assertEqual(fuente.content[:4], b'wOF2', archivo)
-        # La licencia viaja con las fuentes (SIL OFL 1.1).
         for familia in ('Anton', 'Oswald', 'Inter'):
+            self.assertNotRegex(css, r'@font-face\s*\{[^}]*font-family:\s*["\']?' + familia + r'["\']?;',
+                                f'{familia} ya no se carga en el sitio')
+        # La licencia viaja con la fuente (SIL OFL 1.1).
+        for familia in ('Montserrat',):
             licencia = self.url_open(f'/website_dcasa/static/src/fonts/OFL-{familia}.txt')
             self.assertEqual(licencia.status_code, 200, familia)
             self.assertIn('SIL OPEN FONT LICENSE', licencia.text)
 
     def test_precarga_de_las_fuentes_del_primer_pantallazo(self):
         html = self.url_open('/').text
-        enlace = re.search(r'<link[^>]*href="/website_dcasa/static/src/fonts/anton-latin\.woff2"[^>]*>', html)
-        self.assertTrue(enlace, 'Anton (titular del hero) va precargada')
+        enlace = re.search(r'<link[^>]*href="/website_dcasa/static/src/fonts/montserrat-latin-var\.woff2"[^>]*>', html)
+        self.assertTrue(enlace, 'Montserrat (el titular del hero y todo el texto) va precargada')
         for atributo in ('rel="preload"', 'as="font"', 'type="font/woff2"', 'crossorigin'):
             self.assertIn(atributo, enlace.group(0))
-        # Ronda 6: Inter (texto, llega con swap) y FontAwesome (iconos) ya no se precargan: en 4G
-        # lenta compartían la red con el CSS que bloquea el pintado y retrasaban la foto LCP.
-        self.assertNotRegex(html, r'<link[^>]*rel="preload"[^>]*inter-latin-var')
+        # Ni la letra de D'CASA ni FontAwesome (iconos) se precargan: en 4G lenta compartían la red con el CSS que
+        # bloquea el pintado y retrasaban la foto LCP.
+        self.assertNotRegex(html, r'<link[^>]*rel="preload"[^>]*(anton|oswald|inter)-latin')
         self.assertNotRegex(html, r'<link[^>]*rel="preload"[^>]*fontawesome-webfont')
 
     def _foto(self, color):
@@ -264,11 +282,13 @@ class TestSitioFase0(HttpCase):
 
     # -- SW-07 --------------------------------------------------------------------------------
 
-    def test_enlace_activo_del_menu_en_navy(self):
+    def test_enlace_activo_del_menu_en_accent_strong(self):
+        """El enlace de la página donde se está va en accent-strong (#985D2F: 4.90 sobre el crema), como en S01Nav.tsx;
+        nunca en el naranja de relleno (2.20)."""
         html = self.url_open('/').text
         css_link = re.search(r'href="([^"]*web\.assets_frontend[^"]*\.css)"', html).group(1)
         css = self.url_open(css_link).text
-        self.assertRegex(css, r'(?i)#top_menu \.nav-link\.active\s*\{\s*color:\s*#0e2a6b')
+        self.assertRegex(css, r'(?i)#top_menu \.nav-link\.active\s*\{\s*color:\s*#985d2f')
 
 
 @tagged('post_install', '-at_install')

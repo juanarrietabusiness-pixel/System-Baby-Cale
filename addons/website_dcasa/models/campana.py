@@ -125,9 +125,9 @@ class DcasaCampana(models.Model):
                              'salen de cada producto.')
     dcasa_rebaja_combos = fields.Boolean(
         'La campaña también rebaja los combos', default=False, tracking=True,
-        help='Apagado (lo normal): los combos cama + colchón que se arman en la cotización van a su precio de siempre, '
-             'sin el precio de campaña, aunque la cama o el colchón lo tengan. Encendido: la cama y el colchón del '
-             'combo también toman el precio de campaña. Solo lo cambian Gerencia y los administradores.')
+        help='Apagado (lo normal): los combos que se arman en la cotización van a su precio de siempre, sin el '
+             'precio de campaña, aunque alguna de sus piezas lo tenga. Encendido: las piezas del combo también toman '
+             'el precio de campaña. Solo lo cambian Gerencia y los administradores.')
     estado = fields.Selection([('apagada', 'Apagada'), ('programada', 'Programada'), ('activa', 'Activa ahora'),
                                ('terminada', 'Terminada')], compute='_compute_estado')
     producto_count = fields.Integer('Productos en la campaña', compute='_compute_producto_count')
@@ -494,7 +494,7 @@ class ProductPricelistItem(models.Model):
     dcasa_campana_id = fields.Many2one(
         'dcasa.campana', 'Campaña', readonly=True, copy=False, ondelete='set null',
         help='La campaña del sitio que creó esta regla. Con su interruptor «La campaña también rebaja los combos» '
-             'apagado, la regla no rebaja la cama ni el colchón de un combo armado en la cotización.')
+             'apagado, la regla no rebaja las piezas de un combo armado en la cotización.')
 
     def _show_discount_on_shop(self):
         """En la tienda, el precio de campaña sale con el normal tachado (Odoo solo lo hace con descuentos en %)."""

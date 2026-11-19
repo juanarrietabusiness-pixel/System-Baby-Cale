@@ -11,13 +11,10 @@
             <attribute name="class" add="o_dcasa_contacto" separator=" "/>
         </xpath>
         <xpath expr="//section[hasclass('s_title')]" position="replace">
-            <section class="o_dcasa_hero o_dcasa_hero_compacto" data-snippet="s_text_block" data-name="Portada de contacto">
-                <div class="o_dcasa_hero_media">
-                    <img src="/website_dcasa/static/src/img/insp-3.webp" width="640" height="640" alt=""/>
-                </div>
+            <section class="o_dcasa_hero o_dcasa_hero_compacto o_dcasa_cabecera_pagina" data-snippet="s_text_block" data-name="Portada de contacto">
                 <div class="o_dcasa_container o_dcasa_hero_inner">
                     <div class="o_dcasa_hero_texto" data-anim-entrada="">
-                        <p class="o_dcasa_kicker o_dcasa_kicker_light">Contacto</p>
+                        <p class="o_dcasa_kicker o_dcasa_kicker_pildora">Contacto</p>
                         <h1 class="o_dcasa_display mb-0">Escríbenos</h1>
                     </div>
                 </div>
@@ -57,10 +54,11 @@
         </xpath>
     </template>
 
-    <!-- 404: el dibujo de Odoo usa el color 2 del tema (nuestro amarillo) sobre blanco. -->
-    <template id="pagina_404_dcasa" inherit_id="http_routing.404" name="D'CASA: 404 sin amarillo sobre blanco">
+    <!-- 404: el dibujo de Odoo pinta sus trazos con el color 2 del tema. Con la marca de Baby Caleb el dibujo va en navy
+         (o-color-5: 12.21 sobre el crema): el naranja y el verde son relleno y no se ven como trazo. -->
+    <template id="pagina_404_dcasa" inherit_id="http_routing.404" name="D'CASA: 404 en los colores de la marca">
         <xpath expr="//img[contains(@src, '404.svg')]" position="attributes">
-            <attribute name="src">/html_editor/shape/http_routing/404.svg?c2=o-color-1</attribute>
+            <attribute name="src">/html_editor/shape/http_routing/404.svg?c2=o-color-5</attribute>
         </xpath>
     </template>
 </odoo>

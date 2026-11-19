@@ -23,15 +23,18 @@ PAGOS = [
      'Apenas veamos el pago, confirmamos tu pedido y coordinamos la entrega.'),
     ('delivery.payment_provider_cod', 'Pago en la tienda', 'cash_on_delivery',
      'Te lo apartamos por la página web: pasa a pagarlo en la tienda (efectivo o Yappy) antes de que venza '
-     'el apartado; la fecha la ves en Mi cuenta. El mueble se entrega cuando está pagado completo: el envío o el '
+     'el apartado; la fecha la ves en Mi cuenta. El pedido se entrega cuando está pagado completo: el envío o el '
      'retiro en la tienda lo coordinas con tu vendedora por WhatsApp.'),
 ]
 
 ENTREGAS = [
-    # (nombre, por cotizar)
-    ("Retiro en tienda (La Chorrera)", False),
+    # (nombre, por cotizar). El retiro decía el lugar de la tienda de origen (D'CASA): sin dirección de Baby Caleb
+    # todavía, no se escribe ninguna (docs/BABY_CALEB.md › Datos de la empresa).
+    ('Retiro en tienda', False),
     ('Entrega a domicilio: te cotizamos por WhatsApp', True),
 ]
+# Nombres que tuvieron estas entregas: una base ya instalada los renombra (``_dcasa_entregas``) en vez de crear otra.
+ENTREGAS_ANTES = {'Retiro en tienda (La Chorrera)': 'Retiro en tienda'}
 
 
 class DeliveryCarrier(models.Model):
@@ -89,6 +92,32 @@ class Website(models.Model):
                 proveedor.with_context(lang=idioma).pending_msg = Markup('<p>%s</p>') % mensaje
 
     @api.model
+    def _dcasa_sin_restos_de_dcasa(self):
+        """Lo que una base ya instalada (staging) guardó con los textos de la tienda de origen y el cliente ve: el menú
+        («Socios D'CASA» → «Socios Baby Caleb»), el nombre de la entrega con su lugar y el mensaje del pago en la tienda
+        («El mueble se entrega…»). Solo eso: no enciende ni apaga pagos ni entregas (lo que Gerencia haya cambiado se
+        respeta). Se puede volver a correr. La llama la migración 19.0.1.19.0."""
+        self._dcasa_armar_menu_principal()
+        self._dcasa_renombrar_entregas()
+        cod = self.env.ref('delivery.payment_provider_cod', raise_if_not_found=False)
+        if cod:
+            cod = cod.sudo()
+            for idioma, _nombre in self.env['res.lang'].get_installed():
+                mensaje = str(cod.with_context(lang=idioma).pending_msg or '')
+                if 'El mueble se entrega' in mensaje:
+                    cod.with_context(lang=idioma).pending_msg = Markup(
+                        mensaje.replace('El mueble se entrega', 'El pedido se entrega'))
+
+    @api.model
+    def _dcasa_renombrar_entregas(self):
+        """Las entregas con un nombre viejo (``ENTREGAS_ANTES``) pasan al de ahora, sin crear otra."""
+        Carrier = self.env['delivery.carrier'].sudo().with_context(active_test=False)
+        for viejo, nuevo in ENTREGAS_ANTES.items():
+            antes = Carrier.search([('name', '=', viejo)])
+            if antes and not Carrier.search_count([('name', '=', nuevo)]):
+                _nombrar(antes[:1], nuevo)
+
+    @api.model
     def _dcasa_metodo_de_pago(self, proveedor, nombre, modo):
         Method = self.env['payment.method'].sudo().with_context(active_test=False)
         if modo == 'cash_on_delivery':
@@ -112,6 +141,7 @@ class Website(models.Model):
                 'name': 'Entrega', 'default_code': 'DCASA-ENTREGA', 'type': 'service',
                 'list_price': 0, 'sale_ok': False, 'purchase_ok': False, 'taxes_id': [(5, 0, 0)],
             })
+        self._dcasa_renombrar_entregas()
         for orden, (nombre, por_cotizar) in enumerate(ENTREGAS, start=1):
             carrier = Carrier.search([('name', '=', nombre)], limit=1) or Carrier.create({
                 'name': nombre, 'delivery_type': 'fixed', 'fixed_price': 0, 'product_id': producto.id,

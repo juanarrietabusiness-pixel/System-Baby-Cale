@@ -1,17 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <!-- ===================================================================
-         Portada v2 (ver docs/historico/REDISENO.md), con los textos de Baby Caleb (2026-11-18: los de su web,
-         content.json; lo que era de muebles sin un equivalente allá, fuera).
+         Portada de Baby Caleb (marca del 2026-11-19, docs/MARCA_BABY_CALEB.md › La web pública), en el orden de
+         Baby-caleb/src/pages/Home.tsx: hero en crema, los cuatro sellos, la banda verde de educación, los productos,
+         lo que dicen las mamás, la cobertura, la banda verde final y las preguntas frecuentes. Los textos son los de su
+         web (content.json), tal cual; lo que allá promete y aquí no es cierto (pagar con Yappy en la misma página), se
+         dice como funciona aquí: el pago y el costo del envío se coordinan por WhatsApp.
 
-         Los bloques .oe_structure con id son editables en Sitio web > Editar
-         (textos, fotos, botones). Las categorías, los carruseles de productos y
-         el bloque de socios son dinámicos: salen del catálogo y de las reglas
-         del programa, y se actualizan solos.
+         Nada de muebles: ni fotos, ni «Compra por espacio», ni «Para dormir mejor», ni la galería.
+
+         Los bloques .oe_structure con id son editables en Sitio web > Editar (textos, fotos, botones). El carrusel de
+         productos, la banda de Socios, las opiniones y la cobertura son dinámicos: salen del catálogo, de las reglas
+         del programa y de los Ajustes, y se actualizan solos.
          =================================================================== -->
 
     <!-- Ícono «agregar al carrito» (carrito con un +): quien compra en línea lo reconoce sin la palabra (pedido de la
-         dueña, 2026-11-15). Trazo como los íconos de los beneficios; el nombre lo da el aria-label del botón. -->
+         dueña, 2026-11-15). Trazo fino como los íconos de lucide de babycaleb.com; el nombre lo da el aria-label. -->
     <template id="icono_carrito" name="D'CASA: ícono de agregar al carrito">
         <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9"
              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
@@ -22,7 +26,9 @@
         </svg>
     </template>
 
-    <!-- Tarjeta de producto de los carruseles (v3): foto, nombre, y abajo el precio con el carrito y WhatsApp. -->
+    <!-- Tarjeta de producto de los carruseles, al estilo de TarjetaDeArticulo.tsx de babycaleb.com: tarjeta crema con
+         un filo fino y radio de 16 px, la foto entera sobre un plato neutro (las fotos traen su propio fondo), el nombre
+         en navy, el precio grande y abajo el carrito (naranja) y WhatsApp (contorno). -->
     <template id="tarjeta_producto" name="D'CASA: tarjeta de producto">
         <t t-set="producto" t-value="item['producto']"/>
         <article class="o_dcasa_pcard">
@@ -54,7 +60,7 @@
                                 <t t-call="website_dcasa.icono_carrito"/>
                             </button>
                         </form>
-                        <!-- Con medidas o colores para elegir: el mismo carrito lleva a la ficha. -->
+                        <!-- Con tallas o colores para elegir: el mismo carrito lleva a la ficha. -->
                         <a t-else="" t-att-href="producto.website_url" class="btn btn-primary o_dcasa_pcard_add" title="Elegir medida o color"
                            t-attf-aria-label="Elegir medida o color de {{ producto._dcasa_nombre_cliente() }}">
                             <t t-call="website_dcasa.icono_carrito"/>
@@ -70,8 +76,8 @@
         </article>
     </template>
 
-    <!-- Carril (v3): UNA fila que se desliza, en el celular y en la computadora. Las flechas y la línea de avance
-         nacen escondidas y las enciende carril.js solo si hay algo que deslizar (sin JavaScript, se desliza igual). -->
+    <!-- Carril: UNA fila que se desliza, en el celular y en la computadora. Las flechas y la línea de avance nacen
+         escondidas y las enciende carril.js solo si hay algo que deslizar (sin JavaScript, se desliza igual). -->
     <template id="carrusel_productos" name="D'CASA: carrusel de productos">
         <section t-if="items" class="o_dcasa_section o_dcasa_rail" t-att-aria-label="titulo">
             <div class="o_dcasa_container">
@@ -84,12 +90,12 @@
                         <div class="o_dcasa_carril_flechas" hidden="">
                             <button type="button" class="o_dcasa_carril_flecha" data-carril="-1" disabled=""
                                     t-attf-aria-label="Anteriores de {{ titulo }}">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                                      stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M15 5l-7 7 7 7"/></svg>
                             </button>
                             <button type="button" class="o_dcasa_carril_flecha" data-carril="1"
                                     t-attf-aria-label="Más de {{ titulo }}">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                                      stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 5l7 7-7 7"/></svg>
                             </button>
                         </div>
@@ -106,29 +112,39 @@
         </section>
     </template>
 
-    <!-- Hero: UN FONDO EN MOVIMIENTO (la dueña, 2026-11-17: «como si fuese un video corrido… imágenes con un tipo
-         suave zoom, que cambian, que transicionan allá de fondo. Y encima el texto»; «no quiero ni siquiera que el
-         usuario tenga control de este carrusel»; «ni siquiera tiene que tener el nombre del producto»).
-         Los productos y su orden se eligen en Sitio web › Carrusel de la portada (models/portada.py); sin productos
-         no se llama y queda el hero de siempre.
-         Las fotos cubren el hero entero (de orilla a orilla y del alto de la pantalla), se funden unas en otras en
-         orden al azar y llevan un zoom lento que no para nunca. Encima va SOLO el texto de siempre: ni nombres, ni
-         enlaces, ni flechas, ni barras, ni pausa. Como no se maneja ni aporta información, la pila de fotos es
-         decorativa: aria-hidden y alt vacío (el lector de pantalla lee el texto, no una lista de camas).
-         El contraste del texto se resuelve en el SCSS con un degradado azul de marca sobre la foto, nunca
-         oscureciéndola (regla 1: el amarillo solo sobre azul).
+    <!-- Las dos manchas suaves de color detrás del hero de babycaleb.com (S02Hero.tsx, `.hero-blob`): verde arriba a la
+         izquierda y naranja a la derecha. Son el único degradado que la marca permite (docs/MARCA_BABY_CALEB.md). -->
+    <template id="hero_manchas" name="D'CASA: manchas del hero">
+        <span class="o_dcasa_hero_mancha o_dcasa_hero_mancha_verde" aria-hidden="true"/>
+        <span class="o_dcasa_hero_mancha o_dcasa_hero_mancha_naranja" aria-hidden="true"/>
+    </template>
+
+    <!-- El texto del hero de la web de Baby Caleb (content.json › hero), tal cual, con el único botón de su web: «Ver
+         el catálogo» (allá se fue el segundo, el de WhatsApp: «decían lo mismo dos veces»). -->
+    <template id="hero_texto" name="D'CASA: texto del hero">
+        <div class="o_dcasa_hero_texto" data-anim-entrada="">
+            <p class="o_dcasa_kicker o_dcasa_kicker_pildora">Pensamos en cada etapa de tu bebé</p>
+            <h1 t-att-id="hero_id" class="o_dcasa_display">Cuidado hipoalergénico para la piel de tu bebé</h1>
+            <p class="o_dcasa_hero_sub">Pañales y wipes hipoalergénicos: sin químicos agresivos, sin perfumes, sin alcohol, sin cloro.</p>
+            <div class="o_dcasa_ctas">
+                <a href="/shop" class="btn btn-primary btn-lg o_dcasa_btn_hero">Ver el catálogo</a>
+            </div>
+        </div>
+    </template>
+
+    <!-- Hero con los productos que Gerencia elige (Sitio web › Carrusel de la portada, models/portada.py; vacío = el
+         hero de siempre, con la foto del bebé). Con la marca de Baby Caleb es el mismo hero crema: el texto a la izquierda
+         y, a la derecha, el marco redondeado de la foto, donde las fotos de los productos se funden unas en otras con un
+         zoom lento. El visitante no maneja nada: ni nombres, ni enlaces, ni flechas, ni barras, ni pausa. Como no se
+         maneja ni aporta información, la pila de fotos es decorativa: aria-hidden y alt vacío.
          Sin JavaScript se ve la primera, quieta; static/src/js/portada.js solo decide cuándo cambiar de foto, y con
          movimiento reducido no cambia. La primera foto es la imagen LCP: «eager», prioridad alta y precargada desde
-         la cabecera (layout_templates.xml, layout_precarga_hero). Sin la clase o_dcasa_hero: la píldora de la
-         cabecera va clara (sobre una foto clara, la ahumada no se lee). -->
+         la cabecera (layout_templates.xml, layout_precarga_hero). -->
     <template id="hero_carrusel" name="D'CASA: hero con fondo en movimiento">
         <t t-set="dcasa_total" t-value="len(dcasa_vitrina)"/>
         <section class="o_dcasa_hero_vitrina" aria-labelledby="dcasa-hero-titulo">
-            <div class="o_dcasa_vitrina" t-att-data-total="dcasa_total">
-                <!-- FONDO Y NADA MÁS (la dueña, 2026-11-17): «simplemente quiero la foto detrás, el texto». Las fotos
-                     se funden unas en otras con un zoom lento y continuo, en orden al azar. Ni nombres, ni enlaces,
-                     ni flechas, ni barras, ni pausa: el visitante no maneja nada. Por eso es decorativo y va con
-                     aria-hidden y alt vacío: el lector de pantalla lee el texto, no una lista de camas. -->
+            <t t-call="website_dcasa.hero_manchas"/>
+            <div class="o_dcasa_vitrina o_dcasa_container" t-att-data-total="dcasa_total">
                 <div class="o_dcasa_vitrina_fotos" aria-hidden="true">
                     <div t-foreach="dcasa_vitrina" t-as="diapo" t-attf-style="--i: {{ diapo_index }};"
                          t-attf-class="o_dcasa_vitrina_foto {{ 'is-activa' if diapo_first else '' }}">
@@ -145,182 +161,106 @@
                 </div>
 
                 <div class="o_dcasa_vitrina_panel">
-                    <div class="o_dcasa_hero_texto" data-anim-entrada="">
-                        <!-- El texto del hero de la web de Baby Caleb (content.json › hero), tal cual. -->
-                        <p class="o_dcasa_kicker o_dcasa_kicker_light">Pensamos en cada etapa de tu bebé</p>
-                        <h1 id="dcasa-hero-titulo" class="o_dcasa_display">Cuidado hipoalergénico para la piel de tu bebé</h1>
-                        <p class="o_dcasa_hero_sub">Pañales y wipes hipoalergénicos: sin químicos agresivos, sin perfumes, sin alcohol, sin cloro.</p>
-                        <div class="o_dcasa_ctas">
-                            <a href="/shop" class="btn btn-lg o_dcasa_btn_amarillo">Ver el catálogo</a>
-                            <a href="/whatsapp" class="btn btn-lg o_dcasa_btn_linea" target="_blank" rel="noopener nofollow">
-                                <i class="fa fa-whatsapp me-2" aria-hidden="true"/>Escríbenos por WhatsApp <span class="visually-hidden">(se abre en una pestaña nueva)</span>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </template>
-
-    <!-- Sección «de cine» (pedido de la dueña, 2026-11-16, en el espíritu de panaclaw.com/proyectos): grande, a media
-         portada, con dos cintas de fotos del catálogo que corren solas en sentidos contrarios y un botón al catálogo.
-         Fondo blanco (segunda vuelta: «nada de negro»): va justo antes de la banda azul noche de Socios y dos bandas
-         oscuras pegadas se leerían como una sola. Por eso el botón es azul (el amarillo nunca toca el blanco).
-         Las fotos salen de lo publicado por categoría (models/portada.py, website._dcasa_cine): nada escrito a mano.
-         Solo CSS para el movimiento; portada.js suma el botón de pausa (WCAG 2.2.2) y la pausa al tocar. Se detiene
-         con el puntero encima o con el foco; con movimiento reducido no se mueve (una fila que se desliza). -->
-    <template id="seccion_cine" name="D'CASA: sección de cine">
-        <t t-set="cine" t-value="website._dcasa_cine()"/>
-        <section t-if="cine" class="o_dcasa_cine" aria-labelledby="dcasa-cine-titulo">
-            <div class="o_dcasa_cine_inner">
-                <div class="o_dcasa_cine_texto" data-anim-cascada="izquierda">
-                    <p class="o_dcasa_kicker">Catálogo Baby Caleb</p>
-                    <h2 id="dcasa-cine-titulo" class="o_dcasa_h2 o_dcasa_cine_titulo" data-titular="">Date una vuelta por la tienda</h2>
-                    <p class="o_dcasa_cine_lead">Míralo todo con su precio en el catálogo.</p>
-                    <div class="o_dcasa_ctas">
-                        <a href="/shop" class="btn btn-lg btn-primary">Ver el catálogo</a>
-                    </div>
-                    <button type="button" class="o_dcasa_cine_pausa" aria-pressed="false" hidden="">
-                        <i class="fa fa-pause" aria-hidden="true"/><span>Pausar las fotos</span>
-                    </button>
-                </div>
-                <div class="o_dcasa_cine_cintas" data-anim="">
-                    <div t-foreach="cine['cintas']" t-as="cinta"
-                         t-attf-class="o_dcasa_cine_cinta {{ 'is-reversa' if cinta['reversa'] else '' }}"
-                         t-attf-style="--vuelta: {{ cinta['duracion'] }}">
-                        <ul class="o_dcasa_cine_tren" role="list">
-                            <t t-foreach="range(cinta['copias'])" t-as="copia">
-                                <li t-foreach="cinta['fotos']" t-as="foto" class="o_dcasa_cine_foto"
-                                    t-att-aria-hidden="'true' if copia else None">
-                                    <!-- Solo la foto y su categoría, como un fotograma; el nombre lo dicen el lector de
-                                         pantalla y el globo del ratón (la cinta se detiene con el puntero encima). -->
-                                    <a t-att-href="foto['producto'].website_url" t-att-title="foto['nombre']"
-                                       t-att-tabindex="-1 if copia else None">
-                                        <span class="o_dcasa_cine_marco">
-                                            <picture>
-                                                <t t-set="dcasa_webp" t-value="website._dcasa_img_srcset(foto['producto'], (256, 512))"/>
-                                                <source t-if="dcasa_webp" type="image/webp" t-att-srcset="dcasa_webp"
-                                                        sizes="(min-width: 992px) 13rem, 9.5rem"/>
-                                                <img t-att-src="website.image_url(foto['producto'], 'image_512')" alt=""
-                                                     width="512" height="683" loading="lazy" decoding="async"
-                                                     sizes="(min-width: 992px) 13rem, 9.5rem"/>
-                                            </picture>
-                                            <span class="o_dcasa_cine_cat" t-out="foto['categoria']"/>
-                                        </span>
-                                        <span class="visually-hidden">: <t t-out="foto['nombre']"/></span>
-                                    </a>
-                                </li>
-                            </t>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </template>
-
-    <!-- Secciones dinámicas de la portada: plantillas propias (t-call) y no en línea, para que
-         una actualización del módulo llegue aunque la portada ya se haya editado en el constructor. -->
-    <template id="seccion_categorias" name="D'CASA: compra por espacio">
-        <!-- Black Weekend va justo antes (y antes de los carruseles). Se llama desde aquí y no
-             desde la portada: una portada ya editada en el constructor es una copia que no
-             recibiría un t-call nuevo; esta plantilla, sí. Solo sale con la campaña activa. -->
-        <t t-call="website_dcasa.seccion_black_weekend"/>
-        <!-- Sin nada publicado en ninguna de sus categorías, la sección no sale (website._dcasa_categorias_con_productos):
-             hoy son las de muebles de la copia de origen y el catálogo de Baby Caleb no tiene nada en ellas. -->
-        <t t-set="dcasa_cats" t-value="website._dcasa_categorias_con_productos()"/>
-        <section t-if="dcasa_cats" class="o_dcasa_section o_dcasa_categorias" aria-labelledby="dcasa-cat-titulo">
-            <div class="o_dcasa_container">
-                <div class="o_dcasa_section_head">
-                    <div data-anim-cascada="izquierda">
-                        <p class="o_dcasa_kicker">Compra por espacio</p>
-                        <h2 id="dcasa-cat-titulo" class="o_dcasa_h2" data-titular="">¿Qué le hace falta a tu casa?</h2>
-                    </div>
-                    <a href="/shop" class="o_dcasa_link">Ver todo el catálogo <span aria-hidden="true">→</span></a>
-                </div>
-                <div class="o_dcasa_cat_grid" data-anim-cascada="">
-                    <!-- Sin nada publicado, la tarjeta abre WhatsApp (website._dcasa_categorias). -->
-                    <a t-foreach="dcasa_cats" t-as="cat" t-att-href="cat['url']" class="o_dcasa_cat"
-                       t-att-target="cat['whatsapp'] and '_blank' or None"
-                       t-att-rel="cat['whatsapp'] and 'noopener' or None"
-                       t-att-aria-label="cat['whatsapp'] and ('%s: pregúntanos por WhatsApp' % cat['nombre']) or None">
-                        <span class="o_dcasa_cat_foto">
-                            <img t-att-src="cat['imagen']" t-att-alt="cat['alt']" width="800" height="1000"
-                                 t-att-srcset="'%s 400w, %s 800w' % (cat['imagen_chica'], cat['imagen'])"
-                                 sizes="(min-width: 992px) 15vw, 31vw" loading="lazy" decoding="async"/>
-                        </span>
-                        <!-- Debajo de la foto: el nombre y cuántos productos hay publicados (dato real del catálogo). -->
-                        <span class="o_dcasa_cat_label"><t t-out="cat['nombre']"/> <span aria-hidden="true">→</span>
-                            <span t-if="cat['whatsapp']" class="o_dcasa_cat_nota">Pregúntanos por WhatsApp</span>
-                            <span t-elif="cat.get('cantidad')" class="o_dcasa_cat_nota"><t t-out="cat['cantidad']"/>
-                                <t t-if="cat['cantidad'] == 1">producto</t><t t-else="">productos</t></span></span>
-                    </a>
+                    <t t-call="website_dcasa.hero_texto"><t t-set="hero_id" t-value="'dcasa-hero-titulo'"/></t>
                 </div>
             </div>
         </section>
     </template>
 
     <template id="seccion_socios" name="D'CASA: banda de socios">
-        <!-- La sección «de cine» va justo antes, a media portada. Se llama desde aquí y no desde la portada: una portada
-             ya editada en el constructor es una copia que no recibiría un t-call nuevo; esta plantilla, sí. -->
-        <t t-call="website_dcasa.seccion_cine"/>
+        <!-- Socios (dinámico: las cifras salen de puntos.json; con todo en PENDIENTE no dice ninguna). En una tarjeta
+             grande crema (radio de 24 px) con la foto de las cajas Nateen de la web de Baby Caleb: el sitio ya tiene dos
+             bandas verdes y una tercera las haría una sola. -->
         <t t-set="reglas" t-value="website._dcasa_reglas_socios()"/>
         <section class="o_dcasa_socios_band" aria-labelledby="dcasa-socios-titulo">
-            <div class="o_dcasa_container o_dcasa_split_grid">
-                <div class="o_dcasa_socios_band_text" data-anim-cascada="izquierda">
-                    <p class="o_dcasa_kicker o_dcasa_kicker_light">Socios Baby Caleb</p>
-                    <h2 id="dcasa-socios-titulo" class="o_dcasa_h2" data-titular="">Suma puntos y gana invitando</h2>
-                    <ul class="o_dcasa_socios_facts" role="list">
-                        <t t-set="por_dolar" t-value="reglas['acumulacion'].get('puntosPorDolar')"/>
-                        <t t-set="al_padrino" t-value="reglas['referido'].get('puntosAlPadrino')"/>
-                        <t t-set="al_ahijado" t-value="reglas['referido'].get('puntosAlAhijado')"/>
-                        <li t-if="por_dolar"><strong t-out="por_dolar"/> <t t-if="por_dolar == 1">punto</t><t t-else="">puntos</t> por cada dólar que pagas.</li>
-                        <li t-if="al_padrino and al_ahijado"><strong t-out="'{:,}'.format(al_padrino)"/> puntos por cada amigo que
-                            invitas y compra; tu amigo gana <strong t-out="'{:,}'.format(al_ahijado)"/>.</li>
-                        <li>Cámbialos por descuentos y premios en la tienda.</li>
-                    </ul>
-                    <div class="o_dcasa_ctas">
-                        <a href="/socios" class="btn btn-lg o_dcasa_btn_amarillo">Ver mis puntos</a>
-                        <a href="/socios/terminos" class="btn btn-lg o_dcasa_btn_linea">Cómo funciona</a>
+            <div class="o_dcasa_container">
+                <div class="o_dcasa_socios_tarjeta o_dcasa_split_grid">
+                    <div class="o_dcasa_socios_band_text" data-anim-cascada="izquierda">
+                        <p class="o_dcasa_kicker">Socios Baby Caleb</p>
+                        <h2 id="dcasa-socios-titulo" class="o_dcasa_h2" data-titular="">Suma puntos y gana invitando</h2>
+                        <ul class="o_dcasa_socios_facts" role="list">
+                            <t t-set="por_dolar" t-value="reglas['acumulacion'].get('puntosPorDolar')"/>
+                            <t t-set="al_padrino" t-value="reglas['referido'].get('puntosAlPadrino')"/>
+                            <t t-set="al_ahijado" t-value="reglas['referido'].get('puntosAlAhijado')"/>
+                            <li t-if="por_dolar"><strong t-out="por_dolar"/> <t t-if="por_dolar == 1">punto</t><t t-else="">puntos</t> por cada dólar que pagas.</li>
+                            <li t-if="al_padrino and al_ahijado"><strong t-out="'{:,}'.format(al_padrino)"/> puntos por cada amigo que
+                                invitas y compra; tu amigo gana <strong t-out="'{:,}'.format(al_ahijado)"/>.</li>
+                            <li>Cámbialos por descuentos y premios en la tienda.</li>
+                        </ul>
+                        <div class="o_dcasa_ctas">
+                            <a href="/socios" class="btn btn-primary btn-lg">Ver mis puntos</a>
+                            <a href="/socios/terminos" class="btn btn-lg o_dcasa_btn_contorno">Cómo funciona</a>
+                        </div>
                     </div>
-                </div>
-                <div class="o_dcasa_socios_band_media" data-anim="escala">
-                    <img src="/website_dcasa/static/src/img/split-socios.webp" width="800" height="600"
-                         loading="lazy" decoding="async" alt="Silla de ratán junto a una ventana con plantas"/>
+                    <div class="o_dcasa_socios_band_media" data-anim="escala">
+                        <img src="/website_dcasa/static/src/img/promo-nateen-800.webp"
+                             srcset="/website_dcasa/static/src/img/promo-nateen-800.webp 800w, /website_dcasa/static/src/img/promo-nateen-1200.webp 1200w"
+                             sizes="(min-width: 992px) 40vw, 92vw" width="1200" height="760"
+                             loading="lazy" decoding="async" alt=""/>
+                    </div>
                 </div>
             </div>
         </section>
     </template>
 
-    <!-- Portada: una franja corta que lleva a la página de contacto (/visitanos). Antes, una sección pequeña
-         de contacto (pedido de la dueña, 2026-11-15: sin «Escríbenos» en el menú, «un CTA pequeño que invite a
-         escribirnos al WhatsApp o al correo»). Va aquí y no en la portada: esta plantilla llega aunque la portada se haya
-         editado en el constructor. Baby Caleb vende 100% en línea (sin tienda): en lugar de la dirección, su cobertura
-         (el título es el de su web, babycaleb.com › Cobertura; la frase, content.json › nap › address). -->
-    <template id="seccion_visitanos" name="D'CASA: visítanos (franja)">
-        <t t-set="correo_tienda" t-value="website.company_id.email or 'babycalebpanama@gmail.com'"/>
-        <section class="o_dcasa_contacto_cta" aria-labelledby="dcasa-contacto-titulo">
-            <div class="o_dcasa_container o_dcasa_contacto_cta_inner">
-                <div>
-                    <h2 id="dcasa-contacto-titulo" class="o_dcasa_contacto_cta_titulo">¿Te quedó alguna duda?</h2>
-                    <p class="o_dcasa_contacto_cta_texto">Escríbenos y te ayudamos a escoger.</p>
+    <!-- Cobertura, como la de babycaleb.com (S18Coverage.tsx): a la izquierda el titular y los datos (teléfono, horario
+         y cobertura, con íconos en verde), a la derecha dos tarjetas: el delivery por zona y «Cómo pedir». El teléfono es
+         el de los botones de WhatsApp del sitio (Sitio web › Ajustes) y el horario, el de los Ajustes de Juan
+         (website._dcasa_horario_tienda; si no se sabe, no sale). Va fuera de los bloques editables: dibuja datos.
+         «Cómo pedir» NO dice lo de su web (pagar con Yappy en la misma página): aquí el pedido se hace en el carrito y
+         el pago y el costo del envío se coordinan por WhatsApp (models/tienda.py, PAGOS y ENTREGAS). Lleva el ancla
+         #visitanos y la clase o_dcasa_visita_franja (Brian de la tienda la reconoce: dcasa_brian_tienda). -->
+    <template id="seccion_visitanos" name="D'CASA: cobertura">
+        <t t-set="dcasa_whatsapp_visible" t-value="website.dcasa_whatsapp_number or website.company_id.phone"/>
+        <t t-set="dcasa_horario" t-value="website._dcasa_horario_tienda()"/>
+        <section id="visitanos" class="o_dcasa_section o_dcasa_visita o_dcasa_visita_franja" aria-labelledby="dcasa-cobertura-titulo">
+            <div class="o_dcasa_container o_dcasa_cobertura_grid">
+                <div class="o_dcasa_cobertura_texto" data-anim-cascada="izquierda">
+                    <div>
+                        <p class="o_dcasa_kicker">Cobertura</p>
+                        <h2 id="dcasa-cobertura-titulo" class="o_dcasa_h2" data-titular="">Vendemos online y te lo llevamos.</h2>
+                    </div>
+                    <ul class="o_dcasa_cobertura_datos" role="list">
+                        <li t-if="dcasa_whatsapp_visible">
+                            <i class="fa fa-phone" aria-hidden="true"/>
+                            <div>
+                                <h3>Teléfono / WhatsApp</h3>
+                                <a t-att-href="website._dcasa_whatsapp_url()" target="_blank" rel="noopener"><t t-out="dcasa_whatsapp_visible"/><span class="visually-hidden"> (WhatsApp, se abre en una pestaña nueva)</span></a>
+                            </div>
+                        </li>
+                        <li t-if="dcasa_horario">
+                            <i class="fa fa-clock-o" aria-hidden="true"/>
+                            <div>
+                                <h3>Horario</h3>
+                                <p t-foreach="dcasa_horario" t-as="fila" t-out="fila['corto']"/>
+                            </div>
+                        </li>
+                        <li>
+                            <i class="fa fa-map-marker" aria-hidden="true"/>
+                            <div>
+                                <h3>Cobertura</h3>
+                                <p>Venta 100% online con entrega a domicilio — Ciudad de Panamá</p>
+                            </div>
+                        </li>
+                    </ul>
+                    <a href="/visitanos" class="o_dcasa_link">Horario y contacto <span aria-hidden="true">→</span></a>
                 </div>
-                <div class="o_dcasa_contacto_cta_botones">
-                    <a href="/whatsapp" class="btn btn-primary" target="_blank" rel="noopener nofollow">
-                        <i class="fa fa-whatsapp me-2" aria-hidden="true"/>Escríbenos por WhatsApp<span class="visually-hidden"> (se abre en una pestaña nueva)</span></a>
-                    <a t-attf-href="mailto:{{ correo_tienda }}" class="btn o_dcasa_btn_contorno">
-                        <i class="fa fa-envelope me-2" aria-hidden="true"/><t t-out="correo_tienda"/></a>
+                <div class="o_dcasa_cobertura_tarjetas" data-anim-cascada="">
+                    <div class="o_dcasa_cobertura_tarjeta">
+                        <h3><span class="o_dcasa_icono_circulo" aria-hidden="true"><i class="fa fa-truck"/></span>Delivery</h3>
+                        <dl class="o_dcasa_cobertura_zonas">
+                            <div><dt>Ciudad de Panamá</dt><dd>Según zona</dd></div>
+                            <div><dt>Interior / otras zonas</dt><dd>Cotizar por WhatsApp</dd></div>
+                        </dl>
+                    </div>
+                    <div class="o_dcasa_cobertura_tarjeta">
+                        <h3><span class="o_dcasa_icono_circulo" aria-hidden="true"><i class="fa fa-comment-o"/></span>Cómo pedir</h3>
+                        <p>Vendemos únicamente online. Elige tu talla en el catálogo y agrégala al carrito. Al hacer tu
+                            pedido te escribimos por WhatsApp para coordinar el pago y el costo del delivery, que depende de
+                            tu zona. Si prefieres que te ayudemos a elegir, escríbenos por DM de Instagram
+                            <strong>(@babycalebpanama)</strong> o por WhatsApp.</p>
+                    </div>
                 </div>
-            </div>
-        </section>
-        <section id="visitanos" class="o_dcasa_visita o_dcasa_visita_franja">
-            <div class="o_dcasa_container o_dcasa_visita_franja_inner">
-                <div>
-                    <p class="o_dcasa_kicker o_dcasa_kicker_light">Cobertura</p>
-                    <h2 class="o_dcasa_h2" data-titular="">Vendemos online y te lo llevamos.</h2>
-                    <p class="o_dcasa_lead">Venta 100% online con entrega a domicilio — Ciudad de Panamá</p>
-                </div>
-                <a href="/visitanos" class="btn btn-lg o_dcasa_btn_amarillo">
-                    <i class="fa fa-clock-o me-2" aria-hidden="true"/>Horario y contacto</a>
             </div>
         </section>
     </template>
@@ -336,24 +276,14 @@
             <t t-set="meta_description">Baby Caleb: venta 100% online con entrega a domicilio — Ciudad de Panamá. Horario y cómo escribirnos.</t>
             <t t-set="dcasa_whatsapp_visible" t-value="website.dcasa_whatsapp_number or website.company_id.phone"/>
             <div id="wrap" class="o_dcasa_pagina_visita">
-                <section class="o_dcasa_hero o_dcasa_hero_compacto">
-                    <div class="o_dcasa_hero_media">
-                        <!-- Imagen LCP: «eager» explícito, si no el post-proceso de Odoo
-                             (website/models/ir_qweb.py) le pone loading="lazy" y retrasa el LCP. -->
-                        <img src="/website_dcasa/static/src/img/insp-3.webp" width="640" height="640" alt=""
-                             loading="eager" fetchpriority="high"/>
-                    </div>
-                    <div class="o_dcasa_container o_dcasa_hero_inner">
-                        <div class="o_dcasa_hero_texto" data-anim-entrada="">
-                            <p class="o_dcasa_kicker o_dcasa_kicker_light">Cobertura</p>
-                            <h1 class="o_dcasa_display mb-0">Vendemos online y te lo llevamos.</h1>
-                        </div>
-                    </div>
-                </section>
+                <t t-call="website_dcasa.cabecera_pagina">
+                    <t t-set="cabecera_kicker">Cobertura</t>
+                    <t t-set="cabecera_titulo">Vendemos online y te lo llevamos.</t>
+                </t>
 
                 <section class="o_dcasa_visita_detalle">
                     <div class="o_dcasa_container o_dcasa_visita_detalle_inner">
-                        <div class="o_dcasa_visita_datos">
+                        <div class="o_dcasa_visita_datos o_dcasa_cobertura_tarjeta">
                             <h2 class="o_dcasa_kicker">Baby Caleb</h2>
                             <p class="o_dcasa_visita_direccion">Venta 100% online con entrega a domicilio — Ciudad de Panamá</p>
                             <ul class="list-unstyled o_dcasa_visita_lista">
@@ -369,7 +299,7 @@
                                     <a href="https://www.instagram.com/babycalebpanama" target="_blank" rel="noopener">@babycalebpanama</a></li>
                             </ul>
                         </div>
-                        <div>
+                        <div class="o_dcasa_cobertura_tarjeta">
                             <!-- Horario: de los Ajustes de Juan (models/horario_tienda.py). Si no se sabe, no se muestra. -->
                             <t t-set="horario" t-value="website._dcasa_horario_tienda()"/>
                             <!-- t-ignore: sin las marcas del editor, el constructor no toca ni guarda esta tabla (si la
@@ -406,10 +336,10 @@
         <xpath expr="//div[@id='wrap']" position="replace">
             <div id="wrap" class="o_dcasa_home">
 
-                <!-- 1. Hero. Con productos elegidos en Sitio web › Carrusel de la portada: el carrusel (su plantilla,
-                     website_dcasa.hero_carrusel). Sin productos: la foto a sangre, oscurecida, con el texto en blanco
-                     encima. El bloque editable va dentro de su propio <t t-else>: si algún día se guardó con el editor
-                     (una vista que lo reemplaza por su id), lo guardado sigue dentro de la condición. -->
+                <!-- 1. Hero en crema. Con productos elegidos en Sitio web › Carrusel de la portada: sus fotos en el marco
+                     (website_dcasa.hero_carrusel). Sin productos: la foto del bebé de la web de Baby Caleb (hero-bebe).
+                     El bloque editable va dentro de su propio <t t-else>: si algún día se guardó con el editor (una vista
+                     que lo reemplaza por su id), lo guardado sigue dentro de la condición. -->
                 <t t-set="dcasa_vitrina" t-value="website._dcasa_hero_carrusel()"/>
                 <t t-if="dcasa_vitrina">
                     <t t-call="website_dcasa.hero_carrusel"/>
@@ -417,63 +347,67 @@
                 <t t-else="">
                 <div class="oe_structure" id="oe_structure_dcasa_hero">
                     <section class="o_dcasa_hero" data-snippet="s_text_block" data-name="Portada">
-                        <div class="o_dcasa_hero_media">
-                            <!-- Imagen LCP: «eager» explícito, si no Odoo le pone loading="lazy". -->
-                            <img src="/website_dcasa/static/src/img/hero.webp"
-                                 srcset="/website_dcasa/static/src/img/hero-800.webp 800w, /website_dcasa/static/src/img/hero.webp 1400w"
-                                 sizes="100vw" width="1400" height="787" loading="eager" fetchpriority="high"
-                                 alt="Sala amplia con sofá de cuero, cojines y plantas"/>
-                        </div>
+                        <t t-call="website_dcasa.hero_manchas"/>
                         <div class="o_dcasa_container o_dcasa_hero_inner">
-                            <div class="o_dcasa_hero_texto" data-anim-entrada="">
-                                <!-- El texto del hero de la web de Baby Caleb (content.json › hero), tal cual. -->
-                                <p class="o_dcasa_kicker o_dcasa_kicker_light">Pensamos en cada etapa de tu bebé</p>
-                                <h1 class="o_dcasa_display">Cuidado hipoalergénico para la piel de tu bebé</h1>
-                                <p class="o_dcasa_hero_sub">Pañales y wipes hipoalergénicos: sin químicos agresivos, sin perfumes, sin alcohol, sin cloro.</p>
-                                <div class="o_dcasa_ctas">
-                                    <a href="/shop" class="btn btn-lg o_dcasa_btn_amarillo">Ver el catálogo</a>
-                                    <a href="/whatsapp" class="btn btn-lg o_dcasa_btn_linea" target="_blank" rel="noopener nofollow">
-                                        <i class="fa fa-whatsapp me-2" aria-hidden="true"/>Escríbenos por WhatsApp <span class="visually-hidden">(se abre en una pestaña nueva)</span>
-                                    </a>
-                                </div>
+                            <t t-call="website_dcasa.hero_texto"/>
+                            <div class="o_dcasa_hero_media">
+                                <!-- Imagen LCP: «eager» explícito, si no Odoo le pone loading="lazy". Precargada desde
+                                     la cabecera (layout_precarga_hero). El texto alternativo es el de su web. -->
+                                <img src="/website_dcasa/static/src/img/hero-bebe-1200.webp"
+                                     srcset="/website_dcasa/static/src/img/hero-bebe-800.webp 800w, /website_dcasa/static/src/img/hero-bebe-1200.webp 1200w"
+                                     sizes="(min-width: 992px) 46vw, 100vw" width="1200" height="840"
+                                     loading="eager" fetchpriority="high"
+                                     alt="Bebé recién nacido cuidado con Nateen"/>
+                                <!-- La píldora verde que flota sobre la foto en babycaleb.com (S02Hero.tsx). -->
+                                <span class="o_dcasa_hero_pildora"><span class="o_dcasa_punto" aria-hidden="true"/>Sin cloro · Sin perfumes</span>
                             </div>
                         </div>
                     </section>
                 </div>
                 </t>
 
-                <!-- 2. Beneficios: lo que distingue a Baby Caleb, con el título y el texto de su web (content.json ›
-                     differentiators). El de la entrega dice la frase de su cobertura (content.json › nap › address): el
-                     de su web promete pagar en la misma página y aquí el pago se coordina por WhatsApp. -->
+                <!-- 2. Los cuatro sellos (content.json › trust), con los íconos de lucide de su web (leaf, droplet-off,
+                     recycle, heart; licencia ISC) en un círculo crema. Lleva la clase o_dcasa_beneficios de siempre: la
+                     reconoce Brian de la tienda (dcasa_brian_tienda). -->
                 <div class="oe_structure" id="oe_structure_dcasa_beneficios">
-                    <section class="o_dcasa_beneficios" data-snippet="s_text_block" data-name="Beneficios">
+                    <section class="o_dcasa_beneficios o_dcasa_confianza" data-snippet="s_text_block" data-name="Sellos"
+                             aria-label="Lo que distingue a nuestros productos">
                         <div class="o_dcasa_container">
-                            <ul class="o_dcasa_beneficios_list" role="list" data-anim-cascada="">
+                            <ul class="o_dcasa_confianza_lista" role="list" data-anim-cascada="">
                                 <li>
-                                    <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M5 12l11-6 11 6v12l-11 6-11-6z"/><path d="M5 12l11 6 11-6M16 18v12"/></svg>
-                                    <div><strong>Cajas para todo el mes</strong><span>Vendemos en caja grande, no por paquete suelto: te sale más accesible y no te quedas sin pañales a mitad de mes.</span></div>
+                                    <span class="o_dcasa_confianza_icono" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg></span>
+                                    <span class="o_dcasa_confianza_texto">Hipoalergénico</span>
                                 </li>
                                 <li>
-                                    <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M17 4h9v9L14 25l-9-9z"/><circle cx="21.5" cy="8.5" r="1.8"/></svg>
-                                    <div><strong>De recién nacido a XXL</strong><span>Cubrimos desde recién nacidos y prematuros (talla RN, desde 4 libras) hasta niños de más de 55 libras — la talla XXL es difícil de conseguir en Panamá.</span></div>
+                                    <span class="o_dcasa_confianza_icono" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M18.715 13.186C18.29 11.858 17.384 10.607 16 9.5c-2-1.6-3.5-4-4-6.5a10.7 10.7 0 0 1-.884 2.586"/><path d="m2 2 20 20"/><path d="M8.795 8.797A11 11 0 0 1 8 9.5C6 11.1 5 13 5 15a7 7 0 0 0 13.222 3.208"/></svg></span>
+                                    <span class="o_dcasa_confianza_texto">Sin cloro</span>
                                 </li>
                                 <li>
-                                    <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M5 7h22v14H14l-6 5v-5H5z"/><path d="M10 12h12M10 16h8"/></svg>
-                                    <div><strong>Atención personal</strong><span>Asesoría directa y humana por WhatsApp — te ayudamos a elegir la talla, nada de formularios.</span></div>
+                                    <span class="o_dcasa_confianza_icono" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 19H4.815a1.83 1.83 0 0 1-1.57-.881 1.785 1.785 0 0 1-.004-1.784L7.196 9.5"/><path d="M11 19h8.203a1.83 1.83 0 0 0 1.556-.89 1.784 1.784 0 0 0 0-1.775l-1.226-2.12"/><path d="m14 16-3 3 3 3"/><path d="M8.293 13.596 7.196 9.5 3.1 10.598"/><path d="m9.344 5.811 1.093-1.892A1.83 1.83 0 0 1 11.985 3a1.784 1.784 0 0 1 1.546.888l3.943 6.843"/><path d="m13.378 9.633 4.096 1.098 1.097-4.096"/></svg></span>
+                                    <span class="o_dcasa_confianza_texto">Biodegradable</span>
                                 </li>
                                 <li>
-                                    <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M3 9h16v13H3zM19 13h6l4 5v4h-10z"/><circle cx="8" cy="24" r="2.5"/><circle cx="23" cy="24" r="2.5"/></svg>
-                                    <div><strong>Delivery a domicilio</strong><span>Venta 100% online con entrega a domicilio — Ciudad de Panamá.</span></div>
+                                    <span class="o_dcasa_confianza_icono" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg></span>
+                                    <span class="o_dcasa_confianza_texto">Piel sensible</span>
                                 </li>
                             </ul>
                         </div>
                     </section>
                 </div>
 
-                <!-- 3. Compra por espacio (dinámico: enlaza a las categorías reales; sin nada publicado en ellas, no sale) -->
-                <t t-call="website_dcasa.seccion_categorias"/>
+                <!-- 3. La banda verde de educación (content.json › education), tal cual. -->
+                <div class="oe_structure" id="oe_structure_dcasa_educacion">
+                    <section class="o_dcasa_educacion" data-snippet="s_text_block" data-name="¿Sabías que…?">
+                        <div class="o_dcasa_container o_dcasa_educacion_inner">
+                            <h2 class="o_dcasa_educacion_pregunta" data-titular="">¿Sabías que no es lo mismo 'libre de cloro' que 'sin cloro'?</h2>
+                            <p class="o_dcasa_educacion_respuesta" data-anim="">Muchos pañales del mercado son ECF (Elemental Chlorine Free): no usan cloro puro, pero sí derivados del cloro para blanquear la pulpa. Nuestros pañales Nateen se fabrican sin cloro ni perfumes, con 100% fibras de bambú. Pregunta siempre qué lleva el pañal de tu bebé: #QUENOTENEGAÑEN.</p>
+                        </div>
+                    </section>
+                </div>
 
-                <!-- 4. Lo más buscado (dinámico, con precio y «Agregar») -->
+                <!-- 4. Los productos (dinámico: los de la tienda, con su precio de Odoo y «Agregar» de un clic). La campaña
+                     del sitio, si está activa, va justo antes (models/black_weekend.py). -->
+                <t t-call="website_dcasa.seccion_black_weekend"/>
                 <t t-call="website_dcasa.carrusel_productos">
                     <t t-set="items" t-value="website._dcasa_productos()"/>
                     <t t-set="antetitulo">Catálogo Baby Caleb</t>
@@ -481,27 +415,74 @@
                     <t t-set="enlace" t-value="'/shop'"/>
                 </t>
 
-                <!-- 5. (El bloque «Te lo llevas hoy mismo» de la copia de origen era de muebles en caja y de la tienda
-                     física: sin equivalente en la web de Baby Caleb, se quitó.) -->
+                <!-- 5. Lo que dicen las mamás (content.json › testimonials): de la dueña, publicados en su web, copiados tal
+                     cual (nombre, papel, cita y resultado). -->
+                <div class="oe_structure" id="oe_structure_dcasa_testimonios">
+                    <section class="o_dcasa_section o_dcasa_testimonios" data-snippet="s_text_block" data-name="Lo que dicen las mamás"
+                             aria-labelledby="dcasa-testimonios-titulo">
+                        <div class="o_dcasa_container">
+                            <div class="o_dcasa_section_head o_dcasa_section_head_centro">
+                                <div>
+                                    <p class="o_dcasa_kicker">Experiencias reales</p>
+                                    <h2 id="dcasa-testimonios-titulo" class="o_dcasa_h2" data-titular="">Lo que dicen nuestras mamás.</h2>
+                                </div>
+                            </div>
+                            <ul class="o_dcasa_testimonios_lista" role="list" data-anim-cascada="">
+                                <li>
+                                    <figure class="o_dcasa_testimonio">
+                                        <blockquote><p>“Desde que usamos Nateen, las irritaciones desaparecieron por completo. La talla XL fue un salvavidas.”</p></blockquote>
+                                        <figcaption>
+                                            <span><strong>Elizabeth M.</strong><span class="o_dcasa_testimonio_papel">Mamá de 2</span></span>
+                                            <span class="o_dcasa_testimonio_resultado">Cero alergias</span>
+                                        </figcaption>
+                                    </figure>
+                                </li>
+                                <li>
+                                    <figure class="o_dcasa_testimonio">
+                                        <blockquote><p>“El servicio por WhatsApp es súper cercano. Me guiaron con la talla y la caja de wipes me dura muchísimo.”</p></blockquote>
+                                        <figcaption>
+                                            <span><strong>Ana C.</strong><span class="o_dcasa_testimonio_papel">Mamá primeriza</span></span>
+                                            <span class="o_dcasa_testimonio_resultado">Talla correcta</span>
+                                        </figcaption>
+                                    </figure>
+                                </li>
+                                <li>
+                                    <figure class="o_dcasa_testimonio">
+                                        <blockquote><p>“Encontrar pañales para prematuro en Panamá fue un alivio enorme. Súper suaves, mi bebé duerme mejor.”</p></blockquote>
+                                        <figcaption>
+                                            <span><strong>Carla R.</strong><span class="o_dcasa_testimonio_papel">Mamá de prematuro</span></span>
+                                            <span class="o_dcasa_testimonio_resultado">Piel calmada</span>
+                                        </figcaption>
+                                    </figure>
+                                </li>
+                            </ul>
+                        </div>
+                    </section>
+                </div>
 
-                <!-- 6. Segundo carrusel: descanso (dinámico) -->
-                <t t-call="website_dcasa.carrusel_productos">
-                    <t t-set="items" t-value="website._dcasa_productos(categorias=['recamaras', 'colchones'])"/>
-                    <t t-set="antetitulo">Recámaras y colchones</t>
-                    <t t-set="titulo">Para dormir mejor</t>
-                    <t t-set="enlace" t-value="website._dcasa_categoria_url('recamaras')"/>
-                </t>
+                <!-- 5b. Opiniones reales de Google (dinámico: data/resenas.json; sin opiniones, no sale). -->
+                <t t-call="website_dcasa.resenas_google"/>
 
-                <!-- 7. Socios (dinámico: cifras de puntos.json) -->
+                <!-- 5c. Socios (dinámico: cifras de puntos.json). -->
                 <t t-call="website_dcasa.seccion_socios"/>
 
-                <!-- 7b. Opiniones reales de Google (dinámico: data/resenas.json) -->
-                <t t-call="website_dcasa.resenas_google"/>
+                <!-- 6. Cobertura (dinámico: teléfono y horario de los Ajustes; fuera del bloque editable: el ancla
+                     #visitanos no debe perderse al guardar desde el editor). -->
+                <t t-call="website_dcasa.seccion_visitanos"/>
+
+                <!-- 7. La banda verde final de babycaleb.com (S19CTA.tsx), con su frase y «Ver el catálogo». -->
+                <div class="oe_structure" id="oe_structure_dcasa_cta_final">
+                    <section class="o_dcasa_cta_final" data-snippet="s_text_block" data-name="Banda final">
+                        <div class="o_dcasa_container o_dcasa_cta_final_inner" data-anim-cascada="">
+                            <h2 class="o_dcasa_cta_final_titulo">Dale a tu bebé el cuidado que su piel merece.</h2>
+                            <div><a href="/shop" class="btn btn-primary btn-lg o_dcasa_btn_hero">Ver el catálogo</a></div>
+                        </div>
+                    </section>
+                </div>
 
                 <!-- 8. Preguntas frecuentes (editable): las de la web de Baby Caleb (content.json › faq), tal cual. Sin
                      «¿Cuánto cuesta el delivery?»: allá se elige la zona y se ve el costo al pagar; aquí la entrega se
-                     cotiza por WhatsApp. La galería «Inspírate» y la guía «¿Te cabe? Mídelo en 3 pasos» de la copia de
-                     origen eran de muebles (fotos y medidas): sin equivalente, se quitaron. -->
+                     cotiza por WhatsApp. -->
                 <div class="oe_structure" id="oe_structure_dcasa_inspira">
                     <section class="o_dcasa_section o_dcasa_ayuda" data-snippet="s_text_block" data-name="Preguntas frecuentes">
                         <div class="o_dcasa_container o_dcasa_split_grid o_dcasa_split_top">
@@ -543,12 +524,7 @@
                             </div>
                         </div>
                     </section>
-
                 </div>
-
-                <!-- 9. Contacto y cobertura (fuera del bloque editable: el ancla #visitanos del menú no debe perderse
-                     al guardar desde el editor) -->
-                <t t-call="website_dcasa.seccion_visitanos"/>
             </div>
         </xpath>
     </template>

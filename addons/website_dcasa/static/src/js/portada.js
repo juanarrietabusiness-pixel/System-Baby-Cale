@@ -1,12 +1,12 @@
 /**
- * Portada (2026-11-16): el hero en carrusel y la sección «de cine» (models/portada.py, views/homepage_templates.xml).
+ * Portada (2026-11-16): el hero con los productos que elige Gerencia (models/portada.py, views/homepage_templates.xml).
  *
- *   · DcasaVitrina  el FONDO del hero: las fotos se funden unas en otras, en orden al azar, cada --vitrina-tiempo.
- *                   El visitante no maneja nada (no hay flechas, barras, pausa ni deslizar): es un fondo, no un
+ *   · DcasaVitrina  las fotos del marco del hero se funden unas en otras, en orden al azar, cada --vitrina-tiempo.
+ *                   El visitante no maneja nada (no hay flechas, barras, pausa ni deslizar): es decorativo, no un
  *                   carrusel que se recorre. El zoom lento es del CSS y no para nunca; con movimiento reducido no
  *                   cambia de foto. Sin JavaScript se ve la primera, quieta.
- *   · DcasaCine     las cintas de fotos corren solas con CSS; aquí solo el botón de pausa (WCAG 2.2.2) y la pausa
- *                   mientras el dedo está apoyado en ellas.
+ *
+ * (La sección «de cine», con sus dos cintas de fotos de muebles, se quitó con la marca de Baby Caleb, 2026-11-19.)
  *
  * Como las demás Interactions del sitio, no corren en el editor y lo que agregan lo quitan al destruirse.
  */
@@ -35,18 +35,8 @@ export class DcasaVitrina extends Interaction {
     }
 
     start() {
-        const raiz = document.documentElement;
-        // Mientras el hero se ve, el botón flotante de WhatsApp espera fuera (el texto ya trae el suyo).
-        this.mirador = new IntersectionObserver((entradas) => {
-            for (const entrada of entradas) {
-                raiz.classList.toggle("o_dcasa_vitrina_a_la_vista", entrada.isIntersecting);
-            }
-        }, { threshold: 0.25 });
-        this.mirador.observe(this.el);
-        this.registerCleanup(() => {
-            this.mirador.disconnect();
-            raiz.classList.remove("o_dcasa_vitrina_a_la_vista");
-        });
+        // (El botón flotante de WhatsApp ya no espera fuera mientras se ve el hero: con la marca de Baby Caleb el hero
+        // no trae su propio botón de WhatsApp, y la burbuja de babycaleb.com está siempre a la vista.)
         if (this.total > 1 && !reducido()) {
             this.programar();
         }
@@ -104,56 +94,5 @@ export function tiempoDeLaVitrina(el) {
     return valor.endsWith("ms") ? numero : numero * 1000;
 }
 
-export class DcasaCine extends Interaction {
-    static selector = ".o_dcasa_cine";
-    dynamicContent = {
-        ".o_dcasa_cine_pausa": {
-            "t-on-click": this.alternar,
-            "t-att-aria-pressed": () => String(this.pausada),
-        },
-        ".o_dcasa_cine_pausa span": {
-            "t-out": () => (this.pausada ? "Mover las fotos" : "Pausar las fotos"),
-        },
-        _root: { "t-att-class": () => ({ "is-pausada": this.pausada, "is-tocada": this.tocada }) },
-    };
-
-    setup() {
-        this.pausada = false;
-        this.tocada = false;
-    }
-
-    start() {
-        if (reducido()) {
-            return;
-        }
-        const boton = this.el.querySelector(".o_dcasa_cine_pausa");
-        boton?.removeAttribute("hidden");
-        this.registerCleanup(() => boton?.setAttribute("hidden", ""));
-        // Con el dedo apoyado en las fotos, se quedan quietas (y siguen un momento después de soltar).
-        const cintas = this.el.querySelector(".o_dcasa_cine_cintas");
-        this.addListener(cintas, "pointerdown", (ev) => {
-            if (ev.pointerType !== "mouse") {
-                clearTimeout(this.soltar);
-                this.tocada = true;
-            }
-        });
-        const alSoltar = () => {
-            clearTimeout(this.soltar);
-            this.soltar = setTimeout(() => {
-                this.tocada = false;
-                this.updateContent();
-            }, 1500);
-        };
-        this.addListener(cintas, "pointerup", alSoltar);
-        this.addListener(cintas, "pointercancel", alSoltar);
-        this.registerCleanup(() => clearTimeout(this.soltar));
-    }
-
-    alternar() {
-        this.pausada = !this.pausada;
-    }
-}
-
 const interacciones = registry.category("public.interactions");
 interacciones.add("website_dcasa.vitrina", DcasaVitrina);
-interacciones.add("website_dcasa.cine", DcasaCine);

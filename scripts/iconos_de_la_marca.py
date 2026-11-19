@@ -16,13 +16,15 @@ salían descentrados y más chicos.
   sitio.
 * ``addons/website_dcasa/static/src/img/logo-200.webp`` y ``logo-400.webp``: el logo de la cabecera del sitio en WebP,
   de 200 y 400 px de ancho (1x y 2x), con su proporción (``website_dcasa.logo_webp_dcasa`` lleva el ancho y el alto).
+  Con lo de AFUERA del sello transparente (marca de Baby Caleb, 2026-11-19): la pastilla de la cabecera es de vidrio
+  crema y un cuadrado blanco detrás del sello se vería. El blanco de adentro del dibujo no se toca.
 
 Si cambia el logo, se vuelve a correr y se suben las imágenes nuevas.
 """
 import math
 from pathlib import Path
 
-from PIL import Image, ImageChops
+from PIL import Image, ImageChops, ImageDraw
 
 RAIZ = Path(__file__).resolve().parent.parent
 LOGO = RAIZ / 'addons/dcasa_base/static/img/logo.png'
@@ -59,6 +61,19 @@ def ancho_en_zona_segura(logo):
     return math.floor(2 * ZONA_SEGURA / math.hypot(1, logo.height / logo.width) * 100) / 100
 
 
+def sin_fondo_de_afuera(logo):
+    """El logo con el blanco de alrededor del dibujo transparente: se rellena desde las cuatro esquinas, así el blanco
+    de adentro (los ojos, las letras) se queda."""
+    rgb = logo.convert('RGB')
+    marca = (1, 2, 3)
+    for esquina in ((0, 0), (rgb.width - 1, 0), (0, rgb.height - 1), (rgb.width - 1, rgb.height - 1)):
+        ImageDraw.floodfill(rgb, esquina, marca, thresh=40)
+    fuera = ImageChops.difference(rgb, Image.new('RGB', rgb.size, marca)).convert('L').point(lambda v: 255 if v else 0)
+    limpio = logo.copy()
+    limpio.putalpha(ImageChops.multiply(logo.getchannel('A'), fuera))
+    return limpio.crop(limpio.getchannel('A').getbbox())
+
+
 def componer(logo, lado, ancho_relativo, fondo):
     """El logo, entero y centrado, en un cuadrado de ``lado`` píxeles."""
     ancho = round(lado * ancho_relativo)
@@ -78,10 +93,11 @@ def main():
         print(f'{CARPETA.relative_to(RAIZ) / archivo}')
     componer(logo, 512, 0.94, None).save(FAVICON_DEL_SITIO, optimize=True)
     print(FAVICON_DEL_SITIO.relative_to(RAIZ))
+    cabecera = sin_fondo_de_afuera(Image.open(LOGO).convert('RGBA'))
     for ancho in (200, 400):
         destino = Path(str(LOGO_DE_LA_CABECERA).format(ancho=ancho))
-        alto = round(ancho * logo.height / logo.width)
-        logo.resize((ancho, alto), Image.LANCZOS).save(destino, 'WEBP', quality=90, method=6)
+        alto = round(ancho * cabecera.height / cabecera.width)
+        cabecera.resize((ancho, alto), Image.LANCZOS).save(destino, 'WEBP', quality=90, method=6)
         print(f'{destino.relative_to(RAIZ)} ({ancho} × {alto})')
 
 
