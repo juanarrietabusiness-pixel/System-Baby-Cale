@@ -77,7 +77,17 @@ del puente. Ya en uso en la cuenta y **no se tocan**: `babycaleb-web`, `babycale
   volvería a llevar el dominio. Pasos en `docs/DOMINIO.md` (Fase B, paso 2); candado en
   `edge/test/dominio-babycaleb.test.ts`.
 - Cobros en línea del sistema nuevo (hoy Tilopay y Yappy viven en la web actual, en `babycaleb.com`).
-- Qué herramientas se quitan para bajar costos.
+- Qué herramientas se quitan para bajar costos (el dueño no quiere el sistema dormido, 2026-11-19). Lo que más pesa es la
+  memoria **reservada** de la caja: se paga se use o no. La CPU se paga solo por uso. Quitar herramientas baja la cuenta
+  sobre todo si permite una caja más chica. Cajas posibles para producción, 24/7, con los precios de Cloudflare del
+  2026-11-19 (cálculo nuestro, sin contar la CPU):
+  - `basic` (¼ vCPU, 1 GiB) ≈ $7,3. D'CASA la encontró justa y lenta. Staging ya corre ahí con todo, así que se puede medir.
+  - Personalizada (1 vCPU, 3 GiB) ≈ $21,2. Es la mínima que permite la política `default`: ≥ 1 vCPU y ≥ 3 GiB por vCPU.
+    Es más rápida que `standard-1`.
+  - `standard-1` (½ vCPU, 4 GiB) ≈ $27,8. Es la de D'CASA.
+
+  El mejor momento para quitar herramientas es antes de instalar producción: en una base nueva simplemente no se
+  instalan (`ODOO_MODULES` en `docker/entrypoint.sh`, cuidando las dependencias y las pruebas).
 - Nombres configurables de los asistentes (Juan, Brian, Sofía, Camila, Andrés).
 - `CLAUDE.md`, `docs/LEEME_PRIMERO.md` (bitácora), `docs/PRIORIDADES.md`, `docs/historico/` y `docs/gerencia/` siguen siendo
   los de D'CASA: se reescriben para Baby Caleb cuando el dueño lo pida (`docs/REPLICAR.md` §4.3).
