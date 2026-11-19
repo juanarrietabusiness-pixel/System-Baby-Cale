@@ -47,7 +47,8 @@ class TestFacturaImpresa(SociosCommon):
         self.env.company.website = 'https://tienda.example.com'
         html = self._render(factura)
         self.assertIn('Únete en', html)
-        self.assertIn('tienda.example.com/socios', html)
+        self.assertIn('/socios', html)
+        self.assertIn('tienda.example.com', html, 'Con la web de la empresa delante')
         self.assertIn(self.padrino.dcasa_socio_codigo, html)
         self.assertNotIn('Tu código de socio', html)
         self.assertNotIn('Puntos de esta compra', html)

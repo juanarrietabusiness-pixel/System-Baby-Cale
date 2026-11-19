@@ -2,6 +2,7 @@ import os
 import re
 from types import SimpleNamespace
 from unittest.mock import patch
+from urllib.parse import urlsplit
 
 from odoo import http
 from odoo.http import STORED_SESSION_BYTES
@@ -81,17 +82,20 @@ class TestSesionesHttp(HttpCase):
         post('/socios/salir')
         cuenta = post('/socios/entrar', celular='6123-4567', pin='482915')
 
-        def dentro(texto):
-            # Con las cifras de puntos.json en PENDIENTE (Baby Caleb, 2026-11-18) la cuenta no enseña el código de
-            # socio; el saludo con su nombre sí sale siempre que está dentro.
-            return socio.dcasa_socio_codigo in texto or 'Hola, Luis' in texto
+        def dentro(respuesta):
+            # Con las cifras de puntos.json en PENDIENTE (Baby Caleb, 2026-11-18) la cuenta ya no enseña el código de
+            # socio. Lo que prueba que está dentro es adónde llega: su cuenta (/socios/cuenta o /mi-cuenta/…) y no
+            # /socios, adonde la cuenta manda a quien no tiene sesión.
+            ruta = urlsplit(respuesta.url).path.rstrip('/')
+            return ruta == '/socios/cuenta' or ruta.startswith('/mi-cuenta')
 
-        self.assertTrue(dentro(cuenta.text), 'Entró a su cuenta')
+        self.assertTrue(dentro(cuenta), f'Entró a su cuenta ({cuenta.url})')
         sid = self.opener.cookies.get('session_id')
         self.cerrar_al_final(sid)
         self.assertEqual(http.root.session_store.get(sid)['dcasa_socio']['id'], socio.id)
         self.reiniciar()
-        self.assertTrue(dentro(self.url_open('/socios/cuenta').text), 'Tras el reinicio el socio sigue dentro')
+        despues = self.url_open('/socios/cuenta')
+        self.assertTrue(dentro(despues), f'Tras el reinicio el socio sigue dentro ({despues.url})')
 
     # ------------------------------------------------------------------
     # /dcasa/salud
