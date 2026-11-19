@@ -133,7 +133,7 @@ export function seccionErrores(e: Escena) {
       const sinCanal = await e.w.odooAlWorker("POST", "/odoo/enviar", { canal: "sms", id_externo: "1", texto: "x" });
       expect(sinCanal.estado).toBe(400);
       const adjuntoHttp = await e.w.odooAlWorker("POST", "/odoo/enviar", {
-        canal: "whatsapp_qr", id_externo: celularNuevo(), adjuntos: [{ tipo: "imagen", url: "http://dcasapty.com/x.png" }], autor: "vendedora",
+        canal: "whatsapp_qr", id_externo: celularNuevo(), adjuntos: [{ tipo: "imagen", url: "http://babycaleb.com/x.png" }], autor: "vendedora",
       });
       expect(adjuntoHttp.estado).toBe(400);
       expect(adjuntoHttp.json.error).toMatch(/https/);

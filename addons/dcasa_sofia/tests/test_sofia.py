@@ -774,9 +774,10 @@ class TestSofia(JuanCase):
         enviados = []
         with patch.object(type(Enlace), '_enviar', lambda self, chat_id, texto, botones=None:
                           enviados.append((chat_id, texto)) or {'ok': True}):
-            with freeze_time('2026-11-05 13:10:00'):   # 8:10 a. m.: todavía no
+            # Media hora después de abrir; el horario de fábrica abre a las 9:00 (Baby Caleb, 2026-11-18).
+            with freeze_time('2026-11-05 14:10:00'):   # 9:10 a. m.: todavía no
                 self.assertFalse(self.Sofia._cron_manana())
-            with freeze_time('2026-11-05 13:40:00'):   # 8:40 a. m.
+            with freeze_time('2026-11-05 14:40:00'):   # 9:40 a. m.
                 self.assertTrue(self.Sofia._cron_manana())
                 self.assertFalse(self.Sofia._cron_manana(), 'una vez al día')
         corrida = self.env['dcasa.sofia.corrida'].search([], limit=1)

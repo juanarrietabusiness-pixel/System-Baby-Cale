@@ -141,7 +141,7 @@ export function seccionAdjuntos(e: Escena) {
         return Array.isArray(id) ? id[0] : id;
       };
 
-      it("una cotización en PDF: Odoo manda una URL firmada de 15 min de dcasapty.com; el puente (validación real) la baja", async () => {
+      it("una cotización en PDF: Odoo manda una URL firmada de 15 min de babycaleb.com; el puente (validación real) la baja", async () => {
         e.w.ia.guionar([{ texto: "Claro, ya te escribe una vendedora." }]);
         await e.w.cliente(celular, "Hola, quiero una cotización", { nombre: "Marisol" });
         await e.w.quieta(celular);
@@ -207,7 +207,7 @@ export function seccionAdjuntos(e: Escena) {
             body: JSON.stringify({ para: celular, chunks: [], medios: [{ tipo: "documento", url: medioUrl, nombre: "x.pdf" }] }),
           })).status;
         expect(await rechazo("https://otro-sitio.example.com/x.pdf")).toBe(422);
-        expect(await rechazo("http://dcasapty.com/dcasa/adjunto/1/2/3/x.pdf")).toBe(422);
+        expect(await rechazo("http://babycaleb.com/dcasa/adjunto/1/2/3/x.pdf")).toBe(422);
         expect(await rechazo(`http://127.0.0.1:${JUAN_PUERTO}/x.pdf`)).toBe(422);
         e.w.puente.rechazos.length = 0;
       });

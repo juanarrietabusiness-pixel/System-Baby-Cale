@@ -7,7 +7,7 @@ Solo para la base temporal de esa prueba, que se borra al terminar. Crea:
   publica con foto uno del catálogo que instala dcasa_catalogo («Pañales Nateen Pants», de Baby Caleb);
 * una vendedora (usuario interno del equipo de ventas) y la clave del administrador, que llegan por variables
   de entorno generadas al momento (nunca están en el repositorio);
-* `web.base.url` = https://dcasapty.com, como en producción (el entrypoint la congela): de ahí salen las URL
+* `web.base.url` = https://babycaleb.com, como en producción (el entrypoint la congela): de ahí salen las URL
   de los adjuntos y de las fotos, y el puente de WhatsApp solo acepta ese dominio.
 """
 import os
@@ -20,7 +20,7 @@ CLAVE_VENDEDORA = os.environ['INTEGRACION_CLAVE_VENDEDORA']
 PNG = b'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='
 
 parametros = env['ir.config_parameter'].sudo()
-parametros.set_param('web.base.url', 'https://dcasapty.com')
+parametros.set_param('web.base.url', 'https://babycaleb.com')
 parametros.set_param('web.base.url.freeze', 'True')
 
 env.ref('base.user_admin').write({'login': 'admin', 'password': CLAVE_ADMIN})

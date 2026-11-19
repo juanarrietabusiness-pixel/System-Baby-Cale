@@ -48,6 +48,8 @@ class TestCompras(SociosCommon):
 
     def test_la_factura_impresa_lleva_los_puntos(self):
         factura = self.factura()
+        # Sin la web de la empresa (PENDIENTE en una instalación nueva) no hay dirección que imprimir: se pone una.
+        self.env.company.website = 'https://tienda.example.com'
         html = self.env['ir.actions.report']._render_qweb_html('account.report_invoice', factura.ids)[0].decode()
         self.assertIn('Socios D\'CASA', html)
         self.assertIn(self.cliente.dcasa_socio_codigo, html)

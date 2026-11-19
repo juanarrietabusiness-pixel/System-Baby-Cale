@@ -80,13 +80,18 @@ class TestSesionesHttp(HttpCase):
         self.assertTrue(socio)
         post('/socios/salir')
         cuenta = post('/socios/entrar', celular='6123-4567', pin='482915')
-        self.assertIn(socio.dcasa_socio_codigo, cuenta.text)
+
+        def dentro(texto):
+            # Con las cifras de puntos.json en PENDIENTE (Baby Caleb, 2026-11-18) la cuenta no enseña el código de
+            # socio; el saludo con su nombre sí sale siempre que está dentro.
+            return socio.dcasa_socio_codigo in texto or 'Hola, Luis' in texto
+
+        self.assertTrue(dentro(cuenta.text), 'Entró a su cuenta')
         sid = self.opener.cookies.get('session_id')
         self.cerrar_al_final(sid)
         self.assertEqual(http.root.session_store.get(sid)['dcasa_socio']['id'], socio.id)
         self.reiniciar()
-        self.assertIn(socio.dcasa_socio_codigo, self.url_open('/socios/cuenta').text,
-                      'Tras el reinicio el socio sigue dentro')
+        self.assertTrue(dentro(self.url_open('/socios/cuenta').text), 'Tras el reinicio el socio sigue dentro')
 
     # ------------------------------------------------------------------
     # /dcasa/salud

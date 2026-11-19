@@ -121,7 +121,7 @@ export function seccionHistoria(e: Escena) {
       const conFoto = w.puente.envios.find((x) => x.medios.length > 0)!;
       expect(conFoto).toBeTruthy();
       expect(conFoto.medios[0].tipo).toBe("imagen");
-      expect(new URL(conFoto.medios[0].url).hostname).toBe("dcasapty.com");
+      expect(new URL(conFoto.medios[0].url).hostname).toBe("babycaleb.com");
       expect(conFoto.descargas[0].estado).toBe(200);
       expect(conFoto.descargas[0].mime).toMatch(/^image\//);
 
@@ -311,7 +311,7 @@ export function seccionHistoria(e: Escena) {
       const lineas = await admin.buscar("sale.order.line", [["order_id", "=", orden.id]], ["price_unit", "product_uom_qty", "discount"]);
       expect(lineas).toEqual([expect.objectContaining({ price_unit: 349.99, product_uom_qty: 2, discount: 0 })]);
 
-      // El PDF salió por el puente como documento, con un enlace firmado de dcasapty.com que el puente bajó entero.
+      // El PDF salió por el puente como documento, con un enlace firmado de babycaleb.com que el puente bajó entero.
       const envio = w.puente.envios.find((x) => x.medios.some((m) => m.tipo === "documento"))!;
       expect(envio).toBeTruthy();
       expect(envio.medios[0]).toMatchObject({ tipo: "documento", nombre: `Cotizacion-${orden.name}.pdf` });

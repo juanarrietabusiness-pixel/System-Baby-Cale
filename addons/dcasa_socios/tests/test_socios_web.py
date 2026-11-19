@@ -570,7 +570,7 @@ class TestSociosWebHttp(ConReglasDePrueba, HttpCase):
         self.assertEqual(self.env['res.partner'].search_count([('dcasa_celular', '=', '60000005')]), 1)
         # /my enseña el programa (con dcasa_mi_cuenta, /my del cliente es /mi-cuenta y enlaza a sus puntos).
         my = self.url_open('/my').text
-        self.assertIn('Socios D', my)
+        self.assertIn('Socios Baby Caleb', my)
         self.assertIn('353', my)
         self.assertTrue('/socios/cuenta' in my or '/mi-cuenta/puntos' in my)
 

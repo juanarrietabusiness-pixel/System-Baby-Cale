@@ -229,6 +229,10 @@ class TestPaginasConTodoPendiente(HttpCase):
 
     @staticmethod
     def visible(html):
+        # Solo el contenido de la página (``<main>``): la cabecera y el pie del sitio son de todas las páginas y llevan
+        # textos que decidió el dueño («Venta 100% online», 2026-11-18), que no son cifras del programa.
+        principal = re.search(r'<main\b.*?</main>', html, flags=re.S)
+        html = principal.group(0) if principal else html
         return ' '.join(re.sub(r'<[^>]+>', ' ', re.sub(r'<script.*?</script>|<style.*?</style>', '', html,
                                                        flags=re.S)).split())
 

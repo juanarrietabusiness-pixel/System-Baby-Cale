@@ -43,8 +43,9 @@ class TestProgramarSeguimiento(SeguimientoCase):
 
     def test_si_cae_fuera_de_horario_espera_al_siguiente(self):
         conv = self.pregunta_y_bot_contesta(hora_panama=15)
-        # 3:05 p. m. + 5 h = 8:05 p. m.: fuera. Al día siguiente a las 8:00.
-        self.assertEqual(conv.seguimiento_proximo, panama(2026, 10, 10, 8, 0))
+        # 3:05 p. m. + 5 h = 8:05 p. m.: fuera. Al día siguiente a la apertura: 9:00 con el horario de fábrica
+        # (lunes a sábado de 9:00 a 18:00, el de Baby Caleb, 2026-11-18).
+        self.assertEqual(conv.seguimiento_proximo, panama(2026, 10, 10, 9, 0))
 
     def test_no_hay_seguimiento_si_el_cliente_fue_el_ultimo_en_escribir(self):
         conv = self.conversacion()
@@ -249,7 +250,7 @@ class TestCronDeSeguimiento(SeguimientoCase):
         conv.seguimiento_proximo = panama(2026, 10, 9, 16, 0)
         with freeze_time(panama(2026, 10, 9, 20, 0)):             # 8 p. m. en Panamá
             self.assertEqual(self.Conversacion._cron_seguimientos(), 0)
-        self.assertEqual(conv.seguimiento_proximo, panama(2026, 10, 10, 8, 0))
+        self.assertEqual(conv.seguimiento_proximo, panama(2026, 10, 10, 9, 0), 'A la apertura del día siguiente')
 
     def test_revisa_todo_otra_vez_antes_de_pedir(self):
         conv = self.pregunta_y_bot_contesta(hora_panama=9)

@@ -42,9 +42,12 @@ class TestFacturaImpresa(SociosCommon):
         factura = orden._create_invoices()
         factura.action_post()
         self.assertFalse(self.cliente.dcasa_socio_codigo, 'Todavía no es socio: no ha pagado')
+        # La web de la empresa queda vacía en una instalación nueva (PENDIENTE, Baby Caleb 2026-11-18): sin ella la
+        # factura dice «la sección Socios de nuestra web». Con una, imprime «<web>/socios».
+        self.env.company.website = 'https://tienda.example.com'
         html = self._render(factura)
         self.assertIn('Únete en', html)
-        self.assertIn('/socios', html)
+        self.assertIn('tienda.example.com/socios', html)
         self.assertIn(self.padrino.dcasa_socio_codigo, html)
         self.assertNotIn('Tu código de socio', html)
         self.assertNotIn('Puntos de esta compra', html)

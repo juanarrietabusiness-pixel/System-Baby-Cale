@@ -175,7 +175,7 @@ export function enlaceDcasa(estado: EstadoDelEnlace, base = ODOO_URL): Fetcher {
         // Lo mismo que contesta el borde mientras el contenedor despierta (edge/src/juan.ts).
         const r = await atenderJuan(req, {
           forward: async () => new Response("<html>arrancando</html>", { status: 200, headers: { "X-Dcasa-Estado": "arrancando", "Retry-After": "15" } }),
-          canonicalHost: "dcasapty.com",
+          canonicalHost: "babycaleb.com",
         });
         anotar(r.status);
         return r;
@@ -189,7 +189,7 @@ export function enlaceDcasa(estado: EstadoDelEnlace, base = ODOO_URL): Fetcher {
             body: upstream.method === "GET" ? undefined : Buffer.from(await upstream.arrayBuffer()),
           });
         },
-        canonicalHost: "dcasapty.com",
+        canonicalHost: "babycaleb.com",
       });
       anotar(r.status);
       return r;
@@ -399,7 +399,7 @@ export async function levantarWorker(): Promise<Mundo> {
     PUENTE: puente.fetcher,
     ENTORNO: "integracion",
     URL_PUBLICA: url,
-    URL_SITIO: "https://dcasapty.com",
+    URL_SITIO: "https://babycaleb.com",
     BUFFER_SEGUNDOS: "1",
     TOPE_DIARIO: "50",
   } as never);
