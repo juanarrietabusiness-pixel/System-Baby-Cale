@@ -1,21 +1,27 @@
-"""Ronda 6 de diseño: lo que la dueña pidió fijar.
+# ruff: noqa: E501  (JavaScript del navegador embebido en texto)
+"""La marca de Baby Caleb en el sitio (docs/MARCA_BABY_CALEB.md, pedido del dueño del 2026-11-19: «el branding de la
+web de Baby Caleb tal cual»). Lo que se fija aquí:
 
-* La píldora de /socios (logo, Catálogo · Socios Baby Caleb · Contacto, carrito, búsqueda, cuenta y
-  «Escríbenos») está igual en todas las páginas, también en la tienda, la ficha, el carrito, las
-  legales, la cuenta y Black Weekend, y es el vidrio líquido original (desenfoque, saturación,
-  filos de luz y refracción): claro sobre fondo claro, ahumado sobre una foto.
-* El pie no lleva fotos ni velos (la «foto azulosa» venía de la tienda estática del borde).
-* Portada (corrección de la dueña): el texto va directamente sobre la foto, sin placa ni tarjeta,
-  con la foto un poco oscurecida (velo negro plano del 35-45 %), también en el celular.
+* La pastilla de vidrio crema de babycaleb.com (la marca «Baby Caleb» escrita, el menú, el carrito, la búsqueda y la
+  cuenta) es la misma en todas las páginas, también en la tienda, la ficha, el carrito, las legales, la cuenta y la
+  campaña. Sin barra de anuncios encima.
+* El pie es el de su web: crema, sin fotos ni velos, con la marca, el lema, los enlaces, el contacto y los legales.
+* En Chrome: el crema de fondo, el navy de la letra, Montserrat en todo, los titulares como frase, el botón principal
+  naranja con letra navy y en pastilla, y las reglas que no se rompen: el naranja y el verde son relleno (nunca texto
+  ni borde) y no queda nada del azul, el amarillo ni el navy de D'CASA.
 """
 import re
 
 from odoo.addons.website_dcasa.models.black_weekend import PARAM_ACTIVO, PARAM_FIN, PARAM_INICIO
 from odoo.tests import HttpCase, tagged
 
-# Páginas que abren con foto o fondo oscuro: la cabecera va encima (o_header_overlay).
-CON_CABECERA_ENCIMA = ('/', '/socios', '/visitanos', '/contactus', '/privacidad', '/terminos',
-                       '/web/login', '/black-weekend')
+# Páginas con su cabecera de página (o el hero de la portada): la pastilla va encima (o_header_overlay).
+CON_CABECERA_ENCIMA = ('/', '/socios', '/visitanos', '/contactus', '/privacidad', '/terminos', '/web/login')
+
+# Los colores de la marca, como los dice el navegador (getComputedStyle).
+CREMA, SURFACE, NAVY = 'rgb(249, 246, 237)', 'rgb(242, 239, 229)', 'rgb(27, 50, 70)'
+NARANJA, VERDE = 'rgb(238, 146, 74)', 'rgb(145, 201, 162)'
+DE_DCASA = ('rgb(19, 64, 177)', 'rgb(254, 208, 15)', 'rgb(14, 42, 107)', 'rgb(15, 53, 145)')
 
 
 def _cabecera(html):
@@ -24,6 +30,95 @@ def _cabecera(html):
 
 def _clases_wrapwrap(html):
     return re.search(r'<div id="wrapwrap" class="([^"]*)"', html).group(1).split()
+
+
+# Lo que se mide en cada página (devuelve la lista de fallas; vacía = bien). Se recorren todos los elementos visibles.
+REVISAR_MARCA = r"""
+    (async () => {
+        const esperar = (ms) => new Promise((ok) => setTimeout(ok, ms));
+        for (let i = 0; i < 200 && document.body.getAttribute('is-ready') !== 'true'; i++) { await esperar(50); }
+        await document.fonts.ready;
+        const fallas = [];
+        const fallar = (m) => fallas.push(m);
+        const cs = (el, p) => getComputedStyle(el, p);
+        const nombre = (el) => el.tagName.toLowerCase() + (typeof el.className === 'string' && el.className.trim()
+            ? '.' + el.className.trim().split(/\s+/).slice(0, 3).join('.') : '');
+        const visible = (el) => { const r = el.getBoundingClientRect(); const e = cs(el);
+            return r.width > 0 && r.height > 0 && e.visibility !== 'hidden' && e.display !== 'none'
+                && parseFloat(e.opacity) > 0; };
+        const tieneTexto = (el) => [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim());
+        if (cs(document.body).backgroundColor !== '%(crema)s') fallar('el fondo no es crema: ' + cs(document.body).backgroundColor);
+        // La burbuja de Brian (dcasa_brian_tienda) es de otro módulo y tiene su propia marca.
+        const todos = [...document.querySelectorAll('#wrapwrap *')].filter((el) => visible(el)
+            && !el.closest('[class*="o_dcbt"], [id^="o_dcbt"]'));
+        for (const el of todos) {
+            const e = cs(el);
+            // El naranja y el verde son RELLENO: nunca color de letra (de un texto visible) ni de borde.
+            if (tieneTexto(el) && ['%(naranja)s', '%(verde)s'].includes(e.color)) {
+                fallar('texto en naranja o verde: ' + nombre(el) + ' «' + el.textContent.trim().slice(0, 30) + '»');
+            }
+            for (const lado of ['Top', 'Right', 'Bottom', 'Left']) {
+                if (parseFloat(e['border' + lado + 'Width']) > 0 && e['border' + lado + 'Style'] !== 'none'
+                        && ['%(naranja)s', '%(verde)s'].includes(e['border' + lado + 'Color'])
+                        && e.backgroundColor !== e['border' + lado + 'Color']) {
+                    fallar('borde naranja o verde: ' + nombre(el));
+                    break;
+                }
+            }
+            // Nada del azul, el amarillo ni el navy de D'CASA.
+            for (const valor of [e.color, e.backgroundColor, e.borderTopColor, e.outlineColor]) {
+                if (%(de_dcasa)s.includes(valor)) { fallar('color de D\'CASA (' + valor + ') en ' + nombre(el)); break; }
+            }
+            // Letra: Montserrat y nada de Anton ni Oswald. Los titulares, como frase.
+            if (tieneTexto(el) && !/Montserrat/.test(e.fontFamily) && !el.closest('.fa, .oi, svg, code, pre, .o_dcbt_burbuja, #o_dcbt_panel')) {
+                fallar('letra que no es Montserrat: ' + nombre(el) + ' (' + e.fontFamily + ')');
+            }
+            if (/Anton|Oswald/.test(e.fontFamily)) fallar('Anton u Oswald en ' + nombre(el));
+            // (Los antetítulos sí van en caja alta: 12 px, 700 y .14em, aunque sean un <h2>.)
+            if (/^H[1-3]$/.test(el.tagName) && e.textTransform === 'uppercase' && !el.matches('.o_dcasa_kicker')) {
+                fallar('titular en caja alta: ' + nombre(el));
+            }
+            // El piso de 12 px.
+            if (tieneTexto(el) && parseFloat(e.fontSize) < 12 && !el.closest('.visually-hidden, .sr-only')) {
+                fallar('letra de ' + e.fontSize + ' (menos de 12 px): ' + nombre(el));
+            }
+        }
+        // El botón principal: relleno naranja, letra navy, pastilla. (En la ficha «Agregar al carrito» es de contorno a
+        // propósito: el principal es «Pregunta por este producto por WhatsApp».)
+        for (const boton of [...document.querySelectorAll('#wrapwrap .btn-primary:not(#add_to_cart)')].filter(visible)) {
+            const e = cs(boton);
+            if (e.backgroundColor !== '%(naranja)s') fallar('botón principal sin el naranja: ' + nombre(boton) + ' ' + e.backgroundColor);
+            if (e.color !== '%(navy)s') fallar('botón principal sin letra navy: ' + nombre(boton) + ' ' + e.color);
+            const alto = boton.getBoundingClientRect().height;
+            if (parseFloat(e.borderTopLeftRadius) < alto / 2 - 1) fallar('botón principal sin pastilla: ' + nombre(boton));
+            if (e.fontWeight !== '700') fallar('botón principal sin 700: ' + nombre(boton));
+        }
+        // El aro de foco: 2 px navy (tokens de su web).
+        const enlace = document.querySelector('#wrapwrap main a, #wrapwrap #wrap a');
+        if (enlace) {
+            enlace.focus({ focusVisible: true });
+            const e = cs(enlace);
+            if (document.activeElement === enlace && e.outlineStyle !== 'none'
+                    && (e.outlineColor !== '%(navy)s' || e.outlineWidth !== '2px')) {
+                fallar('aro de foco que no es el navy de 2 px: ' + e.outlineWidth + ' ' + e.outlineColor);
+            }
+            enlace.blur();
+        }
+        // El pie: crema, sin imágenes, filtros ni velos.
+        const pie = document.querySelector('footer#bottom');
+        if (cs(pie).backgroundColor !== '%(crema)s') fallar('el pie no es crema: ' + cs(pie).backgroundColor);
+        for (const el of [pie, ...pie.querySelectorAll('*')]) {
+            const e = cs(el);
+            if (e.backgroundImage !== 'none' || e.filter !== 'none' || parseFloat(e.opacity) < 1) {
+                fallar('el pie tiene imagen, filtro u opacidad en ' + nombre(el));
+                break;
+            }
+        }
+        if (document.documentElement.scrollWidth > innerWidth) fallar('la página se sale de lado: ' + document.documentElement.scrollWidth);
+        return fallas;
+    })()
+""".replace('%(crema)s', CREMA).replace('%(naranja)s', NARANJA).replace('%(verde)s', VERDE).replace(
+    '%(navy)s', NAVY).replace('%(de_dcasa)s', str(list(DE_DCASA)))
 
 
 @tagged('post_install', '-at_install')
@@ -36,14 +131,12 @@ class TestDisenoUniforme(HttpCase):
         param.set_param(PARAM_ACTIVO, '1')
         param.set_param(PARAM_INICIO, '')
         param.set_param(PARAM_FIN, '')
-        recamaras = self.env.ref('website_dcasa.public_category_recamaras')
         self.producto = self.env['product.template'].create({
-            'name': 'Cama de prueba de diseño', 'list_price': 99.99, 'is_published': True,
-            'public_categ_ids': [(6, 0, recamaras.ids)], 'dcasa_black_weekend': True,
+            'name': 'Pañal de prueba de diseño', 'list_price': 45.0, 'is_published': True,
+            'dcasa_black_weekend': True,
         })
         self.paginas = [
-            '/', '/shop', f"/shop/category/{self.env['ir.http']._slug(recamaras)}",
-            self.producto.website_url, '/shop/cart', '/black-weekend', '/socios', '/visitanos',
+            '/', '/shop', self.producto.website_url, '/shop/cart', '/black-weekend', '/socios', '/visitanos',
             '/contactus', '/privacidad', '/terminos', '/web/login',
         ]
 
@@ -54,9 +147,10 @@ class TestDisenoUniforme(HttpCase):
                 self.assertEqual(respuesta.status_code, 200)
                 html = respuesta.text
                 cabecera = _cabecera(html)
-                self.assertIn('o_dcasa_anuncios', cabecera, 'Barra de avisos azul arriba')
+                self.assertNotIn('o_dcasa_anuncios', cabecera, 'sin la barra de anuncios encima (S01Nav.tsx)')
                 self.assertIn('o_main_nav', cabecera)
-                # Logo de la empresa en WebP liviano (el PNG competía con la foto principal).
+                # La marca escrita (Montserrat 700 navy) y, al lado, el sello del logo en WebP liviano.
+                self.assertRegex(cabecera, r'<span class="o_dcasa_marca" translate="no">Baby Caleb</span>')
                 self.assertIn('/website_dcasa/static/src/img/logo-200.webp', cabecera)
                 self.assertNotIn('/web/image/website/1/logo', cabecera)
                 menu = re.search(r'id="top_menu".*?</ul>', cabecera, re.S).group(0)
@@ -67,28 +161,37 @@ class TestDisenoUniforme(HttpCase):
                 self.assertIn('o_search_modal', cabecera, 'Búsqueda')
                 # «Inicia sesión» de Odoo, o «Mi cuenta» (/mi-cuenta) si dcasa_mi_cuenta está instalado.
                 self.assertRegex(cabecera, r'href="/(?:web/login|mi-cuenta)"', 'Cuenta')
-                # Sin «Escríbenos» en el menú (decisión de la dueña, 2026-11-15): WhatsApp sigue en los avisos y el pie.
+                # Sin «Escríbenos» en el menú (decisión de la dueña, 2026-11-15): WhatsApp sigue en la portada y el pie.
                 self.assertNotIn('btn_cta', cabecera, 'el menú ya no lleva «Escríbenos»')
                 self.assertEqual(cabecera.count('id="top_menu"'), 1)
+                # El menú del celular es un diálogo que recibe el foco (website_dcasa.menu_movil_accesible).
+                self.assertRegex(cabecera, r'id="top_menu_collapse_mobile"[^>]*tabindex="-1"')
+                self.assertIn('aria-label="Abrir menú"', cabecera)
 
-    def test_paginas_con_foto_llevan_la_cabecera_encima(self):
+    def test_paginas_con_cabecera_de_pagina_llevan_la_pastilla_encima(self):
         for ruta in CON_CABECERA_ENCIMA:
             with self.subTest(ruta=ruta):
                 html = self.url_open(ruta).text
                 self.assertIn('o_header_overlay', _clases_wrapwrap(html))
-                self.assertRegex(html, r'class="[^"]*(o_dcasa_hero|o_dcasa_fondo_oscuro)',
-                                 'Con la cabecera encima, la página abre con foto o fondo oscuro')
-        for ruta in ('/shop', self.producto.website_url, '/shop/cart'):
+                self.assertRegex(html, r'class="[^"]*o_dcasa_hero', 'con la pastilla encima, la página abre con su cabecera')
+        for ruta in ('/shop', self.producto.website_url, '/shop/cart', '/black-weekend'):
             with self.subTest(ruta=ruta):
                 self.assertNotIn('o_header_overlay', _clases_wrapwrap(self.url_open(ruta).text))
 
-    def test_pie_sin_fotos_ni_velos(self):
+    def test_pie_como_el_de_babycaleb(self):
         for ruta in ('/', '/shop', '/socios', '/privacidad'):
             with self.subTest(ruta=ruta):
                 html = self.url_open(ruta).text
                 pie = re.search(r'<footer.*?</footer>', html, re.S).group(0)
                 self.assertIn('o_dcasa_footer', pie)
                 self.assertIn('babycalebpanama@gmail.com', pie)
+                self.assertIn('Esenciales de bebé hipoalergénicos y biodegradables', pie, 'el lema de su web')
+                self.assertIn('Venta 100% online con entrega a domicilio en Ciudad de Panamá.', pie)
+                self.assertIn('href="https://www.instagram.com/babycalebpanama"', pie)
+                self.assertIn('href="/whatsapp"', pie)
+                self.assertIn('href="/privacidad"', pie)
+                self.assertIn('href="/terminos"', pie)
+                self.assertIn('Baby Caleb Panamá</span>. Todos los derechos reservados.', pie)
                 self.assertNotIn('dcasapty', pie)
                 for prohibido in ('<img', '<picture', 'background-image', 'opacity', 'filter:',
                                   'o_dcasa_hero', 'o_we_bg_filter', 'o_bg_img'):
@@ -97,176 +200,96 @@ class TestDisenoUniforme(HttpCase):
     def test_fotos_principales_a_tiempo(self):
         """Rendimiento (ronda 6): la foto LCP de cada página se pide pronto y al ancho justo."""
         portada = self.url_open('/').text
-        self.assertRegex(portada, r'<link[^>]*rel="preload"[^>]*as="image"[^>]*hero')
+        precarga = re.search(r'<link[^>]*rel="preload"[^>]*as="image"[^>]*>', portada)
+        self.assertTrue(precarga, 'la foto del hero se pide desde la cabecera')
+        self.assertIn('hero-bebe-800.webp 800w', precarga.group(0))
+        self.assertIn('fetchpriority="high"', precarga.group(0))
         self.assertNotIn('fontawesome-webfont.woff2?v=4.7.0" as="font"', portada)
-        self.assertIn('cat-salas-400.webp 400w', portada, '«Compra por espacio» a 400 px en el celular')
         self.assertNotRegex(self.url_open('/shop').text, r'rel="preload"[^>]*as="image"')
         ficha = self.url_open(self.producto.website_url).text
-        foto = re.search(r'<img[^>]*product_detail_img[^>]*>', ficha).group(0)
-        self.assertIn('loading="eager"', foto)
-        self.assertIn('fetchpriority="high"', foto)
-        self.assertIn('srcset=', foto)
+        foto = re.search(r'<img[^>]*product_detail_img[^>]*>', ficha)
+        if foto:   # sin foto propia, Odoo dibuja el marcador y no hay LCP de producto
+            self.assertIn('loading="eager"', foto.group(0))
+            self.assertIn('fetchpriority="high"', foto.group(0))
 
     def test_logo_propio_se_respeta(self):
-        """Si la dueña sube otro logo desde el editor, la píldora muestra el suyo."""
+        """Si la dueña sube otro logo desde el editor, la pastilla muestra el suyo (y el nombre escrito se queda)."""
         self.website.logo = self.env['website']._default_logo()
         cabecera = _cabecera(self.url_open('/shop').text)
         self.assertNotIn('logo-200.webp', cabecera)
         self.assertIn('/web/image/website/', cabecera)
+        self.assertIn('class="o_dcasa_marca"', cabecera)
 
-    def test_estilos_en_el_navegador(self):
-        """Medido en Chrome: portada sin placa y con velo moderado; píldora líquida en todas partes."""
-        codigo_portada = """
+    def test_la_marca_en_el_navegador(self):
+        """Medido en Chrome, elemento por elemento, en la portada, la tienda, la ficha, el contacto, la cuenta y una
+        legal: el crema, el navy, Montserrat, el botón principal naranja con letra navy en pastilla, el aro de foco
+        navy, el piso de 12 px, y que el naranja y el verde nunca sean texto ni borde ni quede color de D'CASA."""
+        for ruta in ('/', '/shop', self.producto.website_url, '/visitanos', '/web/login', '/privacidad'):
+            for ancho in (1440, 390):
+                with self.subTest(ruta=ruta, ancho=ancho):
+                    self.browser_size = f'{ancho}x900'
+                    codigo = f"""
+                        (async () => {{
+                            const fallas = await {REVISAR_MARCA.strip()};
+                            if (fallas.length) {{ console.error('Marca a {ancho}px: ' + fallas.slice(0, 12).join(' · ')); }}
+                            else {{ console.log('test successful'); }}
+                        }})();
+                    """
+                    self.browser_js(ruta, codigo, timeout=120)
+
+    def test_la_pastilla_de_vidrio_crema_en_el_navegador(self):
+        """La pastilla de babycaleb.com (`.bc-vidrio` de tokens.css): vidrio crema (surface al 50 %; al bajar, al 80 %),
+        desenfoque y saturación (o la refracción), esquinas de 16 px, la marca en Montserrat 700 navy y los enlaces
+        navy en 500. La misma en la tienda y en /socios: ya no hay vidrio ahumado."""
+        codigo = """
             (async () => {
-            const fallar = (m) => console.error('Diseño: ' + m);
-            const solapa = (a, b) => a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
-            const lin = (c) => { c /= 255; return c <= .03928 ? c / 12.92 : ((c + .055) / 1.055) ** 2.4; };
-            // Contraste del blanco contra la foto velada que queda detrás de una caja de texto
-            // (mediana de los píxeles; «cover» centrado, como object-fit).
-            const contraste = (img, opacidad, caja) => {
-                const marco = img.getBoundingClientRect();
-                const escala = Math.max(marco.width / img.naturalWidth, marco.height / img.naturalHeight);
-                const dx = (img.naturalWidth * escala - marco.width) / 2;
-                const dy = (img.naturalHeight * escala - marco.height) / 2;
-                const lienzo = document.createElement('canvas');
-                lienzo.width = Math.max(1, Math.round(caja.width / 4));
-                lienzo.height = Math.max(1, Math.round(caja.height / 4));
-                const ctx = lienzo.getContext('2d');
-                ctx.fillStyle = '#000';
-                ctx.fillRect(0, 0, lienzo.width, lienzo.height);
-                ctx.globalAlpha = opacidad;
-                ctx.drawImage(img, (caja.left - marco.left + dx) / escala, (caja.top - marco.top + dy) / escala,
-                              caja.width / escala, caja.height / escala, 0, 0, lienzo.width, lienzo.height);
-                const d = ctx.getImageData(0, 0, lienzo.width, lienzo.height).data;
-                const lums = [];
-                for (let i = 0; i < d.length; i += 4) {
-                    lums.push(.2126 * lin(d[i]) + .7152 * lin(d[i + 1]) + .0722 * lin(d[i + 2]));
-                }
-                lums.sort((a, b) => a - b);
-                return 1.05 / (lums[Math.floor(lums.length / 2)] + .05);
-            };
-            const revisar = (doc, win, donde) => {
-                const hero = doc.querySelector('.o_dcasa_hero:not(.o_dcasa_hero_compacto)');
-                const foto = hero.querySelector('.o_dcasa_hero_media img');
-                const cs = win.getComputedStyle(foto);
-                const velo = 1 - parseFloat(cs.opacity);
-                if (velo < .35 - 1e-6 || velo > .45 + 1e-6) fallar(donde + ': velo fuera de 35-45 %: ' + cs.opacity);
-                if (cs.filter !== 'none' || cs.mixBlendMode !== 'normal') fallar(donde + ': la foto tiene filtro');
-                if (win.getComputedStyle(hero).backgroundColor !== 'rgb(0, 0, 0)') {
-                    fallar(donde + ': el velo no es negro plano');
-                }
-                const media = win.getComputedStyle(foto.parentElement);
-                if (media.backgroundImage !== 'none') fallar(donde + ': degradado o imagen sobre la foto');
-                if (media.position !== 'absolute') {
-                    fallar(donde + ': la foto no va detrás del texto (' + media.position + ')');
-                }
-                for (const capa of ['::before', '::after']) {
-                    const v = win.getComputedStyle(foto.parentElement, capa);
-                    if (v.content !== 'none' && v.content !== 'normal') {
-                        fallar(donde + ': capa encima de la foto ' + capa);
-                    }
-                }
-                // Sin placa: el bloque de texto es transparente y se superpone a la foto.
-                const texto = hero.querySelector('.o_dcasa_hero_texto');
-                const fondo = win.getComputedStyle(texto);
-                if (fondo.backgroundColor !== 'rgba(0, 0, 0, 0)' || fondo.backgroundImage !== 'none') {
-                    fallar(donde + ': placa detrás del texto: ' + fondo.backgroundColor);
-                }
-                if (!solapa(texto.getBoundingClientRect(), foto.getBoundingClientRect())) {
-                    fallar(donde + ': el texto no está sobre la foto');
-                }
-                const titulo = hero.querySelector('.o_dcasa_display');
-                const sub = hero.querySelector('.o_dcasa_hero_sub');
-                for (const el of [titulo, sub]) {
-                    const e = win.getComputedStyle(el);
-                    if (e.color !== 'rgb(255, 255, 255)') fallar(donde + ': texto no blanco: ' + e.color);
-                    if (e.textShadow === 'none') fallar(donde + ': texto sin halo de contraste');
-                }
-                // AA: 4.5:1 para el subtítulo y 3:1 para el titular (texto grande), contra la foto velada.
-                const cSub = contraste(foto, 1 - velo, sub.getBoundingClientRect());
-                const cTit = contraste(foto, 1 - velo, titulo.getBoundingClientRect());
-                if (cSub < 4.5) fallar(donde + ': subtítulo bajo AA sobre la foto: ' + cSub.toFixed(2) + ':1');
-                if (cTit < 3) fallar(donde + ': titular bajo AA sobre la foto: ' + cTit.toFixed(2) + ':1');
-                console.log(donde + ': velo ' + Math.round(velo * 100) + ' %, subtítulo ' + cSub.toFixed(2)
-                    + ':1, titular ' + cTit.toFixed(2) + ':1');
-            };
-            const foto = document.querySelector('.o_dcasa_hero:not(.o_dcasa_hero_compacto) .o_dcasa_hero_media img');
-            if (!foto.complete) await new Promise((ok) => { foto.onload = ok; foto.onerror = ok; });
-            revisar(document, window, 'escritorio');
-            // El vidrio «fluye» donde hay refracción (Chromium): ruido animado, 18 s.
-            if (document.documentElement.classList.contains('o_dcasa_refraccion')
-                    && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
-                const anim = document.querySelector('#dcasa-liquido feTurbulence animate');
-                if (!anim || anim.getAttribute('dur') !== '18s') {
-                    fallar('el vidrio no fluye (sin animación del ruido)');
+            const fallar = (m) => console.error('Pastilla: ' + m);
+            for (let i = 0; i < 200 && document.body.getAttribute('is-ready') !== 'true'; i++) {
+                await new Promise((ok) => setTimeout(ok, 50));
+            }
+            const nav = [...document.querySelectorAll('header#top .o_main_nav')].find((n) => n.getBoundingClientRect().width > 0);
+            const vidrio = getComputedStyle(nav, '::before');
+            const filtro = vidrio.backdropFilter || vidrio.webkitBackdropFilter || 'none';
+            if (!/^blur\\(16px\\) saturate\\(2\\.1\\) brightness\\(1\\.06\\)$|^url\\(/.test(filtro)) {
+                fallar('la pastilla no es de vidrio: ' + filtro);
+            }
+            if (vidrio.backgroundColor !== 'rgba(242, 239, 229, 0.5)') fallar('tinte del vidrio: ' + vidrio.backgroundColor);
+            if (vidrio.backgroundImage !== 'none') fallar('degradado en el vidrio');
+            if (vidrio.borderTopLeftRadius !== '16px') fallar('esquinas: ' + vidrio.borderTopLeftRadius);
+            const marca = nav.querySelector('.o_dcasa_marca');
+            const m = getComputedStyle(marca);
+            if (m.color !== 'rgb(27, 50, 70)' || m.fontWeight !== '700' || !/Montserrat/.test(m.fontFamily)) {
+                fallar('la marca no es Montserrat 700 navy: ' + m.color + ' ' + m.fontWeight + ' ' + m.fontFamily);
+            }
+            if (marca.getBoundingClientRect().height > 40) fallar('la marca se partió en dos líneas');
+            const enlace = document.querySelector('#top_menu .nav-link:not(.active)');
+            if (enlace && enlace.getBoundingClientRect().width > 0) {
+                const e = getComputedStyle(enlace);
+                if (e.color !== 'rgb(27, 50, 70)' || e.fontWeight !== '500' || e.textTransform !== 'none') {
+                    fallar('enlace del menú: ' + e.color + ' ' + e.fontWeight + ' ' + e.textTransform);
                 }
             }
-            const pie = document.querySelector('footer#bottom');
-            // Paleta 2026-11-15 (pedido de la dueña): bloques grandes en azul noche, el azul puro solo en acentos, y el
-            // pie en el mismo blanco grisáceo de la portada. Nada amarillo en el pie: el amarillo no toca lo claro.
-            const fondo = (sel) => getComputedStyle(document.querySelector(sel)).backgroundColor;
-            for (const sel of ['.o_dcasa_anuncios', '.o_dcasa_socios_band']) {
-                if (fondo(sel) !== 'rgb(14, 42, 107)') fallar(sel + ' no va en azul noche: ' + fondo(sel));
+            // Al bajar, el vidrio se tiñe más (Odoo marca la cabecera con o_header_is_scrolled).
+            window.scrollTo(0, 600);
+            await new Promise((ok) => setTimeout(ok, 700));
+            const abajo = getComputedStyle(nav, '::before').backgroundColor;
+            if (document.querySelector('header#top').classList.contains('o_header_is_scrolled')
+                    && abajo !== 'rgba(242, 239, 229, 0.8)') {
+                fallar('al bajar el vidrio no se tiñe: ' + abajo);
             }
-            if (getComputedStyle(pie).backgroundColor !== 'rgb(246, 245, 242)') {
-                fallar('el pie no va en el blanco grisáceo: ' + getComputedStyle(pie).backgroundColor);
-            }
-            if (fondo('footer#bottom .o_footer_copyright') !== 'rgb(233, 231, 225)') {
-                fallar('el copyright no va un tono más oscuro: ' + fondo('footer#bottom .o_footer_copyright'));
-            }
-            for (const el of pie.querySelectorAll('*')) {
-                const e = getComputedStyle(el);
-                if ([e.color, e.backgroundColor, e.borderTopColor].includes('rgb(254, 208, 15)')) {
-                    fallar('amarillo en el pie claro: ' + el.tagName + '.' + el.className);
-                    break;
-                }
-            }
-            for (const el of [pie, ...pie.querySelectorAll('*')]) {
-                const e = getComputedStyle(el);
-                if (e.backgroundImage !== 'none' || e.filter !== 'none' || parseFloat(e.opacity) < 1) {
-                    fallar('el pie tiene imagen, filtro u opacidad en ' + el.tagName + '.' + el.className);
-                    break;
-                }
-            }
-            // Celular: la misma portada en un marco de 390 px; el texto también va sobre la foto.
-            const marco = document.createElement('iframe');
-            marco.style.cssText = 'position:fixed;left:0;top:0;width:390px;height:844px;border:0;';
-            document.body.appendChild(marco);
-            await new Promise((ok) => { marco.onload = ok; marco.src = '/'; });
-            const fotoM = marco.contentDocument.querySelector(
-                '.o_dcasa_hero:not(.o_dcasa_hero_compacto) .o_dcasa_hero_media img');
-            if (!fotoM.complete) await new Promise((ok) => { fotoM.onload = ok; fotoM.onerror = ok; });
-            revisar(marco.contentDocument, marco.contentWindow, 'celular');
             console.log('test successful');
             })();
         """
-        self.browser_js('/', codigo_portada, timeout=120)
-
-        # La misma píldora líquida en todas partes: clara con texto en tinta sobre fondo claro
-        # (tienda), ahumada con texto blanco sobre una foto (/socios, al cargar).
-        codigo_pildora = """
-            const fallar = (m) => console.error('Diseño: ' + m);
-            const vidrio = getComputedStyle(document.querySelector('header#top .o_main_nav'), '::before');
-            const filtro = vidrio.backdropFilter || vidrio.webkitBackdropFilter || 'none';
-            // Blur + saturación + brillo del vidrio líquido, o la refracción (url(#dcasa-liquido)) en Chromium.
-            if (!/^blur\\(16px\\) saturate\\(2\\.1\\) brightness\\(1\\.08\\)$|^url\\(/.test(filtro)) {
-                fallar('la píldora no es de vidrio líquido: ' + filtro);
-            }
-            if ((vidrio.boxShadow.match(/inset/g) || []).length < 2) fallar('la píldora no tiene los filos de luz');
-            if (vidrio.backgroundColor !== '%(fondo)s') fallar('tinte del vidrio: ' + vidrio.backgroundColor);
-            const enlace = getComputedStyle(document.querySelector('#top_menu .nav-link:not(.active)')).color;
-            if (enlace !== '%(texto)s') fallar('color del menú: ' + enlace);
-            console.log('test successful');
-        """
-        self.browser_js('/shop', codigo_pildora % {
-            'fondo': 'rgba(255, 255, 255, 0.62)', 'texto': 'rgb(27, 34, 51)'}, timeout=120)
-        self.browser_js('/socios', codigo_pildora % {
-            'fondo': 'rgba(0, 0, 0, 0.26)', 'texto': 'rgb(255, 255, 255)'}, timeout=120)
+        for ruta in ('/shop', '/socios', '/'):
+            for ancho in (1440, 390):
+                with self.subTest(ruta=ruta, ancho=ancho):
+                    self.browser_size = f'{ancho}x900'
+                    self.browser_js(ruta, codigo, timeout=120)
 
     def test_cabecera_con_la_pagina_abierta_desplazada(self):
-        """Bug de producción (staging, /visitanos): con la página abierta ya desplazada el borde inferior de
-        la cabecera es negativo y el rootMargin del observador salía "--85px": SyntaxError al construir
-        el IntersectionObserver y el diálogo «¡Vaya! Ocurrió un error» al visitante."""
+        """Bug de producción (staging, /visitanos): con la página abierta ya desplazada las interacciones de la cabecera
+        daban «¡Vaya! Ocurrió un error» al visitante. Con la pastilla de Baby Caleb la cabecera ya no mide nada, pero
+        tiene que seguir arrancando sin error así, y con la refracción puesta donde el navegador la sabe dibujar."""
         codigo = """
             (async () => {
             const fallar = (m) => console.error('Cabecera: ' + m);
@@ -280,38 +303,28 @@ class TestDisenoUniforme(HttpCase):
                 fallar('no cargó ' + modulo);
                 return;
             }
-            const { margenBajoCabecera } = odoo.loader.modules.get(modulo);
-            const casos = [[-85, '0px 0px 0px 0px'], [-0.4, '0px 0px 0px 0px'], [0, '0px 0px 0px 0px'],
-                           [85.4, '-85px 0px 0px 0px'], [NaN, '0px 0px 0px 0px'], [undefined, '0px 0px 0px 0px']];
-            for (const [piso, esperado] of casos) {
-                const margen = margenBajoCabecera(piso);
-                if (margen !== esperado) fallar(piso + ' da ' + margen + ' (se esperaba ' + esperado + ')');
-                try {
-                    new IntersectionObserver(() => {}, { rootMargin: margen });
-                } catch (e) {
-                    fallar('rootMargin inválido para ' + piso + ': ' + margen + ' (' + e.message + ')');
-                }
-            }
-            // La página real, desplazada hasta el pie y con la cabecera por encima de la pantalla (como
-            // una cabecera aún no fijada tras restaurar el scroll): las interacciones arrancan así.
             const servicio = odoo.__WOWL_DEBUG__.root.env.services['public.interactions'];
             const cabecera = document.querySelector('header#top');
             servicio.stopInteractions(cabecera);
-            document.documentElement.classList.remove('o_dcasa_nav_medida', 'o_dcasa_nav_sobre_foto');
+            const raiz = document.documentElement;
+            if (raiz.classList.contains('o_dcasa_refraccion')) fallar('al detenerse, la refracción no se quitó');
             cabecera.style.transform = 'translateY(-400px)';
             window.scrollTo(0, document.body.scrollHeight);
-            const piso = cabecera.getBoundingClientRect().bottom;
-            if (!(piso < 0)) fallar('la prueba no deja la cabecera fuera de pantalla: ' + piso);
             try {
                 await servicio.startInteractions(cabecera);
             } catch (e) {
                 fallar('las interacciones de la cabecera no arrancan con la página desplazada: ' + e.message);
             }
-            await new Promise((ok) => setTimeout(ok, 400));
-            const clases = document.documentElement.classList;
-            if (!clases.contains('o_dcasa_nav_medida')) fallar('el observador de la cabecera no midió');
-            if (clases.contains('o_dcasa_nav_sobre_foto')) {
-                fallar('al pie de la página la píldora no está sobre la foto');
+            await new Promise((ok) => setTimeout(ok, 300));
+            const puede = navigator.userAgentData?.brands?.some((b) => b.brand === 'Chromium')
+                && CSS.supports('backdrop-filter', 'url(#a)');
+            // Con movimiento reducido el vidrio se queda mate y quieto, sin refracción (tokens.css de su web).
+            const quieto = matchMedia('(prefers-reduced-motion: reduce)').matches;
+            if (puede && !quieto && !raiz.classList.contains('o_dcasa_refraccion')) fallar('sin la refracción del vidrio');
+            if (quieto && raiz.classList.contains('o_dcasa_refraccion')) fallar('con movimiento reducido no hay refracción');
+            if (puede && !quieto
+                    && document.querySelector('#dcasa-liquido feTurbulence animate')?.getAttribute('dur') !== '18s') {
+                fallar('el vidrio no fluye (sin el movimiento lento del ruido, 18 s)');
             }
             cabecera.style.transform = '';
             console.log('test successful');

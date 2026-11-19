@@ -4,13 +4,13 @@
          Black Weekend (models/black_weekend.py). Solo sale mientras la campaña está activa
          (parámetros dcasa_black_weekend.*, hora de Panamá) y con productos marcados.
 
-         Marca: banda NEGRA con el titular en amarillo (Anton). El amarillo solo toca el negro:
-         las tarjetas son blancas, con texto navy y botones azules. Sin cuenta regresiva, sin
+         Marca de Baby Caleb (2026-11-19): banda navy (#1B3246) con el titular en crema (12.21) y el botón
+         naranja con letra navy; las tarjetas son crema, con texto navy. Sin cuenta regresiva, sin
          «tiempo limitado», sin financiamiento ni cuotas, sin «remate». Precios de la tienda
          (nunca escritos aquí) y el combo, del texto guardado del catálogo.
          =================================================================== -->
 
-    <!-- Etiqueta de las tarjetas del catálogo y de la portada (negra con letras amarillas). -->
+    <!-- Etiqueta de las tarjetas del catálogo y de la portada (navy con letras crema). -->
     <template id="etiqueta_black_weekend" name="D'CASA: etiqueta Black Weekend">
         <span t-if="website._dcasa_bw_marcado(producto_bw)" class="o_dcasa_bw_etiqueta" t-out="website._dcasa_campana_nombre()"/>
     </template>
@@ -76,10 +76,9 @@
                             <t t-set="bw_frase" t-value="website._dcasa_campana_frase()"/>
                             <t t-set="bw_fechas" t-value="website._dcasa_bw_fechas()"/>
                             <h2 id="dcasa-bw-titulo" class="o_dcasa_bw_titulo" data-titular="" t-out="bw_nombre"/>
-                            <p t-if="bw_nombre == 'Black Weekend'" class="o_dcasa_bw_sub">Camas seleccionadas con su precio de cama sola y en combo con colchón<t t-if="bw_fechas">, <t t-out="bw_fechas"/></t>.</p>
-                            <p t-else="" class="o_dcasa_bw_sub"><t t-if="bw_frase" t-out="bw_frase"/><t t-else="">Productos seleccionados</t><t t-if="bw_fechas">, <t t-out="bw_fechas"/></t>.</p>
+                            <p class="o_dcasa_bw_sub"><t t-if="bw_frase" t-out="bw_frase"/><t t-else="">Productos seleccionados</t><t t-if="bw_fechas">, <t t-out="bw_fechas"/></t>.</p>
                         </div>
-                        <a href="/promociones" class="btn btn-lg o_dcasa_btn_amarillo" t-out="website._dcasa_campana_ver_todo()"/>
+                        <a href="/promociones" class="btn btn-lg btn-primary" t-out="website._dcasa_campana_ver_todo()"/>
                     </div>
                     <div class="o_dcasa_rail_track o_dcasa_bw_track" role="list" data-anim-cascada="">
                         <div t-foreach="bw_items" t-as="item" class="o_dcasa_rail_item" role="listitem">
@@ -100,17 +99,14 @@
             <t t-set="meta_description" t-value="bw_descripcion"/>
             <t t-set="website_meta_description" t-value="bw_descripcion"/>
             <t t-set="dcasa_og_black_weekend" t-value="bw_nombre == 'Black Weekend'"/>
-            <!-- La banda negra sube bajo la cabecera, con la píldora oscura de /socios (ronda 6:
-                 antes quedaba una franja blanca entre la píldora clara y el negro). -->
-            <t t-set="dcasa_header_overlay" t-value="True"/>
+            <!-- La banda navy empieza bajo la pastilla de vidrio crema (la misma de todo el sitio): la pastilla no va
+                 encima de lo oscuro. -->
             <div id="wrap" class="o_dcasa_pagina_bw">
-                <section class="o_dcasa_bw o_dcasa_bw_pagina o_dcasa_fondo_oscuro" aria-labelledby="dcasa-bw-h1">
+                <section class="o_dcasa_bw o_dcasa_bw_pagina" aria-labelledby="dcasa-bw-h1">
                     <div class="o_dcasa_container">
-                        <p class="o_dcasa_kicker o_dcasa_kicker_light" t-out="website.name"/>
+                        <p class="o_dcasa_kicker" t-out="website.name"/>
                         <h1 id="dcasa-bw-h1" class="o_dcasa_bw_titulo o_dcasa_bw_titulo_grande" t-out="bw_nombre"/>
-                        <p t-if="bw_nombre == 'Black Weekend'" class="o_dcasa_bw_sub">Camas tapizadas y bases seleccionadas<t t-if="fechas">, <t t-out="fechas"/></t>.
-                            Cada una con su precio de cama sola y en combo con colchón. Precios sin ITBMS: el 7 % se suma en el carrito.</p>
-                        <p t-else="" class="o_dcasa_bw_sub"><t t-if="bw_frase" t-out="bw_frase"/><t t-else="">Productos seleccionados</t><t t-if="fechas">, <t t-out="fechas"/></t>.
+                        <p class="o_dcasa_bw_sub"><t t-if="bw_frase" t-out="bw_frase"/><t t-else="">Productos seleccionados</t><t t-if="fechas">, <t t-out="fechas"/></t>.
                             Precios sin ITBMS: el 7 % se suma en el carrito.</p>
                         <!-- Orden de titulares (h1 → h2 → h3 de cada tarjeta) para el lector de pantalla. -->
                         <h2 class="visually-hidden">Productos en <t t-out="bw_nombre"/></h2>
@@ -119,9 +115,9 @@
                                 <t t-call="website_dcasa.tarjeta_black_weekend"/>
                             </li>
                         </ul>
-                        <p class="o_dcasa_bw_sub mt-4">¿Dudas con medidas, colores o la entrega? Escríbenos y te ayudamos a escoger.</p>
-                        <a t-att-href="website._dcasa_whatsapp_url('Hola D\'CASA, quiero información ' + website._dcasa_campana_de())"
-                           target="_blank" rel="noopener" class="btn btn-lg o_dcasa_btn_amarillo">
+                        <p class="o_dcasa_bw_sub mt-4">¿Dudas con la talla o la entrega? Escríbenos y te ayudamos a escoger.</p>
+                        <a t-att-href="website._dcasa_whatsapp_url('Hola %s, quiero información %s' % (website.name, website._dcasa_campana_de()))"
+                           target="_blank" rel="noopener" class="btn btn-lg btn-primary">
                             <i class="fa fa-whatsapp me-2" aria-hidden="true"/>Escríbenos por WhatsApp
                             <span class="visually-hidden">(se abre en una pestaña nueva)</span></a>
                     </div>

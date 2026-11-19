@@ -39,11 +39,14 @@ class _Base:
             'implied_ids': [Command.link(cls.env.ref('product.group_product_pricelist').id)]})
         cls.env['dcasa.campana']._dcasa_tarifa_del_sitio()
         cls.recamaras = cls.env.ref('website_dcasa.public_category_recamaras')
-        cls.cama = cls.env['product.template'].create({
-            'name': 'CAMA CAMPAÑA DE PRUEBA', 'list_price': 200.0, 'is_published': True,
-            'public_categ_ids': [Command.set(cls.recamaras.ids)], 'website_sequence': -2000,
-            'dcasa_combo': 'Combo con colchón First Class $469.99',
-        })
+        valores = {'name': 'CAMA CAMPAÑA DE PRUEBA', 'list_price': 200.0, 'is_published': True,
+                   'public_categ_ids': [Command.set(cls.recamaras.ids)], 'website_sequence': -2000}
+        # El texto del combo es un campo de dcasa_catalogo: con website_dcasa solo (scripts/test.sh website_dcasa) no
+        # existe, y la creación fallaba antes de probar nada de la campaña.
+        cls.con_combo = 'dcasa_combo' in cls.env['product.template']._fields
+        if cls.con_combo:
+            valores['dcasa_combo'] = 'Combo con colchón First Class $469.99'
+        cls.cama = cls.env['product.template'].create(valores)
 
     def _reglas(self, plantilla=None):
         dominio = [('dcasa_campana', '=', True)]
@@ -513,8 +516,9 @@ class TestCampanaSitio(_Base, HttpCase):
         self.assertIn('href="/promociones"', portada)
         self.assertIn('o_dcasa_menu_promo', portada, '«Promociones» en el menú')
         # Los combos son intocables (la dueña, 2026-11-16): su línea sigue, con su precio de siempre.
-        self.assertIn('Combo con colchón First Class', portada, 'con precio de campaña, el combo sigue')
-        self.assertRegex(portada, r'469[.,]99')
+        if self.con_combo:
+            self.assertIn('Combo con colchón First Class', portada, 'con precio de campaña, el combo sigue')
+            self.assertRegex(portada, r'469[.,]99')
         pagina = self.url_open('/promociones')
         self.assertEqual(pagina.status_code, 200)
         self.assertIn('Black Friday', pagina.text)
@@ -525,8 +529,10 @@ class TestCampanaSitio(_Base, HttpCase):
     def test_sin_precio_de_campana_sale_el_combo_y_el_normal(self):
         self._activa(precio=False)
         portada = self.url_open('/').text
-        self.assertIn('Combo con colchón First Class', portada)
+        if self.con_combo:
+            self.assertIn('Combo con colchón First Class', portada)
         self.assertRegex(portada, r'200[.,]00')
+        self.assertNotIn('o_dcasa_precio_antes', portada, 'sin precio de campaña no hay precio tachado')
 
     def test_nombre_en_femenino_en_la_portada_y_la_pagina(self):
         self._activa()
@@ -540,8 +546,8 @@ class TestCampanaSitio(_Base, HttpCase):
 
     def test_frase_del_panel(self):
         self._activa()
-        self.campana.frase = 'Muebles seleccionados'
-        self.assertIn('Muebles seleccionados', self.url_open('/').text)
+        self.campana.frase = 'Pañales seleccionados'
+        self.assertIn('Pañales seleccionados', self.url_open('/').text)
 
     def test_apagada_no_sale_nada(self):
         portada = self.url_open('/').text

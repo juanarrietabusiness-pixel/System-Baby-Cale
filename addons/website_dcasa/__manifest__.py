@@ -1,24 +1,22 @@
 {
     'name': "D'CASA Panamá — Sitio web",
-    'summary': "Sitio web y tienda de D'CASA con su marca, mantenido desde el código (sin constructor)",
+    'summary': "Sitio web y tienda con la marca de Baby Caleb, mantenido desde el código (sin constructor)",
     'description': """
-Sitio web de D'CASA sobre el constructor de sitios y el eCommerce de Odoo:
+Sitio web sobre el constructor de sitios y el eCommerce de Odoo (copia de Baby Caleb de la plantilla de D'CASA):
 
-* Paleta y tipografías de la marca (azul #1340B1, amarillo #FED00F, Anton,
-  Oswald, Inter) cargadas como paleta del sitio: se pueden ajustar desde el
-  editor sin tocar código.
-* Portada v2 (docs/historico/REDISENO.md): hero con placa, compra por espacio, carriles de
-  productos con precio y «Agregar» en un clic, socios, guía y preguntas frecuentes.
-* Ficha de producto con WhatsApp del mueble, sellos de confianza y botón fijo en el
+* Marca de Baby Caleb (docs/MARCA_BABY_CALEB.md, 2026-11-19): crema #F9F6ED, navy #1B3246,
+  naranja #EE924A y verde #91C9A2, Montserrat y botones en pastilla, cargados como paleta
+  del sitio: se pueden ajustar desde el editor sin tocar código.
+* Portada en el orden de babycaleb.com: hero crema con la foto del bebé, los cuatro sellos,
+  la banda verde de educación, el carril de productos con precio y «Agregar» en un clic, lo
+  que dicen las mamás, Socios, la cobertura, la banda verde final y las preguntas frecuentes.
+* Ficha de producto con WhatsApp del producto, sellos de confianza y botón fijo en el
   celular; tienda a 4 columnas; datos estructurados y SEO local.
 * Pie de página con los datos reales y botón flotante de WhatsApp, sin el crédito de Odoo.
-* La píldora de /socios en todas las páginas (logo, menú, carrito, búsqueda, cuenta y
-  «Escríbenos»), la foto de la portada con sus colores reales y el texto en placa navy,
-  cabeceras de página como la de /socios (legales, cuenta) y fotos de producto en 3:4.
-* Cabecera de vidrio flotante, animaciones de entrada (secciones y titulares) y
+* La pastilla de vidrio crema de babycaleb.com en todas las páginas (la marca escrita, el
+  menú, el carrito, la búsqueda y la cuenta) y cabeceras de página crema (legales, cuenta).
+* Animaciones de entrada (secciones y titulares) y
   opiniones reales de Google en una cinta en movimiento (data/resenas.json).
-* Categorías de la tienda (Salas, Recámaras, Colchones, Zapateras, Estantes y
-  organización, Oficina, y otras que la tienda oculta mientras no tengan productos).
 * Fotos de producto en WebP (y JPEG de respaldo) al ancho justo: ``/dcasa/img/...``,
   generadas una vez y cacheadas un año en el borde (models/imagen.py).
 * Enlaces al programa Socios D'CASA (/socios): puntos, referidos y premios.
@@ -34,14 +32,13 @@ Sitio web de D'CASA sobre el constructor de sitios y el eCommerce de Odoo:
   ``aggregateRating`` solo con las publicadas.
 * Black Weekend: banda en la portada, página /black-weekend y etiqueta en las tarjetas de los
   productos marcados, solo dentro de la ventana de la campaña (models/black_weekend.py).
-* Portada (2026-11-16): el hero en carrusel con productos propios que Gerencia elige y ordena en
-  Sitio web › Carrusel de la portada (vacío = el hero de siempre) y una sección «de cine» con dos
-  cintas de fotos del catálogo publicado que corren solas y un botón al catálogo (models/portada.py).
+* Portada (2026-11-16): las fotos del hero con productos propios que Gerencia elige y ordena en
+  Sitio web › Carrusel de la portada (vacío = la foto del bebé) (models/portada.py).
 
 Todo el contenido de las páginas es editable con el constructor de Odoo
 (Sitio web > Editar), sin programador.
 """,
-    'version': '19.0.1.18.0',
+    'version': '19.0.1.19.0',
     'category': 'Website/Website',
     'author': "D'CASA Panamá",
     'website': 'https://dcasapty.com',

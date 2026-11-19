@@ -1,42 +1,22 @@
-// D'CASA — tipografías autoalojadas (auditoría ronda 4, rendimiento: «fuentes locales»).
+// Baby Caleb — la letra autoalojada (docs/MARCA_BABY_CALEB.md › Letra: «Montserrat para todo»).
 //
-// Antes: website.scss de Odoo hacía @import de fonts.googleapis.com dentro del CSS
-// (cadena CSS → CSS → fuente y dos orígenes más). Ahora las configuraciones de
-// primary_variables.scss no llevan 'url' y las fuentes salen de este módulo.
+// website.scss de Odoo haría @import de fonts.googleapis.com dentro del CSS (cadena CSS → CSS → fuente y dos orígenes
+// más). La configuración de primary_variables.scss no lleva 'url' y la fuente sale de este módulo.
 //
-// Solo el subconjunto latino (español completo: á é í ó ú ñ ü ¿ ¡ « » € ’) y solo lo que se usa:
-//   · Anton 400 (titulares) ......................... anton-latin.woff2      (18 KB)
-//   · Oswald variable 400-700 (subtítulos, menú) ... oswald-latin-var.woff2 (21 KB)
-//   · Inter variable recortada a 400-700 (cuerpo) .. inter-latin-var.woff2  (35 KB)
-// Licencia: SIL Open Font License 1.1 (OFL-*.txt en static/src/fonts).
-// Anton e Inter van con <link rel="preload"> en la cabecera (layout_templates.xml).
+// Un solo archivo: Montserrat variable (100-900), subconjunto latino (español completo: á é í ó ú ñ ü ¿ ¡ « » € ’):
+// montserrat-latin-var.woff2. Licencia: SIL Open Font License 1.1 (static/src/fonts/OFL-Montserrat.txt).
+// Va con <link rel="preload"> en la cabecera (views/layout_templates.xml, layout_fuentes_locales): pinta el titular
+// del hero, que es lo primero que se ve.
+// Anton, Oswald e Inter (la letra de D'CASA) ya no se cargan en el sitio.
 
 $dcasa-latin: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308,
     U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 
 @font-face {
-    font-family: 'Anton';
+    font-family: 'Montserrat';
     font-style: normal;
-    font-weight: 400;
+    font-weight: 100 900;
     font-display: swap;
-    src: url('/website_dcasa/static/src/fonts/anton-latin.woff2') format('woff2');
-    unicode-range: $dcasa-latin;
-}
-
-@font-face {
-    font-family: 'Oswald';
-    font-style: normal;
-    font-weight: 400 700;
-    font-display: swap;
-    src: url('/website_dcasa/static/src/fonts/oswald-latin-var.woff2') format('woff2');
-    unicode-range: $dcasa-latin;
-}
-
-@font-face {
-    font-family: 'Inter';
-    font-style: normal;
-    font-weight: 400 700;
-    font-display: swap;
-    src: url('/website_dcasa/static/src/fonts/inter-latin-var.woff2') format('woff2');
+    src: url('/website_dcasa/static/src/fonts/montserrat-latin-var.woff2') format('woff2');
     unicode-range: $dcasa-latin;
 }

@@ -6,6 +6,9 @@ from html.parser import HTMLParser
 
 from odoo.addons.website_dcasa.controllers.main import _sitemap_black_weekend
 from odoo.addons.website_dcasa.models.black_weekend import (
+    OG_ALT,
+    OG_ALTO,
+    OG_ANCHO,
     OG_IMAGEN,
     PARAM_ACTIVO,
     PARAM_FIN,
@@ -19,43 +22,49 @@ from odoo.tests import HttpCase, TransactionCase, tagged
 from odoo.tools.misc import file_path
 
 PALABRAS_PROHIBIDAS = ('tafi', 'tiempo limitado', 'remate', 'cuotas', 'financiamiento', 'corre!', 'cuenta regresiva')
-# Clases que pintan amarillo y los fondos oscuros (negro, azul, navy, foto oscurecida) donde pueden ir.
-CLASES_AMARILLAS = {'o_dcasa_btn_amarillo', 'o_dcasa_bw_titulo'}
-# El pie ya no es oscuro (paleta 2026-11-15: blanco grisáceo), así que no admite amarillo.
-# El bloque del texto del hero (2026-11-17) también: no tiene fondo propio, pero se apoya sobre el degradado azul
-# de marca que cubre esa zona de la foto (ver .o_dcasa_vitrina::after en dcasa.scss), así que el amarillo cae
-# siempre sobre azul, nunca sobre blanco.
-FONDOS_OSCUROS = {'o_dcasa_bw', 'o_dcasa_hero', 'o_dcasa_socios_band', 'o_dcasa_visita', 'o_dcasa_anuncios',
-                  'o_dcasa_vitrina_panel'}
+# Marca de Baby Caleb (docs/MARCA_BABY_CALEB.md, 2026-11-19): lo que pintaba la letra blanca o amarilla sobre la foto
+# oscurecida y la banda azul de D'CASA ya no existe. Si alguna de estas clases vuelve, vuelve con ella el diseño viejo.
+CLASES_DE_DCASA = {'o_dcasa_kicker_light', 'o_dcasa_btn_linea', 'o_dcasa_fondo_oscuro', 'o_dcasa_anuncios',
+                   'o_dcasa_band', 'o_dcasa_hero_media_velo'}
+COLORES_DE_DCASA = ('#1340b1', '#fed00f', '#0e2a6b')
+# La letra crema del titular de la campaña solo se lee sobre la banda navy: fuera de ella sería crema sobre crema.
+CLASES_DE_BANDA, FONDOS_NAVY = {'o_dcasa_bw_titulo'}, {'o_dcasa_bw'}
 
 
-class _AmarilloSobreBlanco(HTMLParser):
-    """Junta las etiquetas con una clase amarilla que no están dentro de un fondo oscuro."""
+class _RestosDeDcasa(HTMLParser):
+    """Junta las etiquetas con una clase o un color del diseño de D'CASA, y los titulares de la banda fuera de ella."""
     VACIAS = {'img', 'input', 'meta', 'link', 'br', 'hr', 'source', 'path', 'circle', 'rect'}
 
     def __init__(self):
         super().__init__()
         self.pila, self.malas = [], []
 
-    def handle_starttag(self, tag, attrs):
-        clases = set((dict(attrs).get('class') or '').split())
-        if clases & CLASES_AMARILLAS and not any(c & FONDOS_OSCUROS for c in self.pila):
+    def _revisar(self, tag, attrs):
+        datos = dict(attrs)
+        clases = set((datos.get('class') or '').split())
+        if clases & CLASES_DE_DCASA:
+            self.malas.append((tag, sorted(clases & CLASES_DE_DCASA)))
+        if any(color in (datos.get('style') or '').lower() for color in COLORES_DE_DCASA):
+            self.malas.append((tag, datos['style']))
+        if clases & CLASES_DE_BANDA and not any(c & FONDOS_NAVY for c in self.pila):
             self.malas.append((tag, sorted(clases)))
+        return clases
+
+    def handle_starttag(self, tag, attrs):
+        clases = self._revisar(tag, attrs)
         if tag not in self.VACIAS:
             self.pila.append(clases)
 
     def handle_startendtag(self, tag, attrs):
-        clases = set((dict(attrs).get('class') or '').split())
-        if clases & CLASES_AMARILLAS and not any(c & FONDOS_OSCUROS for c in self.pila):
-            self.malas.append((tag, sorted(clases)))
+        self._revisar(tag, attrs)
 
     def handle_endtag(self, tag):
         if tag not in self.VACIAS and self.pila:
             self.pila.pop()
 
 
-def amarillo_sobre_blanco(html):
-    parser = _AmarilloSobreBlanco()
+def restos_de_dcasa(html):
+    parser = _RestosDeDcasa()
     parser.feed(html)
     return parser.malas
 
@@ -152,6 +161,8 @@ class TestVentanaBlackWeekend(_Base, TransactionCase):
         with Image.open(ruta) as imagen:
             self.assertLessEqual(imagen.width, 1200)
             self.assertLessEqual(imagen.height, 1500)
+            self.assertEqual(imagen.size, (OG_ANCHO, OG_ALTO), 'las medidas que dicen las etiquetas og:image')
+        self.assertNotIn("D'CASA", OG_ALT, 'la imagen de la campaña es de Baby Caleb (las cajas Nateen de su web)')
 
 
 @tagged('post_install', '-at_install')
@@ -215,6 +226,9 @@ class TestPaginasBlackWeekend(_Base, HttpCase):
         og = re.search(r'<meta property="og:image" content="([^"]+)"', html)
         self.assertTrue(og and og.group(1).endswith(OG_IMAGEN), 'Imagen de la campaña al compartir')
         self.assertRegex(html, r'<meta name="twitter:image" content="[^"]+black_weekend/og\.jpg"')
+        self.assertIn(f'<meta property="og:image:alt" content="{OG_ALT}"', html)
+        for de_dcasa in ("D'CASA", 'D&#39;CASA', 'dcasapty', 'Camas tapizadas', 'combo con colchón'):
+            self.assertNotIn(de_dcasa, html)
         listas = [d for d in _json_ld(html) if d.get('@type') == 'ItemList']
         self.assertEqual(len(listas), 1)
         nombres = [e['name'] for e in listas[0]['itemListElement']]
@@ -239,11 +253,11 @@ class TestPaginasBlackWeekend(_Base, HttpCase):
             ('dcasa_black_weekend', '=', True), ('is_published', '=', True)])
         self.assertLessEqual(html.count('class="o_dcasa_bw_etiqueta"'), marcados)
 
-    def test_sin_amarillo_sobre_blanco_ni_palabras_prohibidas(self):
+    def test_sin_restos_del_diseno_de_dcasa_ni_palabras_prohibidas(self):
         self._activa()
         for ruta in ('/', '/black-weekend', '/shop'):
             html = self.url_open(ruta).text
-            self.assertEqual(amarillo_sobre_blanco(html), [], ruta)
+            self.assertEqual(restos_de_dcasa(html), [], ruta)
             visible = _visible(html)
             for palabra in PALABRAS_PROHIBIDAS:
                 self.assertNotIn(palabra, visible, f'{ruta}: «{palabra}»')

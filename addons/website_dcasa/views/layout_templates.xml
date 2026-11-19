@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Botón flotante de WhatsApp en todo el sitio (CTA único del ADN). -->
+    <!-- Botón flotante de WhatsApp en todo el sitio, con la forma de la burbuja del chat de babycaleb.com
+         (src/components/Chatbot.tsx): un círculo naranja de 56 px con el ícono en navy (5.56 sobre el naranja). -->
     <template id="layout_whatsapp_float" inherit_id="website.layout" name="D'CASA: botón de WhatsApp"
               customize_show="True">
         <xpath expr="//div[@id='wrapwrap']" position="inside">
@@ -16,23 +17,9 @@
         </xpath>
     </template>
 
-    <!-- Barra de anuncios: resuelve las tres objeciones de compra antes del scroll.
-         Va DENTRO de la cabecera con o_header_hide_on_scroll: Odoo la pliega sola cuando la
-         cabecera queda fija, y el hero puede meterse debajo de las dos (header_overlay). -->
-    <template id="layout_anuncios" inherit_id="website.layout" name="D'CASA: barra de anuncios">
-        <xpath expr="//header/*[1]" position="before">
-            <!-- Baby Caleb (2026-11-18): vende 100% en línea y entrega a domicilio en Ciudad de Panamá (su web,
-                 content.json › nap › address), sin tienda física. La frase va partida en las dos franjas de siempre. -->
-            <div t-if="website" class="o_dcasa_anuncios o_header_hide_on_scroll" role="region" t-attf-aria-label="Avisos de {{ website.name }}">
-                <div class="o_dcasa_container o_dcasa_anuncios_inner">
-                    <span class="o_dcasa_anuncio_entregas"><i class="fa fa-truck me-2" aria-hidden="true"/>Entrega a domicilio — Ciudad de Panamá</span>
-                    <span class="d-none d-md-inline"><i class="fa fa-shopping-bag me-2" aria-hidden="true"/>Venta 100% online</span>
-                    <a class="o_dcasa_anuncio_wa" t-att-href="website._dcasa_whatsapp_url()" target="_blank" rel="noopener"
-                       aria-label="Escríbenos por WhatsApp (se abre en una pestaña nueva)"><i class="fa fa-whatsapp me-2" aria-hidden="true"/><span class="d-none d-sm-inline">Escríbenos por WhatsApp</span></a>
-                </div>
-            </div>
-        </xpath>
-    </template>
+    <!-- (La barra azul de anuncios de arriba, «Entrega a domicilio · Venta 100% online · Escríbenos por WhatsApp», se
+         quitó con la marca de Baby Caleb, 2026-11-19: su cabecera es solo la pastilla de vidrio. Lo que decía sigue en la
+         portada —la cobertura—, en el pie y en el botón flotante.) -->
 
     <!-- Cabecera sobre el hero: la portada (pageName) y las plantillas que piden
          `dcasa_header_overlay` (contacto, socios) llevan la misma clase que la opción de Odoo
@@ -43,12 +30,11 @@
         </xpath>
     </template>
 
-    <!-- Fuentes autoalojadas (static/src/scss/fuentes.scss): fuera el preconnect a
-         fonts.gstatic.com y precarga de las dos que pintan lo primero que se ve
-         (Anton en el titular del hero, Inter en el texto). Oswald llega con el CSS. -->
+    <!-- Fuente autoalojada (static/src/scss/fuentes.scss): fuera el preconnect a fonts.gstatic.com y precarga de
+         Montserrat, la única letra del sitio (pinta el titular del hero, lo primero que se ve). -->
     <template id="layout_fuentes_locales" inherit_id="website.layout" name="D'CASA: fuentes locales">
         <xpath expr="//link[@rel='preconnect'][@href='https://fonts.gstatic.com/']" position="replace">
-            <link rel="preload" href="/website_dcasa/static/src/fonts/anton-latin.woff2" as="font" type="font/woff2" crossorigin=""/>
+            <link rel="preload" href="/website_dcasa/static/src/fonts/montserrat-latin-var.woff2" as="font" type="font/woff2" crossorigin=""/>
         </xpath>
         <!-- Ronda 6: fuera la precarga de FontAwesome que pone Odoo (76 KB). En 4G lenta compartía
              la red con el CSS que bloquea el primer pintado y retrasaba la foto principal; los
@@ -83,10 +69,10 @@
                       t-att-imagesizes="dcasa_primera['sizes']"/>
                 <link t-elif="dcasa_primera" rel="preload" as="image" fetchpriority="high" t-att-href="dcasa_primera['src']"
                       t-att-imagesrcset="dcasa_primera['srcset_respaldo']" t-att-imagesizes="dcasa_primera['sizes']"/>
-                <link t-else="" rel="preload" as="image" fetchpriority="high"
-                      href="/website_dcasa/static/src/img/hero.webp"
-                      imagesrcset="/website_dcasa/static/src/img/hero-800.webp 800w, /website_dcasa/static/src/img/hero.webp 1400w"
-                      imagesizes="100vw"/>
+                <link t-else="" rel="preload" as="image" type="image/webp" fetchpriority="high"
+                      href="/website_dcasa/static/src/img/hero-bebe-1200.webp"
+                      imagesrcset="/website_dcasa/static/src/img/hero-bebe-800.webp 800w, /website_dcasa/static/src/img/hero-bebe-1200.webp 1200w"
+                      imagesizes="(min-width: 992px) 46vw, 100vw"/>
             </t>
         </xpath>
     </template>
@@ -125,6 +111,23 @@
         </xpath>
     </template>
 
+    <!-- El menú del celular es un diálogo y tiene que portarse como uno (S01Nav.tsx de babycaleb.com: «el foco entra,
+         da la vuelta dentro, sale con Escape y vuelve al botón que lo abrió»). El offcanvas de Bootstrap ya hace todo
+         eso, pero solo si puede ponerle el foco al panel al abrirse: sin tabindex="-1" el foco se quedaba en la
+         hamburguesa, DEBAJO del panel, y Escape no cerraba (su tecla la escucha el panel). Y los nombres, en español. -->
+    <template id="menu_movil_accesible" inherit_id="website.template_header_mobile" name="D'CASA: menú del celular accesible">
+        <xpath expr="//div[@id='top_menu_collapse_mobile']" position="attributes">
+            <attribute name="tabindex">-1</attribute>
+            <attribute name="aria-label">Menú de navegación</attribute>
+        </xpath>
+        <xpath expr="//button[@data-bs-target='#top_menu_collapse_mobile']" position="attributes">
+            <attribute name="aria-label">Abrir menú</attribute>
+        </xpath>
+        <xpath expr="//div[@id='top_menu_collapse_mobile']//button[@data-bs-dismiss='offcanvas']" position="attributes">
+            <attribute name="aria-label">Cerrar menú</attribute>
+        </xpath>
+    </template>
+
     <!-- Ficha de producto: WhatsApp con el nombre del producto y sellos de confianza junto al botón de compra. Baby Caleb
          (2026-11-18): la entrega a domicilio en Ciudad de Panamá y la atención personal de su web (content.json ›
          differentiators); fuera «te lo llevas hoy» y «míralo en tienda» (no tiene tienda). -->
@@ -142,10 +145,9 @@
         </xpath>
     </template>
 
-    <!-- Filtro de refracción del navbar de vidrio líquido. animaciones.js lo aplica (en línea,
-         con una variable CSS) solo donde backdrop-filter: url() funciona, y le agrega el
-         movimiento lento del ruido solo mientras la píldora está sobre la foto (en pausa fuera
-         de ella, con la pestaña oculta y con prefers-reduced-motion). -->
+    <!-- Filtro de refracción de la pastilla de vidrio: el mismo de babycaleb.com (#bc-liquido en su index.html). Lo
+         aplica animaciones.js (en línea, con una variable CSS) solo donde backdrop-filter: url() funciona, y le agrega
+         el movimiento lento del ruido (18 s), en pausa con la pestaña oculta y nunca con prefers-reduced-motion. -->
     <template id="layout_filtro_liquido" inherit_id="website.layout" name="D'CASA: filtro de vidrio líquido">
         <xpath expr="//div[@id='wrapwrap']" position="inside">
             <svg class="o_dcasa_filtros" width="0" height="0" aria-hidden="true" focusable="false">
@@ -159,9 +161,11 @@
         </xpath>
     </template>
 
-    <!-- Logo de la píldora en WebP (7-15 KB en vez del PNG de 40 KB) mientras sea el de fábrica del módulo
-         (dcasa_base/static/img/logo.png; los WebP los hace scripts/iconos_de_la_marca.py); en el editor, o si la dueña
-         sube otro, el campo de Odoo de siempre. -->
+    <!-- La marca de la pastilla, como la de babycaleb.com (src/blocks/S01Nav.tsx): el nombre «Baby Caleb» escrito, en
+         Montserrat 700 navy, y al lado el sello del logo, chico. El logo va en WebP (7-15 KB en vez del PNG de 40 KB)
+         mientras sea el de fábrica del módulo (dcasa_base/static/img/logo.png; los WebP, con lo de afuera del sello
+         transparente, los hace scripts/iconos_de_la_marca.py); en el editor, o si la dueña sube otro, el campo de Odoo
+         de siempre. El nombre no se traduce ni se parte en dos líneas (translate="no" y nowrap en el CSS). -->
     <template id="logo_webp_dcasa" inherit_id="website.option_header_brand_logo" name="D'CASA: logo en WebP">
         <xpath expr="//span[@t-field='website.logo']" position="attributes">
             <attribute name="t-if">editable or not website._dcasa_logo_de_fabrica()</attribute>
@@ -170,7 +174,8 @@
         <xpath expr="//span[@t-field='website.logo']" position="after">
             <img t-else="" src="/website_dcasa/static/src/img/logo-200.webp"
                  srcset="/website_dcasa/static/src/img/logo-200.webp 1x, /website_dcasa/static/src/img/logo-400.webp 2x"
-                 width="200" height="196" class="img img-fluid" loading="eager" t-att-alt="website.name"/>
+                 width="200" height="196" class="img img-fluid o_dcasa_marca_sello" loading="eager" alt=""/>
+            <span class="o_dcasa_marca" translate="no" t-out="website.name"/>
         </xpath>
     </template>
 
@@ -200,25 +205,19 @@
         </xpath>
     </template>
 
-    <!-- Páginas del programa de socios: cabecera con foto oscurecida y texto blanco,
-         igual que el hero de la portada (sin la banda azul). -->
+    <!-- Páginas del programa de socios: la misma cabecera de página del resto del sitio (crema, el antetítulo en
+         píldora y el titular navy; website_dcasa.cabecera_pagina). Sin foto: la de antes era de muebles. -->
     <template id="socios_cabecera_dcasa" inherit_id="dcasa_socios.socios_layout" name="D'CASA: cabecera de socios">
-        <!-- Título de pestaña distinto por página y cabecera sobre la foto. -->
+        <!-- Título de pestaña distinto por página y la pastilla de vidrio encima de la cabecera. -->
         <xpath expr="//t[@t-set='additional_title']" position="replace">
             <t t-set="additional_title" t-value="('%s · ' % titulo if titulo else '') + 'Socios Baby Caleb'"/>
             <t t-set="dcasa_header_overlay" t-value="True"/>
         </xpath>
         <xpath expr="//div[hasclass('o_dcasa_socios_head')]" position="replace">
-            <section class="o_dcasa_hero o_dcasa_hero_compacto o_dcasa_socios_head">
-                <div class="o_dcasa_hero_media">
-                    <!-- Imagen LCP: «eager» explícito, si no Odoo le pone loading="lazy". -->
-                    <img src="/website_dcasa/static/src/img/split-socios.webp" width="800" height="600" alt=""
-                         srcset="/website_dcasa/static/src/img/split-socios-480.webp 480w, /website_dcasa/static/src/img/split-socios.webp 800w"
-                         sizes="100vw" loading="eager" fetchpriority="high"/>
-                </div>
+            <section class="o_dcasa_hero o_dcasa_hero_compacto o_dcasa_cabecera_pagina o_dcasa_socios_head">
                 <div class="o_dcasa_container o_dcasa_hero_inner">
                     <div class="o_dcasa_hero_texto" data-anim-entrada="">
-                        <p class="o_dcasa_kicker o_dcasa_kicker_light">Programa de socios</p>
+                        <p class="o_dcasa_kicker o_dcasa_kicker_pildora">Programa de socios</p>
                         <h1 class="o_dcasa_display mb-0" t-out="titulo or 'Socios Baby Caleb'"/>
                     </div>
                 </div>
@@ -227,38 +226,30 @@
         <xpath expr="//div[hasclass('o_dcasa_band')]" position="replace"/>
     </template>
 
-    <!-- Cabecera de página como la de /socios (ronda 6), para las páginas que no traen la suya:
-         legales y cuenta. Quien la llama pone `dcasa_header_overlay` (la píldora va encima) y
-         cabecera_kicker, cabecera_titulo, cabecera_imagen (una foto apaisada del módulo) y, si
-         la foto tiene versión chica, cabecera_srcset. -->
+    <!-- Cabecera de página para las que no traen la suya (legales, cuenta, contacto, socios): crema, como el hero de
+         babycaleb.com, con el antetítulo en píldora y el titular navy en Montserrat 700, como frase. Quien la llama pone
+         `dcasa_header_overlay` (la pastilla va encima), cabecera_kicker y cabecera_titulo. cabecera_imagen,
+         cabecera_srcset, cabecera_ancho y cabecera_alto se siguen aceptando (dcasa_mi_cuenta los pasa) pero ya no se
+         dibujan: las fotos de antes eran de muebles (marca de Baby Caleb, 2026-11-19). -->
     <template id="cabecera_pagina" name="D'CASA: cabecera de página">
         <section class="o_dcasa_hero o_dcasa_hero_compacto o_dcasa_cabecera_pagina">
-            <div class="o_dcasa_hero_media">
-                <!-- Imagen LCP: «eager» explícito, si no Odoo le pone loading="lazy". -->
-                <img t-att-src="cabecera_imagen" t-att-srcset="cabecera_srcset" t-att-sizes="cabecera_srcset and '100vw'"
-                     t-att-width="cabecera_ancho or 800" t-att-height="cabecera_alto or 600" alt=""
-                     loading="eager" fetchpriority="high"/>
-            </div>
             <div class="o_dcasa_container o_dcasa_hero_inner">
                 <div class="o_dcasa_hero_texto" data-anim-entrada="">
-                    <p class="o_dcasa_kicker o_dcasa_kicker_light" t-out="cabecera_kicker"/>
+                    <p class="o_dcasa_kicker o_dcasa_kicker_pildora" t-out="cabecera_kicker"/>
                     <h1 class="o_dcasa_display mb-0" t-out="cabecera_titulo"/>
                 </div>
             </div>
         </section>
     </template>
 
-    <!-- Entrar, crear cuenta y recuperar la clave: la misma cabecera que el resto del sitio y el
-         formulario en una tarjeta como la de /socios (antes: formulario suelto bajo la píldora clara). -->
+    <!-- Entrar, crear cuenta y recuperar la clave: la misma cabecera de página que el resto del sitio y el
+         formulario en una tarjeta crema (antes: formulario suelto bajo la píldora clara). -->
     <template id="login_cabecera_dcasa" inherit_id="website.login_layout" name="D'CASA: cabecera de la cuenta">
         <xpath expr="//div[hasclass('oe_website_login_container')]" position="before">
             <t t-set="dcasa_header_overlay" t-value="True"/>
             <t t-call="website_dcasa.cabecera_pagina">
                 <t t-set="cabecera_kicker">Tu cuenta Baby Caleb</t>
                 <t t-set="cabecera_titulo">Mi cuenta</t>
-                <t t-set="cabecera_imagen" t-value="'/website_dcasa/static/src/img/split-hoy.webp'"/>
-                <t t-set="cabecera_ancho" t-value="793"/>
-                <t t-set="cabecera_alto" t-value="595"/>
             </t>
         </xpath>
         <xpath expr="//div[hasclass('oe_website_login_container')]" position="attributes">
@@ -291,9 +282,11 @@
         </xpath>
     </template>
 
+    <!-- El copyright de babycaleb.com (S20Footer.tsx: «© Baby Caleb Panamá. Todos los derechos reservados.», con
+         content.json › legal › company). Sin el año: esta zona la guarda el editor del sitio como texto fijo. -->
     <template id="footer_copyright_dcasa" inherit_id="website.footer_copyright_company_name" name="D'CASA: copyright">
         <xpath expr="//span[hasclass('o_footer_copyright_name')]" position="replace">
-            <span class="o_footer_copyright_name me-2 small">© Baby Caleb · Todos los derechos reservados</span>
+            <span class="o_footer_copyright_name me-2 small">© <span translate="no">Baby Caleb Panamá</span>. Todos los derechos reservados.</span>
         </xpath>
     </template>
 
@@ -313,46 +306,48 @@
         </xpath>
     </template>
 
-    <!-- Pie de página con los datos de Baby Caleb (editable en el constructor; los de su web, content.json y el pie de
-         babycaleb.com, decisión del dueño del 2026-11-18). Sin RUC: el dueño todavía no lo dio, y no se inventa. Sin
-         dirección: vende 100% en línea. Nada dinámico aquí dentro: al guardar,
-         el editor escribe en la vista el HTML ya dibujado de esta zona (ir.ui.view.save) y un t-out quedaría como texto
-         fijo. Lo dinámico va fuera, como el horario (pie_horario, abajo). -->
+    <!-- Pie de página como el de babycaleb.com (src/blocks/S20Footer.tsx): crema, con la marca, el lema, la cobertura, los
+         enlaces, el contacto y los legales. Los datos son los de su web (content.json, decisión del dueño del 2026-11-18).
+         Sin RUC: el dueño todavía no lo dio, y no se inventa. Sin dirección: vende 100% en línea. Editable en el
+         constructor; nada dinámico aquí dentro: al guardar, el editor escribe en la vista el HTML ya dibujado de esta
+         zona (ir.ui.view.save) y un t-out quedaría como texto fijo. Lo dinámico va fuera, como el horario (pie_horario).
+         Lo que heredan otros módulos y no se puede mover: el enlace a /my (dcasa_mi_cuenta lo cambia a /mi-cuenta) y el
+         <li> de /terminos (dcasa_meta_eventos pone «Preferencias de cookies» después). -->
     <template id="footer_dcasa" inherit_id="website.footer_custom" name="D'CASA: pie de página">
         <xpath expr="//div[@id='footer']" position="replace">
             <div id="footer" class="oe_structure oe_structure_solo o_dcasa_footer" t-ignore="true" t-if="not no_footer">
-                <section class="s_text_block pt48 pb24" data-snippet="s_text_block" data-name="Pie de página">
+                <section class="s_text_block o_dcasa_pie" data-snippet="s_text_block" data-name="Pie de página">
                     <div class="container">
-                        <div class="row">
-                            <div class="col-lg-4 pb24">
-                                <h2 class="o_dcasa_kicker">Baby Caleb</h2>
-                                <p>Esenciales de bebé hipoalergénicos y biodegradables — pensamos en cada etapa de tu bebé.</p>
+                        <div class="o_dcasa_pie_rejilla">
+                            <div class="o_dcasa_pie_marca">
+                                <p class="o_dcasa_pie_nombre" translate="no">Baby Caleb</p>
+                                <p class="o_dcasa_pie_lema">Esenciales de bebé hipoalergénicos y biodegradables — pensamos en cada etapa de tu bebé.</p>
+                                <p class="o_dcasa_pie_cobertura">Venta 100% online con entrega a domicilio en Ciudad de Panamá.</p>
                             </div>
-                            <div class="col-lg-2 pb24">
-                                <h2 class="o_dcasa_kicker">Tienda</h2>
+                            <nav class="o_dcasa_pie_columna" aria-labelledby="dcasa-pie-enlaces">
+                                <h2 id="dcasa-pie-enlaces" class="o_dcasa_pie_titulo">Enlaces</h2>
                                 <ul class="list-unstyled">
                                     <li><a href="/shop">Catálogo</a></li>
                                     <li><a href="/socios">Socios: mis puntos</a></li>
                                     <li><a href="/my">Mi cuenta</a></li>
-                                    <li><a href="/contactus">Contacto</a></li>
-                                    <li><a href="/privacidad">Privacidad</a></li>
-                                    <li><a href="/terminos">Términos y condiciones</a></li>
+                                    <li><a href="/visitanos">Horario y contacto</a></li>
                                 </ul>
-                            </div>
-                            <div class="col-lg-3 pb24">
-                                <h2 class="o_dcasa_kicker">Cobertura</h2>
-                                <p>Venta 100% online con entrega a domicilio — Ciudad de Panamá</p>
-                                <p><a href="/visitanos">Horario y contacto</a></p>
-                            </div>
-                            <div class="col-lg-3 pb24">
-                                <h2 class="o_dcasa_kicker">Escríbenos</h2>
+                            </nav>
+                            <div class="o_dcasa_pie_columna">
+                                <h2 class="o_dcasa_pie_titulo">Contacto</h2>
                                 <ul class="list-unstyled">
-                                    <li><i class="fa fa-whatsapp fa-fw me-2" aria-hidden="true"/><a href="/whatsapp" target="_blank" rel="noopener nofollow">Escríbenos por WhatsApp</a></li>
-                                    <li><i class="fa fa-envelope fa-fw me-2" aria-hidden="true"/><a href="mailto:babycalebpanama@gmail.com">babycalebpanama@gmail.com</a></li>
-                                    <li><i class="fa fa-instagram fa-fw me-2" aria-hidden="true"/><a href="https://www.instagram.com/babycalebpanama" target="_blank" rel="noopener">@babycalebpanama</a></li>
+                                    <li><a href="/whatsapp" target="_blank" rel="noopener nofollow">WhatsApp</a></li>
+                                    <li><a href="https://www.instagram.com/babycalebpanama" target="_blank" rel="noopener">Instagram</a></li>
+                                    <li><a href="mailto:babycalebpanama@gmail.com">babycalebpanama@gmail.com</a></li>
                                 </ul>
                             </div>
                         </div>
+                        <!-- Aquí y no escondidas (S20Footer.tsx): la Ley 81 pide que la persona pueda leer el aviso ANTES
+                             de dar sus datos. -->
+                        <ul class="list-unstyled o_dcasa_pie_legales" aria-label="Enlaces legales">
+                            <li><a href="/privacidad">Privacidad</a></li>
+                            <li><a href="/terminos">Términos y condiciones</a></li>
+                        </ul>
                     </div>
                 </section>
             </div>
