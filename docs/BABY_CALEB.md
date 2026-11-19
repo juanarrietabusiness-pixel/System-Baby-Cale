@@ -50,6 +50,7 @@ del puente. Ya en uso en la cuenta y **no se tocan**: `babycaleb-web`, `babycale
 | 2026-11-18 | Socios y vendedores | Todas las cifras de `puntos.json` en PENDIENTE (ninguna de D'CASA) y el programa de vendedores apagado. No dan puntos ni comisiones hasta que el dueño ponga las de Baby Caleb; las ventas funcionan igual. Socios no tiene interruptor propio |
 | 2026-11-18 | Costos | El dueño dirá qué herramientas del sistema de D'CASA se quedan y cuáles se quitan, para bajar el consumo |
 | 2026-11-18 | Nombres de los asistentes | Cada empresa debe poder nombrarlos como quiera (trabajo aparte, por hacer) |
+| 2026-11-19 | Marca de todo el sistema | **El branding de la web de Baby Caleb, tal cual**, en la web pública, el panel, los documentos y los correos: crema, navy, naranja y verde salvia, Montserrat y botones en pastilla. Fuera el azul, el amarillo, Anton y Oswald, y toda foto o sección de muebles. El contrato es `docs/MARCA_BABY_CALEB.md` y reemplaza las reglas de marca de D'CASA de `CLAUDE.md`. Esto cambia la decisión del 2026-11-18 «Web pública: mismo diseño» |
 
 ## Estado
 

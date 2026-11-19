@@ -52,7 +52,12 @@ se pierde cuando el contexto se reinicia.
 - Adjuntos en R2 (`dcasa_adjuntos_r2`, `ir_attachment.location = r2`; `db` sin credenciales): el contenedor
   no tiene disco persistente. Nunca se borran objetos de R2 al desvincular (lo hace un cron a los 45 días).
 
-## Reglas de marca (ADN: Agencia_Workspace/Dcasa)
+## Reglas de marca
+
+> **En esta copia mandan las de Baby Caleb: `docs/MARCA_BABY_CALEB.md`** (pedido del dueño, 2026-11-19). Lo de abajo
+> es la marca de D'CASA y queda solo como referencia de la plantilla de origen.
+
+### Las de D'CASA (ADN: Agencia_Workspace/Dcasa)
 
 1. Azul `#1340B1`, amarillo `#FED00F`. **El amarillo nunca toca el blanco**: CTAs
    amarillos solo sobre azul; texto sobre blanco en azul o navy.
