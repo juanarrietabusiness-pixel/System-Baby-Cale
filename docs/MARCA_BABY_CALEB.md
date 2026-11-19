@@ -97,6 +97,13 @@ panel sigue funcionando**: cada empresa puede cambiar su logo y sus colores.
 Factura, cotización, abono, reportes y correos: Montserrat, navy para el texto y el logo de Baby Caleb. El naranja solo
 en filetes y rellenos, nunca en texto. Nada de azul ni de amarillo de D'CASA.
 
+- **En los PDF el papel queda blanco**, porque se imprime. El crema va solo en bloques.
+- **La letra de los PDF es siempre navy.** Lo secundario va en navy al 70 % ya mezclado: `#5F707E`, 5.12 sobre blanco.
+- **Los filetes** (bajo el logo, cabeceras y total) van en `#EE924A` o en `#91C9A2`, con letra navy encima.
+- **En los correos y en el panel**, los enlaces y los precios destacados van en `accent-strong` (`#985D2F`).
+- **Los correos** llevan estilos en línea, Montserrat con respaldo Arial/Helvetica y un solo botón en pastilla naranja
+  con letra navy, que es texto y se lee sin imágenes.
+
 ## De D'CASA a Baby Caleb, por papel
 
 | En D'CASA | Hacía de | En Baby Caleb |
