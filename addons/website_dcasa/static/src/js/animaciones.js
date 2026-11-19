@@ -1,16 +1,15 @@
 /**
- * Movimiento del sitio D'CASA, como Interactions de Odoo 19.
+ * Movimiento del sitio, como Interactions de Odoo 19.
  *
  * El framework las arranca en el sitio público y las DETIENE en el editor (no están
- * registradas en `public.interactions.edit`): ahí nada se esconde, los titulares no se
- * trocean y la gota del menú no se inserta, así el editor nunca guarda ese marcado.
+ * registradas en `public.interactions.edit`): ahí nada se esconde y los titulares no se
+ * trocean, así el editor nunca guarda ese marcado.
  * Todo lo que agregan lo quitan al destruirse (`registerCleanup`, `insert`, `addListener`).
  *
  *   · DcasaRevelar     secciones y titulares que entran al hacer scroll (data-anim…).
- *   · DcasaCabecera    ¿la píldora está sobre la foto del hero? + refracción del vidrio.
- *   · DcasaGotaMenu    la gota de vidrio que sigue al puntero y al foco en el menú.
+ *   · DcasaCabecera    la refracción del vidrio de la pastilla y el movimiento lento de su ruido.
  *   · DcasaResenas     botón para pausar la cinta de opiniones (WCAG 2.2.2).
- *   · DcasaFotos       fotos de producto anchas: enteras («contain») en el cuadro 3:4.
+ *   · DcasaFotos       fotos de producto anchas: enteras («contain») en el cuadro de la tarjeta.
  *
  * Lo que está sobre el pliegue (el hero) usa [data-anim-entrada]: CSS puro, sin esperar a nadie.
  */
@@ -18,19 +17,6 @@ import { Interaction } from "@web/public/interaction";
 import { registry } from "@web/core/registry";
 
 const reducido = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-/**
- * `rootMargin` del observador de la cabecera: recorta por arriba la franja que tapa la píldora.
- * Nunca negativo ni NaN: si la página se abre ya desplazada (el navegador restaura el scroll) o la
- * cabecera aún no está fijada, su borde inferior es negativo y `-${-85}px` daría "--85px", que
- * IntersectionObserver rechaza con SyntaxError (y Odoo mostraba «¡Vaya! Ocurrió un error»).
- * @param {number} piso borde inferior de la cabecera en px (getBoundingClientRect().bottom)
- * @returns {string} p. ej. "-85px 0px 0px 0px"; "0px 0px 0px 0px" si no hay nada que recortar
- */
-export function margenBajoCabecera(piso) {
-    const px = Math.max(0, Math.round(piso) || 0);
-    return `${px ? -px : 0}px 0px 0px 0px`;
-}
 
 export class DcasaRevelar extends Interaction {
     static selector = "#wrapwrap";
@@ -107,6 +93,11 @@ export class DcasaRevelar extends Interaction {
 export class DcasaCabecera extends Interaction {
     static selector = "header#top";
 
+    /**
+     * La pastilla de vidrio crema de babycaleb.com (src/styles/tokens.css, `.bc-vidrio`): siempre la misma, en todas
+     * las páginas (con la marca de Baby Caleb no hay fotos oscuras detrás: ya no hay vidrio ahumado). Aquí solo se
+     * enciende la refracción donde el navegador la sabe dibujar y se mueve el ruido del filtro.
+     */
     start() {
         const raiz = document.documentElement;
         const filtro = document.querySelector(".o_dcasa_filtros");
@@ -115,52 +106,28 @@ export class DcasaCabecera extends Interaction {
             window.CSS?.supports?.("backdrop-filter", "url(#a)");
         // La referencia va inline: dentro del CSS, el empaquetador de Odoo reescribiría
         // url(#dcasa-liquido) como una ruta de archivo y el filtro no se aplicaría.
-        if (conRefraccion && filtro) {
+        // Quien pidió menos movimiento se queda con el vidrio mate, quieto (tokens.css de su web).
+        if (conRefraccion && filtro && !reducido()) {
             raiz.style.setProperty(
                 "--dcasa-refraccion",
-                "url(#dcasa-liquido) blur(3px) saturate(220%) brightness(1.08)"
+                "url(#dcasa-liquido) blur(3px) saturate(220%) brightness(1.06)"
             );
             raiz.classList.add("o_dcasa_refraccion");
-            if (!reducido()) {
-                this.animarVidrio(filtro);
-            }
+            this.animarVidrio(filtro);
         }
         this.registerCleanup(() => {
-            raiz.classList.remove("o_dcasa_refraccion", "o_dcasa_nav_sobre_foto", "o_dcasa_nav_medida");
+            raiz.classList.remove("o_dcasa_refraccion");
             raiz.style.removeProperty("--dcasa-refraccion");
         });
 
-        // Las transiciones internas (menú, gota) no deben contar para el cálculo de altura
+        // Las transiciones internas de la pastilla no deben contar para el cálculo de altura
         // que Odoo hace en cada `transitionend` de la cabecera.
         this.addListener(this.el.querySelectorAll(".o_main_nav"), "transitionend", (ev) => ev.stopPropagation());
-
-        // El vidrio ahumado de /socios va sobre cualquier foto o fondo oscuro que abra la página
-        // (hero, cabecera de página, Black Weekend); el vidrio claro, sobre el resto.
-        const hero = document.querySelector(".o_dcasa_hero, .o_dcasa_fondo_oscuro");
-        if (!hero || !("IntersectionObserver" in window)) {
-            return;
-        }
-        // Sobre la foto = el hero sigue asomando por debajo del borde inferior de la píldora.
-        const observador = new IntersectionObserver(
-            ([entrada]) => {
-                raiz.classList.toggle("o_dcasa_nav_sobre_foto", entrada.isIntersecting);
-                raiz.classList.add("o_dcasa_nav_medida");
-                if (this.svg) {
-                    entrada.isIntersecting ? this.svg.unpauseAnimations() : this.svg.pauseAnimations();
-                }
-            },
-            { rootMargin: margenBajoCabecera(this.el.getBoundingClientRect().bottom), threshold: 0 }
-        );
-        observador.observe(hero);
-        this.registerCleanup(() => observador.disconnect());
     }
 
     /**
-     * El ruido del filtro se mueve lento: el vidrio «fluye» (el look líquido de la v2.3).
-     * Mover el ruido repinta la píldora en cada cuadro, así que solo corre mientras la píldora
-     * está sobre la foto (donde se ve): nace en pausa, el observador la despierta sobre la foto
-     * y la vuelve a pausar al bajar; en pausa también con la pestaña oculta y nunca con
-     * prefers-reduced-motion. Sobre un fondo liso la refracción no se nota: no gasta nada ahí.
+     * El ruido del filtro se mueve lento: el vidrio «fluye», como en babycaleb.com (18 s, el mismo <animate> de su
+     * index.html). En pausa con la pestaña oculta y nunca con prefers-reduced-motion.
      */
     animarVidrio(filtro) {
         const ruido = filtro.querySelector("feTurbulence");
@@ -170,59 +137,17 @@ export class DcasaCabecera extends Interaction {
         anim.setAttribute("repeatCount", "indefinite");
         anim.setAttribute("values", "0.009 0.022;0.012 0.018;0.009 0.022");
         ruido.appendChild(anim);
-        filtro.pauseAnimations();
-        this.svg = filtro;
         this.addListener(document, "visibilitychange", () => {
             if (document.hidden) {
                 filtro.pauseAnimations();
-            } else if (document.documentElement.classList.contains("o_dcasa_nav_sobre_foto")) {
+            } else {
                 filtro.unpauseAnimations();
             }
         });
         this.registerCleanup(() => {
             anim.remove();
             filtro.unpauseAnimations();
-            this.svg = null;
         });
-    }
-}
-
-export class DcasaGotaMenu extends Interaction {
-    static selector = "header#top #top_menu";
-
-    start() {
-        const contenedor = this.el.parentElement;
-        this.gota = document.createElement("span");
-        this.gota.className = "o_dcasa_gota";
-        this.gota.setAttribute("aria-hidden", "true");
-        // Fuera del <ul> (solo admite <li>), en la píldora que lo contiene.
-        this.insert(this.gota, contenedor, "afterbegin");
-        const enlaces = this.el.querySelectorAll(".nav-link");
-        const activo = () => this.el.querySelector(".nav-link.active");
-        this.addListener(enlaces, "mouseenter", (ev) => this.moverA(ev.currentTarget));
-        this.addListener(enlaces, "focus", (ev) => this.moverA(ev.currentTarget));
-        this.addListener(this.el, "mouseleave", () => this.moverA(activo()));
-        this.addListener(this.el, "focusout", (ev) => {
-            if (!this.el.contains(ev.relatedTarget)) {
-                this.moverA(activo());
-            }
-        });
-        this.addListener(window, "resize", this.debounced(() => this.moverA(activo()), 150));
-        // Tras las fuentes: el ancho de los enlaces cambia al cargar Oswald.
-        this.waitFor(document.fonts?.ready || Promise.resolve()).then(() => this.moverA(activo()));
-    }
-
-    moverA(enlace) {
-        if (!enlace) {
-            this.gota.classList.remove("is-visible");
-            return;
-        }
-        const caja = this.gota.parentElement.getBoundingClientRect();
-        const r = enlace.getBoundingClientRect();
-        this.gota.style.setProperty("--gota-x", `${r.left - caja.left}px`);
-        this.gota.style.setProperty("--gota-y", `${r.top - caja.top + r.height / 2}px`);
-        this.gota.style.setProperty("--gota-ancho", `${r.width}px`);
-        this.gota.classList.add("is-visible");
     }
 }
 
@@ -257,7 +182,7 @@ export class DcasaFotos extends Interaction {
 
     start() {
         const fotos = this.el.querySelectorAll(
-            ".o_dcasa_pcard_media img, .o_dcasa_cine_marco img, #o_wsale_products_grid .oe_product_image_link img"
+            ".o_dcasa_pcard_media img, #o_wsale_products_grid .oe_product_image_link img"
         );
         for (const foto of fotos) {
             if (foto.complete && foto.naturalWidth) {
@@ -277,6 +202,5 @@ export class DcasaFotos extends Interaction {
 const interacciones = registry.category("public.interactions");
 interacciones.add("website_dcasa.revelar", DcasaRevelar);
 interacciones.add("website_dcasa.cabecera", DcasaCabecera);
-interacciones.add("website_dcasa.gota_menu", DcasaGotaMenu);
 interacciones.add("website_dcasa.resenas", DcasaResenas);
 interacciones.add("website_dcasa.fotos", DcasaFotos);

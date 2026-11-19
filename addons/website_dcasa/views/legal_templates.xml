@@ -15,14 +15,10 @@
             <t t-set="meta_description" t-value="descripcion"/>
             <t t-set="dcasa_header_overlay" t-value="True"/>
             <div id="wrap" class="o_dcasa_legal">
-                <!-- Cabecera como la de /socios (ronda 6): foto, antetítulo y título en blanco. -->
+                <!-- La cabecera de página del sitio: crema, el antetítulo en píldora y el título navy. -->
                 <t t-call="website_dcasa.cabecera_pagina">
                     <t t-set="cabecera_kicker">Baby Caleb</t>
                     <t t-set="cabecera_titulo" t-value="titulo"/>
-                    <t t-set="cabecera_imagen" t-value="'/website_dcasa/static/src/img/hero.webp'"/>
-                    <t t-set="cabecera_srcset" t-value="'/website_dcasa/static/src/img/hero-800.webp 800w, /website_dcasa/static/src/img/hero.webp 1400w'"/>
-                    <t t-set="cabecera_ancho" t-value="1400"/>
-                    <t t-set="cabecera_alto" t-value="787"/>
                 </t>
                 <section class="container o_dcasa_legal_cuerpo">
                     <div class="row">

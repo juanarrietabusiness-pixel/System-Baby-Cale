@@ -2,6 +2,8 @@ import base64
 import json
 import re
 
+from markupsafe import Markup
+
 from odoo.tests import HttpCase, TransactionCase, tagged
 from odoo.tools.misc import file_open
 
@@ -44,10 +46,6 @@ class TestWhatsappLink(TransactionCase):
 class TestWebsitePages(HttpCase):
 
     def test_homepage(self):
-        salas = self.env.ref('website_dcasa.public_category_salas')
-        # Con algo publicado, la tarjeta lleva a su categoría (sin nada, abre WhatsApp: TestPortadaDinamica).
-        self.env['product.template'].create({'name': 'SOFÁ PUBLICADO', 'list_price': 10.0, 'is_published': True,
-                                             'public_categ_ids': [(6, 0, salas.ids)]})
         # Con «Brian de la tienda» (dcasa_brian_tienda) encendido, la burbuja flotante es la suya: aquí se prueba la de
         # WhatsApp, la que sale con Brian apagado o sin ese módulo.
         self.env['ir.config_parameter'].sudo().set_param('dcasa_brian_tienda.activo', 'False')
@@ -57,7 +55,6 @@ class TestWebsitePages(HttpCase):
         self.assertIn('Cuidado hipoalergénico para la piel de tu bebé', html)
         self.assertIn('https://wa.me/50767575065', html)
         self.assertIn('o_dcasa_wa_float', html)
-        self.assertIn(f"/shop/category/{self.env['ir.http']._slug(salas)}", html)
         self.assertIn('babycalebpanama@gmail.com', html, 'El pie de página muestra los datos reales')
         for de_la_tienda_de_origen in ("D'CASA", 'D&#39;CASA', 'dcasapty', 'La Chorrera', 'Libertadores', '6026',
                                        'amueblada'):
@@ -86,6 +83,8 @@ class TestWebsitePages(HttpCase):
         self.assertEqual(self.url_open('/shop').status_code, 200)
 
     def test_frontend_css_compiles_with_brand(self):
+        """La hoja del sitio compila con la marca de Baby Caleb (docs/MARCA_BABY_CALEB.md): crema, navy, naranja y
+        verde, y ya no queda nada del azul, el amarillo ni el navy de D'CASA."""
         html = self.url_open('/').text
         css_links = re.findall(r'href="([^"]*web\.assets_frontend[^"]*\.css)"', html)
         self.assertTrue(css_links, 'La página debe enlazar el bundle CSS del sitio')
@@ -93,7 +92,19 @@ class TestWebsitePages(HttpCase):
         self.assertIn('o_dcasa_pcard', css)
         self.assertIn('o_dcasa_hero_texto', css)
         self.assertIn('o_dcasa_wa_float', css)
-        self.assertRegex(css.lower(), r'#1340b1|rgb\(19,\s*64,\s*177\)')
+        bajo = css.lower()
+        for color in ('#f9f6ed', '#f2efe5', '#1b3246', '#ee924a', '#91c9a2', '#985d2f', '#53735c'):
+            self.assertIn(color, bajo, f'falta el {color} de la marca')
+        # La paleta del sitio (de la que Odoo saca los botones, los enlaces y las combinaciones de color) es la de Baby
+        # Caleb: el «primary» es el naranja y el texto, el navy.
+        self.assertRegex(bajo, r'--o-color-1:\s*#ee924a')
+        self.assertRegex(bajo, r'--o-color-5:\s*#1b3246')
+        # Y en las hojas de este módulo no queda nada del azul, el amarillo ni el navy de D'CASA, ni su letra.
+        for hoja in ('primary_variables.scss', 'fuentes.scss', 'dcasa.scss'):
+            with file_open(f'website_dcasa/static/src/scss/{hoja}') as archivo:
+                fuente = archivo.read().lower()
+            for de_dcasa in ('#1340b1', '#fed00f', '#0e2a6b', '#0f3591', "'anton'", "'oswald'", "'inter'"):
+                self.assertNotIn(de_dcasa, fuente, f'{hoja}: quedó {de_dcasa} de D\'CASA')
 
 
 @tagged('post_install', '-at_install')
@@ -130,7 +141,8 @@ class TestPortadaDinamica(HttpCase):
 
     def test_una_categoria_sin_nada_publicado_abre_whatsapp_y_vuelve_sola_al_publicar(self):
         """Pedido de la dueña (2026-11-09): «Colchones» llevaba a una página de error porque Gerencia no ha publicado
-        los colchones. Sin nada publicado, la tarjeta abre WhatsApp; con algo publicado, su página de la tienda."""
+        los colchones. Sin nada publicado, la tarjeta abre WhatsApp; con algo publicado, su página de la tienda. (La
+        portada ya no enseña las categorías; las ofrece la búsqueda sin resultados: TestBuscador.)"""
         self.website.dcasa_whatsapp_number = '+507 6757-5065'
 
         def tarjeta(nombre):
@@ -150,29 +162,59 @@ class TestPortadaDinamica(HttpCase):
         self.assertTrue(sin['url'].startswith('https://wa.me/50767575065?text='), sin['url'])
         self.assertIn('colchones', sin['url'])
         self.assertFalse(tarjeta('Salas')['whatsapp'], 'las que tienen productos siguen a su página')
-        portada = self.url_open('/').text
-        self.assertIn('Colchones: pregúntanos por WhatsApp', portada)
-        self.assertIn('Pregúntanos por WhatsApp', portada)   # v3: la nota debajo del nombre (antes «· por WhatsApp»)
+        self.assertNotIn('imagen', tarjeta('Salas'), 'sin fotos de muebles')
         self.colchon.is_published = True
         self.assertFalse(tarjeta('Colchones')['whatsapp'], 'al publicar, vuelve sola a la tienda')
 
-    def test_sin_nada_publicado_en_ninguna_categoria_no_sale_compra_por_espacio(self):
-        """Baby Caleb (2026-11-18): las categorías de la portada son las de muebles de la copia de origen y su catálogo
-        no tiene nada en ellas. Seis tarjetas que solo llevan a WhatsApp no ayudan a comprar: la sección no sale. Con
-        una sola categoría con algo, vuelve entera (las vacías, a WhatsApp, como antes)."""
-        claves = [f'website_dcasa.public_category_{clave}' for clave in
-                  ('salas', 'recamaras', 'colchones', 'zapateras', 'organizacion', 'oficina')]
-        categorias = self.env['product.public.category'].browse([self.env.ref(x).id for x in claves])
-        publicados = self.env['product.template'].sudo().search([
-            ('public_categ_ids', 'child_of', categorias.ids), ('is_published', '=', True)])
-        publicados.is_published = False
-        self.assertEqual(self.website._dcasa_categorias_con_productos(), [])
-        portada = self.url_open('/').text
-        self.assertNotIn('dcasa-cat-titulo', portada)
-        self.assertNotIn('pregúntanos por WhatsApp', portada)
+    def test_la_portada_ya_no_tiene_nada_de_muebles(self):
+        """Marca de Baby Caleb (2026-11-19, docs/MARCA_BABY_CALEB.md › La web pública): fuera «Compra por espacio» con
+        sus fotos, «Para dormir mejor», la sección «de cine» y toda foto de muebles, aunque haya algo publicado en las
+        categorías de muebles de la copia de origen."""
         self.sofa.is_published = True
-        # (La portada ya quedó guardada en la memoria de páginas de Odoo para el visitante: se mira el dato.)
-        self.assertEqual(len(self.website._dcasa_categorias_con_productos()), 6)
+        portada = self.url_open('/').text
+        for de_muebles in ('dcasa-cat-titulo', 'Compra por espacio', '¿Qué le hace falta a tu casa?',
+                           'Para dormir mejor', 'o_dcasa_cine', 'o_dcasa_categorias', 'o_dcasa_galeria', 'img/cat-',
+                           'img/insp-', 'img/split-', 'img/hero.webp', 'Recámaras y colchones'):
+            self.assertNotIn(de_muebles, portada)
+        for archivo in ('cat-salas.webp', 'cat-salas-400.webp', 'hero.webp', 'hero-800.webp', 'insp-3.webp',
+                        'split-socios.webp', 'split-hoy.webp'):
+            self.assertEqual(self.url_open(f'/website_dcasa/static/src/img/{archivo}').status_code, 404,
+                             f'{archivo} (de muebles) ya no está en el módulo')
+
+    def test_la_portada_en_el_orden_de_babycaleb(self):
+        """El orden de Baby-caleb/src/pages/Home.tsx (docs/MARCA_BABY_CALEB.md): hero, sellos, educación, productos,
+        las mamás, la cobertura, la banda final y las preguntas, con los textos de su web (content.json) tal cual."""
+        portada = self.url_open('/').text
+        piezas = [
+            'Cuidado hipoalergénico para la piel de tu bebé',            # 1. hero
+            'Piel sensible',                                              # 2. los sellos
+            '¿Sabías que no es lo mismo',                                 # 3. educación
+            'Lo más buscado',                                             # 4. productos
+            'Lo que dicen nuestras mamás.',                               # 5. testimonios
+            'Vendemos online y te lo llevamos.',                          # 6. cobertura
+            'Dale a tu bebé el cuidado que su piel merece.',              # 7. banda final
+            'Lo que más nos preguntan',                                   # 8. preguntas
+        ]
+        posiciones = [portada.index(pieza) for pieza in piezas]
+        self.assertEqual(posiciones, sorted(posiciones), 'las secciones en el orden de su web')
+        for texto in ('Pensamos en cada etapa de tu bebé', 'Pañales y wipes hipoalergénicos: sin químicos agresivos, '
+                      'sin perfumes, sin alcohol, sin cloro.', 'Hipoalergénico', 'Sin cloro', 'Biodegradable',
+                      '#QUENOTENEGAÑEN', 'Elizabeth M.', 'Mamá de 2', 'Cero alergias', 'Ana C.', 'Mamá primeriza',
+                      'Talla correcta', 'Carla R.', 'Mamá de prematuro', 'Piel calmada',
+                      'Desde que usamos Nateen, las irritaciones desaparecieron por completo. La talla XL fue un '
+                      'salvavidas.', 'Ciudad de Panamá', 'Según zona', 'Interior / otras zonas', 'Cotizar por WhatsApp',
+                      'Sin cloro · Sin perfumes'):
+            self.assertIn(texto, portada)
+        # «Cómo pedir» no promete lo que este sistema no hace: allá se paga con Yappy en la misma página; aquí el pago
+        # y el envío se coordinan por WhatsApp.
+        como_pedir = re.search(r'Cómo pedir</h3>\s*<p>(.*?)</p>', portada, re.S).group(1)
+        self.assertIn('WhatsApp para coordinar el pago', ' '.join(como_pedir.split()))
+        self.assertNotIn('en la misma página', como_pedir)
+        # El CI (paso «El sitio responde con la marca Baby Caleb») pide esto mismo en producción.
+        self.assertIn('Cuidado hipoalerg', portada)
+        self.assertIn('babycalebpanama@gmail.com', portada)
+        for de_dcasa in ("D'CASA", 'D&#39;CASA', 'dcasapty', '6026-1919', '60261919'):
+            self.assertNotIn(de_dcasa, portada)
 
     def test_portada_muestra_productos_con_precio_y_agregar(self):
         html = self.url_open('/').text
@@ -181,7 +223,6 @@ class TestPortadaDinamica(HttpCase):
         self.assertIn('action="/dcasa/carrito/agregar"', html)
         self.assertNotIn('MUEBLE SIN PUBLICAR', html)
         self.assertIn('Lo más buscado', html)
-        self.assertIn('Para dormir mejor', html)
 
     def test_cifras_de_socios_salen_de_puntos_json(self):
         # Cifras de PRUEBA encima de puntos.json (dcasa_socios/tests/common.py): la banda las lee de ahí.
@@ -340,12 +381,20 @@ class TestMarcaYMovimiento(HttpCase):
             self.assertNotEqual(base64.b64decode(website.favicon), archivo.read())
         self.assertTrue(website.favicon)
 
-    def test_hero_sin_placa_con_texto_blanco(self):
+    def test_hero_crema_y_cabeceras_de_pagina_sin_foto(self):
+        """El hero de babycaleb.com: crema, con el antetítulo en píldora; las páginas interiores, la misma cabecera
+        crema, sin foto (la de antes era de muebles)."""
         html = self.url_open('/').text
         self.assertIn('o_dcasa_hero_texto', html)
+        self.assertIn('o_dcasa_kicker_pildora', html)
         self.assertNotIn('o_dcasa_placa', html)
-        socios = self.url_open('/socios').text
-        self.assertIn('o_dcasa_hero_compacto', socios, 'Las páginas interiores usan el mismo hero')
+        self.assertNotIn('o_dcasa_kicker_light', html)
+        for ruta in ('/socios', '/privacidad', '/web/login', '/visitanos', '/contactus'):
+            pagina = self.url_open(ruta).text
+            cabecera = re.search(r'<section class="o_dcasa_hero o_dcasa_hero_compacto[^"]*".*?</section>', pagina, re.S)
+            self.assertTrue(cabecera, f'{ruta}: la cabecera de página de siempre')
+            self.assertNotIn('<img', cabecera.group(0), f'{ruta}: la cabecera ya no lleva foto')
+            self.assertIn('o_dcasa_kicker_pildora', cabecera.group(0))
 
     def test_sin_resenas_de_otra_empresa(self):
         """Baby Caleb (2026-11-18): todavía no hay ficha de Google suya en data/resenas.json; las de la tienda de origen
@@ -399,7 +448,8 @@ class TestMarcaYMovimiento(HttpCase):
         html = self.url_open('/').text
         self.assertIn('o_no_autohide_menu', html, 'Las tres opciones del menú nunca se esconden en el «+»')
         self.assertIn('id="dcasa-liquido"', html)
-        # En la portada solo una franja corta, sin mapa, que lleva a la página.
+        self.assertNotIn('o_dcasa_anuncios', html, 'sin la barra de anuncios encima de la pastilla')
+        # En la portada, la cobertura (sin mapa), que lleva a la página de contacto.
         self.assertIn('id="visitanos"', html)
         self.assertIn('href="/visitanos"', html)
         self.assertNotIn('https://www.google.com/maps/embed?pb=', html)
@@ -459,16 +509,19 @@ class TestMarcaYMovimiento(HttpCase):
         self.assertNotIn('Libertadores', html)
         self.assertIn('href="/whatsapp"', html)
 
-    def test_whatsapp_sin_boton_en_el_menu_y_con_la_seccion_de_contacto(self):
-        """Decisión de la dueña (2026-11-15): «Escríbenos» sale del menú; la portada lleva una sección pequeña que
-        invita a escribir por WhatsApp o por correo, antes de Visítanos."""
+    def test_whatsapp_sin_boton_en_el_menu_y_con_la_cobertura(self):
+        """Decisión de la dueña (2026-11-15): «Escríbenos» sale del menú. Con la marca de Baby Caleb (2026-11-19) la
+        portada lleva su cobertura (S18Coverage.tsx): el WhatsApp de ventas, el horario y la zona; el correo, en el
+        pie."""
         self.assertNotIn('btn_cta', self.url_open('/shop').text, 'el menú ya no lleva «Escríbenos»')
         portada = self.url_open('/').text
-        seccion = re.search(r'<section class="o_dcasa_contacto_cta".*?</section>', portada, re.S)
-        self.assertTrue(seccion, 'la portada trae la sección de contacto')
-        self.assertIn('href="/whatsapp"', seccion.group(0))
-        self.assertRegex(seccion.group(0), r'href="mailto:[^"]+@[^"]+"')
-        self.assertLess(portada.index('o_dcasa_contacto_cta'), portada.index('id="visitanos"'), 'antes de Visítanos')
+        seccion = re.search(r'<section id="visitanos".*?</section>', portada, re.S)
+        self.assertTrue(seccion, 'la portada trae la cobertura')
+        self.assertIn('https://wa.me/50767575065', seccion.group(0))
+        self.assertIn('+507 6757-5065', seccion.group(0))
+        self.assertIn('Venta 100% online con entrega a domicilio — Ciudad de Panamá', seccion.group(0))
+        pie = re.search(r'<footer.*?</footer>', portada, re.S).group(0)
+        self.assertRegex(pie, r'href="mailto:babycalebpanama@gmail\.com"')
 
     def test_cache_de_pagina_separa_tarifas(self):
         pagina = self.env.ref('website.homepage_page')
@@ -522,3 +575,86 @@ class TestResenasRobustas(TransactionCase):
             self.assertEqual(website._dcasa_resenas()['opiniones'], [])
         finally:
             modulo._leer_resenas = original
+
+
+# Lo que ningún visitante debe leer en las páginas de este módulo (encargo del 2026-11-19): ni la marca de la tienda de
+# origen ni nada de muebles. Se mira el texto visible y lo que también se lee o se oye: alt, title, aria-label,
+# placeholder y las etiquetas <meta> (Google y las redes).
+RESTOS_DE_DCASA = re.compile(r"D'CASA|D&#39;CASA|D&apos;CASA|D’CASA|dcasapty|mueble|colch[oó]n|La Chorrera", re.I)
+
+
+def _lo_que_se_ve(html):
+    sin_codigo = re.sub(r'<script.*?</script>|<style.*?</style>|<!--.*?-->', ' ', html, flags=re.S)
+    textos = re.sub(r'<[^>]+>', ' ', sin_codigo)
+    atributos = re.findall(r'\b(?:alt|title|aria-label|placeholder)="([^"]*)"', sin_codigo)
+    metas = re.findall(r'<meta[^>]*\bcontent="([^"]*)"', sin_codigo)
+    return ' '.join([textos, *atributos, *metas])
+
+
+@tagged('post_install', '-at_install')
+class TestSinRestosDeDcasa(HttpCase):
+    """Ni «D'CASA» ni nada de muebles en lo que se ve del sitio (los textos legales van palabra por palabra y los dicta
+    el dueño: no se miran aquí; /socios es de dcasa_socios)."""
+
+    def setUp(self):
+        super().setUp()
+        self.website = self.env.ref('website.default_website')
+        self.producto = self.env['product.template'].create({
+            'name': 'Pañal de la prueba de restos', 'list_price': 45.0, 'is_published': True,
+            'dcasa_black_weekend': True})
+
+    def test_ninguna_pagina_dice_dcasa_ni_muebles(self):
+        from odoo.addons.website_dcasa.models.black_weekend import PARAM_ACTIVO, PARAM_FIN, PARAM_INICIO
+        param = self.env['ir.config_parameter'].sudo()
+        param.set_param(PARAM_ACTIVO, '1')
+        param.set_param(PARAM_INICIO, '')
+        param.set_param(PARAM_FIN, '')
+        for ruta in ('/', '/shop', self.producto.website_url, '/visitanos', '/contactus', '/web/login',
+                     '/promociones', '/shop/cart', '/shop?search=zzzz', '/esta-pagina-no-existe'):
+            with self.subTest(ruta=ruta):
+                respuesta = self.url_open(ruta)
+                self.assertIn(respuesta.status_code, (200, 404))
+                encontrado = RESTOS_DE_DCASA.findall(_lo_que_se_ve(respuesta.text))
+                self.assertEqual(encontrado, [], ruta)
+
+    def test_el_checkout_no_dice_el_lugar_ni_muebles(self):
+        """Las entregas y el mensaje del pago en la tienda: lo que el cliente lee al pagar."""
+        entregas = self.env['delivery.carrier'].sudo().search([('is_published', '=', True)])
+        for nombre in entregas.mapped('name'):
+            self.assertNotRegex(nombre, RESTOS_DE_DCASA)
+        self.assertIn('Retiro en tienda', entregas.mapped('name'))
+        cod = self.env.ref('delivery.payment_provider_cod').sudo()
+        self.assertNotRegex(str(cod.with_context(lang='es_419').pending_msg), RESTOS_DE_DCASA)
+        mensaje = str(cod.with_context(lang='es_419').pending_msg)
+        self.assertIn('El pedido se entrega cuando está pagado completo', mensaje)
+
+    def test_una_base_ya_instalada_queda_al_dia_al_actualizar(self):
+        """El menú se arma una vez al instalar y las entregas y los pagos también: en una base que ya existía (staging)
+        la migración 19.0.1.19.0 los pone al día. Aquí se simula esa base vieja y se corre lo que corre la migración."""
+        idiomas = [codigo for codigo, _n in self.env['res.lang'].get_installed()]
+        socios = self.website.menu_id.child_id.filtered(lambda m: m.url == '/socios')
+        socios.update_field_translations('name', dict.fromkeys(idiomas, "Socios D'CASA"))
+        Carrier = self.env['delivery.carrier'].sudo().with_context(active_test=False)
+        retiro = Carrier.search([('name', '=', 'Retiro en tienda')])
+        retiro.update_field_translations('name', dict.fromkeys(idiomas, 'Retiro en tienda (La Chorrera)'))
+        cod = self.env.ref('delivery.payment_provider_cod').sudo()
+        for idioma in idiomas:
+            cod.with_context(lang=idioma).pending_msg = Markup(
+                '<p>Te lo apartamos por la página web. El mueble se entrega cuando está pagado completo.</p>')
+        self.assertIn("Socios D&#39;CASA", self.url_open('/shop').text, 'la base vieja')
+
+        self.env['website']._dcasa_sin_restos_de_dcasa()
+        self.env['website']._dcasa_sin_restos_de_dcasa()   # se puede volver a correr
+
+        for idioma in idiomas:
+            with self.subTest(idioma=idioma):
+                self.assertEqual(socios.with_context(lang=idioma).name, 'Socios Baby Caleb')
+                self.assertEqual(retiro.with_context(lang=idioma).name, 'Retiro en tienda')
+                self.assertIn('El pedido se entrega', str(cod.with_context(lang=idioma).pending_msg))
+        self.assertEqual(Carrier.search_count([('name', 'ilike', 'Retiro en tienda')]), 1, 'sin duplicar la entrega')
+        cabecera = re.search(r'<header id="top".*?</header>', self.url_open('/shop').text, re.S).group(0)
+        self.assertNotRegex(cabecera, RESTOS_DE_DCASA)
+        self.assertIn('<span>Socios Baby Caleb</span>', cabecera)
+        # La migración llama justo a esto.
+        with file_open('website_dcasa/migrations/19.0.1.19.0/post-migrate.py') as archivo:
+            self.assertIn('_dcasa_sin_restos_de_dcasa()', archivo.read())

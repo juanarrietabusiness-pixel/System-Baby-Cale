@@ -1,64 +1,93 @@
-// D'CASA — paleta y tipografías del sitio (ADN: 01_brand_guidelines.md §3-4).
-// Se cargan como la paleta por defecto del sitio: desde el editor
-// (Sitio web > Editar > Tema) se pueden ajustar sin tocar este archivo.
+// Baby Caleb — paleta y letra del sitio (docs/MARCA_BABY_CALEB.md, pedido del dueño del 2026-11-19: «el branding de
+// la web de Baby Caleb tal cual»). Los valores salen de Baby-caleb/brand.json y src/styles/themes/babycaleb.css: no
+// se inventa ninguno. Se cargan como la paleta por defecto del sitio: desde el editor (Sitio web > Editar > Tema) se
+// pueden ajustar sin tocar este archivo.
+//
+// Los cinco colores de Odoo y su papel:
+//   o-color-1 naranja #EE924A — el botón principal (relleno). NUNCA texto ni borde: sobre el crema da 2.20.
+//   o-color-2 verde   #91C9A2 — bandas e insignias (relleno). Tampoco texto ni borde (1.75).
+//   o-color-3 surface #F2EFE5 — tarjetas y bandas suaves.
+//   o-color-4 crema   #F9F6ED — el fondo de la página. El blanco puro casi no se usa.
+//   o-color-5 navy    #1B3246 — texto, titulares, enlaces e íconos (12.21 sobre el crema).
+//
+// Como el naranja es el «primary» de Odoo, los enlaces NO pueden quedarse con el color de Odoo por defecto (el
+// primary): cada combinación pone su enlace en navy. Y la letra de los botones de Odoo la decide su contraste
+// automático: dcasa.scss la fija en navy encima del naranja (5.56), nunca blanca.
 //
 // Combinaciones de color de Odoo con esta paleta:
-//   o_cc1 fondo blanco · o_cc2 fondo hueso · o_cc3 fondo amarillo
-//   o_cc4 fondo azul   · o_cc5 fondo navy
-// Regla dura del ADN: el amarillo nunca toca el blanco. Por eso los botones
-// amarillos solo se usan sobre azul (o_cc4) y el botón principal es azul.
+//   o_cc1 crema · o_cc2 surface · o_cc3 verde (letra navy, 6.96) · o_cc4 naranja (letra navy, 5.56) · o_cc5 navy
 
 $o-color-palettes: map-merge($o-color-palettes, (
-    'dcasa': (
-        'o-color-1': #1340B1, // Azul D'CASA — color madre
-        'o-color-2': #FED00F, // Amarillo D'CASA — acción y banda
-        'o-color-3': #F6F5F2, // Hueso claro — fondos alternos (v3, 2026-11-15: casi neutro; antes #F4F1EA)
-        'o-color-4': #FFFFFF, // Blanco — aire
-        'o-color-5': #0E2A6B, // Navy — texto largo, bandas grandes y Visítanos
+    'babycaleb': (
+        'o-color-1': #EE924A, // accent: relleno de acción
+        'o-color-2': #91C9A2, // sage: relleno de las bandas
+        'o-color-3': #F2EFE5, // surface
+        'o-color-4': #F9F6ED, // bg: el crema de la página
+        'o-color-5': #1B3246, // fg: el navy de la letra
+
+        'o-cc1-text': 'o-color-5',
+        'o-cc1-headings': 'o-color-5',
+        'o-cc1-link': 'o-color-5',
+        'o-cc2-text': 'o-color-5',
+        'o-cc2-headings': 'o-color-5',
+        'o-cc2-link': 'o-color-5',
+        'o-cc3-text': 'o-color-5',
+        'o-cc3-headings': 'o-color-5',
+        'o-cc3-link': 'o-color-5',
+        'o-cc3-btn-primary': 'o-color-1',
+        'o-cc3-btn-secondary': 'o-color-4',
+        'o-cc4-text': 'o-color-5',
+        'o-cc4-headings': 'o-color-5',
+        'o-cc4-link': 'o-color-5',
+        'o-cc4-btn-primary': 'o-color-5',
+        'o-cc4-btn-secondary': 'o-color-4',
+        'o-cc5-text': 'o-color-4',
+        'o-cc5-headings': 'o-color-4',
+        'o-cc5-link': 'o-color-4',
+
+        // Cabecera, pie y copyright en el crema de la página (S20Footer.tsx: `bg-bg` con un filo arriba).
         'menu': 1,
-        // Pie en el blanco grisáceo de la portada (o_cc2), pedido de la dueña 2026-11-15: el azul puro en un bloque
-        // grande cansaba la vista. La franja del copyright va un tono más oscura (dcasa.scss, «Pie de página»).
-        'footer': 2,
-        'copyright': 2,
+        'footer': 1,
+        'copyright': 1,
     ),
 ));
 
-// Fuentes autoalojadas (static/src/scss/fuentes.scss): sin 'url', website.scss de Odoo no
-// hace @import de fonts.googleapis.com. Inter se redefine igual: la de Odoo sí lo pedía.
+// Montserrat autoalojada (static/src/scss/fuentes.scss): sin 'url', website.scss de Odoo no hace @import de
+// fonts.googleapis.com. Odoo trae su propia entrada «Montserrat» con la URL de Google: esta la reemplaza entera.
 $o-theme-font-configs: map-merge($o-theme-font-configs, (
-    'Anton': (
-        'family': ('Anton', 'Oswald', sans-serif),
-    ),
-    'Oswald': (
-        'family': ('Oswald', sans-serif),
-    ),
-    'Inter': (
-        'family': ('Inter', sans-serif),
+    'Montserrat': (
+        'family': ('Montserrat', sans-serif),
     ),
 ));
 
 $o-website-values-palettes: (
     (
-        'color-palettes-name': 'dcasa',
-        'font': 'Inter',
-        'headings-font': 'Anton',
-        'h3-font': 'Oswald',
-        'h4-font': 'Oswald',
-        'h5-font': 'Oswald',
-        'h6-font': 'Oswald',
-        'navbar-font': 'Oswald',
-        'buttons-font': 'Oswald',
+        'color-palettes-name': 'babycaleb',
+        'font': 'Montserrat',
+        'headings-font': 'Montserrat',
+        'h2-font': 'Montserrat',
+        'h3-font': 'Montserrat',
+        'h4-font': 'Montserrat',
+        'h5-font': 'Montserrat',
+        'h6-font': 'Montserrat',
+        'navbar-font': 'Montserrat',
+        'buttons-font': 'Montserrat',
 
-        'btn-padding-x': 1.25rem,
-        'btn-padding-y-lg': .85rem,
+        // Botones en pastilla y campos de 14 px de radio (docs/MARCA_BABY_CALEB.md › Formas). En rem: Bootstrap resta
+        // el ancho del borde (en rem) a estos radios y no mezcla unidades. 50rem es una pastilla en cualquier botón.
+        'btn-padding-x': 1.5rem,
+        'btn-padding-y-lg': .9rem,
         'btn-padding-x-lg': 2rem,
-        'btn-border-radius': .75rem,
-        'btn-border-radius-lg': .9rem,
-        'input-border-radius': .5rem,
+        'btn-border-radius': 50rem,
+        'btn-border-radius-sm': 50rem,
+        'btn-border-radius-lg': 50rem,
+        'input-border-radius': .875rem,
+        'input-border-radius-sm': .875rem,
+        'input-border-radius-lg': .875rem,
 
         'header-template': 'default',
         'header-links-style': 'default',
-        'logo-height': 3.25rem,
+        'logo-height': 2.5rem,
         'footer-template': 'default',
         'footer-scrolltop': true,
     ),

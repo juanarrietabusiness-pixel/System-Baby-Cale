@@ -105,17 +105,16 @@ TEXTOS_CORREGIDOS = [
     ('Entrega a todo Panamá', 'Entregas en Panamá Oeste, Panamá y Colón'),
 ]
 
-# Categorías de la portada: (xmlid, nombre, texto alternativo). La foto es static/src/img/cat-<xmlid>.webp.
-# Son las de muebles de la copia de origen: el catálogo de Baby Caleb no tiene nada en ellas, así que la sección
-# «Compra por espacio» no sale (``_dcasa_categorias_con_productos``). Cuando Baby Caleb tenga fotos de sus categorías,
-# van aquí.
+# Categorías de la tienda de la copia de origen (xmlid, nombre). Con la marca de Baby Caleb (2026-11-19) la portada ya
+# no las enseña («Compra por espacio» y sus fotos de muebles se quitaron): solo las ofrece la búsqueda sin resultados, y
+# solo las que tienen algo publicado (``_dcasa_categorias``, models/buscador.py).
 CATEGORIAS_PORTADA = [
-    ('salas', 'Salas', 'Sala con sofá turquesa y mesa de centro de madera'),
-    ('recamaras', 'Recámaras', 'Cama king con cabecero tapizado'),
-    ('colchones', 'Colchones', 'Recámara luminosa con cama y colchón'),
-    ('zapateras', 'Zapateras', 'Mueble zapatera con puertas abatibles'),
-    ('organizacion', 'Estantes', 'Estante de cocina con repisas de madera'),
-    ('oficina', 'Oficina', 'Escritorio negro con repisa superior'),
+    ('salas', 'Salas'),
+    ('recamaras', 'Recámaras'),
+    ('colchones', 'Colchones'),
+    ('zapateras', 'Zapateras'),
+    ('organizacion', 'Estantes'),
+    ('oficina', 'Oficina'),
 ]
 
 # Menú principal: tres opciones. Las categorías viven dentro del catálogo (/shop). Baby Caleb no tiene tienda que
@@ -268,35 +267,24 @@ class Website(models.Model):
         return self.env['product.template'].sudo().search_count(dominio, limit=limit)
 
     def _dcasa_categorias(self):
-        """Tarjetas de «Compra por espacio»: la URL sale de la categoría real de la tienda.
+        """Las categorías de la tienda con su URL real y cuántos productos publicados tienen.
 
-        Una categoría sin nada publicado (hoy, «Colchones»: Gerencia no los ha publicado) no lleva a una página vacía o
-        de error: abre WhatsApp con el mensaje listo. Cuando se publique algo, vuelve sola a su página de la tienda
-        (pedido de la dueña, 2026-11-09)."""
+        Una categoría sin nada publicado no lleva a una página vacía o de error: abre WhatsApp con el mensaje listo.
+        Cuando se publique algo, vuelve sola a su página de la tienda (pedido de la dueña, 2026-11-09)."""
         self.ensure_one()
         tarjetas = []
-        for clave, nombre, alt in CATEGORIAS_PORTADA:
+        for clave, nombre in CATEGORIAS_PORTADA:
             cantidad = self._dcasa_categoria_cantidad(clave)
             con_productos = bool(cantidad)
             tarjetas.append({
+                'clave': clave,
                 'nombre': nombre,
                 'cantidad': cantidad,
                 'url': self._dcasa_categoria_url(clave) if con_productos else self._dcasa_whatsapp_url(
                     f'Hola {MARCA}, quiero información de {nombre.lower()}'),
                 'whatsapp': not con_productos,
-                'imagen': f'/website_dcasa/static/src/img/cat-{clave}.webp',
-                # 400 px para el celular (dos columnas de ~180 px): 11-18 KB en vez de 36-68 KB.
-                'imagen_chica': f'/website_dcasa/static/src/img/cat-{clave}-400.webp',
-                'alt': alt,
             })
         return tarjetas
-
-    def _dcasa_categorias_con_productos(self):
-        """Las tarjetas de «Compra por espacio» si al menos una categoría tiene algo publicado; si ninguna tiene nada,
-        una lista vacía y la sección no sale: seis tarjetas que solo llevan a WhatsApp no ayudan a comprar (Baby
-        Caleb, 2026-11-18: su catálogo no tiene nada en las categorías de muebles de la portada)."""
-        tarjetas = self._dcasa_categorias()
-        return tarjetas if any(not tarjeta['whatsapp'] for tarjeta in tarjetas) else []
 
     def _dcasa_dominio_publicado(self):
         """Lo que un visitante puede comprar: se vende en este sitio y está publicado.

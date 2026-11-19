@@ -1,24 +1,23 @@
-"""Portada: el carrusel del hero con productos propios y la sección «de cine» (pedido de la dueña, 2026-11-16).
+"""Portada: el carrusel del hero con productos propios (pedido de la dueña, 2026-11-16).
 
 * **Carrusel del hero** (``dcasa.portada.diapositiva``): la dueña quiere fotos propias que «se vean muy bien», en
   carrusel («algo dinámico, interactivo, que cambie»). Qué productos salen y en qué orden se elige en el panel
   (Sitio web › Carrusel de la portada, Gerencia y administradores), sin tocar código. Vacío = el hero de siempre (la
   foto con el texto encima). Cada diapositiva es la foto principal del producto, su nombre de cliente y un enlace a
   su ficha; solo salen los productos que un visitante puede comprar (publicados y a la venta en el sitio) y con foto.
-* **Sección «de cine»** (``website._dcasa_cine``): dos cintas de fotos que corren solas a media portada, sacadas del
-  catálogo publicado por categoría (camas, colchones, salas…), con un botón al catálogo. Nada se escribe a mano.
 
-Las plantillas están en ``views/homepage_templates.xml`` (``hero_carrusel``, ``seccion_cine``) y el movimiento en
+Con la marca de Baby Caleb (2026-11-19) las fotos se funden en el marco redondeado del hero crema, al lado del texto.
+La sección «de cine» (dos cintas de fotos del catálogo por categoría de muebles) se quitó con la marca: era de muebles
+y no está en la portada de babycaleb.com.
+
+La plantilla está en ``views/homepage_templates.xml`` (``hero_carrusel``) y el movimiento en
 ``static/src/js/portada.js``.
 """
 import logging
-import math
 
 from odoo import api, fields, models
 from odoo.fields import Domain
 from odoo.http import request
-
-from .website import CATEGORIAS_PORTADA
 
 _logger = logging.getLogger(__name__)
 
@@ -26,18 +25,7 @@ _logger = logging.getLogger(__name__)
 MAX_DIAPOSITIVAS = 8
 # Anchos de la foto del hero (WebP de /dcasa/img, models/imagen.py) y el ancho con que se pinta.
 ANCHOS_HERO = (512, 1024, 1600)
-TAMANOS_HERO = '(min-width: 992px) 58vw, 100vw'
-
-# Sección «de cine»: de qué categorías salen las fotos (en este orden, intercaladas) y cuántas de cada una.
-CATEGORIAS_CINE = ('recamaras', 'colchones', 'salas', 'zapateras', 'organizacion', 'oficina')
-POR_CATEGORIA_CINE = 4
-# Con menos fotos que esto la sección no sale: una cinta de dos o tres fotos repetidas se ve pobre.
-MINIMO_CINE = 4
-# Cada cinta repite su lista hasta tener al menos este número de fotos por vuelta (llena una pantalla ancha).
-FOTOS_POR_VUELTA = 8
-SEGUNDOS_POR_FOTO = 4.5
-# El orden de la tienda (el mismo de los carriles de la portada, ``website._dcasa_productos``).
-ORDEN_CATALOGO = 'website_sequence asc, id desc'
+TAMANOS_HERO = '(min-width: 992px) 46vw, 100vw'
 
 _MEMO = '_dcasa_hero_carrusel'
 
@@ -162,61 +150,3 @@ class Website(models.Model):
                 setattr(request, _MEMO, memo)
             memo[self.id] = diapositivas
         return diapositivas
-
-    def _dcasa_cine(self):
-        """Fotos de la sección «de cine»: productos publicados con foto, por categoría e intercalados.
-
-        Lo que ya enseñan los carriles de arriba («Lo más buscado» y «Para dormir mejor») no se repite: la cinta es para
-        darse una vuelta por lo demás (si así no alcanza, se usa todo el catálogo). Devuelve ``None`` si no alcanzan
-        (``MINIMO_CINE``); si alcanzan, las dos cintas: sus fotos, cuántas veces se repiten para cerrar la vuelta sin
-        salto y cuánto dura una vuelta.
-        """
-        self.ensure_one()
-        fotos = self._dcasa_cine_fotos(self._dcasa_ids_en_carriles())
-        if len(fotos) < MINIMO_CINE:
-            fotos = self._dcasa_cine_fotos(set())
-        if len(fotos) < MINIMO_CINE:
-            return None
-        cintas = []
-        for indice, lista in enumerate((fotos[0::2], fotos[1::2])):
-            copias = 2 * math.ceil(FOTOS_POR_VUELTA / len(lista))
-            # La segunda va un poco más lenta y al revés: las dos cintas no se mueven en bloque.
-            segundos = len(lista) * copias / 2 * SEGUNDOS_POR_FOTO * (1.15 if indice else 1)
-            cintas.append({'fotos': lista, 'copias': copias, 'duracion': f'{round(segundos)}s',
-                           'reversa': bool(indice)})
-        return {'cintas': cintas, 'total': len(fotos)}
-
-    def _dcasa_ids_en_carriles(self):
-        """Ids de lo que muestran los carriles de la portada (las mismas búsquedas que ``_dcasa_productos``)."""
-        Producto = self.env['product.template']
-        publicado = self._dcasa_dominio_publicado()
-        ids = set(Producto.search(publicado, limit=8, order=ORDEN_CATALOGO).ids)
-        dormir = [c.id for clave in ('recamaras', 'colchones') if (c := self._dcasa_categoria(clave))]
-        if dormir:
-            dominio = Domain.AND([publicado, [('public_categ_ids', 'child_of', dormir)]])
-            ids.update(Producto.search(dominio, limit=8, order=ORDEN_CATALOGO).ids)
-        return ids
-
-    def _dcasa_cine_fotos(self, excluir):
-        """Hasta ``POR_CATEGORIA_CINE`` productos con foto de cada categoría de ``CATEGORIAS_CINE``, intercalados (una
-        cama, un colchón, una sala…), en el orden de la tienda y sin los de ``excluir``."""
-        nombres = {clave: nombre for clave, nombre, _alt in CATEGORIAS_PORTADA}
-        Producto = self.env['product.template']
-        publicado = self._dcasa_dominio_publicado()
-        vistos, por_categoria = set(excluir), []
-        for clave in CATEGORIAS_CINE:
-            categoria = self._dcasa_categoria(clave)
-            if not categoria:
-                continue
-            dominio = Domain.AND([publicado, [('public_categ_ids', 'child_of', categoria.sudo().id),
-                                              ('id', 'not in', list(vistos))]])
-            # Algunos más de los que hacen falta: los que no tienen foto se saltan.
-            candidatos = Producto.search(dominio, limit=POR_CATEGORIA_CINE * 3, order=ORDEN_CATALOGO)
-            elegidos = [p for p in candidatos if self._dcasa_img_base(p)][:POR_CATEGORIA_CINE]
-            vistos.update(p.id for p in elegidos)
-            if elegidos:
-                por_categoria.append((nombres.get(clave, categoria.sudo().name), elegidos))
-        return [
-            {'producto': lista[i], 'nombre': lista[i]._dcasa_nombre_cliente(), 'categoria': nombre}
-            for i in range(POR_CATEGORIA_CINE) for nombre, lista in por_categoria if i < len(lista)
-        ]

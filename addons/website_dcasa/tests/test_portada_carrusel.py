@@ -1,37 +1,33 @@
 # ruff: noqa: E501  (JavaScript del navegador embebido en texto)
-"""Portada: el hero es UN FONDO EN MOVIMIENTO (la dueña, 2026-11-17: «simplemente quiero la foto detrás, el
-texto») y la sección «de cine» (models/portada.py, views/homepage_templates.xml, static/src/js/portada.js).
-Lo que se fija aquí:
+"""Portada: el hero con los productos que elige Gerencia (models/portada.py, views/homepage_templates.xml,
+static/src/js/portada.js), con la marca de Baby Caleb (docs/MARCA_BABY_CALEB.md, 2026-11-19). Lo que se fija aquí:
 
 * El ajuste: «Sitio web › Carrusel de la portada», una lista que se ordena arrastrando; solo Gerencia y los
   administradores la ven y la cambian.
-* Vacío = el hero de siempre (también si nada de la lista se puede mostrar: sin publicar o sin foto). Con productos:
-  las fotos ocupan la pantalla entera y se funden unas en otras, en orden al azar, con un zoom lento que no para.
-  Encima, SOLO el texto de siempre: ni nombres de producto, ni enlaces, ni flechas, ni barras, ni pausa. El visitante
-  no maneja nada, así que el bloque es decorativo (aria-hidden, alt vacío). La primera foto es la imagen LCP
-  (precargada, «eager», prioridad alta).
-* El contraste se resuelve en AZUL DE MARCA, no oscureciendo la foto: un degradado diagonal (navy → azul →
-  transparente) que deja el amarillo siempre sobre azul y nunca sobre blanco.
-* El carrusel nace UNA vez con las camas que aprobó la dueña (por su código público); lo que no existe se salta.
+* Vacío = el hero de siempre, con la foto del bebé (también si nada de la lista se puede mostrar: sin publicar o sin
+  foto). Con productos: el mismo hero crema, y en el marco redondeado de la derecha sus fotos se funden unas en otras,
+  en orden al azar, con un zoom lento que no para. Ni nombres de producto, ni enlaces, ni flechas, ni barras, ni
+  pausa: el visitante no maneja nada, así que las fotos son decorativas (aria-hidden, alt vacío). La primera es la
+  imagen LCP (precargada, «eager», prioridad alta).
+* Sin velo ni degradado sobre las fotos: el texto va sobre el crema, al lado (encima en el celular).
+* El carrusel nace UNA vez con los productos aprobados (por su código público); lo que no existe se salta.
 * Con el editor del sitio abierto (quien tiene el grupo de diseñador recibe las plantillas con sus marcas) la portada
   abre, y un hero guardado con el editor sigue dentro de su condición.
-* La sección «de cine»: dos cintas con fotos del catálogo publicado (sin repetir los carriles de arriba) y el botón al
-  catálogo; sin fotos suficientes no sale.
-* En Chrome: la foto de orilla a orilla y del alto de la pantalla, el zoom corriendo, el cambio solo de foto (y quieto
-  con movimiento reducido), que no haya NADA que tocar, la píldora clara y que nada ensanche la página.
+* La sección «de cine» (dos cintas de fotos de las categorías de muebles) ya no sale: se quitó con la marca.
+* En Chrome: la foto llena su marco, el zoom corre, la foto cambia sola (y quieta con movimiento reducido), no hay
+  NADA que tocar y nada ensancha la página.
 """
 import base64
 import contextlib
 import io
-from unittest.mock import patch
 
 from lxml import html as lhtml
 from PIL import Image
 from psycopg2 import IntegrityError
 
 from odoo import Command
-from odoo.addons.website_dcasa.models.portada import CARRUSEL_INICIAL, MINIMO_CINE, PARAM_SEMBRADO
-from odoo.addons.website_dcasa.tests.test_black_weekend import amarillo_sobre_blanco
+from odoo.addons.website_dcasa.models import portada as modulo_portada
+from odoo.addons.website_dcasa.models.portada import CARRUSEL_INICIAL, PARAM_SEMBRADO
 from odoo.exceptions import AccessError
 from odoo.tests import HttpCase, tagged
 from odoo.tests import common as comun
@@ -70,27 +66,16 @@ class TestCarruselPortada(HttpCase):
         cls.website = cls.env.ref('website.default_website')
         cls.Diapositiva = cls.env['dcasa.portada.diapositiva']
         cls.Diapositiva.search([]).unlink()
-        recamaras = cls.env.ref('website_dcasa.public_category_recamaras')
-        base = {'type': 'consu', 'is_storable': False, 'sale_ok': True, 'is_published': True, 'list_price': 159.99,
-                'public_categ_ids': [Command.set(recamaras.ids)]}
+        base = {'type': 'consu', 'is_storable': False, 'sale_ok': True, 'is_published': True, 'list_price': 45.0}
         Plantilla = cls.env['product.template']
-        cls.camas = Plantilla.browse()
-        for nombre, color in (('CAMA QUEEN NEGRA, CABECERO CON ALAS EN CHEVRON', (20, 20, 20)),
-                              ('CAMA KING ROSADA, CABECERO CON ALAS Y CANALES', (230, 150, 170)),
-                              ('CAMA QUEEN BEIGE, CABECERO DE PANELES', (220, 205, 180))):
+        cls.camas = Plantilla.browse()   # (el nombre viene de la copia de origen: aquí son cajas de pañales)
+        for nombre, color in (('CAJA NATEEN TALLA M', (20, 20, 20)),
+                              ('CAJA NATEEN TALLA L', (230, 150, 170)),
+                              ('CAJA WIPES DE AGUA', (220, 205, 180))):
             cls.camas |= Plantilla.create({**base, 'name': f'ZZCARRUSEL {nombre}', 'image_1920': _foto(color)})
-        cls.sin_publicar = Plantilla.create({**base, 'name': 'ZZCARRUSEL CAMA SIN PUBLICAR', 'is_published': False,
+        cls.sin_publicar = Plantilla.create({**base, 'name': 'ZZCARRUSEL CAJA SIN PUBLICAR', 'is_published': False,
                                              'image_1920': _foto((90, 90, 90))})
-        cls.sin_foto = Plantilla.create({**base, 'name': 'ZZCARRUSEL CAMA SIN FOTO'})
-        # Catálogo para la sección «de cine» (también en una base sin el catálogo real): cuatro con foto en cada una de
-        # cinco categorías. Los carriles de arriba se llevan como mucho 16; quedan fotos para las cintas.
-        cls.catalogo = Plantilla.browse()
-        for clave in ('colchones', 'salas', 'zapateras', 'organizacion', 'oficina'):
-            categoria = cls.env.ref(f'website_dcasa.public_category_{clave}')
-            for i in range(4):
-                cls.catalogo |= Plantilla.create({
-                    **base, 'name': f'ZZCINE {clave.upper()} {i}', 'public_categ_ids': [Command.set(categoria.ids)],
-                    'image_1920': _foto((60 + 30 * i, 120, 160), 300, 400)})
+        cls.sin_foto = Plantilla.create({**base, 'name': 'ZZCARRUSEL CAJA SIN FOTO'})
         cls.gerente = _usuario(cls.env, 'gerente_carrusel', 'dcasa_base.group_gerencia')
         cls.vendedora = _usuario(cls.env, 'vendedora_carrusel', 'dcasa_base.group_vendedora')
         cls.interno = _usuario(cls.env, 'interno_carrusel')
@@ -149,9 +134,10 @@ class TestCarruselPortada(HttpCase):
         texto, arbol = self._portada()
         self.assertIsNone(self._vitrina(arbol))
         self.assertTrue(arbol.xpath('//div[@id="oe_structure_dcasa_hero"]//section[contains(@class, "o_dcasa_hero")]'))
-        self.assertIn('/website_dcasa/static/src/img/hero.webp', texto)
+        self.assertIn('/website_dcasa/static/src/img/hero-bebe-1200.webp', texto, 'la foto del bebé de babycaleb.com')
         precarga = arbol.xpath('//head/link[@rel="preload"][@as="image"]')
-        self.assertEqual([p.get('href') for p in precarga], ['/website_dcasa/static/src/img/hero.webp'])
+        self.assertEqual([p.get('href') for p in precarga], ['/website_dcasa/static/src/img/hero-bebe-1200.webp'])
+        self.assertIn('hero-bebe-800.webp 800w', precarga[0].get('imagesrcset'))
 
     def test_con_productos_el_fondo_son_las_fotos_y_encima_solo_el_texto(self):
         """El hero es un fondo: una foto por producto, en el orden del panel, y encima el texto de siempre.
@@ -166,11 +152,11 @@ class TestCarruselPortada(HttpCase):
         vitrina = self._vitrina(arbol)
         self.assertIsNotNone(vitrina, 'con productos elegidos, el hero es el fondo en movimiento')
         self.assertFalse(arbol.xpath('//div[@id="oe_structure_dcasa_hero"]'), 'y no el de siempre')
-        self.assertNotIn('/website_dcasa/static/src/img/hero.webp', texto)
+        self.assertNotIn('hero-bebe', texto, 'y no la foto del bebé')
         self.assertEqual(len(arbol.xpath('//h1')), 1, 'un solo titular en la página')
         self.assertEqual(' '.join(vitrina.xpath('.//h1')[0].text_content().split()),
                          'Cuidado hipoalergénico para la piel de tu bebé')
-        self.assertEqual(vitrina.xpath('.//a[contains(@class, "o_dcasa_btn_amarillo")]/@href'), ['/shop'])
+        self.assertEqual(vitrina.xpath('.//a[contains(@class, "btn-primary")]/@href'), ['/shop'])
 
         pila = vitrina.xpath('.//div[contains(@class, "o_dcasa_vitrina_fotos")]')[0]
         self.assertEqual(pila.get('aria-hidden'), 'true', 'el fondo es decorativo: no se lee')
@@ -206,9 +192,9 @@ class TestCarruselPortada(HttpCase):
             self.assertNotIn(producto._dcasa_nombre_cliente(), en_el_hero,
                              'el nombre del producto no sale en el hero (en los carriles de abajo sí: son tarjetas)')
 
-        # El texto va aparte de la pila de fotos, en su propio bloque encima.
+        # El texto va aparte de la pila de fotos, en su propio bloque.
         panel = vitrina.xpath('.//div[contains(@class, "o_dcasa_vitrina_panel")]')[0]
-        self.assertTrue(panel.xpath('.//h1'), 'el titular va en el bloque de encima')
+        self.assertTrue(panel.xpath('.//h1'), 'el titular va en su bloque')
         self.assertFalse(panel.xpath('.//img'), 'y ninguna foto dentro del bloque del texto')
 
         precarga = arbol.xpath('//head/link[@rel="preload"][@as="image"]')
@@ -216,19 +202,27 @@ class TestCarruselPortada(HttpCase):
         self.assertEqual(precarga[0].get('imagesrcset'), fuente)
         self.assertEqual(precarga[0].get('fetchpriority'), 'high')
 
-    def test_el_amarillo_nunca_toca_el_blanco(self):
-        """El amarillo del hero cae sobre el degradado azul de marca; el de la sección de cine (blanca) es azul."""
+    def test_el_mismo_hero_crema_con_su_boton_naranja(self):
+        """Con productos, el hero es el de babycaleb.com: el antetítulo en píldora, el titular, el subtítulo y el único
+        botón («Ver el catálogo», el principal: naranja con letra navy). Sin la clase del hero de siempre ni la de la
+        foto oscura, y sin el botón de WhatsApp de la copia de origen."""
         self._elegir(*self.camas)
-        texto, arbol = self._portada()
-        self.assertEqual(amarillo_sobre_blanco(texto), [])
+        _texto, arbol = self._portada()
         vitrina = self._vitrina(arbol)
-        self.assertTrue(vitrina.xpath('.//div[contains(@class, "o_dcasa_vitrina_panel")]//h1'), 'el titular, en el bloque')
-        self.assertTrue(vitrina.xpath('.//div[contains(@class, "o_dcasa_vitrina_panel")]//a[contains(@class, "o_dcasa_btn_amarillo")]'))
-        self.assertNotIn('o_dcasa_hero ', (vitrina.get('class') or '') + ' ',
-                         'sin la clase del hero de siempre: la píldora no se vuelve ahumada sobre la foto clara')
-        cine = arbol.xpath('//section[contains(@class, "o_dcasa_cine")]')[0]
-        self.assertFalse(cine.xpath('.//*[contains(@class, "o_dcasa_btn_amarillo")]'))
-        self.assertEqual(cine.xpath('.//a[contains(@class, "btn-primary")]/@href'), ['/shop'])
+        panel = vitrina.xpath('.//div[contains(@class, "o_dcasa_vitrina_panel")]')[0]
+        self.assertTrue(panel.xpath('.//p[contains(@class, "o_dcasa_kicker_pildora")]'))
+        self.assertEqual(panel.xpath('.//a[contains(@class, "btn")]/@href'), ['/shop'], 'un solo botón, al catálogo')
+        self.assertFalse(vitrina.xpath('.//*[contains(@class, "o_dcasa_btn_linea") or contains(@class, "o_dcasa_kicker_light")]'))
+        self.assertNotIn('o_dcasa_hero ', (vitrina.get('class') or '') + ' ')
+        self.assertEqual(len(vitrina.xpath('.//span[contains(@class, "o_dcasa_hero_mancha")]')), 2, 'las manchas suaves')
+
+    def test_la_seccion_de_cine_ya_no_sale(self):
+        """La sección «de cine» (dos cintas de fotos por categoría de muebles) se quitó con la marca de Baby Caleb: no está
+        en la portada de su web y sus categorías eran las de la mueblería de origen."""
+        _texto, arbol = self._portada()
+        self.assertFalse(arbol.xpath('//section[contains(@class, "o_dcasa_cine")]'))
+        self.assertFalse(hasattr(type(self.website), '_dcasa_cine'))
+        self.assertFalse(hasattr(modulo_portada, 'CATEGORIAS_CINE'))
 
     def test_si_nada_se_puede_mostrar_vuelve_el_hero_de_siempre(self):
         self._elegir(self.sin_publicar, self.sin_foto)
@@ -329,51 +323,6 @@ class TestCarruselPortada(HttpCase):
         self.assertEqual(self.Diapositiva._dcasa_sembrar(), 0)
         self.assertIsNone(self._vitrina(self._portada()[1]))
 
-    # ------------------------------------------------------------------ la sección «de cine»
-
-    def test_la_seccion_de_cine_trae_fotos_del_catalogo_y_el_boton(self):
-        texto, arbol = self._portada()
-        seccion = arbol.xpath('//section[contains(@class, "o_dcasa_cine")]')
-        self.assertTrue(seccion, 'la portada trae la sección de cine')
-        seccion = seccion[0]
-        self.assertEqual(seccion.xpath('.//a[contains(@class, "btn-primary")]/@href'), ['/shop'])
-        self.assertEqual(' '.join(seccion.xpath('.//a[contains(@class, "btn-primary")]')[0].text_content().split()),
-                         'Ver el catálogo')
-        self.assertIsNotNone(seccion.xpath('.//button[contains(@class, "o_dcasa_cine_pausa")]')[0].get('hidden'))
-        cintas = seccion.xpath('.//div[contains(concat(" ", @class, " "), " o_dcasa_cine_cinta ")]')
-        self.assertEqual(len(cintas), 2)
-        self.assertIn('is-reversa', _clases(cintas[1]), 'la segunda corre al revés')
-        datos = self.website._dcasa_cine()
-        publicados = set(self.env['product.template'].search(self.website._dcasa_dominio_publicado()).mapped('website_url'))
-        carriles = {p.website_url for p in self.env['product.template'].browse(self.website._dcasa_ids_en_carriles())}
-        for cinta, dato in zip(cintas, datos["cintas"], strict=True):
-            visibles = cinta.xpath('.//li[not(@aria-hidden)]')
-            copias = cinta.xpath('.//li[@aria-hidden="true"]')
-            self.assertEqual(len(visibles), len(dato['fotos']), 'cada foto una vez para el lector de pantalla')
-            self.assertEqual(len(copias), len(dato['fotos']) * (dato['copias'] - 1))
-            self.assertEqual(dato['copias'] % 2, 0, 'copias pares: la vuelta es la mitad exacta')
-            self.assertTrue(all(c.xpath('./a')[0].get('tabindex') == '-1' for c in copias), 'las copias no se tabulan')
-            for li in visibles:
-                enlace = li.xpath('./a')[0]
-                self.assertIn(enlace.get('href'), publicados, 'solo productos publicados')
-                self.assertNotIn(enlace.get('href'), carriles, 'sin repetir lo de los carriles de arriba')
-                self.assertTrue(enlace.get('title'), 'el nombre al pasar el ratón')
-                self.assertIn(li.xpath('.//span[contains(@class, "o_dcasa_cine_cat")]')[0].text_content(),
-                              {'Recámaras', 'Colchones', 'Salas', 'Zapateras', 'Estantes', 'Oficina'})
-        self.assertNotIn(self.sin_publicar.website_url, texto)
-        # Va a media portada: después de «Para dormir mejor» y antes de Socios.
-        orden = [s.get('class') for s in arbol.xpath('//div[@id="wrap"]//section')]
-        cine = next(i for i, c in enumerate(orden) if 'o_dcasa_cine' in c)
-        self.assertIn('o_dcasa_rail', orden[cine - 1])
-        self.assertIn('o_dcasa_socios_band', orden[cine + 1])
-
-    def test_sin_fotos_suficientes_no_sale_la_seccion_de_cine(self):
-        pocas = [{'producto': p, 'nombre': p.name, 'categoria': 'Recámaras'} for p in self.camas][:MINIMO_CINE - 1]
-        with patch.object(type(self.website), '_dcasa_cine_fotos', return_value=pocas):
-            self.assertIsNone(self.website._dcasa_cine())
-            _texto, arbol = self._portada()
-        self.assertFalse(arbol.xpath('//section[contains(@class, "o_dcasa_cine")]'))
-
     # ------------------------------------------------------------------ en Chrome
 
     @contextlib.contextmanager
@@ -405,46 +354,38 @@ class TestCarruselPortada(HttpCase):
         self.assertFalse(res.get('exceptionDetails'), f'JavaScript falló: {res}')
         return res['result']['value']
 
-    def test_en_la_computadora_el_fondo_cubre_la_pantalla_y_cambia_solo(self):
+    def test_en_la_computadora_las_fotos_llenan_su_marco_y_cambian_solas(self):
         self._elegir(*self.camas)
         r = self._en_chrome(PASOS_COMPUTADORA)
-        self.assertTrue(r['fotoOrillaAOrilla'], 'la foto llega a las dos orillas y a arriba')
-        self.assertTrue(r['altoPantalla'], 'el hero mide al menos el alto de la pantalla')
-        self.assertTrue(r['textoEncimaDeLaFoto'], 'el texto va ENCIMA de la foto, no a su lado')
+        self.assertTrue(r['fotoEnSuMarco'], 'la foto llena el marco redondeado')
+        self.assertEqual(r['radioMarco'], '24px')
+        self.assertTrue(r['textoAlLado'], 'el texto va a la izquierda de las fotos, sobre el crema')
         self.assertEqual(r['zoom'], 'dcasa-vitrina-zoom', 'el zoom lento corre')
         self.assertEqual(r['zoomEstado'], 'running', 'y no para nunca')
         self.assertEqual(r['alEmpezar'], 0, 'se ve la primera, la que el navegador precargó')
         self.assertNotEqual(r['trasEsperar'], 0, 'la foto cambia sola')
         self.assertEqual(r['visibles'], 1, 'se ve una sola foto a la vez')
-        self.assertTrue(r['capaAzul'], 'el contraste se resuelve en azul de marca, no oscureciendo la foto')
-        self.assertEqual(r['nadaQueTocar'], 0, 'no hay flechas, barras, pausa ni enlaces: es un fondo')
-        self.assertTrue(r['pildoraClara'], 'sobre la foto clara, la píldora va clara')
-        self.assertTrue(r['whatsappEspera'], 'el WhatsApp flotante espera fuera mientras se ve el hero')
+        self.assertTrue(r['sinCapa'], 'sin velo ni degradado sobre las fotos')
+        self.assertEqual(r['nadaQueTocar'], 0, 'no hay flechas, barras, pausa ni enlaces')
+        self.assertFalse(r['whatsappEscondido'], 'el WhatsApp flotante no se esconde (la burbuja de su web siempre está)')
         self.assertTrue(r['nadaEnsancha'], 'nada ensancha la página')
-        self.assertEqual(r['cine']['animacion'], 'dcasa-correr')
-        self.assertEqual(r['cine']['estado'], 'running')
-        self.assertTrue(r['cine']['pausaVisible'])
-        self.assertEqual(r['cine']['enPausa'], 'paused', 'el botón detiene las cintas')
 
     def test_con_movimiento_reducido_nada_se_mueve_solo(self):
         self._elegir(*self.camas)
         r = self._en_chrome(PASOS_REDUCIDO, reducido=True)
         self.assertEqual(r['trasEsperar'], 0, 'la foto no cambia sola')
         self.assertEqual(r['zoom'], 'none', 'y el zoom tampoco se mueve')
-        self.assertTrue(r['fotoOrillaAOrilla'], 'pero la foto sigue cubriendo la pantalla')
+        self.assertTrue(r['fotoEnSuMarco'], 'pero la foto sigue llenando su marco')
         self.assertEqual(r['nadaQueTocar'], 0, 'sigue sin nada que manejar')
-        self.assertEqual(r['cine']['animacion'], 'none', 'las cintas quietas')
-        self.assertFalse(r['cine']['copiasVisibles'], 'sin sus copias repetidas')
         self.assertTrue(r['nadaEnsancha'])
 
-    def test_en_el_telefono_la_foto_cubre_la_pantalla_y_el_texto_va_encima(self):
+    def test_en_el_telefono_el_texto_va_arriba_y_las_fotos_debajo(self):
         self._elegir(*self.camas)
         r = self._en_chrome(PASOS_TELEFONO, ancho=390, alto=844, movil=True)
-        self.assertTrue(r['fotoOrillaAOrilla'], 'de orilla a orilla')
-        self.assertTrue(r['altoPantalla'], 'y del alto de la pantalla')
-        self.assertTrue(r['textoEncimaDeLaFoto'], 'el texto va encima de la foto')
-        self.assertTrue(r['capaAzul'], 'el azul sube desde el pie para que el texto se lea')
-        self.assertTrue(r['botonVisible'], 'el botón amarillo se ve sin bajar')
+        self.assertTrue(r['fotoEnSuMarco'], 'la foto llena su marco')
+        self.assertTrue(r['textoArriba'], 'en el celular el texto va arriba y las fotos debajo, como en su web')
+        self.assertTrue(r['sinCapa'], 'sin velo ni degradado')
+        self.assertTrue(r['botonVisible'], 'el botón naranja se ve sin bajar')
         self.assertEqual(r['nadaQueTocar'], 0, 'tampoco en el celular hay nada que manejar')
         self.assertFalse(r['deslizarCambia'], 'deslizar no cambia la foto: no es un carrusel')
         self.assertFalse(r['abrioFicha'], 'ni abre ninguna ficha')
@@ -459,41 +400,30 @@ PRUEBA_JS = r"""(async () => {
     const vitrina = document.querySelector('.o_dcasa_vitrina');
     const fotos = () => [...vitrina.querySelectorAll('.o_dcasa_vitrina_foto')];
     const actual = () => fotos().findIndex((f) => f.classList.contains('is-activa'));
-    const visible = (el) => !!el && !el.hidden && getComputedStyle(el).display !== 'none';
     const pila = vitrina.querySelector('.o_dcasa_vitrina_fotos');
     const foto = pila.getBoundingClientRect();
-    const panel = vitrina.querySelector('.o_dcasa_vitrina_panel').getBoundingClientRect();
+    const panel = vitrina.querySelector('.o_dcasa_vitrina_panel .o_dcasa_hero_texto').getBoundingClientRect();
     const primera = fotos()[0].querySelector('img');
-    const capa = getComputedStyle(vitrina, '::after');
+    const i = primera.getBoundingClientRect();
+    const sinContenido = (el, p) => ['none', 'normal'].includes(getComputedStyle(el, p).content);
     const r = {
-        // El ancho del DOCUMENTO, no el de la ventana: con la página desplazable, innerWidth incluye la barra de
-        // desplazamiento (1440 contra 1425 de documento, medido en Chrome el 2026-11-16) y la foto nunca «llegaría».
-        fotoOrillaAOrilla: Math.abs(foto.left) < 1
-            && Math.abs(foto.right - document.documentElement.clientWidth) < 1
-            && Math.abs(foto.top - vitrina.getBoundingClientRect().top) < 1,
-        altoPantalla: vitrina.getBoundingClientRect().height >= window.innerHeight - 1,
-        // Lo contrario de antes: el texto YA NO va al lado de la foto, va encima (el hero es un fondo).
-        textoEncimaDeLaFoto: panel.left < foto.right - 1 && panel.right > foto.left + 1
-            && panel.top < foto.bottom - 1 && panel.bottom > foto.top + 1,
+        // La foto llena su marco (el zoom solo la agranda: nunca deja un hueco).
+        fotoEnSuMarco: i.left <= foto.left + 1 && i.right >= foto.right - 1 && i.top <= foto.top + 1 && i.bottom >= foto.bottom - 1,
+        radioMarco: getComputedStyle(pila).borderTopLeftRadius,
+        textoAlLado: panel.right <= foto.left + 1,
+        textoArriba: panel.bottom <= foto.top + 1,
         zoom: getComputedStyle(primera).animationName,
         zoomEstado: getComputedStyle(primera).animationPlayState,
-        // El contraste es azul de marca (#1340B1 / #0E2A6B), nunca negro: un degradado, no un velo oscuro.
-        capaAzul: capa.backgroundImage.includes('gradient')
-            && /rgba?\((?:14, 42, 107|19, 64, 177)/.test(capa.backgroundImage)
-            && !/rgba?\(0, 0, 0/.test(capa.backgroundImage),
-        // Ni un solo mando ni enlace dentro del hero: no se maneja.
+        // Ni velo ni degradado: ninguna capa sobre el hero, sobre el marco ni sobre las fotos.
+        sinCapa: ['::before', '::after'].every((p) => sinContenido(vitrina, p) && sinContenido(pila, p))
+            && getComputedStyle(pila).backgroundImage === 'none' && getComputedStyle(primera).filter === 'none',
+        // Ni un solo mando ni enlace dentro del hero, salvo el botón del texto: no se maneja.
         nadaQueTocar: vitrina.querySelectorAll('a, button, [role="group"], [aria-live], .o_dcasa_vitrina_barra,'
             + ' .o_dcasa_vitrina_boton, .o_dcasa_vitrina_nombre').length
             - vitrina.querySelectorAll('.o_dcasa_vitrina_panel a, .o_dcasa_vitrina_panel button').length,
-        pildoraClara: !document.documentElement.classList.contains('o_dcasa_nav_sobre_foto'),
-        whatsappEspera: document.documentElement.classList.contains('o_dcasa_vitrina_a_la_vista'),
+        whatsappEscondido: document.documentElement.classList.contains('o_dcasa_vitrina_a_la_vista'),
         nadaEnsancha: document.documentElement.scrollWidth <= window.innerWidth,
     };
-    const tren = document.querySelector('.o_dcasa_cine_tren');
-    if (!tren) { throw new Error('la portada no trae la sección de cine'); }
-    r.cine = { animacion: getComputedStyle(tren).animationName, estado: getComputedStyle(tren).animationPlayState,
-               pausaVisible: visible(document.querySelector('.o_dcasa_cine_pausa')),
-               copiasVisibles: [...document.querySelectorAll('.o_dcasa_cine_foto[aria-hidden]')].some(visible) };
     %s
     return r;
 })()"""
@@ -510,9 +440,6 @@ PASOS_COMPUTADORA = """
     vitrina.style.setProperty('--vitrina-tiempo', '600s');
     await esperar(2500);
     r.visibles = fotos().filter((f) => parseFloat(getComputedStyle(f).opacity) > 0.01).length;
-    const botonCine = document.querySelector('.o_dcasa_cine_pausa');
-    botonCine.click(); await esperar(100);
-    r.cine.enPausa = getComputedStyle(tren).animationPlayState;
 """
 
 # Se espera MÁS que el tiempo de verdad de una diapositiva (6,5 s): si con movimiento reducido se hubiera
@@ -523,8 +450,8 @@ PASOS_REDUCIDO = """
 """
 
 PASOS_TELEFONO = """
-    const amarillo = document.querySelector('.o_dcasa_hero_vitrina .o_dcasa_btn_amarillo').getBoundingClientRect();
-    r.botonVisible = amarillo.top < window.innerHeight;
+    const boton = document.querySelector('.o_dcasa_hero_vitrina .btn-primary').getBoundingClientRect();
+    r.botonVisible = boton.bottom < window.innerHeight;
     // Que nadie se quede «arrastrando» el fondo esperando que pase algo: deslizar no cambia la foto ni abre nada.
     vitrina.style.setProperty('--vitrina-tiempo', '600s');
     const antes = actual();

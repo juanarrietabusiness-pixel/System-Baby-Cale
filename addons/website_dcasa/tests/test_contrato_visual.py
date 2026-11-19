@@ -1,17 +1,18 @@
-"""Contrato visual de la cabecera y del hero (pedido de la dueña: «que este navbar nunca más se
-vuelva a dañar»). Fija, medido en Chrome y a dos anchos (1440 y 390), el diseño aprobado
-(docs/auditoria/ronda6/diseno.md §8):
+# ruff: noqa: E501  (JavaScript del navegador embebido en texto)
+"""Contrato visual de la cabecera y del hero (pedido de la dueña de la plantilla: «que este navbar nunca más se vuelva a
+dañar»), con la marca de Baby Caleb (docs/MARCA_BABY_CALEB.md, 2026-11-19). Fija, medido en Chrome y a dos anchos
+(1440 y 390), el diseño de babycaleb.com:
 
-* Píldora de vidrio líquido (`.o_main_nav::before`): desenfoque + saturación, tinte blanco al 62 %
-  (claro, sobre fondo claro) o negro al 26 % (ahumado, sobre foto), filos de luz, esquinas suaves (16 px);
-  los mismos valores en TODAS las páginas del mismo tipo; hamburguesa visible en el celular.
-* Portada sin placa: texto blanco directo sobre la foto, velo negro plano del 35-50 %, halo fino en
-  el texto y ningún elemento con fondo detrás del titular.
-* Portada con el carrusel de productos (models/portada.py, 2026-11-16, segunda vuelta de la dueña: «pantalla
-  completa… y no fondo negro»): de orilla a orilla y del alto de la pantalla en la computadora; el titular, los
-  botones y los controles en un bloque liso azul noche (sin degradado ni sombra; el amarillo solo ahí); la foto sin
-  velo ni filtro llenando su lado, sin montarse sobre el bloque; la etiqueta del producto en azul noche con
-  «Ver detalles» en amarillo; y la píldora en vidrio claro (sobre una foto clara, la ahumada no se lee).
+* La pastilla flotante de vidrio crema (`.bc-vidrio` de Baby-caleb/src/styles/tokens.css, `.o_main_nav::before`):
+  desenfoque, saturación y brillo (o la refracción), tinte `surface` al 50 %, un filo casi invisible, la sombra larga
+  de su web y esquinas de 16 px; LA MISMA en todas las páginas (ya no hay vidrio ahumado: no hay fotos oscuras). La
+  marca «Baby Caleb» escrita en Montserrat 700 navy y el sello del logo al lado; los enlaces navy en 500, como frase;
+  la hamburguesa navy en el celular. Sin barra de anuncios encima.
+* La portada (S02Hero.tsx): crema, con las dos manchas suaves detrás; el antetítulo en píldora, el titular navy, el
+  subtítulo en `muted` y el botón naranja con letra navy; la foto del bebé con esquinas de 24 px, AL LADO del texto
+  (debajo en el celular), sin velo ni filtro.
+* La portada con los productos que elige Gerencia (models/portada.py): el mismo hero crema; las fotos se funden en el
+  marco redondeado de la derecha, sin velo, sin degradado y sin nada que el visitante maneje.
 * Capturas de referencia («golden») en tests/referencia/, comparadas con tolerancia.
 
 Dos niveles:
@@ -29,7 +30,6 @@ import json
 import logging
 import os
 import pathlib
-import re
 from unittest.mock import patch
 
 from PIL import Image, ImageChops, ImageDraw
@@ -57,23 +57,16 @@ REDUCCION = {'cabecera': 1, 'hero': 2}
 # Anchos: escritorio y celular (iPhone 12/13/14).
 VENTANAS = ((1440, 900), (390, 844))
 
-# El contrato: la píldora aprobada por la dueña (v2.3 / ronda 6 v3).
-VIDRIO_CLARO = {'fondo': 'rgba(255, 255, 255, 0.62)', 'borde': 'rgba(255, 255, 255, 0.7)',
-                'texto': 'rgb(27, 34, 51)'}
-VIDRIO_AHUMADO = {'fondo': 'rgba(0, 0, 0, 0.26)', 'borde': 'rgba(255, 255, 255, 0.38)',
-                  'texto': 'rgb(255, 255, 255)'}
-RADIO_PILDORA = '16px'                             # 1rem: esquinas suaves como el logo (dueña, 2026-10-17)
-VELO_MIN, VELO_MAX = .35, .50
-# Fondos que jamás van detrás del titular de la portada (placa navy/azul, decisión de la dueña).
-AZUL, NAVY = (19, 64, 177), (14, 42, 107)
-NAVY_CSS = 'rgb(14, 42, 107)'
-
-# Página → tipo de vidrio al abrir (claro sobre fondo claro, ahumado sobre foto o fondo oscuro).
-TIPO_DE_VIDRIO = {'portada': 'ahumado', 'portada-carrusel': 'claro', 'tienda': 'claro', 'ficha': 'claro',
-                  'socios': 'ahumado', 'black-weekend': 'ahumado'}
+# El contrato: la pastilla de babycaleb.com (tokens.css, `.bc-vidrio` y S01Nav.tsx).
+VIDRIO = {'fondo': 'rgba(242, 239, 229, 0.5)', 'borde': 'rgba(27, 50, 70, 0.04)', 'texto': 'rgb(27, 50, 70)',
+          'sombra': 'rgba(27, 50, 70, 0.1) 0px 8px 32px 0px'}
+RADIO_PILDORA = '16px'                             # rounded-2xl
+FILTRO_MATE = 'blur(16px) saturate(2.1) brightness(1.06)'
+CREMA, NAVY, MUTED = 'rgb(249, 246, 237)', 'rgb(27, 50, 70)', 'rgba(27, 50, 70, 0.7)'
+NARANJA, SAGE_STRONG = 'rgb(238, 146, 74)', 'rgb(83, 115, 92)'
 
 # Deja la página quieta y determinista antes de medir o capturar: sin animaciones ni transiciones,
-# entradas ya terminadas, barra de scroll oculta, fuentes e imágenes cargadas, cabecera medida.
+# entradas ya terminadas, barra de scroll oculta, fuentes e imágenes cargadas.
 PREPARAR = """
     (async () => {
         const estilo = document.createElement('style');
@@ -88,17 +81,14 @@ PREPARAR = """
         `;
         document.head.appendChild(estilo);
         const modulo = '@website_dcasa/js/animaciones';
-        const conFoto = !!document.querySelector('.o_dcasa_hero, .o_dcasa_fondo_oscuro');
-        const listo = () => odoo.loader?.modules?.has(modulo)
-            && document.body.getAttribute('is-ready') === 'true'
-            && (!conFoto || document.documentElement.classList.contains('o_dcasa_nav_medida'));
+        const listo = () => odoo.loader?.modules?.has(modulo) && document.body.getAttribute('is-ready') === 'true';
         for (let i = 0; i < 600 && !listo(); i++) {
             await new Promise((ok) => setTimeout(ok, 50));
         }
         // Fuentes propias y las fotos de lo que se captura (las imágenes diferidas de más abajo no
         // cargan sin desplazar la página: no se esperan). Tope de 15 s por si una no termina.
         const fotos = [...document.querySelectorAll(
-            'header#top img, .o_dcasa_hero img, .o_dcasa_hero_vitrina .is-activa img, .o_dcasa_fondo_oscuro img')];
+            'header#top img, .o_dcasa_hero img, .o_dcasa_hero_vitrina .is-activa img')];
         await Promise.race([
             Promise.all([document.fonts.ready, ...fotos.filter((img) => !img.complete).map(
                 (img) => new Promise((ok) => { img.onload = ok; img.onerror = ok; }))]),
@@ -121,8 +111,7 @@ MEDIR = """
         };
         const visible = (el) => !!el && cs(el).display !== 'none' && cs(el).visibility !== 'hidden'
             && el.getBoundingClientRect().width > 0 && el.getBoundingClientRect().height > 0;
-        const nombre = (el) => el.tagName.toLowerCase() + (typeof el.className === 'string' && el.className.trim()
-            ? '.' + el.className.trim().split(/\\s+/).join('.') : '');
+        const solapan = (a, b) => a.left < b.right - 1 && a.right > b.left + 1 && a.top < b.bottom - 1 && a.bottom > b.top + 1;
         const html = document.documentElement.classList;
         const cabecera = document.querySelector('header#top');
         // Odoo pinta dos barras (escritorio y celular, .o_header_mobile): se mide la visible.
@@ -133,11 +122,11 @@ MEDIR = """
         // Hamburguesa: en Odoo 19 es un button.nav-link con el icono .navbar-toggler-icon.
         const icono = nav.querySelector('.navbar-toggler-icon');
         const hamburguesa = icono && icono.closest('button');
-        const cta = nav.querySelector('.btn_cta');
+        const marca = nav.querySelector('.o_dcasa_marca');
         const res = {
             ancho: innerWidth,
-            html: { refraccion: html.contains('o_dcasa_refraccion'), sobreFoto: html.contains('o_dcasa_nav_sobre_foto'),
-                    medida: html.contains('o_dcasa_nav_medida') },
+            html: { refraccion: html.contains('o_dcasa_refraccion') },
+            anuncios: !!cabecera.querySelector('.o_dcasa_anuncios'),
             pildora: {
                 content: antes.content,
                 backdropFilter: antes.backdropFilter || antes.webkitBackdropFilter || 'none',
@@ -147,147 +136,111 @@ MEDIR = """
                 bordeAncho: antes.borderTopWidth,
                 radio: antes.borderTopLeftRadius,
                 radioNav: cs(nav).borderTopLeftRadius,
-                filos: (antes.boxShadow.match(/inset/g) || []).length,
                 sombra: antes.boxShadow,
                 position: antes.position,
                 alto: Math.round(rect(nav).height),
                 ancho: Math.round(rect(nav).width),
             },
+            marca: marca ? { texto: marca.textContent.trim(), color: cs(marca).color, peso: cs(marca).fontWeight,
+                             fuente: cs(marca).fontFamily, unaLinea: marca.getBoundingClientRect().height < 40 } : null,
             menu: { visible: visible(menu), color: enlace ? cs(enlace).color : null,
-                    fuente: enlace ? cs(enlace).fontFamily : null,
+                    fuente: enlace ? cs(enlace).fontFamily : null, peso: enlace ? cs(enlace).fontWeight : null,
                     mayusculas: enlace ? cs(enlace).textTransform : null },
-            hamburguesa: { visible: visible(hamburguesa), color: hamburguesa ? cs(hamburguesa).color : null,
+            hamburguesa: { visible: visible(hamburguesa), icono: icono ? cs(icono).backgroundImage : null,
                            filtroIcono: icono ? cs(icono).filter : null },
-            cta: cta ? { visible: visible(cta), fondo: cs(cta).backgroundColor, color: cs(cta).color,
-                         radio: cs(cta).borderTopLeftRadius, texto: cta.textContent.trim() } : null,
+            cta: nav.querySelector('.btn_cta') ? true : null,
             logo: !!nav.querySelector('.navbar-brand img[src*="logo-200.webp"]'),
             cabecera: rect(cabecera),
         };
         const hero = document.querySelector('.o_dcasa_hero:not(.o_dcasa_hero_compacto)');
         const vitrina = document.querySelector('.o_dcasa_hero_vitrina');
+        const textoDelHero = (raiz) => {
+            const titulo = raiz.querySelector('.o_dcasa_display');
+            const sub = raiz.querySelector('.o_dcasa_hero_sub');
+            const kicker = raiz.querySelector('.o_dcasa_hero_texto > .o_dcasa_kicker');
+            const boton = raiz.querySelector('.o_dcasa_hero_texto .btn-primary');
+            return {
+                colores: { titulo: cs(titulo).color, sub: cs(sub).color, kicker: cs(kicker).color },
+                titulo: { mayusculas: cs(titulo).textTransform, peso: cs(titulo).fontWeight, fuente: cs(titulo).fontFamily,
+                          espaciado: cs(titulo).letterSpacing, tamano: parseFloat(cs(titulo).fontSize) },
+                pildora: { radio: cs(kicker).borderTopLeftRadius, borde: cs(kicker).borderTopStyle,
+                           mayusculas: cs(kicker).textTransform, tamano: cs(kicker).fontSize },
+                boton: { fondo: cs(boton).backgroundColor, color: cs(boton).color, peso: cs(boton).fontWeight,
+                         pastilla: parseFloat(cs(boton).borderTopLeftRadius) >= boton.getBoundingClientRect().height / 2 - 1,
+                         brillo: cs(boton).boxShadow, href: boton.getAttribute('href') },
+                halo: cs(titulo).textShadow,
+                manchas: [...raiz.querySelectorAll('.o_dcasa_hero_mancha')].map((m) => cs(m).filter),
+                fondo: cs(raiz).backgroundColor,
+                texto: titulo.closest('.o_dcasa_hero_texto').getBoundingClientRect(),
+            };
+        };
         if (vitrina) {
             const marco = vitrina.querySelector('.o_dcasa_vitrina_fotos');
             const img = vitrina.querySelector('.o_dcasa_vitrina_foto.is-activa img');
             const panel = vitrina.querySelector('.o_dcasa_vitrina_panel');
-            const titulo = vitrina.querySelector('.o_dcasa_display');
-            const sub = vitrina.querySelector('.o_dcasa_hero_sub');
-            const kicker = vitrina.querySelector('.o_dcasa_hero_texto > .o_dcasa_kicker');
-            const amarillo = vitrina.querySelector('.o_dcasa_btn_amarillo');
-            const a = panel.getBoundingClientRect(), b = marco.getBoundingClientRect();
-            const h = vitrina.getBoundingClientRect();
-            const contraste = cs(vitrina.querySelector('.o_dcasa_vitrina'), '::after');
+            const t = textoDelHero(vitrina);
+            const b = marco.getBoundingClientRect();
             res.vitrina = {
+                ...t,
                 rect: rect(vitrina),
-                fondo: cs(vitrina).backgroundColor,
                 panelFondo: cs(panel).backgroundColor,
                 panelImagen: cs(panel).backgroundImage,
-                panelSombra: cs(panel).boxShadow,
+                marcoRadio: cs(marco).borderTopLeftRadius,
+                marcoFondoImagen: cs(marco).backgroundImage,
                 opacidadFoto: parseFloat(cs(img).opacity),
                 opacidadDiapositiva: parseFloat(cs(img.closest('.o_dcasa_vitrina_foto')).opacity),
                 filtroFoto: cs(img).filter,
                 mezclaFoto: cs(img).mixBlendMode,
-                marcoImagen: cs(marco).backgroundImage,
-                // La ÚNICA capa permitida es el degradado azul de contraste, y va sobre la vitrina, no sobre la
-                // foto ni sobre el bloque del texto.
-                capas: ['::before', '::after'].flatMap((p) => [cs(marco, p).content, cs(panel, p).content]),
-                contraste: { imagen: contraste.backgroundImage, color: contraste.backgroundColor,
-                             mezcla: contraste.mixBlendMode },
-                // De orilla a orilla: la foto llena el hero entero, de las dos orillas y de arriba abajo.
-                // Se mide la IMAGEN, no solo su marco: lo que la dueña ve es la foto cubriendo la pantalla.
-                imagenCubreElHero: (() => {
+                capas: ['::before', '::after'].flatMap((p) => [cs(marco, p).content, cs(panel, p).content,
+                                                             cs(vitrina.querySelector('.o_dcasa_vitrina'), p).content]),
+                imagenCubreElMarco: (() => {
                     const i = img.getBoundingClientRect();
-                    return i.left <= b.left + 1 && i.right >= b.right - 1
-                        && i.top <= b.top + 1 && i.bottom >= b.bottom - 1;
+                    return i.left <= b.left + 1 && i.right >= b.right - 1 && i.top <= b.top + 1 && i.bottom >= b.bottom - 1;
                 })(),
-                fotoOrillaIzquierda: Math.abs(b.left) < 1,
-                fotoOrillaDerecha: Math.abs(b.right - innerWidth) < 1,
-                fotoArriba: Math.abs(b.top - h.top) < 1,
-                fotoAbajo: Math.abs(b.bottom - h.bottom) < 1,
-                altoPantalla: Math.round(h.height),
-                textoSobreFoto: a.left < b.right - 1 && a.right > b.left + 1
-                    && a.top < b.bottom - 1 && a.bottom > b.top + 1,
-                colores: { titulo: cs(titulo).color, sub: cs(sub).color, kicker: kicker ? cs(kicker).color : null },
-                amarillo: { fondo: cs(amarillo).backgroundColor, dentroDelPanel: panel.contains(amarillo) },
-                // Nada que manejar: el hero es un fondo, no un carrusel que se recorre.
+                textoSobreFoto: solapan(t.texto, b),
                 mandos: vitrina.querySelectorAll('.o_dcasa_vitrina_barra, .o_dcasa_vitrina_boton,'
                     + ' .o_dcasa_vitrina_nombre, .o_dcasa_vitrina_fotos a').length,
-                sobreFoto: html.contains('o_dcasa_nav_sobre_foto'),
             };
+            delete res.vitrina.texto;
         }
         if (hero) {
             const img = hero.querySelector('.o_dcasa_hero_media img');
-            const media = img.parentElement;
-            const texto = hero.querySelector('.o_dcasa_hero_texto');
-            const titulo = hero.querySelector('.o_dcasa_display');
-            const sub = hero.querySelector('.o_dcasa_hero_sub');
-            const kicker = hero.querySelector('.o_dcasa_kicker');
-            const r = titulo.getBoundingClientRect();
-            const puntos = [[r.left + 2, r.top + 2], [r.right - 2, r.top + 2], [r.left + 2, r.bottom - 2],
-                            [r.right - 2, r.bottom - 2], [r.left + r.width / 2, r.top + r.height / 2]];
-            const detras = [];
-            // De arriba abajo hasta el hero: lo que hay debajo de él (fondo de la página) queda tapado
-            // por su negro opaco y no cuenta.
-            for (const [x, y] of puntos) {
-                for (const el of document.elementsFromPoint(x, y)) {
-                    if (titulo.contains(el) || el === img) {
-                        continue;
-                    }
-                    detras.push({ sel: nombre(el), fondo: cs(el).backgroundColor, imagen: cs(el).backgroundImage,
-                                  esHero: el === hero });
-                    if (el === hero) {
-                        break;
-                    }
-                }
-            }
-            const a = texto.getBoundingClientRect(), b = img.getBoundingClientRect();
+            const t = textoDelHero(hero);
+            const b = img.getBoundingClientRect();
             res.hero = {
+                ...t,
                 rect: rect(hero),
-                fondo: cs(hero).backgroundColor,
+                fondoImagen: cs(hero).backgroundImage,
                 opacidadFoto: parseFloat(cs(img).opacity),
                 filtroFoto: cs(img).filter,
                 mezclaFoto: cs(img).mixBlendMode,
-                mediaFondo: cs(media).backgroundImage,
-                mediaPos: cs(media).position,
-                capas: ['::before', '::after'].flatMap((p) => [cs(media, p).content, cs(texto, p).content]),
-                textoFondo: cs(texto).backgroundColor,
-                textoImagen: cs(texto).backgroundImage,
-                textoSombra: cs(texto).boxShadow,
-                textoBorde: cs(texto).borderTopStyle,
-                colores: { titulo: cs(titulo).color, sub: cs(sub).color, kicker: cs(kicker).color },
-                halo: { titulo: cs(titulo).textShadow, sub: cs(sub).textShadow, kicker: cs(kicker).textShadow },
-                detras,
-                textoSobreFoto: a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top,
+                radioFoto: cs(img).borderTopLeftRadius,
+                pildoraVerde: (() => { const p = hero.querySelector('.o_dcasa_hero_pildora');
+                    return p ? { fondo: cs(p).backgroundColor, color: cs(p).color, texto: p.textContent.trim() } : null; })(),
+                capas: ['::before', '::after'].flatMap((p) => [cs(img.parentElement, p).content]),
+                textoSobreFoto: solapan(t.texto, b),
+                fotoDebajo: b.top >= t.texto.bottom - 1,
+                fotoAlLado: b.left >= t.texto.right - 1,
             };
+            delete res.hero.texto;
         }
         return res;
     })()
 """
 
 
-def _cama_de_estudio(cabecero):
-    """Foto 3:4 de una cama como las del catálogo (fondo de estudio claro), dibujada: el contrato no depende del
-    catálogo real."""
-    imagen = Image.new('RGB', (900, 1200), (226, 226, 224))
+def _caja_de_estudio(color):
+    """Foto 3:4 de una caja de pañales sobre un fondo de estudio claro, dibujada: el contrato no depende del catálogo
+    real."""
+    imagen = Image.new('RGB', (900, 1200), (226, 232, 224))
     dibujo = ImageDraw.Draw(imagen)
-    dibujo.rectangle((0, 900, 900, 1200), fill=(206, 206, 204))           # piso
-    dibujo.rectangle((150, 380, 750, 760), fill=cabecero)                 # cabecero
-    dibujo.rectangle((90, 640, 810, 900), fill=(245, 245, 243))           # colchón y edredón
-    dibujo.rectangle((90, 880, 810, 930), fill=cabecero)                  # base
-    for x in (120, 760):
-        dibujo.rectangle((x, 930, x + 24, 1010), fill=(30, 30, 30))       # patas
+    dibujo.rectangle((0, 960, 900, 1200), fill=(206, 214, 204))           # mesa
+    dibujo.rectangle((220, 300, 680, 980), fill=color)                     # caja
+    dibujo.rectangle((300, 620, 600, 900), fill=(245, 245, 243))           # paquete
+    dibujo.rectangle((360, 680, 540, 800), fill=(150, 190, 210))           # la foto del paquete
     salida = io.BytesIO()
     imagen.save(salida, 'JPEG', quality=92)
     return base64.b64encode(salida.getvalue())
-
-
-def _rgba(color):
-    """'rgb(1, 2, 3)' / 'rgba(1, 2, 3, 0.5)' → (1, 2, 3, alfa)."""
-    numeros = re.findall(r'[\d.]+', color or '')
-    if len(numeros) == 3:
-        return (*(int(float(n)) for n in numeros), 1.0)
-    if len(numeros) == 4:
-        return (*(int(float(n)) for n in numeros[:3]), float(numeros[3]))
-    return None
 
 
 def _comparar(referencia, actual, umbral=UMBRAL_PIXEL):
@@ -313,21 +266,19 @@ class TestContratoVisual(HttpCase):
         param.set_param(PARAM_ACTIVO, '1')
         param.set_param(PARAM_INICIO, '')
         param.set_param(PARAM_FIN, '')
-        recamaras = cls.env.ref('website_dcasa.public_category_recamaras')
         cls.producto = cls.env['product.template'].create({
-            'name': 'Cama del contrato visual', 'list_price': 99.99, 'is_published': True,
-            'public_categ_ids': [(6, 0, recamaras.ids)], 'dcasa_black_weekend': True,
+            'name': 'Pañal del contrato visual', 'list_price': 45.0, 'is_published': True,
+            'dcasa_black_weekend': True,
         })
         cls.paginas = {'portada': '/', 'portada-carrusel': '/', 'tienda': '/shop', 'ficha': cls.producto.website_url,
                        'socios': '/socios', 'black-weekend': '/promociones'}
-        # Dos camas «de estudio» dibujadas (fondo gris claro, cabecero y colchón) para el carrusel de la portada.
+        # Dos cajas «de estudio» dibujadas para las fotos del hero.
         cls.Diapositiva = cls.env['dcasa.portada.diapositiva']
-        cls.camas_carrusel = cls.env['product.template'].browse()
-        for nombre, cabecero in (('Cama queen negra del contrato visual', (28, 28, 30)),
-                                 ('Cama king rosada del contrato visual', (214, 128, 150))):
-            cls.camas_carrusel |= cls.env['product.template'].create({
-                'name': nombre, 'list_price': 159.99, 'is_published': True,
-                'public_categ_ids': [(6, 0, recamaras.ids)], 'image_1920': _cama_de_estudio(cabecero),
+        cls.cajas_carrusel = cls.env['product.template'].browse()
+        for nombre, color in (('Caja verde del contrato visual', (170, 205, 170)),
+                              ('Caja café del contrato visual', (190, 150, 110))):
+            cls.cajas_carrusel |= cls.env['product.template'].create({
+                'name': nombre, 'list_price': 45.0, 'is_published': True, 'image_1920': _caja_de_estudio(color),
             })
 
     # ------------------------------------------------------------------ Chrome
@@ -382,14 +333,14 @@ class TestContratoVisual(HttpCase):
                 # El carrusel de la portada solo para su página; las demás, con el hero de siempre.
                 self.Diapositiva.search([]).unlink()
                 if nombre == 'portada-carrusel':
-                    for orden, producto in enumerate(self.camas_carrusel, start=1):
+                    for orden, producto in enumerate(self.cajas_carrusel, start=1):
                         self.Diapositiva.create({'product_tmpl_id': producto.id, 'sequence': orden})
                 self.env.flush_all()
                 with self._chrome(ancho, alto) as browser:
                     browser.navigate_to(self.base_url() + ruta, wait_stop=True)
                     self.assertTrue(browser._wait_ready(), f'{ruta} no terminó de cargar')
                     self.assertTrue(self._evaluar(browser, PREPARAR, timeout=90),
-                                    f'{ruta} a {ancho}px: la cabecera no llegó a medirse (JS del sitio)')
+                                    f'{ruta} a {ancho}px: el JavaScript del sitio no llegó a cargar')
                     medidas = self._evaluar(browser, MEDIR)
                     capturas = {'cabecera': self._capturar(browser, medidas['cabecera'], alto)}
                     if medidas.get('hero') or medidas.get('vitrina'):
@@ -405,38 +356,31 @@ class TestContratoVisual(HttpCase):
         return medido
 
     # ------------------------------------------------------------------ 1. estilos (bloqueante)
-    def test_01_pildora_de_vidrio_liquido_en_todas_las_paginas(self):
+    def test_01_pastilla_de_vidrio_crema_en_todas_las_paginas(self):
         medido = self._medir_todo()
         for ancho, _alto in VENTANAS:
             firmas, tintes = {}, {}
             for nombre in self.paginas:
                 m = medido[nombre, ancho]['medidas']
-                p, tipo = m['pildora'], TIPO_DE_VIDRIO[nombre]
+                p = m['pildora']
                 with self.subTest(pagina=nombre, ancho=ancho):
-                    self._revisar_pildora(m, tipo, ancho)
-                # Firma común a todo el sitio (geometría y filtro) y tinte por tipo de fondo.
-                firmas[nombre] = {k: v for k, v in p.items() if k not in ('fondo', 'borde', 'sombra', 'filos')}
-                tintes.setdefault(tipo, {})[nombre] = {
-                    'fondo': p['fondo'], 'borde': p['borde'], 'sombra': p['sombra'], 'filos': p['filos'],
-                    'texto': m['menu']['color'], 'hamburguesa': m['hamburguesa']['color'],
-                    'refraccion': m['html']['refraccion'], 'cta': m['cta'],
-                }
-            with self.subTest(ancho=ancho, regla='misma píldora en todas las páginas'):
-                base = firmas['tienda']
+                    self._revisar_pildora(m, ancho)
+                # Firma común a todo el sitio: geometría, filtro y tinte (la misma pastilla en todas las páginas).
+                firmas[nombre] = {k: v for k, v in p.items()}
+                tintes[nombre] = {'texto': m['menu']['color'], 'hamburguesa': m['hamburguesa']['icono'],
+                                  'refraccion': m['html']['refraccion'], 'marca': m['marca']}
+            with self.subTest(ancho=ancho, regla='la misma pastilla en todas las páginas'):
+                base, tinte = firmas['tienda'], tintes['tienda']
                 for nombre, firma in firmas.items():
-                    self.assertEqual(firma, base, f'la píldora de {nombre} difiere de la tienda a {ancho}px')
-            for tipo, por_pagina in tintes.items():
-                with self.subTest(ancho=ancho, regla=f'mismo vidrio {tipo}'):
-                    valores = list(por_pagina.values())
-                    for nombre, tinte in por_pagina.items():
-                        self.assertEqual(tinte, valores[0], f'el vidrio {tipo} de {nombre} difiere a {ancho}px')
+                    self.assertEqual(firma, base, f'la pastilla de {nombre} difiere de la tienda a {ancho}px')
+                    self.assertEqual(tintes[nombre], tinte, f'el vidrio de {nombre} difiere a {ancho}px')
 
-    def _revisar_pildora(self, m, tipo, ancho):
-        """El contrato de la píldora en una página, a un ancho."""
+    def _revisar_pildora(self, m, ancho):
+        """El contrato de la pastilla en una página, a un ancho."""
         p = m['pildora']
-        esperado = VIDRIO_AHUMADO if tipo == 'ahumado' else VIDRIO_CLARO
         self.assertEqual(m['ancho'], ancho, 'viewport fijo')
-        self.assertNotIn(p['content'], ('none', 'normal'), 'la píldora (::before) existe')
+        self.assertFalse(m['anuncios'], 'sin barra de anuncios encima (docs/MARCA_BABY_CALEB.md)')
+        self.assertNotIn(p['content'], ('none', 'normal'), 'la pastilla (::before) existe')
         self.assertEqual(p['position'], 'absolute')
         filtro = p['backdropFilter']
         self.assertIn('blur(', filtro, f'sin desenfoque: {filtro}')
@@ -445,120 +389,102 @@ class TestContratoVisual(HttpCase):
             self.assertIn('url(', filtro, 'con o_dcasa_refraccion el filtro lleva url(#dcasa-liquido)')
             self.assertIn('blur(3px)', filtro)
         else:
-            self.assertEqual(filtro, 'blur(16px) saturate(2.1) brightness(1.08)')
-        self.assertEqual(p['fondo'], esperado['fondo'], f'tinte del vidrio {tipo}')
-        alfa = _rgba(p['fondo'])[3]
-        self.assertTrue(.55 <= alfa <= .70 if tipo == 'claro' else .20 <= alfa <= .35,
-                        f'alfa del vidrio {tipo} fuera de rango: {alfa}')
-        self.assertEqual(p['fondoImagen'], 'none', 'sin degradados (sistema plano)')
-        self.assertEqual(p['borde'], esperado['borde'])
+            self.assertEqual(filtro, FILTRO_MATE)
+        self.assertEqual(p['fondo'], VIDRIO['fondo'], 'el vidrio crema de su web: surface al 50 %')
+        self.assertEqual(p['fondoImagen'], 'none', 'sin degradados')
+        self.assertEqual(p['borde'], VIDRIO['borde'])
         self.assertEqual(p['bordeAncho'], '1px')
-        self.assertEqual(p['radio'], RADIO_PILDORA, 'esquinas suaves del vidrio')
-        self.assertEqual(p['radioNav'], RADIO_PILDORA, 'esquinas suaves del nav')
-        self.assertGreaterEqual(p['filos'], 2, f'filos de luz (inset): {p["sombra"]}')
-        self.assertEqual(m['menu']['color'], esperado['texto'], f'color del menú sobre el vidrio {tipo}')
-        # Sobre foto o fondo oscuro, la cabecera nace y queda ahumada (medida por el observador).
-        self.assertEqual(m['html']['sobreFoto'], tipo == 'ahumado')
-        self.assertTrue(m['html']['medida'] or tipo == 'claro')
-        self.assertTrue(m['logo'], 'logo WebP de la empresa en la píldora')
-        # Sin «Escríbenos» en la píldora (decisión de la dueña, 2026-11-15: «puede irse… ya está en el pie»; la
-        # portada lleva una sección pequeña de contacto antes de Visítanos).
-        self.assertIsNone(m['cta'], 'sin botón «Escríbenos» en la píldora')
+        self.assertEqual(p['sombra'], VIDRIO['sombra'], 'la sombra larga de su pastilla')
+        self.assertEqual(p['radio'], RADIO_PILDORA, 'esquinas del vidrio')
+        self.assertEqual(p['radioNav'], RADIO_PILDORA, 'esquinas del nav')
+        self.assertTrue(m['logo'], 'el sello del logo en WebP, al lado de la marca')
+        self.assertIsNone(m['cta'], 'sin botón «Escríbenos» en la pastilla')
+        marca = m['marca']
+        self.assertTrue(marca, 'la marca escrita en la pastilla')
+        self.assertEqual(marca['texto'], 'Baby Caleb')
+        self.assertEqual((marca['color'], marca['peso']), (NAVY, '700'), 'Montserrat 700 navy')
+        self.assertIn('Montserrat', marca['fuente'])
+        self.assertTrue(marca['unaLinea'], 'el nombre de la marca no se parte en dos líneas')
         if ancho >= 992:
             self.assertTrue(m['menu']['visible'], 'menú visible en escritorio')
             self.assertFalse(m['hamburguesa']['visible'], 'sin hamburguesa en escritorio')
-            self.assertIn('Oswald', m['menu']['fuente'])
-            self.assertEqual(m['menu']['mayusculas'], 'uppercase')
+            self.assertEqual(m['menu']['color'], VIDRIO['texto'], 'enlaces navy')
+            self.assertIn('Montserrat', m['menu']['fuente'])
+            self.assertEqual(m['menu']['peso'], '500')
+            self.assertEqual(m['menu']['mayusculas'], 'none', 'los enlaces como frase, no en caja alta')
         else:
             self.assertTrue(m['hamburguesa']['visible'], 'hamburguesa visible en el celular')
             self.assertFalse(m['menu']['visible'], 'en el celular el menú va plegado')
-            if tipo == 'ahumado':
-                self.assertIn('invert(1)', m['hamburguesa']['filtroIcono'] or '', 'hamburguesa blanca sobre la foto')
-            else:
-                self.assertEqual(m['hamburguesa']['filtroIcono'], 'none', 'hamburguesa en tinta sobre fondo claro')
+            self.assertIn('1B3246', m['hamburguesa']['icono'] or '', 'la hamburguesa en navy')
+            self.assertEqual(m['hamburguesa']['filtroIcono'], 'none')
 
-    def test_02b_el_hero_es_un_fondo_en_movimiento_con_el_contraste_en_azul(self):
-        """La dueña, 2026-11-17: la foto cubre todo el hero y se mueve; encima solo el texto; el contraste se
-        resuelve con un degradado AZUL DE MARCA, nunca oscureciendo la foto, y no hay nada que el visitante maneje.
-        """
-        medido = self._medir_todo()
-        for ancho, alto in VENTANAS:
-            v = medido['portada-carrusel', ancho]['medidas'].get('vitrina')
-            with self.subTest(ancho=ancho):
-                self.assertTrue(v, 'con productos elegidos, la portada abre con el fondo (.o_dcasa_hero_vitrina)')
-                self.assertEqual(v['fondo'], NAVY_CSS, 'nada de negro: el azul noche de las bandas del sitio')
-                # La foto, limpia: ni velo, ni filtro, ni degradado encima de ella.
-                self.assertEqual(v['opacidadFoto'], 1.0, 'la foto sin velo')
-                self.assertEqual(v['opacidadDiapositiva'], 1.0)
-                self.assertEqual(v['filtroFoto'], 'none')
-                self.assertEqual(v['mezclaFoto'], 'normal')
-                self.assertEqual(v['marcoImagen'], 'none', 'sin degradado sobre la pila de fotos')
-                for capa in v['capas']:
-                    self.assertIn(capa, ('none', 'normal'), 'ninguna capa ::before/::after sobre la foto o el texto')
-                # El bloque del texto ya no es una placa azul: solo coloca el texto encima de la foto.
-                self.assertEqual(v['panelFondo'], 'rgba(0, 0, 0, 0)', 'sin placa: el texto va sobre la foto')
-                self.assertEqual(v['panelImagen'], 'none', 'sin degradados en el bloque')
-                self.assertEqual(v['panelSombra'], 'none', 'sin sombras')
-                # El contraste: un degradado en azul de marca, nunca negro.
-                self.assertIn('gradient', v['contraste']['imagen'], 'el contraste es un degradado, no un velo plano')
-                self.assertEqual(v['contraste']['mezcla'], 'normal')
-                for rgb in (NAVY, AZUL):
-                    self.assertIn(f'rgba({rgb[0]}, {rgb[1]}, {rgb[2]}', v['contraste']['imagen'],
-                                  'el degradado es del azul de la marca')
-                self.assertNotIn('rgba(0, 0, 0', v['contraste']['imagen'], 'el fondo nunca se oscurece con negro')
-                self.assertNotIn('rgb(0, 0, 0', v['contraste']['imagen'])
-                # El encuadre (el zoom lento no se mide aquí: estas capturas congelan toda animación a propósito,
-                # para salir siempre iguales; el zoom se comprueba en TestCarruselPortada, en un Chrome normal).
-                self.assertTrue(v['imagenCubreElHero'], 'la foto misma cubre el hero entero, sin huecos')
-                self.assertTrue(v['fotoOrillaIzquierda'], 'la foto llega a la orilla izquierda')
-                self.assertTrue(v['fotoOrillaDerecha'], 'y a la derecha')
-                self.assertTrue(v['fotoArriba'], 'y arriba, bajo la cabecera de vidrio')
-                self.assertTrue(v['fotoAbajo'], 'y abajo: cubre el hero entero')
-                self.assertGreaterEqual(v['altoPantalla'], alto, 'del alto de la pantalla')
-                self.assertTrue(v['textoSobreFoto'], 'el texto va ENCIMA de la foto, no a su lado')
-                # Nada que tocar y nada que leer de más.
-                self.assertEqual(v['mandos'], 0, 'sin flechas, barras, nombres ni enlaces: es un fondo')
-                for cual, color in v['colores'].items():
-                    if color is not None:     # el antetítulo no sale en el celular
-                        self.assertEqual(color, 'rgb(255, 255, 255)', f'{cual} blanco')
-                self.assertEqual(v['amarillo']['fondo'], 'rgb(254, 208, 15)')
-                self.assertTrue(v['amarillo']['dentroDelPanel'], 'el botón amarillo, sobre el degradado azul')
-                self.assertFalse(v['sobreFoto'], 'la píldora va clara sobre el fondo')
+    def _revisar_texto_del_hero(self, h, ancho):
+        for cual, color in h['colores'].items():
+            esperado = {'titulo': NAVY, 'sub': MUTED, 'kicker': SAGE_STRONG}[cual]
+            self.assertEqual(color, esperado, f'{cual} a {ancho}px')
+        self.assertEqual(h['fondo'], CREMA, 'el hero en crema, nunca negro ni azul')
+        self.assertEqual(h['titulo']['mayusculas'], 'none', 'el titular como frase')
+        self.assertEqual(h['titulo']['peso'], '700')
+        self.assertIn('Montserrat', h['titulo']['fuente'])
+        self.assertTrue(h['titulo']['espaciado'].startswith('-'), 'letter-spacing negativo (-0.03em)')
+        self.assertEqual(h['halo'], 'none', 'sin halo: la letra va sobre el crema, no sobre una foto')
+        self.assertEqual(h['pildora']['radio'], '999px', 'el antetítulo en píldora')
+        self.assertEqual(h['pildora']['borde'], 'solid')
+        self.assertEqual(h['pildora']['mayusculas'], 'uppercase')
+        self.assertEqual(h['pildora']['tamano'], '12px')
+        self.assertEqual((h['boton']['fondo'], h['boton']['color'], h['boton']['peso']), (NARANJA, NAVY, '700'),
+                         'el botón principal: naranja con letra navy, en 700')
+        self.assertTrue(h['boton']['pastilla'], 'en pastilla')
+        self.assertIn('rgb(238, 146, 74)', h['boton']['brillo'], 'con el resplandor suave del mismo naranja')
+        self.assertEqual(h['boton']['href'], '/shop')
+        self.assertEqual(len(h['manchas']), 2, 'las dos manchas suaves de su hero')
+        for filtro in h['manchas']:
+            self.assertIn('blur(', filtro)
 
-    def test_02_hero_de_la_portada_sin_placa(self):
+    def test_02_hero_de_la_portada_en_crema_con_la_foto_del_bebe(self):
         medido = self._medir_todo()
         for ancho, _alto in VENTANAS:
             h = medido['portada', ancho]['medidas'].get('hero')
             with self.subTest(ancho=ancho):
                 self.assertTrue(h, 'la portada abre con el hero (.o_dcasa_hero)')
-                velo = 1 - h['opacidadFoto']
-                self.assertTrue(VELO_MIN - 1e-6 <= velo <= VELO_MAX + 1e-6, f'velo fuera de 35-50 %: {velo:.2f}')
-                self.assertEqual(h['fondo'], 'rgb(0, 0, 0)', 'velo negro plano')
+                self._revisar_texto_del_hero(h, ancho)
+                self.assertEqual(h['fondoImagen'], 'none', 'sin foto de fondo ni degradado detrás del texto')
+                self.assertEqual(h['opacidadFoto'], 1.0, 'la foto sin velo')
                 self.assertEqual(h['filtroFoto'], 'none')
                 self.assertEqual(h['mezclaFoto'], 'normal')
-                self.assertEqual(h['mediaFondo'], 'none', 'sin degradado sobre la foto')
-                self.assertEqual(h['mediaPos'], 'absolute', 'la foto va detrás del texto')
+                self.assertEqual(h['radioFoto'], '24px', 'la foto con esquinas redondeadas (rounded-3xl)')
                 for capa in h['capas']:
+                    self.assertIn(capa, ('none', 'normal'), 'ninguna capa encima de la foto')
+                self.assertFalse(h['textoSobreFoto'], 'el texto va sobre el crema, no encima de la foto')
+                if ancho >= 768:
+                    self.assertTrue(h['fotoAlLado'], 'en la computadora la foto va a la derecha del texto')
+                else:
+                    self.assertTrue(h['fotoDebajo'], 'en el celular la foto va debajo del texto')
+                self.assertEqual(h['pildoraVerde'], {'fondo': 'rgb(145, 201, 162)', 'color': NAVY,
+                                                     'texto': 'Sin cloro · Sin perfumes'}, 'la píldora verde sobre la foto')
+
+    def test_02b_el_hero_con_productos_es_el_mismo_hero_crema(self):
+        """Con productos elegidos (Sitio web › Carrusel de la portada) el hero es el mismo: el texto sobre el crema y las
+        fotos fundiéndose en el marco redondeado, sin velo, sin degradado y sin nada que el visitante maneje."""
+        medido = self._medir_todo()
+        for ancho, _alto in VENTANAS:
+            v = medido['portada-carrusel', ancho]['medidas'].get('vitrina')
+            with self.subTest(ancho=ancho):
+                self.assertTrue(v, 'con productos elegidos, la portada abre con sus fotos (.o_dcasa_hero_vitrina)')
+                self._revisar_texto_del_hero(v, ancho)
+                self.assertEqual(v['opacidadFoto'], 1.0, 'la foto sin velo')
+                self.assertEqual(v['opacidadDiapositiva'], 1.0)
+                self.assertEqual(v['filtroFoto'], 'none')
+                self.assertEqual(v['mezclaFoto'], 'normal')
+                self.assertEqual(v['marcoFondoImagen'], 'none', 'sin degradado sobre las fotos')
+                for capa in v['capas']:
                     self.assertIn(capa, ('none', 'normal'), 'ninguna capa ::before/::after sobre la foto o el texto')
-                self.assertEqual(h['textoFondo'], 'rgba(0, 0, 0, 0)', 'el bloque de texto no tiene fondo (sin placa)')
-                self.assertEqual(h['textoImagen'], 'none')
-                self.assertEqual(h['textoSombra'], 'none')
-                self.assertEqual(h['textoBorde'], 'none')
-                self.assertTrue(h['textoSobreFoto'], 'el texto se superpone a la foto')
-                for cual, color in h['colores'].items():
-                    self.assertEqual(color, 'rgb(255, 255, 255)', f'{cual} blanco')
-                for cual, halo in h['halo'].items():
-                    self.assertNotEqual(halo, 'none', f'{cual} sin halo de contraste')
-                    self.assertLessEqual(len(halo.split('),')), 2, f'{cual}: el halo es fino (máx. 2 sombras)')
-                # Detrás del titular solo hay la foto y el hero negro: ninguna placa ni fondo de color.
-                for el in h['detras']:
-                    rgba = _rgba(el['fondo'])
-                    if el['esHero']:
-                        self.assertEqual(rgba[:3], (0, 0, 0))
-                        continue
-                    self.assertEqual(rgba[3], 0.0, f'{el["sel"]} tiene fondo detrás del titular: {el["fondo"]}')
-                    self.assertNotIn(rgba[:3], (AZUL, NAVY), f'{el["sel"]} azul/navy detrás del titular')
-                    self.assertEqual(el['imagen'], 'none', f'{el["sel"]} con imagen o degradado detrás del titular')
+                self.assertEqual(v['panelFondo'], 'rgba(0, 0, 0, 0)', 'sin placa detrás del texto')
+                self.assertEqual(v['panelImagen'], 'none')
+                self.assertEqual(v['marcoRadio'], '24px', 'el marco con las esquinas de la foto del hero')
+                self.assertTrue(v['imagenCubreElMarco'], 'la foto llena su marco')
+                self.assertFalse(v['textoSobreFoto'], 'el texto va al lado de las fotos, no encima')
+                self.assertEqual(v['mandos'], 0, 'sin flechas, barras, nombres ni enlaces')
 
     # ------------------------------------------------------------------ 2. píxeles (tolerancia)
     def test_03_capturas_de_referencia(self):
