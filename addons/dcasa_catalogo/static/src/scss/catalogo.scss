@@ -3,6 +3,7 @@
 $cat-surface: #F2EFE5;
 $cat-bg: #F9F6ED;
 $cat-fg: #1B3246;
+$cat-line: rgba(27, 50, 70, .12);   // filos que separan
 $cat-accent: #EE924A;           // relleno: nunca texto ni borde
 $cat-accent-strong: #985D2F;    // texto en naranja (4.60 sobre surface)
 $cat-accent-edge: #C3783D;      // borde naranja (3.01 sobre surface)
@@ -10,28 +11,57 @@ $cat-sage: #91C9A2;             // relleno verde: nunca texto ni borde
 $cat-sage-strong: #53735C;
 $cat-fuente: 'Montserrat', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 
-// Ficha de producto: medidas y precio en combo, con etiqueta propia (no compiten con el precio). La etiqueta es el
-// antetítulo de la marca (12 px, 700, caja alta, en el naranja de texto) y la caja, `surface` con el filo naranja.
+// Ficha de producto: medidas, presentación de cada talla y precio en combo, con etiqueta propia (no compiten con el
+// precio). Una tarjeta de la marca (`surface`, filo `line`, radio 16) con cada grupo apilado a todo el ancho: la
+// etiqueta es el antetítulo de la marca (12 px, 700, caja alta, en el naranja de texto) y debajo sus líneas, una por
+// renglón, separadas por el filo. Nada de columnas: con varias presentaciones, la rejilla de dos columnas de antes
+// repartía las líneas entre las dos (una angostísima) y en el celular la ficha se salía de lado (607 px a 390).
 .o_dcasa_ficha_datos {
-    display: grid;
-    grid-template-columns: max-content 1fr;
-    gap: .35rem 1rem;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    // El mismo ancho que las secciones de la ficha de Odoo de al lado (el precio, las tallas, el botón).
+    max-width: var(--o-wsale-product-details-content-section-max-width, 520px);
     margin: 0;
-    padding: .85rem 1rem;
-    border-left: 3px solid $cat-accent-edge;
-    border-radius: 0 14px 14px 0;
+    padding: 1rem 1.25rem;
+    border: 1px solid $cat-line;
+    border-radius: 16px;
     background: $cat-surface;
+    box-shadow: 0 4px 20px -2px rgba(27, 50, 70, .05);
     color: $cat-fg;
+    font-family: $cat-fuente;
+
     dt {
+        margin: 1rem 0 .35rem;
         font-family: $cat-fuente;
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: .14em;
         font-size: .75rem;
+        line-height: 1.3;
         color: $cat-accent-strong;
-        align-self: center;
+
+        &:first-child {
+            margin-top: 0;
+        }
     }
-    dd { margin: 0; }
+
+    dd {
+        margin: 0;
+        min-width: 0;
+        font-size: 1rem;
+        line-height: 1.5;
+        overflow-wrap: anywhere;
+    }
+
+    // Las presentaciones: una por renglón, con el filo entre una y otra.
+    .o_dcasa_presentacion {
+        padding: .5rem 0;
+
+        & + .o_dcasa_presentacion {
+            border-top: 1px solid $cat-line;
+        }
+    }
 }
 
 // Ficha: «Disponible», «Quedan pocas» o «Agotado» (models/product.py), en la misma línea del precio, a la derecha de

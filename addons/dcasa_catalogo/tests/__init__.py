@@ -15,3 +15,4 @@ from . import test_disponibilidad_portada
 from . import test_rv2_combos_campana
 from . import test_rv_combos_campana
 from . import test_marca
+from . import test_ficha_presentacion
