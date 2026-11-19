@@ -182,8 +182,13 @@ class TestCacheDelBorde(HttpCase):
         bundles = sorted(set(re.findall(r'/web/assets/(?:\d+/)?[0-9a-f]+/[\w.-]+\.(?:css|js)', html)))
         self.assertTrue(any(b.endswith('.css') for b in bundles), bundles)
         self.assertTrue(any(b.endswith('.js') for b in bundles), bundles)
-        fuente = '/website_dcasa/static/src/fonts/anton-latin.woff2'
-        self.assertIn(fuente, html, 'La portada precarga la fuente del titular')
+        # La fuente que la portada precarga (la del titular: website_dcasa decide cuál; con la marca Baby Caleb,
+        # Montserrat). Se lee del HTML en vez de fijar un nombre: aquí se prueba que el borde la puede guardar.
+        precargas = [e for e in re.findall(r'<link\b[^>]*>', html) if 'rel="preload"' in e and 'as="font"' in e]
+        fuentes = [re.search(r'href="([^"]+)"', e).group(1) for e in precargas]
+        self.assertTrue(fuentes, 'La portada precarga la fuente del titular')
+        fuente = fuentes[0]
+        self.assertTrue(fuente.startswith('/website_dcasa/static/src/fonts/') and fuente.endswith('.woff2'), fuente)
         for ruta in [*bundles, fuente]:
             with self.subTest(ruta=ruta):
                 respuesta = self._relleno(ruta)

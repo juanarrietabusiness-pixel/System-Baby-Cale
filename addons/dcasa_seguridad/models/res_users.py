@@ -175,7 +175,7 @@ class ResUsers(models.Model):
         _logger.warning('Seguridad: «%s» acertó la clave pero %s (modo %s) desde %s', usuario.login, hecho, modo, _ip())
         if usuario._is_system():
             self._dcasa_avisar_admins(usuario, (
-                f'\U0001F6AA D’CASA: alguien acertó la clave de administrador «{usuario.name}» '
+                f'\U0001F6AA {self._dcasa_marca(usuario)}: alguien acertó la clave de administrador «{usuario.name}» '
                 f'({usuario.login}) desde la IP {_ip()} ({_agente() or "navegador desconocido"}), '
                 f'{self._dcasa_hora()}, pero {hecho}'
                 + (': no entró.' if bloquea else ' (modo aviso: entró).')
@@ -222,7 +222,7 @@ class ResUsers(models.Model):
             fallos = (getattr(self.env.registry, '_login_failures', None) or {}).get(ip, (0, None))[0]
             if minimo and fallos == minimo:
                 self._dcasa_avisar_admins(usuario, (
-                    f'⚠️ D’CASA: {fallos} intentos fallidos seguidos de entrar como '
+                    f'⚠️ {self._dcasa_marca(usuario)}: {fallos} intentos fallidos seguidos de entrar como '
                     f'«{usuario.name}» desde la IP {ip} ({_agente() or "navegador desconocido"}), '
                     f'{self._dcasa_hora()}. Esa IP queda en espera. Si no eras tú, no hace falta hacer '
                     f'nada más: con el doble factor la clave sola no basta.'))
@@ -249,10 +249,18 @@ class ResUsers(models.Model):
             por_la_puerta = f' Pasó la puerta como {correo_puerta}.' if correo_puerta else ''
             quien = 'administrador ' if es_admin else ''
             self._dcasa_avisar_admins(usuario, (
-                f'\U0001F510 D’CASA: inicio de sesión {"de " + quien if quien else "del personal "}«{usuario.name}» '
+                f'\U0001F510 {self._dcasa_marca(usuario)}: inicio de sesión '
+                f'{"de " + quien if quien else "del personal "}«{usuario.name}» '
                 f'({usuario.login}) desde la IP {_ip()} ({_agente() or "navegador desconocido"}), '
                 f'{self._dcasa_hora()}.{por_la_puerta}{falta} Si no fuiste tú, avisa y revisa Ajustes › Usuarios › '
                 f'Accesos al panel.'))
+
+    @api.model
+    def _dcasa_marca(self, usuario=None):
+        """El nombre de la empresa (el de la ficha de la empresa): encabeza los avisos y es el emisor en la app de
+        códigos. Cada negocio ve el suyo (en esta copia, «Baby Caleb»), nunca el de la plantilla de origen."""
+        empresa = (usuario.company_id if usuario else None) or self.env.company
+        return (empresa.sudo().name or '').strip() or 'Odoo'
 
     @api.model
     def _dcasa_hora(self):

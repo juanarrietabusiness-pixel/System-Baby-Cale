@@ -1,27 +1,44 @@
-// Ficha de producto: medidas y precio en combo, con etiqueta propia (no compiten con el precio).
+// Ficha de producto con la marca Baby Caleb (docs/MARCA_BABY_CALEB.md). Los colores van escritos aquí mismo, sin
+// variables de website_dcasa; Montserrat (la @font-face la declara website_dcasa).
+$cat-surface: #F2EFE5;
+$cat-bg: #F9F6ED;
+$cat-fg: #1B3246;
+$cat-accent: #EE924A;           // relleno: nunca texto ni borde
+$cat-accent-strong: #985D2F;    // texto en naranja (4.60 sobre surface)
+$cat-accent-edge: #C3783D;      // borde naranja (3.01 sobre surface)
+$cat-sage: #91C9A2;             // relleno verde: nunca texto ni borde
+$cat-sage-strong: #53735C;
+$cat-fuente: 'Montserrat', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+// Ficha de producto: medidas y precio en combo, con etiqueta propia (no compiten con el precio). La etiqueta es el
+// antetítulo de la marca (12 px, 700, caja alta, en el naranja de texto) y la caja, `surface` con el filo naranja.
 .o_dcasa_ficha_datos {
     display: grid;
     grid-template-columns: max-content 1fr;
     gap: .35rem 1rem;
     margin: 0;
     padding: .85rem 1rem;
-    border-left: 3px solid #1340B1;
-    background: rgba(19, 64, 177, .05);
+    border-left: 3px solid $cat-accent-edge;
+    border-radius: 0 14px 14px 0;
+    background: $cat-surface;
+    color: $cat-fg;
     dt {
-        font-family: 'Oswald', sans-serif;
-        font-weight: 500;
+        font-family: $cat-fuente;
+        font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: .04em;
-        font-size: .8rem;
-        color: #1340B1;
+        letter-spacing: .14em;
+        font-size: .75rem;
+        color: $cat-accent-strong;
         align-self: center;
     }
     dd { margin: 0; }
 }
 
 // Ficha: «Disponible», «Quedan pocas» o «Agotado» (models/product.py), en la misma línea del precio, a la derecha de
-// «+ ITBMS»; si no cabe, baja justo debajo. Así se ve al abrir la ficha en el celular, sin bajar. Plano, con los
-// colores de la marca: el amarillo solo va sobre navy (regla del ADN: el amarillo nunca toca el blanco).
+// «+ ITBMS»; si no cabe, baja justo debajo. Así se ve al abrir la ficha en el celular, sin bajar. Las insignias de Baby
+// Caleb: pastilla de 12 px, 700, en caja alta. «Disponible» en verde salvia claro con letra navy; «Quedan pocas»
+// empuja en el naranja de relleno con letra navy (5.56); «Agotado» cierra en navy con letra crema (12.21), como en su
+// tienda. El estado también va en palabras: el color nunca es la única señal.
 .o_wsale_product_details_content_section_price:has(.o_dcasa_disponibilidad) {
     display: flex;
     flex-wrap: wrap;
@@ -38,34 +55,38 @@
     margin: 0;
     padding: .3rem .85rem;
     border-radius: 999px;
-    font-family: 'Oswald', sans-serif;
-    font-weight: 500;
-    font-size: .85rem;
-    letter-spacing: .05em;
+    font-family: $cat-fuente;
+    font-weight: 700;
+    font-size: .75rem;
+    letter-spacing: .08em;
     text-transform: uppercase;
     line-height: 1.4;
-    color: #1340B1;
-    background: rgba(19, 64, 177, .08);
+    color: $cat-fg;
+    background: rgba($cat-sage, .3);
 
     .o_dcasa_disponibilidad_punto {
         flex: none;
         width: .55rem;
         height: .55rem;
         border-radius: 50%;
-        background: currentColor;
+        background: $cat-sage-strong;
     }
 
     &[data-estado="pocas"] {
-        color: #FFFFFF;
-        background: #0E2A6B;
+        color: $cat-fg;
+        background: $cat-accent;
 
         .o_dcasa_disponibilidad_punto {
-            background: #FED00F;
+            background: $cat-fg;
         }
     }
 
     &[data-estado="agotado"] {
-        color: #4A5163;
-        background: #EAE5DA;
+        color: $cat-bg;
+        background: $cat-fg;
+
+        .o_dcasa_disponibilidad_punto {
+            background: $cat-bg;
+        }
     }
 }

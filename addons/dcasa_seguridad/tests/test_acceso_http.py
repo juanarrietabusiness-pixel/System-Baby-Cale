@@ -55,6 +55,10 @@ class TestAccesoHttp(HttpCase):
         respuesta = self._entrar('http_admin', 'http_admin')
         self.assertTrue(respuesta.request.path_url.startswith(RUTA_ENROLAR), respuesta.request.path_url)
         self.assertIn('Activa tu doble factor', respuesta.text)
+        # Con el nombre de la empresa (marca Baby Caleb), nunca el de la plantilla de origen.
+        empresa = self.admin.company_id.name
+        self.assertIn(f'Para entrar al panel de {empresa}', respuesta.text)
+        self.assertNotIn('D’CASA', respuesta.text)
         # Sin código no hay sesión: el panel no abre.
         panel = self.url_open('/odoo', allow_redirects=False)
         self.assertIn(panel.status_code, (302, 303))
@@ -64,6 +68,7 @@ class TestAccesoHttp(HttpCase):
         with mute_logger('odoo.addons.dcasa_seguridad.controllers.enrolar'):
             malo = self.url_open(RUTA_ENROLAR, data={'codigo': '000000', 'csrf_token': http.Request.csrf_token(self)})
         self.assertIn('no coincide', malo.text)
+        self.assertIn(f'«{empresa}»', malo.text, 'la cuenta de la app se llama como la empresa')
         self.assertEqual(self._accesos(self.admin, 'fallo_2fa'), 1)
 
         codigo = str(hotp(base64.b32decode(secreto), int(time.time() / 30))).zfill(6)
@@ -90,6 +95,8 @@ class TestAccesoHttp(HttpCase):
             self.assertEqual(avisar.call_count, 1)
             self.assertEqual(avisar.call_args.args[1], self.admin)
             self.assertIn('5 intentos fallidos', avisar.call_args.args[2])
+            self.assertTrue(avisar.call_args.args[2].startswith(f'⚠️ {self.admin.company_id.name}:'),
+                            'el aviso lleva el nombre de la empresa')
             # El sexto, con la IP en espera, ni se prueba ni llena la base. Ni con la clave buena.
             respuesta = self._entrar('http_admin', 'http_admin')
             self.assertNotEqual(respuesta.request.path_url, '/odoo')
