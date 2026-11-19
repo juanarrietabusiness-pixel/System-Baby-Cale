@@ -37,7 +37,9 @@ export function respuestaArrancando(request: Request, reintento = REINTENTO_SEGU
 }
 
 function paginaArrancando(reintento: number): string {
-  // Marca: fondo blanco, texto navy/azul, sin amarillo sobre blanco, sin degradados.
+  // Marca Baby Caleb (docs/MARCA_BABY_CALEB.md): crema, letra navy, titular como frase en Montserrat 700 y el botón en
+  // pastilla naranja con letra navy (el naranja es relleno: nunca letra). Mientras Odoo arranca no hay quien sirva la
+  // Montserrat del sitio: si el teléfono no la tiene, sale la letra del sistema.
   return `<!doctype html>
 <html lang="es">
 <head>
@@ -47,20 +49,22 @@ function paginaArrancando(reintento: number): string {
 <meta name="robots" content="noindex">
 <title>${EMPRESA} · Un momento</title>
 <style>
-  body{margin:0;background:#fff;color:#0B1F4D;font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  body{margin:0;background:#F9F6ED;color:#1B3246;font-family:Montserrat,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
     min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box}
   main{max-width:420px;text-align:center}
-  h1{font-family:Anton,Impact,"Arial Narrow",sans-serif;text-transform:uppercase;color:#1340B1;font-weight:400;
-    font-size:2rem;letter-spacing:.02em;margin:0 0 12px}
-  p{line-height:1.5;margin:0 0 12px}
-  a{color:#1340B1;font-weight:600}
+  h1{font-weight:700;color:#1B3246;font-size:2rem;line-height:1.15;letter-spacing:-.03em;margin:0 0 12px}
+  p{line-height:1.6;margin:0 0 12px;color:rgba(27,50,70,.7)}
+  a{display:inline-block;margin-top:8px;background:#EE924A;color:#1B3246;font-weight:700;text-decoration:none;
+    padding:12px 24px;border-radius:999px;min-height:44px;box-sizing:border-box}
+  a:focus-visible{outline:2px solid #1B3246;outline-offset:2px}
 </style>
 </head>
 <body>
 <main>
   <h1>Estamos abriendo la tienda</h1>
   <p>Dame un momento: la página se recarga sola en ${reintento} segundos.</p>
-  <p>¿Tienes prisa? <a href="https://wa.me/${WHATSAPP_WA_ME}">Escríbenos por WhatsApp</a></p>
+  <p>¿Tienes prisa?</p>
+  <a href="https://wa.me/${WHATSAPP_WA_ME}">Escríbenos por WhatsApp</a>
 </main>
 </body>
 </html>

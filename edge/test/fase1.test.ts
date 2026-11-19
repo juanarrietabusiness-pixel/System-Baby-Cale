@@ -76,8 +76,12 @@ describe("503 amable mientras Odoo arranca o restaura (I-07)", () => {
     expect(html).toContain("<title>Baby Caleb · Un momento</title>");
     expect(html).toContain('href="https://wa.me/50767575065"');
     expect(html).not.toMatch(/D'CASA|60261919/);
-    expect(html).not.toMatch(/FED00F/i); // el amarillo nunca sobre blanco
     expect(html).not.toMatch(/gradient/i);
+    // Marca Baby Caleb (docs/MARCA_BABY_CALEB.md, 2026-11-19): crema, letra navy, botón naranja con letra navy; nada del
+    // azul, del amarillo ni de las letras de D'CASA.
+    expect(html).toContain("background:#F9F6ED");
+    expect(html).toMatch(/background:#EE924A;color:#1B3246/);
+    expect(html).not.toMatch(/1340B1|FED00F|0B2160|Anton|Oswald|uppercase/i);
   });
 
   it("a Brian, Telegram o un POST le da texto plano", async () => {

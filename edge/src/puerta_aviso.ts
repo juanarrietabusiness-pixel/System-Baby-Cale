@@ -158,7 +158,8 @@ function mientrasTanto(modo: ModoPuerta, entorno?: string): string {
 }
 
 function pagina(titulo: string, cuerpo: string, pie: string): string {
-  // Marca: navy de fondo y la tarjeta azul de «Acceso del equipo»; el amarillo solo sobre el azul; sin degradados.
+  // Marca Baby Caleb (docs/MARCA_BABY_CALEB.md): crema, tarjeta en «surface» con su filo, letra navy, titulares como
+  // frase en Montserrat 700, antetítulos en el naranja de texto (#985D2F) y el botón en pastilla naranja con letra navy.
   return `<!doctype html>
 <html lang="es">
 <head>
@@ -168,20 +169,21 @@ function pagina(titulo: string, cuerpo: string, pie: string): string {
 <title>Baby Caleb · Acceso del equipo</title>
 <style>
   *{box-sizing:border-box}
-  body{margin:0;background:#0b2160;color:#fff;font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
-    min-height:100vh;padding:16px;line-height:1.5}
-  main{max-width:560px;margin:6vh auto 4vh;background:#1340b1;border-radius:4px;padding:28px 24px}
-  h1{font-family:Anton,Impact,"Arial Narrow",sans-serif;font-weight:400;text-transform:uppercase;letter-spacing:.03em;
-    font-size:2rem;margin:0 0 4px}
-  .sub{font-family:Oswald,"Arial Narrow",sans-serif;font-size:1.25rem;margin:0 0 20px}
-  h2{font-family:Oswald,"Arial Narrow",sans-serif;font-weight:500;font-size:1.05rem;text-transform:uppercase;
-    letter-spacing:.04em;margin:20px 0 6px}
+  body{margin:0;background:#F9F6ED;color:#1B3246;font-family:Montserrat,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    min-height:100vh;padding:16px;line-height:1.6}
+  main{max-width:560px;margin:6vh auto 4vh;background:#F2EFE5;border:1px solid rgba(27,50,70,.12);border-radius:24px;
+    padding:28px 24px;box-shadow:0 4px 20px -2px rgba(27,50,70,.05)}
+  h1{font-weight:700;letter-spacing:-.03em;line-height:1.15;font-size:2rem;margin:0 0 4px}
+  .sub{font-weight:500;font-size:1.125rem;margin:0 0 20px;color:rgba(27,50,70,.7)}
+  h2{font-weight:700;font-size:.75rem;text-transform:uppercase;letter-spacing:.14em;color:#985D2F;margin:20px 0 6px}
   p,li{margin:0 0 8px;overflow-wrap:anywhere}
   ol,ul{padding-left:22px;margin:0}
   b{font-weight:700}
-  .boton{display:inline-block;margin-top:20px;background:#fed00f;color:#0b2160;font-weight:700;text-decoration:none;
-    padding:12px 18px;border-radius:4px}
-  .pie{margin-top:24px;font-size:.85rem;opacity:.9}
+  .boton{display:inline-block;margin-top:20px;background:#EE924A;color:#1B3246;font-weight:700;text-decoration:none;
+    padding:12px 24px;border-radius:999px;min-height:44px}
+  .boton:focus-visible,a:focus-visible{outline:2px solid #1B3246;outline-offset:2px}
+  a{color:#985D2F;font-weight:600}
+  .pie{margin-top:24px;font-size:.85rem;color:rgba(27,50,70,.7)}
   code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.85rem}
 </style>
 </head>
