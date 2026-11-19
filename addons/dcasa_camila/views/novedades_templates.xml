@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- /novedades/si (controllers/main.py): la página del enlace «¿Te avisamos de lo nuevo? Sí, quiero». Banda azul de
-         la marca; el amarillo solo sobre azul (el botón); un solo CTA de WhatsApp en la página de gracias. -->
+    <!-- /novedades/si (controllers/main.py): la página del enlace «¿Te avisamos de lo nuevo? Sí, quiero». La banda verde
+         de la marca con la letra navy y el botón en pastilla naranja (static/src/frontend/novedades.scss); un solo CTA
+         de WhatsApp en la página de gracias. La clase o_dcasa_btn_amarillo se queda (es el nombre técnico del botón
+         principal del sitio). -->
     <template id="pagina_novedades" name="Camila: página «Sí, quiero»">
         <t t-call="website.layout">
             <t t-set="additional_title" t-value="titulo"/>

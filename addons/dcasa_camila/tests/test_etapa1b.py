@@ -560,8 +560,8 @@ DESACTIVAR = """
     const casilla = await esperar(() => document.querySelector('.o_camila_pregunta_casilla input[type="checkbox"]'),
                                   'la casilla');
     if (!casilla.checked) { throw new Error('La casilla tenía que venir activada'); }
-    const azul = getComputedStyle(casilla).backgroundColor;
-    if (azul !== 'rgb(19, 64, 177)') { throw new Error('La casilla no está en el azul de la marca: ' + azul); }
+    const navy = getComputedStyle(casilla).backgroundColor;
+    if (navy !== 'rgb(27, 50, 70)') { throw new Error('La casilla no está en el navy de la marca: ' + navy); }
     if (!cuerpo.textContent.includes('Se le enviarán novedades a carla.zzcm@example.com')) {
         throw new Error('Falta a qué correo le llegarían');
     }

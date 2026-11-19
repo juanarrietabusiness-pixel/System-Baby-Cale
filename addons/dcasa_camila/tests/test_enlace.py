@@ -9,6 +9,7 @@ from urllib.parse import urlsplit
 from lxml import html as lxml_html
 
 from odoo import Command, fields
+from odoo.addons.dcasa_invoice.tests import marca
 from odoo.tests import HttpCase, tagged
 
 
@@ -55,7 +56,10 @@ class TestEnlaceSiQuiero(HttpCase):
         cuerpo = self.cuerpo(self.factura(), 'dcasa_correo.plantilla_factura', 'factura')
         self.assertIn('¿Te avisamos de lo nuevo?', lxml_html.fromstring(cuerpo).text_content())
         self.assertRegex(self.enlace(cuerpo), r'/novedades/si\?t=\d+\.f\.\d+\.[0-9a-f]{40}$')
-        self.assertNotIn('fed00f', cuerpo.lower(), 'Sin amarillo en el correo de la factura')
+        marca.sin_rastro_de_dcasa(self, cuerpo, 'correo de la factura con «Sí, quiero»')
+        (si,) = lxml_html.fromstring(cuerpo).xpath("//a[contains(@class, 'o_camila_si_quiero')]")
+        self.assertIn(f'color:#{marca.NARANJA_TEXTO}', marca.estilo(si), 'el enlace de acción, en el naranja de letra')
+        self.assertIn('montserrat,arial,helvetica', marca.estilo(si.getparent()))
         bienvenida = self.cuerpo(self.ana, 'dcasa_correo.plantilla_bienvenida', 'bienvenida')
         self.assertRegex(self.enlace(bienvenida), r'/novedades/si\?t=\d+\.b\.')
 

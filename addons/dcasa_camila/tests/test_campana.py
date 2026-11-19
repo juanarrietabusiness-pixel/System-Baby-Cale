@@ -9,6 +9,7 @@ from lxml import html as lxml_html
 
 from odoo import fields
 from odoo.addons.dcasa_brian.models import proveedores as P
+from odoo.addons.dcasa_invoice.tests import marca
 from odoo.exceptions import AccessError, UserError
 from odoo.tests import tagged
 
@@ -94,14 +95,22 @@ class TestArmar(CamilaComun):
         datos = self.armar()
         campana = self.env['dcasa.camila.campana'].browse(datos['campana']['id'])
         cuerpo = self.Camila._html(campana, para_resend=True)
-        minusculas = cuerpo.lower()
-        for prohibido in ('gradient', 'box-shadow', 'text-shadow', '<script', '<style', 'javascript:'):
-            self.assertNotIn(prohibido, minusculas)
-        arbol = lxml_html.fromstring(cuerpo)
-        # El amarillo solo dentro de la banda azul: nunca toca el blanco.
-        amarillos = [td for td in arbol.iter('td') if '#fed00f' in estilo(td)]
-        self.assertEqual(len(amarillos), 1)
-        self.assertTrue(any('#1340b1' in estilo(padre) for padre in amarillos[0].iterancestors('td')))
+        # Marca Baby Caleb: estilos en línea, Montserrat con respaldo, nada de D'CASA, el naranja nunca de letra.
+        arbol = marca.correo_con_la_marca(self, cuerpo, 'campaña')
+        # Un solo botón principal (el de WhatsApp): pastilla naranja con la letra navy, sobre la banda verde salvia.
+        (celda,) = marca.botones_naranja(arbol)
+        self.assertIn('o_camila_boton_whatsapp', celda.get('class'))
+        marca.es_pastilla_navy_sobre_naranja(self, celda)
+        bandas = [padre for padre in celda.iterancestors('td') if f'background-color:#{marca.SALVIA}' in estilo(padre)]
+        self.assertTrue(bandas, 'el botón va sobre la banda verde')
+        # El titular en navy, como frase, sobre la otra banda verde.
+        (titular,) = arbol.iter('h1')
+        self.assertIn(f'color:#{marca.NAVY}', estilo(titular))
+        self.assertNotIn('text-transform', estilo(titular))
+        self.assertIn(f'background-color:#{marca.SALVIA}', estilo(titular.getparent()))
+        # El precio, destacado en el naranja de letra (#985D2F, 4.90 sobre el crema).
+        for precio in arbol.xpath("//td[contains(@class, 'o_camila_precio')]"):
+            self.assertIn(f'color:#{marca.NARANJA_TEXTO}', estilo(precio))
         (boton,) = [a for a in arbol.iter('a') if 'WhatsApp' in a.text_content()]
         self.assertEqual(boton.text_content().strip(), 'Escríbenos por WhatsApp')
         self.assertTrue(boton.get('href').startswith('https://wa.me/50760261919?text='))
@@ -126,7 +135,7 @@ class TestArmar(CamilaComun):
             self.assertRegex(linea.precio_texto, r'^\$\d{3}\.\d{2}$')
         self.assertIn('Frente al Parque de Prueba, La Chorrera', texto)
         self.assertIn('WhatsApp +507 6026-1919', texto)
-        self.assertNotIn('Camila', texto, 'El cliente recibe el correo de D\'CASA, nunca de «Camila»')
+        self.assertNotIn('Camila', texto, 'El cliente recibe el correo de la empresa, nunca de «Camila»')
 
     def test_la_foto_publica_la_sirve_la_tienda(self):
         datos = self.armar()

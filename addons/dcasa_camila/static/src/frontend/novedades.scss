@@ -1,13 +1,24 @@
-// /novedades/si — la página del enlace «Sí, quiero» (marca D'CASA: sistema plano, sin degradados ni sombras). Banda
-// azul; el amarillo SOLO sobre azul (el botón). Anton en el título, Inter en el cuerpo. En el celular: 16 px de margen.
+// /novedades/si — la página del enlace «Sí, quiero», con la marca Baby Caleb (docs/MARCA_BABY_CALEB.md): página crema,
+// la banda verde salvia con la letra navy (6.96), el titular en Montserrat 700 como frase (nunca en caja alta) y el botón
+// en pastilla naranja con la letra navy (5.56). Plano: sin degradados ni sombras. En el celular: 16 px de margen.
+// La letra es la de la web (Montserrat, la carga website_dcasa); aquí solo se nombra.
+$cm-nov-crema: #F9F6ED;
+$cm-nov-tinta: #1B3246;
+$cm-nov-naranja: #EE924A;
+$cm-nov-salvia: #91C9A2;
+$cm-nov-letra: 'Montserrat', Arial, Helvetica, sans-serif;
+
 .o_camila_novedades {
-    background: #F4F1EA;
-    // Un respiro hueso entre la banda y el pie azul del sitio (si no, se leen como un solo bloque).
-    padding-bottom: clamp(2rem, 6vw, 4rem);
+    background: $cm-nov-crema;
+    // Un respiro crema entre la banda y el pie del sitio (si no, se leen como un solo bloque).
+    padding: clamp(1.5rem, 4vw, 3rem) 16px clamp(2rem, 6vw, 4rem);
 
     .o_camila_novedades_banda {
-        background: #1340B1;
-        color: #FFFFFF;
+        max-width: 960px;
+        margin: 0 auto;
+        border-radius: 24px;
+        background: $cm-nov-salvia;
+        color: $cm-nov-tinta;
         padding: clamp(2.5rem, 7vw, 5rem) 16px;
     }
 
@@ -17,42 +28,72 @@
         text-align: center;
     }
 
+    // Antetítulo: 12 px, 700, caja alta y espaciado .14em; navy sobre el verde.
     .o_camila_novedades_kicker {
         margin: 0 0 .75rem;
-        font-family: "Oswald", "Arial Narrow", Arial, sans-serif;
-        font-size: .95rem;
-        letter-spacing: .06em;
+        font-family: $cm-nov-letra;
+        font-size: .75rem;
+        font-weight: 700;
+        letter-spacing: .14em;
         text-transform: uppercase;
-        color: #FFFFFF;
+        color: $cm-nov-tinta;
     }
 
     .o_camila_novedades_titulo {
         margin: 0 0 1rem;
-        font-family: "Anton", Impact, "Arial Narrow Bold", Arial, sans-serif;
+        font-family: $cm-nov-letra;
         font-size: clamp(2rem, 6vw, 3.25rem);
-        font-weight: normal;
-        line-height: 1.1;
-        text-transform: uppercase;
-        color: #FFFFFF;
+        font-weight: 700;
+        line-height: 1.15;
+        letter-spacing: -0.03em;
+        text-transform: none;
+        color: $cm-nov-tinta;
         overflow-wrap: anywhere;
     }
 
     .o_camila_novedades_texto {
         margin: 0 auto 1.75rem;
         max-width: 34rem;
-        font-family: "Inter", Arial, Helvetica, sans-serif;
+        font-family: $cm-nov-letra;
         font-size: 1.05rem;
         line-height: 1.6;
-        color: #FFFFFF;
+        color: $cm-nov-tinta;
     }
 
     .o_camila_novedades_form {
         margin: 0;
     }
 
+    // El botón principal de la marca: pastilla naranja con la letra navy en 700. Se fija aquí (y no solo con la clase
+    // del sitio) para que la página se vea igual aunque cambie el botón de la web.
     .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
         min-width: 14rem;
+        min-height: 44px;
         max-width: 100%;
+        padding: .8rem 2rem;
+        border: 0;
+        border-radius: 999px;
+        background: $cm-nov-naranja;
+        color: $cm-nov-tinta;
+        font-family: $cm-nov-letra;
+        font-weight: 700;
+        text-transform: none;
+        letter-spacing: 0;
         white-space: normal;
+        box-shadow: none;
+
+        &:hover,
+        &:active {
+            background: $cm-nov-naranja;
+            color: $cm-nov-tinta;
+        }
+        &:focus-visible {
+            outline: 2px solid $cm-nov-tinta;
+            outline-offset: 2px;
+            box-shadow: none;
+        }
     }
 }
