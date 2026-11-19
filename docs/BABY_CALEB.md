@@ -51,6 +51,16 @@ del puente. Ya en uso en la cuenta y **no se tocan**: `babycaleb-web`, `babycale
 | 2026-11-18 | Costos | El dueño dirá qué herramientas del sistema de D'CASA se quedan y cuáles se quitan, para bajar el consumo |
 | 2026-11-18 | Nombres de los asistentes | Cada empresa debe poder nombrarlos como quiera (trabajo aparte, por hacer) |
 
+## Estado
+
+- **Staging instalado el 2026-11-19** (CI/CD #8, commit `9be5e55`): `https://sistemabk-staging.juanarrietabusiness.workers.dev`,
+  sano (`/__edge/health`: borde, Odoo y contenedor ok, base al día, humo ok). El chatbot
+  `sistemabk-chatbot-staging` también está arriba, todavía sin sus claves (`JUAN_ODOO_TOKEN`, `JUAN_WORKER_TOKEN`, la IA:
+  ver `docs/PASO_A_PASO_CLAVES.md`). Entrar: `/web/login`, usuario `admin`, la `ODOO_ADMIN_PASSWORD` de staging; pide
+  enrolar el doble factor.
+- **Producción**: no desplegada. `main` sigue siendo el espejo exacto de D'CASA; todas las adecuaciones viven en la rama
+  `claude/nifty-keller-k8rcmz`.
+
 ## Pendiente (preguntas abiertas y trabajo por hacer)
 
 - Datos de la empresa: razón social, RUC y DV, dirección, teléfono, correo, web, lema de los documentos.

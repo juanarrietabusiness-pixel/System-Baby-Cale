@@ -268,6 +268,19 @@ módulos nuevos (o sea, si necesitaba `odoo -u`). Conteos hechos con `git diff` 
 
 ## Fallas de CI y cómo se arreglaron
 
+- **Copia de Baby Caleb, primer despliegue a staging (CI/CD #7 y #8, 2026-11-18/19).** #7: la integración Juan + Odoo
+  rechazó los adjuntos («el dominio dcasapty.com no está en la lista de permitidos») porque el Odoo de la prueba se
+  llamaba dcasapty.com (`scripts/integracion_juan_datos.py` y `juan/test/integracion/ayuda.ts`) y la lista ya era
+  babycaleb.com; y 12 de 5973 pruebas de Odoo daban por hecho datos de D'CASA (horario de las 8:00, «Socios D…», la web
+  de la empresa, «100%» del texto aprobado en la cabecera). Ninguna era un error del sistema. **Lección: al cambiar un
+  dato de la empresa, buscar también en `scripts/` y `juan/test/integracion/`, no solo en `addons/`.** Para leer el log
+  completo de un job: `get_job_logs` con `return_content=false` da un enlace firmado que se baja con curl; `grep "tests
+  when loading"` y `" ERROR .*FAIL: "`. #8: las 8 pruebas en verde, `wrangler deploy` bien, pero «Esperar a que el sitio
+  esté sano» se rindió a los **20 min** en la **primera** instalación (base vacía, contenedor `basic`): a los ~21 min
+  `/__edge/health` ya decía `ok`, versión `9be5e55f643a`, `base_al_dia: true`, `humo: ok`. Como esa espera falló, el CI no
+  desplegó Juan: se lanzó aparte con *Desplegar Juan* (`entorno = staging`, `dry_run` desmarcado). Si vuelve a pasar en
+  una instalación nueva: mirar la salud a mano antes de relanzar nada.
+
 - **CI #181** (`05be252`, 2026-10-16) · 3 FAIL en `dcasa_interfaz`: (a) `test_avisos` ×2: hacer que `base.group_user` implique `mail.group_mail_notification_type_inbox` no cambia `notification_type` (Odoo 19 lo calcula con `group_ids`, los grupos asignados directo, no con `all_group_ids`). Arreglo `132c5ec`: `res.users.create` deja «En Odoo» al usuario interno nuevo y una función de una sola vez pasa a los que ya existían. (b) `test_tablero_lee_la_semana_de_una_vez`: los pedidos repetidos del Inicio hacían un `search` de `sale.order`; ahora `search_fetch` con los campos que usa (una lectura). El log de la API llega cortado (las ~3,000 últimas líneas son del PostgreSQL de servicio): reproducir en local con `scripts/test.sh <módulo>` es más rápido que buscar el traceback.
 
 Últimos 60 runs de CI/CD (#112 a #171). Fallaron: #112, #139, #140, #151, #152, #153, #155, #156, #158, #167
