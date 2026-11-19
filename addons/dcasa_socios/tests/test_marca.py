@@ -4,6 +4,8 @@ Ajustes de vendedores, con el filo naranja y el navy."""
 import re
 from pathlib import Path
 
+from PIL import Image
+
 from odoo.tests import HttpCase, tagged
 
 from ..models.bien_escrito import mensaje_del_correo
@@ -68,3 +70,10 @@ class TestMarcaSocios(HttpCase):
             arco = self.env.ref(vista).arch
             self.assertIn(f'string="{pestana}"', arco)
             self.assertNotIn("D'CASA", arco)
+
+    def test_el_icono_del_modulo_con_los_colores_de_la_marca(self):
+        icono = Image.open(MODULO / 'static/description/icon.png').convert('RGB')
+        colores = {color for _n, color in icono.getcolors(2 ** 20)}
+        self.assertIn((27, 50, 70), colores, 'el navy')
+        self.assertIn((238, 146, 74), colores, 'el naranja')
+        self.assertFalse(colores & {(19, 64, 177), (254, 208, 15)}, 'ni el azul ni el amarillo de D’CASA')
