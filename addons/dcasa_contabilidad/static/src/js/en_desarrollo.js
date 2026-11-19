@@ -11,7 +11,7 @@ const PLANES = {
             "Contrato con un Proveedor Autorizado Calificado (PAC) de la DGI.",
             "Envío de cada factura al PAC al confirmarla y recepción del CUFE y el QR.",
             "Notas de crédito y anulaciones electrónicas.",
-            "El CUFE y el QR impresos en la factura de D'CASA.",
+            "El CUFE y el QR impresos en la factura.",
         ],
         necesita: "Elegir el PAC y sus credenciales de prueba.",
     },

@@ -63,7 +63,7 @@
                                     <field name="se_trabajador" readonly="estado == 'validado'"/>
                                     <field name="isr_descuenta_css_se" readonly="estado == 'validado'"/>
                                 </group>
-                                <group string="Patrono (lo paga D'CASA)">
+                                <group string="Patrono (lo paga la empresa)">
                                     <field name="css_patronal" readonly="estado == 'validado'"/>
                                     <field name="se_patronal" readonly="estado == 'validado'"/>
                                     <field name="riesgo_profesional" readonly="estado == 'validado'"/>

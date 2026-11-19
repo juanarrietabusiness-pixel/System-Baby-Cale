@@ -6,7 +6,7 @@
         <field name="inherit_id" ref="hr.view_employee_form"/>
         <field name="arch" type="xml">
             <xpath expr="//page[@name='payroll_information']" position="inside">
-                <group string="Nómina D'CASA" groups="dcasa_nomina.group_nomina">
+                <group string="Nómina" groups="dcasa_nomina.group_nomina">
                     <group>
                         <field name="dcasa_en_planilla"/>
                         <field name="dcasa_forma_pago"/>

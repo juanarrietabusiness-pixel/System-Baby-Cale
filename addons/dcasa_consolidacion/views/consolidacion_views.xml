@@ -211,7 +211,7 @@
         <field name="view_mode">list,form</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">Arma tu primer consolidado</p>
-            <p>Elige las empresas del grupo, el reporte y las fechas. D'CASA suma cada empresa, quita lo que
+            <p>Elige las empresas del grupo, el reporte y las fechas. El sistema suma cada empresa, quita lo que
                 se hacen entre ellas y te avisa si algo no cuadra.</p>
         </field>
     </record>

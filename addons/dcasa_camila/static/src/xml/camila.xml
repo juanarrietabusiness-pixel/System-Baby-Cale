@@ -90,7 +90,7 @@
                         <h2>No hay ninguna campaña abierta</h2>
                         <p>Arma una desde una idea, con lo nuevo, lo más vendido, lo quieto o lo que más hay en tienda.
                             Camila escoge productos en tienda, con foto y publicados en la web, con el precio de hoy, y
-                            escribe el texto con la voz de D'CASA. Tú la revisas, eliges a quién va y la apruebas.</p>
+                            escribe el texto con la voz de la marca. Tú la revisas, eliges a quién va y la apruebas.</p>
                         <button type="button" class="btn btn-primary o_camila_armar" t-on-click="nuevaCampana"
                                 t-att-disabled="state.ocupado">
                             <i class="fa fa-magic me-1" aria-hidden="true"/>Nueva campaña

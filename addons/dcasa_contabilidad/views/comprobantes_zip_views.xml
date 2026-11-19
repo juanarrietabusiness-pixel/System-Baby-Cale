@@ -90,7 +90,7 @@
 
     <!-- Prepara los ZIP pedidos, por tandas (si son muchos, sigue en la siguiente vuelta). -->
     <record id="cron_comprobantes_zip" model="ir.cron">
-        <field name="name">D'CASA: preparar los ZIP de comprobantes</field>
+        <field name="name">Preparar los ZIP de comprobantes</field>
         <field name="model_id" ref="model_dcasa_comprobantes_paquete"/>
         <field name="state">code</field>
         <field name="code">model._cron_preparar()</field>

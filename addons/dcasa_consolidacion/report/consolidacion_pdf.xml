@@ -2,7 +2,7 @@
 <odoo>
     <!-- Hoja carta horizontal: hay una columna por empresa, otra de eliminaciones y otra de consolidado. -->
     <record id="papel_consolidacion" model="report.paperformat">
-        <field name="name">Consolidación D'CASA (carta horizontal)</field>
+        <field name="name">Consolidación (carta horizontal)</field>
         <field name="format">Letter</field>
         <field name="orientation">Landscape</field>
         <field name="margin_top">38</field>

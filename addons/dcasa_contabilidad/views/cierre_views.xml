@@ -103,7 +103,7 @@
         <field name="view_mode">list,form</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">Cierra tu primer mes</p>
-            <p>Elige el mes: D'CASA revisa bancos, borradores y balances. Cuando todo está listo,
+            <p>Elige el mes: el sistema revisa bancos, borradores y balances. Cuando todo está listo,
                 la gerencia lo cierra y nadie puede cambiar ese mes por error.</p>
         </field>
     </record>

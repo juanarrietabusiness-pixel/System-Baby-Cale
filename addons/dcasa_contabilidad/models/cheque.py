@@ -6,7 +6,7 @@ class ResCompany(models.Model):
     _inherit = 'res.company'
 
     account_check_printing_layout = fields.Selection(
-        selection_add=[('dcasa_contabilidad.accion_cheque', "Cheque D'CASA")],
+        selection_add=[('dcasa_contabilidad.accion_cheque', "Cheque de la empresa")],
         ondelete={'dcasa_contabilidad.accion_cheque': 'set default'})
 
 
