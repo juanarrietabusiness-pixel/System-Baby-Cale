@@ -51,7 +51,8 @@ class TestCompras(SociosCommon):
         # Sin la web de la empresa (PENDIENTE en una instalación nueva) no hay dirección que imprimir: se pone una.
         self.env.company.website = 'https://tienda.example.com'
         html = self.env['ir.actions.report']._render_qweb_html('account.report_invoice', factura.ids)[0].decode()
-        self.assertIn('Socios D\'CASA', html)
+        self.assertIn(f'Socios {factura.company_id.name}', html, 'el bloque de Socios, con el nombre de la empresa')
+        self.assertNotIn('D&#39;CASA', html)
         self.assertIn(self.cliente.dcasa_socio_codigo, html)
         self.assertIn('/socios', html)
 
