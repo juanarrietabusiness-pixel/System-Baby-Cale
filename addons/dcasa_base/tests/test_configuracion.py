@@ -154,6 +154,45 @@ class TestConfiguracionTienda(TransactionCase):
         self.assertEqual(self.env['res.lang']._lang_get(DCASA_LANG).decimal_point, '.')
 
     def test_interfaz_con_la_marca(self):
+        """La marca de Baby Caleb (docs/MARCA_BABY_CALEB.md): el navy de Odoo, el botón principal naranja con letra
+        navy, el crema de fondo y Montserrat (embebida) para todo; nada del azul, el amarillo ni las letras de
+        D'CASA."""
         from odoo.tools.misc import file_open
-        with file_open('dcasa_base/static/src/scss/primary_variables.scss') as variables:
-            self.assertIn('#1340B1', variables.read())
+        with file_open('dcasa_base/static/src/scss/primary_variables.scss') as archivo:
+            variables = archivo.read()
+        self.assertRegex(variables, r'\$dc-bc-navy: #1B3246;')
+        self.assertIn('$o-brand-primary: $dc-bc-navy;', variables)
+        self.assertRegex(variables, r'"primary": \(\s*background: \$dc-bc-naranja,\s*border: \$dc-bc-naranja,\s*'
+                                    r'color: \$dc-bc-navy,', 'el botón principal: naranja con letra navy')
+        self.assertIn('$o-webclient-background-color: $dc-bc-crema;', variables)
+        self.assertRegex(variables, r'\$o-system-fonts: \("Montserrat"')
+        with file_open('dcasa_base/static/src/scss/backend.scss') as archivo:
+            letra = archivo.read()
+        self.assertIn('montserrat-latin-var.woff2', letra)
+        sin_comentarios = '\n'.join(linea.split('//')[0] for linea in (variables + letra).splitlines())
+        for de_dcasa in ('#1340B1', '#FED00F', '#0E2A6B', 'Anton', 'Oswald', '"Inter"'):
+            self.assertNotIn(de_dcasa, sin_comentarios)
+
+    def test_los_colores_de_la_empresa_son_los_de_baby_caleb(self):
+        """Los de los documentos y correos: navy de principal (lleva texto encima) y naranja de secundario (filetes y
+        rellenos). Una base instalada con los de D'CASA los recibe por la migración 19.0.1.10.0; uno elegido a mano se
+        queda."""
+        import importlib.util
+
+        from odoo.tools import file_path
+        self.assertEqual((self.company.primary_color.upper(), self.company.secondary_color.upper()),
+                         ('#1B3246', '#EE924A'))
+        ruta = file_path('dcasa_base/migrations/19.0.1.10.0/post-migrate.py')
+        especificacion = importlib.util.spec_from_file_location('dcasa_base_migracion_colores', ruta)
+        migracion = importlib.util.module_from_spec(especificacion)
+        especificacion.loader.exec_module(migracion)
+        otra = self.env['res.company'].create({'name': 'Otra empresa', 'primary_color': '#123456',
+                                               'secondary_color': '#0E2A6B'})
+        self.env.cr.execute("UPDATE res_company SET primary_color = '#1340B1', secondary_color = '#0E2A6B' "
+                            "WHERE id = %s", (self.company.id,))
+        self.env.invalidate_all()
+        migracion.migrate(self.env.cr, '19.0.1.9.0')
+        self.env.invalidate_all()
+        self.assertEqual((self.company.primary_color, self.company.secondary_color), ('#1B3246', '#EE924A'))
+        self.assertEqual((otra.primary_color, otra.secondary_color), ('#123456', '#EE924A'),
+                         'el principal elegido a mano se queda; el secundario de D\'CASA pasa al naranja')

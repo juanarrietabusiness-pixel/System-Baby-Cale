@@ -1,12 +1,13 @@
 """El tinte del panel: el CSS ya compilado (y los íconos SVG de las apps) con los colores de una empresa.
 
-Por qué así y no con variables CSS. El azul de fábrica no vive en un solo lugar: está en ``--dc-azul-*`` (tokens
-propios), pero también escrito a mano en las hojas de varios módulos y, sobre todo, **calculado al compilar** por
-Bootstrap y Odoo (``.btn-primary`` y su color al pasar el puntero, el foco de los campos, la pestaña activa de Ajustes,
-la barra de estado, el compositor del chat…): unas 280 reglas con el azul ya convertido en número. Una variable CSS
-inyectada no llega a esas. Pintar la hoja compilada sí: se cambia cada color de la familia del azul (y el amarillo
-exacto del acento) por su par con los colores de la empresa (``colores.Giro``), **sin recompilar nada**, y la hoja
-resultante reemplaza a la original en la página, con la cascada intacta (mismas reglas, mismo orden).
+Por qué así y no con variables CSS. Los colores de fábrica (el navy de la tinta y el naranja del relleno, la marca de
+Baby Caleb) no viven en un solo lugar: están en ``--dc-*`` (tokens propios), pero también escritos a mano en las hojas
+de varios módulos y, sobre todo, **calculados al compilar** por Bootstrap y Odoo (``.btn-primary`` y su color al pasar
+el puntero, el foco de los campos, la pestaña activa de Ajustes, la barra de estado, el compositor del chat…): cientos
+de reglas con el color ya convertido en número. Una variable CSS inyectada no llega a esas. Pintar la hoja compilada
+sí: se cambia cada color de la familia del principal y de la del acento por su par con los colores de la empresa
+(``colores.Giro`` y ``colores.GiroDelAcento``), **sin recompilar nada**, y la hoja resultante reemplaza a la original en
+la página, con la cascada intacta (mismas reglas, mismo orden).
 
 Lo que NO se pinta, a propósito: las paletas de categorías que la persona elige (colores del calendario, de las
 etiquetas y de las tarjetas del kanban) y los colores del contenido de la web (``o_cc*``, ``o-color-*``): son datos,
@@ -33,7 +34,10 @@ _REGLA = re.compile(r'([^{}]*)\{([^{}]*)\}')
 _INTOCABLES = re.compile(
     r'o_calendar_color|o_cw_filter_color|o_colorlist|o_tag_color|o_kanban_color|o_color_\d|o_cc\d|o_colored_level'
     r'|bg-o-color|text-o-color|o_theme_preview|o_configurator|o_website_loader')
-_PROTEGIDAS = re.compile(r'--(?:o-color-\d+|o-cc\d[\w-]*)\s*:[^;}]*')
+# Y la letra sobre el salvia (--dc-en-salvia): el salvia no es de la marca de la empresa y no gira, así que su letra
+# tampoco: el navy de Baby Caleb encima del salvia da 6.96 a 1 con cualquier principal (el principal puede ser tan claro
+# como #985D2F, que sobre el salvia no llegaría ni a 3).
+_PROTEGIDAS = re.compile(r'--(?:o-color-\d+|o-cc\d[\w-]*|dc-en-salvia)\s*:[^;}]*')
 
 
 class Tinte:
@@ -42,21 +46,28 @@ class Tinte:
     def __init__(self, principal=None, acento=None):
         self.principal = C.normalizar(principal) or C.FABRICA_PRINCIPAL
         self.acento = C.normalizar(acento) or C.FABRICA_ACENTO
+        fabrica = self.principal == C.FABRICA_PRINCIPAL and self.acento == C.FABRICA_ACENTO
         self._giro = C.Giro(self.principal) if self.principal != C.FABRICA_PRINCIPAL else None
-        self._acento = C.a_rgb(self.acento) if self.acento != C.FABRICA_ACENTO else None
+        # La familia del acento gira también si solo cambia el principal: sus rellenos llevan la letra del principal.
+        self._giro_acento = None if fabrica else C.GiroDelAcento(self.acento, self.principal)
+        self._acento = C.a_rgb(self.acento)
 
     @property
     def de_fabrica(self):
-        return not self._giro and not self._acento
+        return not self._giro and not self._giro_acento
 
     def color(self, rgb):
         """El par de ``rgb`` con estos colores, o ``None`` si se queda igual."""
         rgb = tuple(int(c) for c in rgb[:3])
-        if self._acento and max(abs(a - b) for a, b in zip(rgb, _FABRICA_ACENTO, strict=True)) <= 2:
+        if self.de_fabrica:
+            return None
+        if max(abs(a - b) for a, b in zip(rgb, _FABRICA_ACENTO, strict=True)) <= 2:
             return self._acento
-        if self._giro:
-            nuevo = self._giro(rgb)
-            return nuevo if nuevo != rgb else None
+        for giro in (self._giro_acento, self._giro):
+            if giro:
+                nuevo = giro(rgb)
+                if nuevo != rgb:
+                    return nuevo
         return None
 
     # --- Reemplazos ---------------------------------------------------------------------------------------------------

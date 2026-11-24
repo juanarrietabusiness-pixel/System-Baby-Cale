@@ -52,7 +52,7 @@ SIN_CATEGORIA = 'sin'
 
 class DcasaMarketing(models.AbstractModel):
     _name = 'dcasa.marketing'
-    _description = "Marketing de D'CASA: lo que se mueve, lo quieto y las fotos que faltan"
+    _description = "Marketing: lo que se mueve, lo quieto y las fotos que faltan"
 
     # ------------------------------------------------------------------
     # Permisos y filtros

@@ -16,25 +16,25 @@
 .o_web_client .btn-secondary {
     background-color: var(--dc-perla);
 
-    &:hover, &:active { background-color: var(--dc-cabeza); border-color: #5F6773; }
+    &:hover, &:active { background-color: var(--dc-cabeza); border-color: var(--dc-tinta-3); }
 }
 
 // La barra de arriba es una superficie más (sin el vidrio esmerilado, que sobre gris se ve sucio).
 .o_main_navbar { backdrop-filter: none; }
 
-::selection { background: rgba(157, 184, 245, .35); }
+::selection { background: rgba(238, 146, 74, .35); }
 
 // === interfaz.scss: el Inicio y sus piezas ====================================================================================
 // Accesos directos: tarjetas grises con el ícono en un cuadro azul (como el prototipo aprobado), no bloques azules.
 .o_dcasa_atajo {
     background: var(--dc-perla);
-    border-color: #444B55;
+    border-color: var(--dc-linea);
     color: var(--dc-tinta);
 
     &:hover { background: var(--dc-cabeza); border-color: var(--dc-linea-fuerte); }
 }
 .o_dcasa_atajo_icono { background: var(--dc-relleno); color: var(--dc-en-relleno); }
-.o_dcasa_atajo_texto span { color: #A2A9B4; }
+.o_dcasa_atajo_texto span { color: var(--dc-tinta-3); }
 
 // Insignias amarillas: el número va en oscuro (en claro iba en azul marino).
 .o_dcasa_atajo_cuenta,
@@ -44,7 +44,7 @@
 
 .o_dcasa_cifra_ventas_hoy .o_dcasa_cifra_icono,
 .o_dcasa_app_letra { background: var(--dc-relleno); color: var(--dc-en-relleno); }
-.o_dcasa_cifra_socios .o_dcasa_cifra_icono { background: var(--dc-cabeza); }
+.o_dcasa_cifra_socios .o_dcasa_cifra_icono { background: var(--dc-cabeza); color: var(--dc-naranja); }
 .o_dcasa_cifra_entregas .o_dcasa_cifra_icono { color: var(--dc-azul-600); }
 
 // Pastillas y opciones elegidas.
@@ -62,9 +62,9 @@
     border-color: var(--dc-relleno);
 }
 
-// Barras de la semana: grises, y la de hoy en celeste.
-.o_dcasa_grafico_relleno { background: #5A6370; }
-.o_dcasa_grafico_barra:hover .o_dcasa_grafico_relleno { background: #6F7987; }
+// Barras de la semana: salvia apagado, y la de hoy en el naranja (como en claro).
+.o_dcasa_grafico_relleno { background: #6A9376; }
+.o_dcasa_grafico_barra:hover .o_dcasa_grafico_relleno { background: var(--dc-salvia); }
 
 .o_dcasa_rango .o_dcasa_error,
 .o_dcasa_comparar_error,
@@ -75,6 +75,8 @@
 .o_dcasa_lista_cabeza { background: var(--dc-cabeza); }
 .o_dcasa_inicio .o_dcasa_lista_cabeza h2,
 .o_dcasa_inicio .o_dcasa_lista_cabeza .h2 { color: var(--dc-en-cabeza); }
+// El ícono del título: el naranja (en claro va navy sobre la banda salvia; de noche la banda es oscura).
+.o_dcasa_inicio .o_dcasa_lista_cabeza h2 .fa { color: var(--dc-naranja); }
 .o_dcasa_lista_cuenta {
     color: var(--dc-en-cabeza-2);
 
@@ -106,8 +108,8 @@
     .o_dcasa_pd_monto, .o_dcasa_pd_cuantas, .o_dcasa_pd_numero small { color: var(--dc-en-relleno); }
 }
 .o_dcasa_pd_barra { background: var(--dc-cabeza); }
-.o_dcasa_es_barra_relleno { background: #5A6370; }
-.o_dcasa_es_barra.o_hoy .o_dcasa_es_barra_relleno { background: var(--dc-azul-600); }
+.o_dcasa_es_barra_relleno { background: #6A9376; }
+.o_dcasa_es_barra.o_hoy .o_dcasa_es_barra_relleno { background: var(--dc-naranja); }
 
 .o_dcasa_cf_ficha.o_dcasa_cf_total {
     background: var(--dc-relleno);
@@ -121,7 +123,7 @@
 // === reponer.scss ==============================================================================================================
 .o_dcasa_reponer_numero { background: var(--dc-relleno); color: var(--dc-en-relleno); }
 .o_dcasa_reponer_cuenta.o_cuenta_ya,
-.o_dcasa_reponer_aviso.o_aviso_ya { background: var(--dc-cabeza); }
+.o_dcasa_reponer_aviso.o_aviso_ya { background: var(--dc-cabeza); color: var(--dc-en-cabeza); }
 
 // === vista_previa.scss ============================================================================================================
 .o_dcasa_vp_dispositivo.o_activo {

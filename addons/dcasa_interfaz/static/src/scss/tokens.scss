@@ -1,51 +1,83 @@
-// Sistema de diseño D'CASA para Odoo por dentro.
+// Sistema de diseño del panel: la marca de Baby Caleb (docs/MARCA_BABY_CALEB.md, pedido del dueño del 2026-11-19).
 //
-// Escala de azules a partir del azul de la marca (#1340B1 = azul-600) y blancos
-// fríos para superficies. El amarillo es un acento mínimo (nunca sobre blanco en
-// texto o botones). Plano: bordes finos y sombras casi imperceptibles.
+// Crema y superficie de fondo, navy de tinta, naranja de relleno (con letra navy encima, nunca blanca) y verde salvia
+// para lo secundario. Los valores salen de Baby-caleb/brand.json y sistema/panel/src/estilos.css; ninguno se inventa.
+// Los neutros que no están ahí (perla, línea y control en sólido) son mezclas medidas de esos mismos colores.
+//
+// Los NOMBRES vienen de la plantilla de D'CASA y se quedan (--dc-azul-*, --dc-blanco, --dc-amarillo…): cientos de
+// reglas los usan. Lo que cambia es su VALOR, según el papel que hacían (el mapa de MARCA_BABY_CALEB.md):
+//   * azul como letra, títulos y enlaces → navy (la escala --dc-azul-600…950);
+//   * azul de fondo con letra blanca → naranja con letra navy (--dc-naranja y --dc-en-naranja, en cada pantalla);
+//   * azules claros de fondo y bordes → perla, salvia claro y los filos de la marca;
+//   * blancos fríos → superficie y crema; amarillo → naranja.
+// La marca de cada empresa (Ajustes › Marca del panel, marca/colores.py) gira la familia del navy hacia su principal y
+// la del naranja hacia su acento; los neutros (líneas, letra de apoyo, bordes de campos) no giran.
 
 :root {
-    // Azules
-    --dc-azul-950: #081640;
-    --dc-azul-900: #0B1F52;
-    --dc-azul-800: #0E2A6B;
-    --dc-azul-700: #0F3591;
-    --dc-azul-600: #1340B1;
-    --dc-azul-500: #2F5BD3;
-    --dc-azul-400: #5C82E3;
-    --dc-azul-300: #93AEEE;
-    --dc-azul-200: #C3D2F6;
-    --dc-azul-100: #E4ECFD;
-    --dc-azul-50: #F2F6FE;
+    // --- Baby Caleb (brand.json) ---------------------------------------------------------------------------------------
+    --dc-crema: #F9F6ED;            // bg: el fondo de la página
+    --dc-superficie: #F2EFE5;       // surface: tarjetas, barras, hojas
+    --dc-naranja: #EE924A;          // accent: RELLENO (botón principal, lo elegido, barras). Nunca letra ni borde (2.20)
+    --dc-en-naranja: #1B3246;       // accent-fg: la letra sobre el naranja, navy (5.56). Nunca blanca ni crema
+    --dc-naranja-puntero: #F1A86E;  // el naranja con un 20 % de blanco, al pasar el puntero (navy 6.6)
+    --dc-naranja-pulsado: #E8853A;  // el naranja apretado (navy 4.93)
+    --dc-naranja-fuerte: #985D2F;   // accent-strong: letra naranja sobre crema o superficie (4.90 / 4.60)
+    --dc-naranja-filo: #C3783D;     // accent-edge: bordes e íconos naranja (3.20 / 3.01)
+    --dc-salvia: #91C9A2;           // sage: RELLENO verde (bandas, insignias). Nunca letra ni borde (1.75)
+    --dc-en-salvia: #1B3246;        // la letra sobre el salvia: navy (6.96), también de noche
+    --dc-salvia-fuerte: #53735C;    // sage-strong: letra verde sobre crema o superficie (4.92 / 4.62)
+    --dc-salvia-filo: #6A9376;      // sage-edge: bordes e íconos verdes (3.22 / 3.03)
+    --dc-salvia-claro: #E9EFE2;     // el salvia al 15 % sobre el crema: fondo de píldoras y de lo elegido (navy 11.3)
+    --dc-control: #7F8A91;          // control: el navy al 55 % sobre el crema, el borde de lo que se toca (3.27 / 3.07)
 
-    // Blancos fríos y líneas
-    --dc-blanco: #FFFFFF;
-    --dc-nieve: #FAFBFD;
-    --dc-niebla: #F4F6FA;
-    --dc-perla: #ECF0F6;
-    --dc-linea: #E2E7F0;
-    --dc-linea-fuerte: #CBD3E1;
+    // Azules → la escala del navy. El 600 es el principal; los oscuros son el mismo navy con menos luz (letra fuerte,
+    // títulos). El 500 y el 400, un navy con más luz (foco de los campos, barras al pasar el puntero). Los claros dejan
+    // de ser azules: el 300 es el filo naranja (borde al pasar el puntero, íconos grandes), el 200 el filo verde (borde
+    // de lo elegido), el 100 el salvia claro (fondo de lo elegido) y el 50 la perla (fondo al pasar el puntero).
+    --dc-azul-950: #0C171F;
+    --dc-azul-900: #101E2A;
+    --dc-azul-800: #142635;
+    --dc-azul-700: #172B3D;
+    --dc-azul-600: #1B3246;
+    --dc-azul-500: #24405A;
+    --dc-azul-400: #2B4A66;
+    --dc-azul-300: #C3783D;
+    --dc-azul-200: #6A9376;
+    --dc-azul-100: #E9EFE2;
+    --dc-azul-50: #E9E7DF;
+
+    // Superficies (los «blancos» de D'CASA) y líneas
+    --dc-blanco: #F2EFE5;           // superficie: lo que antes era blanco (tarjetas, listas, hojas, botones claros)
+    --dc-nieve: #F9F6ED;            // crema
+    --dc-niebla: #F9F6ED;           // crema: el fondo de la página
+    --dc-perla: #E9E7DF;            // la superficie con un 4 % de navy: lo hundido (cabeceras de tabla, al pasar el puntero)
+    --dc-linea: #DEDED9;            // line: el navy al 12 % sobre el crema, los filos que separan
+    --dc-linea-fuerte: #7F8A91;     // control: el borde de los campos y de los botones de contorno (3:1)
 
     // Tinta (texto)
-    --dc-tinta: #0E1A33;
-    --dc-tinta-2: #44506A;
-    --dc-tinta-3: #6B7690;
+    --dc-tinta: #1B3246;            // fg: letra, títulos e íconos (12.21 sobre crema, 11.47 sobre superficie)
+    --dc-tinta-2: #475967;          // el navy al 80 % sobre el crema: letra de apoyo fuerte (7.0 sobre superficie)
+    --dc-tinta-3: #5E6D78;          // muted: el navy al 70 % sobre el crema (4.95 sobre crema, 4.64 sobre superficie)
 
-    // Acento
-    --dc-amarillo: #FED00F;
+    // Acento: el nombre de D'CASA, el naranja de Baby Caleb (relleno, con letra navy encima)
+    --dc-amarillo: #EE924A;
 
-    // Estados escritos sobre blanco (p. ej. «Lista» y «Falta mercancía» en las entregas del Inicio): verde y ámbar
-    // oscuros, que se leen sobre blanco. No son el amarillo de la marca (ese nunca toca el blanco).
-    --dc-bien: #0F6B3C;
-    --dc-falta: #8A4B00;
+    // Estados escritos sobre crema o superficie (AA 4.5): verde salvia fuerte y ámbar oscuro.
+    --dc-bien: #53735C;
+    --dc-falta: #855700;
 
-    // Forma
-    --dc-r-sm: 8px;
-    --dc-r-md: 12px;
+    // Forma: radio de 14 px (el del panel de Baby Caleb) y sombra casi nada
+    --dc-r-sm: 10px;
+    --dc-r-md: 14px;
     --dc-r-lg: 16px;
-    --dc-sombra-1: 0 1px 2px rgba(14, 26, 51, .05);
-    --dc-sombra-2: 0 8px 24px rgba(14, 26, 51, .06);
-    --dc-foco: 0 0 0 3px var(--dc-azul-200);
+    --dc-r-pastilla: 999px;
+    --dc-sombra-1: 0 1px 2px rgba(27, 50, 70, .05);
+    --dc-sombra-2: 0 4px 20px -2px rgba(27, 50, 70, .05);
+    // Aro de foco: 2 px de navy, separado 2 px del control (se ve sobre todos los fondos)
+    --dc-foco: 0 0 0 2px var(--dc-crema), 0 0 0 4px var(--dc-tinta);
+
+    // Letra: Montserrat para todo (titulares en 700, como frase; cuerpo en 400 y 500)
+    --dc-letra: "Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 
     // Barra lateral
     --dc-barra-w: 256px;

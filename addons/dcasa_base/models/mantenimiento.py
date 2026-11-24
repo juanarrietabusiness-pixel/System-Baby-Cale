@@ -117,7 +117,7 @@ GB = 1024 ** 3
 
 class DcasaMantenimiento(models.AbstractModel):
     _name = 'dcasa.mantenimiento'
-    _description = "D'CASA: depuración y reporte de tamaños mensuales"
+    _description = "Depuración y reporte de tamaños mensuales"
 
     # ------------------------------------------------------------------ parámetros
 
@@ -299,7 +299,7 @@ class DcasaMantenimiento(models.AbstractModel):
         avisar = getattr(self.env['res.users'], '_dcasa_avisar_operacion', None)
         if avisar is None:
             return False
-        return bool(avisar(f"D'CASA · {texto}"))
+        return bool(avisar(f"{self.env.company.name} · {texto}"))
 
     @api.model
     def _ruta_disco(self):

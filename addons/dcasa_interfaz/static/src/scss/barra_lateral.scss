@@ -108,7 +108,7 @@
     .fa { width: 20px; text-align: center; }
     span { flex: 1; }
     kbd {
-        font: 500 .75rem/1 "Inter", sans-serif;
+        font: 500 .75rem/1 var(--dc-letra);
         color: var(--dc-tinta-3);
         background: var(--dc-blanco);
         border: 1px solid var(--dc-linea);
@@ -225,7 +225,7 @@
             bottom: 8px;
             width: 2px;
             border-radius: 2px;
-            background: var(--dc-azul-600);
+            background: var(--dc-naranja);
         }
     }
 

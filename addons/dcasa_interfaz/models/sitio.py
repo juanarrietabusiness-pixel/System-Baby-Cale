@@ -80,7 +80,7 @@ def _edicion_permitida(env):
 
 class DcasaSitio(models.AbstractModel):
     _name = 'dcasa.sitio'
-    _description = "El sitio de D'CASA se edita por código"
+    _description = "El sitio se edita por código"
 
     @api.model
     def _grupos_de_editor(self):

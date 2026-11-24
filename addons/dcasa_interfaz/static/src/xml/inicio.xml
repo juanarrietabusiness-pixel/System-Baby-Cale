@@ -40,7 +40,8 @@
                     <div class="o_dcasa_inicio_fecha" t-out="d.fecha"/>
                     <h1>Hola, <t t-out="d.saludo"/></h1>
                     <p t-if="d.alcance === 'propio'">Así va tu día.</p>
-                    <p t-else="">Así va el día en D'CASA.</p>
+                    <p t-elif="d.empresa">Así va el día en <t t-esc="d.empresa"/>.</p>
+                    <p t-else="">Así va el día.</p>
                 </div>
                 <!-- Solo los accesos que quien mira puede usar (permisos de obtener_datos). -->
                 <div class="o_dcasa_inicio_accesos">
@@ -524,7 +525,7 @@
                     </t>
                 </section>
 
-                <!-- Caja (rol D'CASA, 2026-10-17): la caja de hoy de toda la tienda, sin el panel completo de quien
+                <!-- Caja (rol Caja, 2026-10-17): la caja de hoy de toda la tienda, sin el panel completo de quien
                      controla. Quien controla la ve dentro de su fila, más abajo. -->
                 <section t-if="d.permisos.ver_cobros and !d.permisos.completo"
                          class="o_dcasa_panel o_dcasa_caja o_dcasa_caja_rol" aria-label="Caja de hoy">

@@ -84,8 +84,9 @@ class TestIconoDeLaMarca(HttpCase):
         """Android: «Agregar a la pantalla de inicio» desde el panel."""
         manifiesto = self.url_open('/web/manifest.webmanifest').json()
         self.assertEqual(manifiesto['name'], 'Baby Caleb')
-        self.assertEqual(manifiesto['theme_color'], '#1340B1')
-        self.assertEqual(manifiesto['background_color'], '#FFFFFF', 'la pantalla de arranque, blanca como el ícono')
+        # La barra y la pantalla de arranque en el crema de la página (la marca de Baby Caleb: su panel usa el mismo).
+        self.assertEqual(manifiesto['theme_color'], '#F9F6ED')
+        self.assertEqual(manifiesto['background_color'], '#F9F6ED', 'la pantalla de arranque, en el crema')
         iconos = {(i['sizes'], i['purpose']): i['src'] for i in manifiesto['icons']}
         self.assertEqual(set(iconos), {('192x192', 'any'), ('512x512', 'any'),
                                        ('192x192', 'maskable'), ('512x512', 'maskable')})
@@ -110,7 +111,8 @@ class TestIconoDeLaMarca(HttpCase):
         self.assertIn('<link rel="manifest" href="/web/manifest.webmanifest"', html)
         for de_odoo in ('odoo-icon-ios.png', '/web/static/img/favicon.ico', '#71639e'):
             self.assertNotIn(de_odoo, html)
-        self.assertIn('content="#1340B1"', html)
+        self.assertIn('<meta name="theme-color" content="#F9F6ED"/>', html)
+        self.assertNotIn('#1340B1', html, 'nada del azul de D\'CASA')
 
     def test_el_icono_del_iphone_es_el_logo_sobre_blanco(self):
         self.assertEsElLogo(self._imagen(APPLE), 180, True, APPLE)

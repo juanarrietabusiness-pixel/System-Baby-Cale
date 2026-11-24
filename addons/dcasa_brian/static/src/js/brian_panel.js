@@ -32,6 +32,7 @@ import { browser } from "@web/core/browser/browser";
 import { ConfirmationDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
 import { router } from "@web/core/browser/router";
 import { registry } from "@web/core/registry";
+import { user } from "@web/core/user";
 import { getDataURLFromFile } from "@web/core/utils/urls";
 import { useBus, useService } from "@web/core/utils/hooks";
 import { parsearMarkdown } from "./brian_markdown";
@@ -364,10 +365,19 @@ export class BrianPanel extends Component {
         return AVISO_SIN_CLAVE;
     }
 
+    /** El nombre de la empresa con que entró la persona (la plantilla sirve a cualquiera). */
+    get nombreDeLaEmpresa() {
+        return user.activeCompany?.name || "Baby Caleb";
+    }
+
+    get etiquetaPanel() {
+        return `Brian, el asistente de ${this.nombreDeLaEmpresa}`;
+    }
+
     get estadoTexto() {
         const p = this.state.proveedor;
         if (!p) {
-            return "Asistente de D'CASA";
+            return `Asistente de ${this.nombreDeLaEmpresa}`;
         }
         if (!p.configurado) {
             return "Sin clave de IA";

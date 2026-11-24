@@ -1,6 +1,6 @@
-// Brian: botón flotante y panel lateral con el sistema de diseño D'CASA (tokens --dc-*).
-// Plano: superficies blancas, bordes finos, azul de la marca para acciones y para lo que
-// escribe el usuario. Sin amarillo: en este panel todo es blanco y azul.
+// Brian: botón flotante y panel lateral con el sistema de diseño del panel (tokens --dc-*), la marca de Baby Caleb (docs/MARCA_BABY_CALEB.md).
+// Plano: superficies crema, bordes finos, letra navy; el naranja con letra navy para las acciones y para lo que
+// escribe el usuario.
 
 $brian-ancho: 400px;
 
@@ -21,9 +21,9 @@ $brian-ancho: 400px;
     width: 36px;
     height: 36px;
     padding: 2px;
-    border: 1px solid var(--dc-azul-100, #D6DFF5);
+    border: 1px solid var(--dc-azul-100, #E9EFE2);
     border-radius: 50%;
-    background: var(--dc-azul-50, #EEF2FB);
+    background: var(--dc-azul-50, #E9E7DF);
     user-select: none;
 }
 .o_brian_monograma_mini {
@@ -50,11 +50,11 @@ $brian-ancho: 400px;
     padding: 2px;
     border: 2px solid var(--dc-azul-600);
     border-radius: 50%;
-    background: var(--dc-azul-50, #EEF2FB);
+    background: var(--dc-azul-50, #E9E7DF);
     box-shadow: var(--dc-sombra-2);
     transition: transform var(--dc-transicion), background-color var(--dc-transicion), opacity var(--dc-transicion);
 
-    &:hover { background: var(--dc-azul-100, #D6DFF5); transform: translateY(-1px) scale(1.04); }
+    &:hover { background: var(--dc-azul-100, #E9EFE2); transform: translateY(-1px) scale(1.04); }
     &:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--dc-azul-300); }
 
     &.o_brian_oculto {
@@ -77,9 +77,9 @@ $brian-ancho: 400px;
     flex-direction: column;
     background: var(--dc-blanco);
     border-left: 1px solid var(--dc-linea);
-    box-shadow: -8px 0 24px rgba(14, 26, 51, .05);
+    box-shadow: -8px 0 24px rgba(27, 50, 70, .05);
     color: var(--dc-tinta);
-    font-family: "Inter", sans-serif;
+    font-family: var(--dc-letra);
     font-size: .92rem;
     transform: translateX(100%);
     visibility: hidden;
@@ -413,8 +413,8 @@ $brian-pantallas-con-scroll: o_sofia, o_camila, o_dcasa_envios, o_dcasa_guia, o_
 }
 
 .o_brian_burbuja_usuario {
-    background: var(--dc-azul-600);
-    color: var(--dc-blanco);
+    background: var(--dc-naranja);
+    color: var(--dc-en-naranja);
     border-bottom-right-radius: 6px;
     white-space: pre-wrap;
 }
@@ -588,9 +588,9 @@ $brian-pantallas-con-scroll: o_sofia, o_camila, o_dcasa_envios, o_dcasa_guia, o_
     &:focus-visible { outline: none; box-shadow: var(--dc-foco); }
 }
 .o_brian_btn_primario {
-    background: var(--dc-azul-600);
-    color: var(--dc-blanco);
-    &:hover { background: var(--dc-azul-700); }
+    background: var(--dc-naranja);
+    color: var(--dc-en-naranja);
+    &:hover { background: var(--dc-naranja-puntero); }
 }
 .o_brian_btn_secundario {
     background: var(--dc-blanco);
@@ -735,11 +735,11 @@ $brian-pantallas-con-scroll: o_sofia, o_camila, o_dcasa_envios, o_dcasa_guia, o_
     height: 34px;
     border: 0;
     border-radius: var(--dc-r-sm);
-    background: var(--dc-azul-600);
-    color: var(--dc-blanco);
+    background: var(--dc-naranja);
+    color: var(--dc-en-naranja);
     transition: background-color var(--dc-transicion);
 
-    &:hover:not(:disabled) { background: var(--dc-azul-700); }
+    &:hover:not(:disabled) { background: var(--dc-naranja-puntero); }
     &:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--dc-azul-300); }
     &:disabled { background: var(--dc-perla); color: var(--dc-tinta-3); }
 }
@@ -811,7 +811,7 @@ $brian-pantallas-con-scroll: o_sofia, o_camila, o_dcasa_envios, o_dcasa_guia, o_
     > span {
         display: block;
         height: 100%;
-        background: var(--dc-azul-600);
+        background: var(--dc-naranja);
         transition: width .25s linear;
     }
 }
@@ -841,7 +841,7 @@ $brian-pantallas-con-scroll: o_sofia, o_camila, o_dcasa_envios, o_dcasa_guia, o_
     gap: 8px;
     border: 2px dashed var(--dc-azul-400);
     border-radius: var(--dc-r-lg);
-    background: rgba(242, 246, 254, .94);
+    background: rgba(249, 246, 237, .94);
     color: var(--dc-azul-700);
     font-weight: 600;
     pointer-events: none;

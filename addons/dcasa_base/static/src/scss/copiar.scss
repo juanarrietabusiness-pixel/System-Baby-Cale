@@ -1,4 +1,4 @@
-// Copiar con un toque (js/copiar.js): un ícono chico y discreto al lado del dato; azul de la marca al tocarlo.
+// Copiar con un toque (js/copiar.js): un ícono chico y discreto al lado del dato; navy de la marca al tocarlo.
 // El campo y su ícono van en una fila: el dato se achica (con «…» si no cabe) y el ícono siempre queda a la vista.
 .o_field_widget.o_dcasa_copiar {
     display: inline-flex;
@@ -30,7 +30,7 @@
     &:hover,
     &:focus-visible,
     &:active {
-        color: #1340b1;
+        color: #1B3246;
     }
 }
 

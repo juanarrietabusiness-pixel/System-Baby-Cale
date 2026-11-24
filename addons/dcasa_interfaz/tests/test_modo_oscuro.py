@@ -197,8 +197,8 @@ class TestModoOscuroPaquetes(TransactionCase):
                 return set(re.findall(r'^\s*(--dc-[a-z0-9-]+)\s*:', archivo.read(), flags=re.M))
         de_dia = nombres('dcasa_interfaz/static/src/scss/tokens.scss')
         de_noche = nombres(f'{CARPETA_OSCURA}/tokens.dark.scss')
-        iguales = {'--dc-r-sm', '--dc-r-md', '--dc-r-lg', '--dc-barra-w', '--dc-barra-w-colapsada', '--dc-transicion',
-                   '--dc-curva', '--dc-amarillo'}
+        iguales = {'--dc-r-sm', '--dc-r-md', '--dc-r-lg', '--dc-r-pastilla', '--dc-barra-w', '--dc-barra-w-colapsada',
+                   '--dc-transicion', '--dc-curva', '--dc-letra'}
         self.assertFalse(de_dia - de_noche - iguales, 'colores de tokens.scss sin su valor para el modo oscuro')
 
     def test_la_hoja_perezosa_oscura_compila(self):
@@ -227,6 +227,19 @@ class TestModoOscuroServidor(HttpCase):
         self.assertTrue(any('web.assets_web_dark.min.css' in e for e in enlaces), enlaces)
         self.assertFalse(any('web.assets_web.min.css' in e for e in enlaces), 'no se cargan las dos hojas a la vez')
 
+    def test_la_barra_del_navegador_toma_el_fondo_de_cada_modo(self):
+        """El color de la barra del navegador del teléfono es el fondo de la página: el crema de día y el navy profundo
+        de noche (el mismo ``--dc-crema`` de ``tokens.dark.scss``), nunca el azul de D'CASA."""
+        def barra(cookies=None):
+            self.authenticate('admin', 'admin')
+            html = self.url_open('/odoo', cookies=cookies).text
+            return re.findall(r'<meta name="theme-color" content="([^"]*)"', html)
+        with open(file_path(f'{CARPETA_OSCURA}/tokens.dark.scss'), encoding='utf-8') as hoja:
+            de_noche = hoja.read()
+        fondo = re.search(r'--dc-crema:\s*(#[0-9A-Fa-f]{6})', de_noche).group(1)
+        self.assertEqual(barra(), ['#F9F6ED'])
+        self.assertEqual(barra({'color_scheme': 'dark'}), [fondo])
+
     def test_con_un_valor_raro_la_hoja_clara(self):
         for valor in ('light', 'oscuro', 'DARK', 'dark2', 'darker', '1', 'true', ''):
             enlaces = self.hojas({'color_scheme': valor})
@@ -245,10 +258,11 @@ class TestModoOscuroServidor(HttpCase):
         self.assertNotIn('--dc-relleno', clara)
         self.assertNotIn('color-scheme: dark', clara)
         self.assertIn('--dc-relleno', oscura)
-        # La paleta de Odoo quedó invertida: la superficie de las vistas es el gris del prototipo, no blanco.
-        self.assertRegex(oscura, r'\.o_form_view \.o_form_sheet\{[^}]*background-color: #2A2E33',
+        # La paleta de Odoo quedó invertida: la superficie de las vistas es el navy profundo de la noche de Baby Caleb,
+        # no la crema.
+        self.assertRegex(oscura, r'\.o_form_view \.o_form_sheet\{[^}]*background-color: #162129',
                          'la hoja del formulario')
-        self.assertNotRegex(clara, r'#2A2E33')
+        self.assertNotRegex(clara, r'#162129')
 
     def test_los_rellenos_propios_se_leen_de_noche(self):
         """En claro, el azul de la marca es a la vez tinta y relleno; de noche son dos azules, y cada relleno propio

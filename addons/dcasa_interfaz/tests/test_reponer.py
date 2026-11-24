@@ -461,7 +461,7 @@ class TestReponerEnElNavegador(ReponerDatos, VentasMixin, HttpCase):
             igual(pedirDe(filas[0]), '6', 'pedir 2 × 3 − 0');
             const ya = filas[0].querySelector('.o_aviso_ya');
             igual([getComputedStyle(ya).color, getComputedStyle(ya).backgroundColor],
-                  ['rgb(254, 208, 15)', 'rgb(11, 31, 82)'], 'el amarillo, solo sobre azul oscuro');
+                  ['rgb(27, 50, 70)', 'rgb(145, 201, 162)'], '«Pedir ya»: banda salvia con letra navy');
             if (document.querySelector('.o_dcasa_reponer_sin_ventas')) {
                 throw new Error('los dos productos del proveedor se vendieron');
             }

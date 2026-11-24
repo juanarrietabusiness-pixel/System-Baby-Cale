@@ -65,7 +65,7 @@ export class DcasaFotoProducto extends ImageField {
 export const dcasaFotoProducto = {
     ...imageField,
     component: DcasaFotoProducto,
-    displayName: "Foto del producto (D'CASA)",
+    displayName: "Foto del producto",
 };
 
 registry.category("fields").add("dcasa_foto_producto", dcasaFotoProducto);

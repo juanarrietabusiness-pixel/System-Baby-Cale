@@ -86,9 +86,11 @@ COMUN_JS = ESPERAR_JS + r"""
                                 + `${Math.round(c.left)}–${Math.round(c.right)} de ${window.innerWidth}`);
             }
             if (boton.scrollWidth > boton.clientWidth + 1) { throw new Error(`${que}: «${nombre}» sale cortado`); }
-            // Todos azules (pedido del jefe, 2026-10-16); «¿Qué necesito hacer?» va con borde azul.
+            // Todos del mismo color (pedido del jefe, 2026-10-16): el botón principal de Baby Caleb, naranja con letra
+            // navy; «¿Qué necesito hacer?» va de contorno.
             if (!boton.classList.contains('o_dcasa_inicio_guia')) {
-                igual(getComputedStyle(boton).backgroundColor, 'rgb(19, 64, 177)', `${que}: «${nombre}», azul`);
+                igual(getComputedStyle(boton).backgroundColor, 'rgb(238, 146, 74)', `${que}: «${nombre}», naranja`);
+                igual(getComputedStyle(boton).color, 'rgb(27, 50, 70)', `${que}: «${nombre}», con letra navy`);
             }
             (filas[Math.round(c.top)] ||= []).push(boton);
             if (window.innerWidth < 576 && Math.round(c.height) < 44) {
@@ -127,8 +129,8 @@ class TestInicioTableroCodigo(TransactionCase):
         self.assertNotRegex(sin_comentarios, r'#[0-9a-fA-F]{3,8}\b', 'colores sueltos: van con las variables --dc-*')
         self.assertNotRegex(sin_comentarios, r'\brgba?\(', 'colores sueltos: van con las variables --dc-*')
         self.assertNotIn('gradient', sin_comentarios, 'sistema plano: sin degradados')
-        self.assertNotIn('--dc-amarillo', sin_comentarios,
-                         'lo nuevo va sobre blanco: los números en azul (el amarillo nunca toca el blanco)')
+        self.assertNotIn('--dc-amarillo', sin_comentarios, 'el acento se nombra como lo que es: --dc-naranja')
+        self.assertNotRegex(sin_comentarios, r'color:\s*var\(--dc-naranja\)', 'el naranja es relleno, nunca letra')
         self.assertNotIn('--dc-sombra-2', sin_comentarios, 'sistema plano: sin sombras marcadas')
         for variable in set(re.findall(r'var\((--dc-[a-z0-9-]+)', sin_comentarios)) - {'--dc-turno'}:
             self.assertIn(variable + ':', (FUENTES / 'scss' / 'tokens.scss').read_text(encoding='utf-8'), variable)
@@ -223,15 +225,16 @@ class TestInicioTableroEnElNavegador(VentasMixin, HttpCase):
             if (seVeElDetalle()) { throw new Error('compactos: sin el renglón de detalle'); }
             const primero = en('.o_dcasa_atajo');
             igual(getComputedStyle(primero).flexDirection, 'column', 'compactos: el ícono arriba y el nombre abajo');
-            // El número va en la esquina, amarillo sobre el azul del acceso (el amarillo nunca toca el blanco).
+            // El número va en la esquina: una pastilla naranja con el número navy, sobre la tarjeta del acceso.
             const numero = document.createElement('span');
             numero.className = 'o_dcasa_atajo_cuenta';
             numero.textContent = '7';
             primero.appendChild(numero);
             const cajaNumero = numero.getBoundingClientRect();
             const cajaAcceso = primero.getBoundingClientRect();
-            igual(getComputedStyle(numero).backgroundColor, 'rgb(254, 208, 15)', 'el número, amarillo');
-            igual(getComputedStyle(primero).backgroundColor, 'rgb(19, 64, 177)', 'sobre el azul del acceso');
+            igual(getComputedStyle(numero).backgroundColor, 'rgb(238, 146, 74)', 'el número, en el naranja');
+            igual(getComputedStyle(numero).color, 'rgb(27, 50, 70)', 'con letra navy');
+            igual(getComputedStyle(primero).backgroundColor, 'rgb(242, 239, 229)', 'sobre la superficie del acceso');
             if (getComputedStyle(numero).position !== 'absolute' || cajaNumero.right > cajaAcceso.right
                     || cajaNumero.top < cajaAcceso.top || cajaAcceso.right - cajaNumero.right > 12
                     || cajaNumero.top - cajaAcceso.top > 12) {
@@ -315,9 +318,9 @@ class TestInicioTableroEnElNavegador(VentasMixin, HttpCase):
                 throw new Error('los contadores van antes del primer panel');
             }
             if (!apilados) { return console.log('test successful'); }
-            // Números en azul sobre blanco: nada de amarillo, que aquí tocaría el blanco.
-            igual(getComputedStyle(en('.o_dcasa_salto strong')).color, 'rgb(19, 64, 177)', 'el número, en azul');
-            igual(getComputedStyle(saltos).backgroundColor, 'rgb(255, 255, 255)', 'sobre blanco');
+            // Números en navy sobre la superficie crema: el naranja es relleno, nunca letra.
+            igual(getComputedStyle(en('.o_dcasa_salto strong')).color, 'rgb(27, 50, 70)', 'el número, en navy');
+            igual(getComputedStyle(saltos).backgroundColor, 'rgb(242, 239, 229)', 'sobre la superficie');
             sinScrollDeCostado('con los contadores');
             // Al tocarlo, la pantalla baja hasta su panel.
             for (const clave of claves) {
@@ -385,9 +388,9 @@ class TestInicioTableroEnElNavegador(VentasMixin, HttpCase):
             if (hace.getBoundingClientRect().top < monto.bottom - 2) {
                 throw new Error('lo demás va debajo del monto');
             }
-            igual(getComputedStyle(hace).color, 'rgb(107, 118, 144)', 'lo demás, en gris');
-            // Entregas: «Lista» en verde oscuro y «Falta mercancía» en ámbar oscuro (se leen sobre blanco).
-            const colores = { o_dcasa_estado_lista: 'rgb(15, 107, 60)', o_dcasa_estado_falta: 'rgb(138, 75, 0)' };
+            igual(getComputedStyle(hace).color, 'rgb(94, 109, 120)', 'lo demás, en el gris de apoyo');
+            // Entregas: «Lista» en verde salvia fuerte y «Falta mercancía» en ámbar oscuro (se leen sobre el crema).
+            const colores = { o_dcasa_estado_lista: 'rgb(83, 115, 92)', o_dcasa_estado_falta: 'rgb(133, 87, 0)' };
             const estados = todos('.o_dcasa_lista_entregas .o_dcasa_estado');
             if (!estados.length) { throw new Error('se esperaba al menos una entrega'); }
             for (const estado of estados) {
@@ -399,7 +402,7 @@ class TestInicioTableroEnElNavegador(VentasMixin, HttpCase):
             // Los bloques de abajo: siete barras (la de hoy, resaltada) y las barras finas de proporción.
             igual(todos('.o_dcasa_semana .o_dcasa_grafico_barra').length, 7, 'las barras de la semana');
             igual(getComputedStyle(en('.o_dcasa_grafico_hoy .o_dcasa_grafico_relleno')).backgroundColor,
-                  'rgb(19, 64, 177)', 'la barra de hoy, en el azul de la marca');
+                  'rgb(238, 146, 74)', 'la barra de hoy, en el naranja de la marca');
             if (parseFloat(getComputedStyle(en('.o_dcasa_grafico_relleno')).borderTopLeftRadius) < 4) {
                 throw new Error('las barras van redondeadas');
             }

@@ -26,10 +26,10 @@
     gap: 16px;
 
     h1 {
-        font-family: "Anton", sans-serif;
-        font-weight: 400;
-        text-transform: uppercase;
-        letter-spacing: .02em;
+        font-family: var(--dc-letra);
+        font-weight: 700;
+        text-transform: none;
+        letter-spacing: -.03em;
         font-size: clamp(1.8rem, 3vw, 2.4rem);
         line-height: 1.1;
         color: var(--dc-azul-600);
@@ -114,8 +114,8 @@
     width: 28px;
     height: 28px;
     border-radius: 50%;
-    background: var(--dc-azul-600);
-    color: var(--dc-blanco);
+    background: var(--dc-naranja);
+    color: var(--dc-en-naranja);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -311,7 +311,7 @@
     color: var(--dc-tinta-2);
     font-size: .9rem;
 
-    &.o_cuenta_ya { background: var(--dc-azul-900); border-color: var(--dc-azul-900); color: var(--dc-amarillo); }
+    &.o_cuenta_ya { background: var(--dc-salvia); border-color: var(--dc-salvia); color: var(--dc-en-salvia); }
     &.o_cuenta_pedir { background: var(--dc-azul-100); border-color: var(--dc-azul-200); color: var(--dc-azul-800); }
     &.o_cuenta_falta { border-style: dashed; border-color: var(--dc-linea-fuerte); color: var(--dc-azul-900); }
     &.o_cuenta_total { background: var(--dc-blanco); color: var(--dc-azul-700); }
@@ -335,7 +335,7 @@
     font-weight: 700;
     white-space: nowrap;
 
-    &.o_aviso_ya { background: var(--dc-azul-900); color: var(--dc-amarillo); }
+    &.o_aviso_ya { background: var(--dc-salvia); color: var(--dc-en-salvia); }
     &.o_aviso_pedir { background: var(--dc-azul-100); color: var(--dc-azul-800); }
     &.o_aviso_falta,
     &.o_aviso_sin_proveedor { background: var(--dc-niebla); color: var(--dc-azul-900); border: 1px dashed var(--dc-linea-fuerte); }

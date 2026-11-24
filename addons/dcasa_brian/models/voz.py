@@ -68,7 +68,8 @@ class BrianVoz(models.AbstractModel):
     @api.model
     def _exigir_interno(self):
         if not self.env.su and not self.env.user._is_internal():
-            raise AccessError(self.env._('Las notas de voz de Brian son solo para el equipo de D’CASA.'))
+            raise AccessError(self.env._('Las notas de voz de Brian son solo para el equipo de %s.',
+                                         self.env.company.name))
 
     @api.private
     @api.model

@@ -196,13 +196,13 @@ button.o_dcasa_pd_tarjeta, button.o_dcasa_es_numero {
     &.o_futuro { background: var(--dc-niebla); border-style: dashed; color: var(--dc-tinta-3); }
     &.o_hoy { border-color: var(--dc-azul-600); border-width: 2px; padding: 7px 7px 9px; }
     &.o_activo, &.o_activo:hover {
-        background: var(--dc-azul-600);
-        border-color: var(--dc-azul-600);
-        color: var(--dc-blanco);
-        .o_dcasa_pd_monto, .o_dcasa_pd_cuantas, .o_dcasa_pd_numero small { color: var(--dc-blanco); }
-        .o_dcasa_pd_barra { background: rgba(255, 255, 255, .25); }
+        background: var(--dc-naranja);
+        border-color: var(--dc-naranja);
+        color: var(--dc-en-naranja);
+        .o_dcasa_pd_monto, .o_dcasa_pd_cuantas, .o_dcasa_pd_numero small { color: var(--dc-en-naranja); }
+        .o_dcasa_pd_barra { background: rgba(27, 50, 70, .08); }
         // El amarillo, solo sobre azul.
-        .o_dcasa_pd_barra span { background: var(--dc-amarillo); }
+        .o_dcasa_pd_barra span { background: var(--dc-en-naranja); }
     }
 }
 
@@ -237,7 +237,7 @@ button.o_dcasa_pd_tarjeta, button.o_dcasa_es_numero {
     background: var(--dc-perla);
     overflow: hidden;
 
-    span { display: block; height: 100%; border-radius: 3px; background: var(--dc-azul-500); }
+    span { display: block; height: 100%; border-radius: 3px; background: var(--dc-naranja); }
 }
 
 .o_dcasa_pd_hueco { min-height: 96px; }
@@ -403,9 +403,9 @@ button.o_dcasa_pd_tarjeta, button.o_dcasa_es_numero {
     border: 0;
     background: none;
 
-    &:hover .o_dcasa_es_barra_relleno { background: var(--dc-azul-400); }
+    &:hover .o_dcasa_es_barra_relleno { background: var(--dc-salvia-filo); }
     &:focus-visible { outline: none; .o_dcasa_es_barra_relleno { box-shadow: var(--dc-foco); } }
-    &.o_hoy .o_dcasa_es_barra_relleno { background: var(--dc-azul-800); }
+    &.o_hoy .o_dcasa_es_barra_relleno { background: var(--dc-naranja); }
 }
 
 .o_dcasa_es_barra_relleno {
@@ -413,7 +413,7 @@ button.o_dcasa_pd_tarjeta, button.o_dcasa_es_numero {
     width: 100%;
     max-width: 36px;
     border-radius: 3px 3px 0 0;
-    background: var(--dc-azul-600);
+    background: var(--dc-salvia);
     transition: background var(--dc-transicion);
 }
 
@@ -478,7 +478,7 @@ button.o_dcasa_es_hfila {
     border-radius: 5px;
     background: var(--dc-perla);
     overflow: hidden;
-    span { display: block; height: 100%; border-radius: 5px; background: var(--dc-azul-600); }
+    span { display: block; height: 100%; border-radius: 5px; background: var(--dc-naranja); }
 }
 
 .o_dcasa_es_valor {
@@ -717,11 +717,11 @@ button.o_dcasa_mv_frase {
     small { font-size: .75rem; color: var(--dc-tinta-3); }
 
     &.o_dcasa_cf_total {
-        background: var(--dc-azul-600);
-        border-color: var(--dc-azul-600);
-        color: var(--dc-blanco);
-        .o_dcasa_cf_forma, .o_dcasa_cf_monto, small { color: var(--dc-blanco); }
-        &:hover { background: var(--dc-azul-700); border-color: var(--dc-azul-700); }
+        background: var(--dc-naranja);
+        border-color: var(--dc-naranja);
+        color: var(--dc-en-naranja);
+        .o_dcasa_cf_forma, .o_dcasa_cf_monto, small { color: var(--dc-en-naranja); }
+        &:hover { background: var(--dc-naranja-puntero); border-color: var(--dc-naranja-puntero); }
     }
 }
 

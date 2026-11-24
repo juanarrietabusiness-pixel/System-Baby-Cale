@@ -517,13 +517,13 @@ class DcasaReponer(models.AbstractModel):
         salida = io.BytesIO()
         libro = xlsxwriter.Workbook(salida, {'in_memory': True})
         formatos = {
-            'titulo': libro.add_format({'bold': True, 'font_size': 14, 'font_color': '#1340B1'}),
-            'nota': libro.add_format({'italic': True, 'font_color': '#44506A'}),
-            'cabeza': libro.add_format({'bold': True, 'bg_color': '#1340B1', 'font_color': '#FFFFFF',
+            'titulo': libro.add_format({'bold': True, 'font_size': 14, 'font_color': '#1B3246'}),
+            'nota': libro.add_format({'italic': True, 'font_color': '#475967'}),
+            'cabeza': libro.add_format({'bold': True, 'bg_color': '#1B3246', 'font_color': '#F9F6ED',
                                         'text_wrap': True, 'valign': 'vcenter', 'border': 1}),
             'entero': libro.add_format({'num_format': '#,##0'}),
             'decimal': libro.add_format({'num_format': '#,##0.0#'}),
-            'urgente': libro.add_format({'bold': True, 'font_color': '#0B1F52'}),
+            'urgente': libro.add_format({'bold': True, 'font_color': '#985D2F'}),
             'total': libro.add_format({'bold': True, 'num_format': '#,##0.##', 'top': 1}),
         }
         quien = proveedor.display_name if proveedor else self.env._('Todos los proveedores')

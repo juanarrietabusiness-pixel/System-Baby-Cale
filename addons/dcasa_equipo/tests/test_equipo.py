@@ -40,11 +40,13 @@ class TestEquipo(TransactionCase):
         ruta = os.path.join(os.path.dirname(__file__), '..', 'static', 'src', 'img', 'empleados.svg')
         with open(ruta, encoding='utf-8') as f:
             svg = f.read()
-        # Índigo: el color de la familia «Socios y equipo» del menú (decisión de la dueña, 2026-10-16); el amarillo
-        # de la marca queda de acento, nunca de fondo (tocaría el blanco de la barra).
-        self.assertIn('#4B3FA8', svg)
-        self.assertIn('#FED00F', svg)
-        self.assertRegex(svg, r'<rect[^>]*fill="#4B3FA8"')
+        # La marca de Baby Caleb (2026-11-19): el cuadro en el navy de la familia «Socios y equipo», el trazo en crema y
+        # el punto en el naranja (relleno, nunca fondo del cuadro). Nada del índigo ni del amarillo de D'CASA.
+        self.assertRegex(svg, r'<rect[^>]*fill="#1B3246"')
+        self.assertIn('#EE924A', svg)
+        self.assertIn('#F9F6ED', svg)
+        for de_dcasa in ('#4B3FA8', '#FED00F', '#1340B1'):
+            self.assertNotIn(de_dcasa, svg.upper())
         self.assertNotIn('gradient', svg.lower())
 
     def test_no_hay_alta_de_personas_por_texto(self):

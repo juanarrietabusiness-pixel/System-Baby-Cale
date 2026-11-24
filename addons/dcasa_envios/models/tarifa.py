@@ -82,7 +82,7 @@ class EnvioTarifa(models.Model):
                                      help='Apagado, el enlace responde «no existe» aunque alguien lo tenga.')
     choferes_ubicacion = fields.Boolean(
         'Permitir «Usar mi ubicación»', tracking=True, copy=False, groups=GERENCIA,
-        help='Apagado (de fábrica): los choferes solo buscan el lugar y ven el precio desde D\'CASA. Encendido: '
+        help='Apagado (de fábrica): los choferes solo buscan el lugar y ven el precio desde la tienda. Encendido: '
              'también pueden tocar «Usar mi ubicación» para ver el lugar de la tabla más cercano a donde están.')
     choferes_token = fields.Char('Secreto del enlace para choferes', readonly=True, copy=False, groups=GERENCIA)
     choferes_url = fields.Char('Enlace para choferes', compute='_compute_choferes_url', groups=GERENCIA)

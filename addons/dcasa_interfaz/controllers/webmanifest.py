@@ -2,10 +2,11 @@
 
 El ícono es estrictamente el logo (pedido de la dueña, 2026-10-22), hecho con ``scripts/iconos_de_la_marca.py``: solo
 el logo (transparente) para «any» y sobre blanco, dentro de la zona segura, para «maskable» (Android lo recorta en
-círculo o en gota). El fondo de la pantalla de arranque es blanco, como el ícono; la barra del navegador, azul.
+círculo o en gota). La pantalla de arranque y la barra del navegador van en el crema de la página del panel (la marca
+de Baby Caleb, docs/MARCA_BABY_CALEB.md: su propio panel también usa el crema), con cualquier color de la empresa.
 
-Si la empresa subió su logo o su ícono, o puso su color principal (Ajustes › Marca del panel, ``models/marca.py``),
-el manifiesto lleva los suyos: los íconos se hacen de su imagen en los mismos tamaños (``controllers/marca.py``).
+Si la empresa subió su logo o su ícono (Ajustes › Marca del panel, ``models/marca.py``), el manifiesto lleva los
+suyos: los íconos se hacen de su imagen en los mismos tamaños (``controllers/marca.py``).
 """
 import logging
 
@@ -14,8 +15,7 @@ from odoo.http import request
 
 _logger = logging.getLogger(__name__)
 
-AZUL = '#1340B1'
-BLANCO = '#FFFFFF'
+CREMA = '#F9F6ED'
 CARPETA = '/dcasa_base/static/img/icono'
 ICONOS = (
     ('192x192', f'{CARPETA}/logo-192.png', 'any'),
@@ -31,8 +31,8 @@ class WebManifestDcasa(WebManifest):
 
     def _get_webmanifest(self):
         manifest = super()._get_webmanifest()
-        manifest['background_color'] = BLANCO
-        manifest['theme_color'] = AZUL
+        manifest['background_color'] = CREMA
+        manifest['theme_color'] = CREMA
         manifest['icons'] = [{'src': src, 'sizes': tamano, 'type': 'image/png', 'purpose': uso}
                              for tamano, src, uso in ICONOS]
         try:
@@ -41,8 +41,6 @@ class WebManifestDcasa(WebManifest):
             # La marca nunca deja al panel sin manifiesto: a lo sumo, el de fábrica.
             _logger.exception('Marca del panel: no se pudo armar el manifiesto con la marca de la empresa')
             return manifest
-        if marca['color']:
-            manifest['theme_color'] = marca['color']
         if marca['iconos']:
             manifest['icons'] = marca['iconos']
         return manifest

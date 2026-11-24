@@ -69,7 +69,7 @@ def _accion(nombre, modelo, dominio, vista='list'):
 
 class DcasaTablero(models.AbstractModel):
     _name = 'dcasa.tablero'
-    _description = "Tablero de inicio de D'CASA"
+    _description = "Tablero de inicio"
 
     # ------------------------------------------------------------------
     # Fechas en hora de Panamá
@@ -214,6 +214,8 @@ class DcasaTablero(models.AbstractModel):
         propio = self._solo_lo_propio()
         datos = {
             'saludo': (self.env.user.name or '').split(' ')[0],
+            # El nombre de la empresa en el saludo («Así va el día en Baby Caleb»): la plantilla sirve a cualquiera.
+            'empresa': self.env.company.name or '',
             'fecha': format_date(hoy, "EEEE d 'de' MMMM", locale='es'),
             'moneda': {'simbolo': moneda.symbol, 'antes': moneda.position == 'before'},
             # «tienda»: las cifras de todos; «propio»: solo lo que vendió quien mira.
@@ -688,9 +690,10 @@ class DcasaTablero(models.AbstractModel):
         semana = socios + [('create_date', '>=', fields.Datetime.to_datetime(hoy - timedelta(days=7)))]
         nuevos = Partner.search_count(semana)
         datos['cifras'].append({
-            'clave': 'socios', 'titulo': "Socios D'CASA", 'valor': Partner.search_count(socios),
+            'clave': 'socios', 'titulo': self.env._('Socios %s', self.env.company.name),
+            'valor': Partner.search_count(socios),
             'formato': 'numero', 'detalle': f'{nuevos} nuevo' + ('' if nuevos == 1 else 's') + ' esta semana',
-            'accion': _accion("Socios D'CASA", 'res.partner', socios),
+            'accion': _accion(self.env._('Socios %s', self.env.company.name), 'res.partner', socios),
         })
 
     # ------------------------------------------------------------------

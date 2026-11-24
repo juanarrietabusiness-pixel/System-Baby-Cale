@@ -40,9 +40,9 @@
     &:focus-visible { outline: none; box-shadow: var(--dc-foco); }
 
     &.o_activo {
-        background: var(--dc-azul-600);
-        border-color: var(--dc-azul-600);
-        color: var(--dc-blanco);
+        background: var(--dc-naranja);
+        border-color: var(--dc-naranja);
+        color: var(--dc-en-naranja);
     }
 }
 

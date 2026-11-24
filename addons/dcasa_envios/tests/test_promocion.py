@@ -90,9 +90,9 @@ class TestPromocionDeEnvio(PromocionComun):
         self.assertEqual(self.env['dcasa.envio.promocion']._vigente(date(2026, 11, 30)), promocion)
         self.assertFalse(self.env['dcasa.envio.promocion']._vigente(date(2026, 12, 1)))
         self.assertIn("El envío a ese lugar cuesta normalmente $100. Con la promoción de noviembre, en compras de más "
-                      "de $200 sin ITBMS, D'CASA te regala el envío: te sale gratis (te ahorras $100).",
+                      "de $200 sin ITBMS, te regalamos el envío: te sale gratis (te ahorras $100).",
                       promocion.resumen)
-        self.assertIn("D'CASA te abona $20 del envío: te queda en $80.", promocion.resumen)
+        self.assertIn("te abonamos $20 del envío: te queda en $80.", promocion.resumen)
         self.assertIn('La promoción es hasta el 30 de noviembre; después, el envío vuelve a su precio normal.',
                       promocion.resumen)
 
@@ -145,7 +145,7 @@ class TestPromocionDeEnvio(PromocionComun):
         self.assertEqual(costa['texto_para_el_cliente'], 'Envío a Costa Inventada (Santa Prueba, Panamá): $45.')
         self.assertEqual(costa['con_la_promocion'],
                          "El envío a Costa Inventada (Santa Prueba, Panamá) cuesta normalmente $45. Con la promoción "
-                         "de noviembre, en compras de más de $200 sin ITBMS, D'CASA te regala el envío: te sale gratis "
+                         "de noviembre, en compras de más de $200 sin ITBMS, te regalamos el envío: te sale gratis "
                          "(te ahorras $45). La promoción es hasta el 30 de noviembre; después, el envío vuelve a su "
                          "precio normal. No aplica si la compra lleva colchón.", 'la promoción va aparte')
         with patch('odoo.addons.dcasa_envios.models.promocion.EnvioPromocion._hoy', return_value=date(2026, 12, 1)):

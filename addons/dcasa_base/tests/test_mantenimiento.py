@@ -270,7 +270,7 @@ class TestVigilanciaRecursos(_Comun):
         recibido = []
         self.patch(Users, '_dcasa_avisar_operacion', lambda m, texto: recibido.append(texto) or True)
         self.assertTrue(AVISAR_ORIGINAL(self.mant, 'hola'))
-        self.assertEqual(recibido, ["D'CASA · hola"])
+        self.assertEqual(recibido, [f'{self.env.company.name} · hola'], 'con el nombre de la empresa, no el de D\'CASA')
         self.patch(Users, '_dcasa_avisar_operacion', lambda m, texto: False)
         self.assertFalse(AVISAR_ORIGINAL(self.mant, 'hola'))
 

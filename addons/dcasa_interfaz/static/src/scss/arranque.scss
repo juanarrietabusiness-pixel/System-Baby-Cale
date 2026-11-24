@@ -13,7 +13,7 @@
     color: var(--dc-tinta);
 
     // El punto de la fecha va en azul, como en el Inicio: el fondo del saludo es blanco y el amarillo no lo toca.
-    .o_dcasa_inicio_fecha::before { background: var(--dc-azul-600); box-shadow: none; }
+    .o_dcasa_inicio_fecha::before { background: var(--dc-naranja); box-shadow: none; }
 }
 
 // Misma razón que en el Inicio (interfaz.scss): Odoo deja a todo `.o_action` sin barra de desplazamiento.

@@ -177,7 +177,7 @@ Gerencia lo enciende (Envíos › Tarifa › «Permitir "Usar mi ubicación"»).
 
 - Arriba (en azul): «¿Cuánto cuesta el envío?», la caja **«Busca el barrio, edificio o lugar»** (el mismo buscador de
   la calculadora: sin tildes, abreviaturas, errores de dedo) y la línea «El precio es desde D'CASA hasta el lugar que
-  busques». Solo si Gerencia lo permitió: el botón amarillo **«Usar mi ubicación»**, con la línea «Tu ubicación solo se
+  busques». Solo si Gerencia lo permitió: el botón naranja **«Usar mi ubicación»**, con la línea «Tu ubicación solo se
   usa para buscar el lugar más cercano; no se guarda» (apagado, el botón no sale y `…/cerca` responde 404).
 - Cada lugar (hasta 8): el **nombre**, la **zona** («corregimiento · distrito»), el **precio** (el mismo `total_txt` de la
   calculadora, p. ej. «$15»; con lancha, «$70 + lancha») y el botón **«Ver en Google Maps»** (la ruta en carro desde la
@@ -192,8 +192,8 @@ Gerencia lo enciende (Envíos › Tarifa › «Permitir "Usar mi ubicación"»).
 - **Nunca** ve en la página: los km, la tabla por tramos, el desglose, la fórmula, «Calcular por kilómetros»,
   «Agregar este lugar», ni ids. En la página no aparece la palabra «km». (Ojo: la ruta de «Ver en Google Maps» lleva
   las coordenadas del lugar y Google Maps muestra los km por carretera; ver «Lo que no se puede impedir» abajo.)
-- Una página sola (sin el sitio ni el panel), para el celular, con la marca (azul, amarillo solo sobre azul, Anton /
-  Oswald / Inter, plana). **Baja con scroll** (el documento entero, sin `overflow: hidden`): probado con el dedo y la
+- Una página sola (sin el sitio ni el panel), para el celular, con la marca de Baby Caleb (crema, letra navy, el naranja
+  de relleno con letra navy, Montserrat, plana; `docs/MARCA_BABY_CALEB.md`). **Baja con scroll** (el documento entero, sin `overflow: hidden`): probado con el dedo y la
   rueda de verdad.
 
 ### Encenderlo, copiarlo y cambiarlo (Gerencia)

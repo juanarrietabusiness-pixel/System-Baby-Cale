@@ -5,7 +5,7 @@
         <div class="o_action o_dcasa_envios">
             <header class="o_de_cabecera">
                 <div class="o_de_envoltura o_de_cabecera_dentro">
-                    <div class="o_de_marca">D'CASA Panamá · desde la tienda en La Chorrera</div>
+                    <div class="o_de_marca"><t t-esc="nombreDeLaEmpresa"/> · envíos desde la tienda</div>
                     <h1>Envíos</h1>
                     <div class="o_de_regla" t-if="tarifa.regla and tarifa.regla.length"
                          aria-label="Cómo se calcula la tarifa">
@@ -16,7 +16,7 @@
                     <div class="o_de_buscar_caja" t-if="hayDatos">
                         <label for="o_de_q">¿A dónde va el envío?</label>
                         <input id="o_de_q" class="o_de_q" type="search" autocomplete="off" spellcheck="false"
-                               placeholder="Barrio, urbanización, PH, o «cerca del hospital de Chorrera»"
+                               placeholder="Barrio, urbanización, PH, o «cerca del hospital»"
                                t-ref="buscador" t-att-value="state.q" t-on-input="alEscribir"/>
                         <p class="o_de_ayuda" t-if="!state.q">Escribe como lo dice el cliente: sin tildes, con abreviaturas (urb.,
                             res., bda.) o con una frase. También busca por lugares conocidos: malls, hospitales,
@@ -40,7 +40,7 @@
                         </button>
                     </t>
                     <p t-else="">Pídele a Gerencia que cargue el archivo de envíos en <b>Envíos › Tarifa</b>. Mientras
-                        tanto, mide la ruta en Google Maps («Cómo llegar» en carro desde D'CASA).</p>
+                        tanto, mide la ruta en Google Maps («Cómo llegar» en carro desde la tienda).</p>
                 </section>
 
                 <t t-else="">
@@ -216,7 +216,7 @@
                         <section class="o_de_panel o_de_calc" aria-labelledby="o_de_t_calc">
                             <h2 id="o_de_t_calc">Calcular por kilómetros</h2>
                             <p class="o_de_sub">Para una dirección exacta: mide en Google Maps «Cómo llegar» en carro
-                                desde D'CASA y pon los km aquí.</p>
+                                desde la tienda y pon los km aquí.</p>
                             <label for="o_de_km">Kilómetros por carretera</label>
                             <input id="o_de_km" class="form-control o_de_km_entrada" type="number" inputmode="decimal"
                                    min="0" max="2000" step="any" t-att-value="state.km" t-on-input="alCambiarKm"/>

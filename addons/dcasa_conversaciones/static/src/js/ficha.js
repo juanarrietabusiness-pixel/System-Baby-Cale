@@ -3,6 +3,7 @@
  * oportunidades, compras, seguimiento, notas y «qué sabe el bot de esta persona».
  */
 import { Component, useState } from "@odoo/owl";
+import { user } from "@web/core/user";
 import { useService } from "@web/core/utils/hooks";
 import { esCelular } from "./preferencias";
 import { colorDeEtiqueta, cuando, dolares, hora, iniciales, iconoDeCanal, numero } from "./utilidades";
@@ -26,6 +27,11 @@ export class FichaCliente extends Component {
 
     get f() {
         return this.almacen.ficha;
+    }
+
+    /** «Socios Baby Caleb»: el programa lleva el nombre de la empresa con que entró la persona. */
+    get nombreDelPrograma() {
+        return `Socios ${user.activeCompany?.name || "Baby Caleb"}`;
     }
 
     get idsDeEtiquetas() {

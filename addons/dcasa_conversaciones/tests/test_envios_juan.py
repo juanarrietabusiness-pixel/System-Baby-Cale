@@ -79,7 +79,7 @@ class TestCotizarEnvio(EnviosJuanCase):
         self.assertIsNone(datos['cotizacion'])
         self.assertEqual(datos['frase_para_el_cliente'],
                          "El envío a Costa Inventada (Santa Prueba, Panamá) cuesta normalmente $45. Con la promoción "
-                         "de noviembre, en compras de más de $200 sin ITBMS, D'CASA te regala el envío: te sale gratis "
+                         "de noviembre, en compras de más de $200 sin ITBMS, te regalamos el envío: te sale gratis "
                          "(te ahorras $45). La promoción es hasta el 30 de noviembre; después, el envío vuelve a su "
                          "precio normal. No aplica si la compra lleva colchón.")
         self.assertFalse(datos['promocion']['aplica'])
@@ -95,7 +95,7 @@ class TestCotizarEnvio(EnviosJuanCase):
         colon = self.envio(lugar='Barrio Simulado')
         self.assertEqual(colon['frase_para_el_cliente'],
                          "El envío a Barrio Simulado (Colón) cuesta normalmente $105. Con la promoción de noviembre, "
-                         "en compras de más de $200 sin ITBMS, D'CASA te abona $20 del envío: te queda en $85. La "
+                         "en compras de más de $200 sin ITBMS, te abonamos $20 del envío: te queda en $85. La "
                          "promoción es hasta el 30 de noviembre; después, el envío vuelve a su precio normal. No "
                          "aplica si la compra lleva colchón.")
         self.assertNotIn('gratis', colon['frase_para_el_cliente'].lower())
@@ -208,7 +208,7 @@ class TestCotizarEnvio(EnviosJuanCase):
         datos = self.envio(lugar='Costa Inventada')
         self.assertEqual(datos['frase_para_el_cliente'],
                          "El envío a Costa Inventada (Santa Prueba, Panamá) cuesta normalmente $45. Tu cotización ya "
-                         "tiene la promoción de noviembre, así que D'CASA te regala el envío: te sale gratis (te "
+                         "tiene la promoción de noviembre, así que te regalamos el envío: te sale gratis (te "
                          "ahorras $45).")
         self.assertNotIn('hasta el', datos['frase_para_el_cliente'])
         self.assertTrue(datos['promocion']['ya_sumada'])
@@ -290,7 +290,7 @@ class TestCotizarEnvio(EnviosJuanCase):
         self.assertEqual((datos['promocion']['envio_con_promocion'], datos['promocion']['ahorro']), (0.0, 45.0))
         self.assertEqual(datos['frase_para_el_cliente'],
                          "El envío a Costa Inventada (Santa Prueba, Panamá) cuesta normalmente $45. Con la promoción "
-                         "de noviembre, como tu compra pasa de $200 sin ITBMS, D'CASA te regala el envío: te sale "
+                         "de noviembre, como tu compra pasa de $200 sin ITBMS, te regalamos el envío: te sale "
                          "gratis (te ahorras $45). La promoción es hasta el 30 de noviembre; después, el envío vuelve "
                          "a su precio normal.")
         self.assertIn('¿Quieres que te lo sume a la cotización?', datos['instruccion'])
@@ -353,7 +353,7 @@ class TestAgregarEnvio(EnviosJuanCase):
         self.assertTrue(datos['sumado'] and datos['ya_estaba'])
         self.assertTrue(datos['frase_para_el_cliente'].startswith(
             f'Ese envío ya estaba en tu cotización {orden.name}. El envío a Costa Inventada (Santa Prueba, Panamá) '
-            "cuesta normalmente $45. Tu cotización ya tiene la promoción de noviembre, así que D'CASA te regala el "
+            "cuesta normalmente $45. Tu cotización ya tiene la promoción de noviembre, así que te regalamos el "
             'envío'), datos['frase_para_el_cliente'])
         self.assertEqual(sorted(orden.order_line.filtered('is_delivery').mapped('price_unit')), [-45.0, 45.0])
 
@@ -364,7 +364,7 @@ class TestAgregarEnvio(EnviosJuanCase):
         datos = self.sumar(self.colon)
         self.assertEqual(sorted(orden.order_line.filtered('is_delivery').mapped('price_unit')), [-20.0, 105.0])
         self.assertIn("cuesta normalmente $105. Con la promoción de noviembre, como tu compra pasa de $200 sin ITBMS, "
-                      "D'CASA te abona $20 del envío: te queda en $85. La promoción es hasta el 30 de noviembre;",
+                      "te abonamos $20 del envío: te queda en $85. La promoción es hasta el 30 de noviembre;",
                       datos['frase_para_el_cliente'])
         self.assertAlmostEqual(orden.amount_untaxed, 885.0)
 

@@ -2,7 +2,8 @@
 <odoo>
     <!-- El enlace para choferes (controllers/choferes.py): la calculadora reducida, una página sola, sin el sitio ni el
          panel de Odoo. Solo el nombre, la zona, el precio y la ruta en Google Maps; nunca km, tabla ni desglose.
-         Marca: azul #1340B1, amarillo #FED00F solo sobre el azul, Anton / Oswald / Inter, plano. Baja con scroll (el
+         Marca: la de Baby Caleb (docs/MARCA_BABY_CALEB.md): crema, letra navy, el naranja de relleno con letra navy
+         (nunca blanca), Montserrat y titulares como frase; plano. Baja con scroll (el
          documento entero; nada de overflow: hidden). Estilos y script con el nonce de la CSP. -->
     <template id="choferes_pagina" name="Envíos: enlace para choferes">&lt;!DOCTYPE html&gt;
 <html lang="es">
@@ -11,63 +12,58 @@
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <meta name="robots" content="noindex, nofollow"/>
     <meta name="referrer" content="no-referrer"/>
-    <meta name="theme-color" content="#1340B1"/>
-    <title>Envíos D'CASA · choferes</title>
+    <meta name="theme-color" content="#F9F6ED"/>
+    <title>Envíos <t t-esc="empresa"/> · choferes</title>
     <style t-att-nonce="nonce"><![CDATA[
-        @font-face { font-family: 'Anton'; font-weight: 400; font-display: swap;
-                     src: url('/dcasa_interfaz/static/src/fonts/Anton-Regular.ttf') format('truetype'); }
-        @font-face { font-family: 'Oswald'; font-weight: 400; font-display: swap;
-                     src: url('/web/static/fonts/google/Oswald/Oswald-Regular.ttf') format('truetype'); }
-        @font-face { font-family: 'Oswald'; font-weight: 600; font-display: swap;
-                     src: url('/web/static/fonts/google/Oswald/Oswald-SemiBold.ttf') format('truetype'); }
-        @font-face { font-family: 'Inter'; font-weight: 400 700; font-display: swap;
-                     src: url('/website_dcasa/static/src/fonts/inter-latin-var.woff2') format('woff2'); }
-        :root { --azul: #1340B1; --amarillo: #FED00F; --navy: #0B2160; --tinta: #1B2540; --gris: #55607A;
-                --borde: #D6DEF3; --claro: #EEF2FC; }
+        @font-face { font-family: 'Montserrat'; font-weight: 100 900; font-display: swap;
+                     src: url('/dcasa_base/static/src/fonts/montserrat-latin-var.woff2') format('woff2'); }
+        :root { --navy: #1B3246; --naranja: #EE924A; --naranja-puntero: #F1A86E; --naranja-fuerte: #985D2F;
+                --naranja-filo: #C3783D; --crema: #F9F6ED; --superficie: #F2EFE5; --linea: #DEDED9;
+                --control: #7F8A91; --gris: #5E6D78; }
         *, *::before, *::after { box-sizing: border-box; }
         html { -webkit-text-size-adjust: 100%; }
-        body { margin: 0; background: #fff; color: var(--tinta); overflow-wrap: anywhere;
-               font: 16px/1.45 Inter, system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; }
+        body { margin: 0; background: var(--crema); color: var(--navy); overflow-wrap: anywhere;
+               font: 16px/1.5 Montserrat, system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; }
         .caja { max-width: 640px; margin: 0 auto; padding: 0 16px; }
-        .cab { background: var(--azul); color: #fff; padding: 20px 0; }
-        .marca { margin: 0 0 4px; font-family: Oswald, 'Arial Narrow', sans-serif; font-size: .85rem;
-                 text-transform: uppercase; letter-spacing: .05em; }
-        h1 { margin: 0 0 16px; font-family: Anton, Impact, 'Arial Narrow', sans-serif; font-weight: 400;
-             font-size: 2rem; line-height: 1.1; text-transform: uppercase; letter-spacing: .01em; }
-        label { display: block; margin: 0 0 6px; font-family: Oswald, 'Arial Narrow', sans-serif; font-weight: 600;
-                font-size: 1.1rem; }
-        .q { width: 100%; padding: 14px; border: 0; border-radius: 4px; background: #fff; color: var(--navy);
-             font: inherit; font-size: 1.15rem; }
-        .q:focus { outline: 3px solid var(--amarillo); outline-offset: 2px; }
+        .cab { background: var(--superficie); border-bottom: 1px solid var(--linea); padding: 20px 0; }
+        .marca { margin: 0 0 6px; color: var(--naranja-fuerte); font-size: 12px; font-weight: 700;
+                 text-transform: uppercase; letter-spacing: .14em; }
+        h1 { margin: 0 0 16px; font-weight: 700; font-size: 2rem; line-height: 1.15; letter-spacing: -.03em; }
+        label { display: block; margin: 0 0 6px; font-weight: 600; font-size: 1.05rem; }
+        .q { width: 100%; min-height: 48px; padding: 12px 14px; border: 1px solid var(--control); border-radius: 14px;
+             background: var(--crema); color: var(--navy); font: inherit; font-size: 1.15rem; }
+        .q:focus { outline: 2px solid var(--navy); outline-offset: 2px; }
         .ubicacion { display: block; width: 100%; min-height: 48px; margin: 12px 0 0; padding: 0 20px; border: 0;
-                     border-radius: 4px; background: var(--amarillo); color: var(--navy); cursor: pointer;
-                     font-family: Oswald, 'Arial Narrow', sans-serif; font-weight: 600; font-size: 1.1rem;
-                     text-transform: uppercase; letter-spacing: .03em; }
-        .ubicacion:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+                     border-radius: 14px; background: var(--naranja); color: var(--navy); cursor: pointer;
+                     font: inherit; font-weight: 700; font-size: 1.05rem; }
+        .ubicacion:hover { background: var(--naranja-puntero); }
+        .ubicacion:focus-visible { outline: 2px solid var(--navy); outline-offset: 2px; }
         .ubicacion:disabled { opacity: .75; cursor: progress; }
-        .privado { margin: 8px 0 0; font-size: .85rem; }
+        .privado { margin: 8px 0 0; color: var(--gris); font-size: .875rem; }
         main.caja { padding-top: 16px; padding-bottom: 24px; }
-        .aviso { margin: 0 0 12px; padding: 12px 14px; border-left: 4px solid var(--azul); background: var(--claro);
-                 color: var(--navy); font-weight: 600; }
-        .estado { min-height: 1.45em; margin: 0 0 10px; color: var(--gris); }
+        .aviso { margin: 0 0 12px; padding: 12px 14px; border-left: 4px solid var(--naranja-filo);
+                 border-radius: 0 14px 14px 0; background: var(--superficie); color: var(--navy); font-weight: 600; }
+        .estado { min-height: 1.5em; margin: 0 0 10px; color: var(--gris); }
         .resultados { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
-        .lugar { padding: 14px; border: 1px solid var(--borde); border-radius: 6px; background: #fff; }
-        .nombre { margin: 0; color: var(--navy); font-family: Oswald, 'Arial Narrow', sans-serif; font-weight: 600;
-                  font-size: 1.25rem; line-height: 1.2; }
+        .lugar { padding: 16px; border: 1px solid var(--linea); border-radius: 16px; background: var(--superficie);
+                 box-shadow: 0 4px 20px -2px rgba(27, 50, 70, .05); }
+        .nombre { margin: 0; font-weight: 700; font-size: 1.2rem; line-height: 1.2; letter-spacing: -.01em; }
         .zona { margin: 2px 0 0; color: var(--gris); font-size: .95rem; }
-        .distancia { margin: 2px 0 0; color: var(--azul); font-weight: 600; font-size: .95rem; }
-        .precio { margin: 8px 0 0; color: var(--azul); font-family: Anton, Impact, 'Arial Narrow', sans-serif;
-                  font-size: 2.1rem; line-height: 1.1; }
-        .sin-precio { margin: 8px 0 0; color: var(--navy); font-weight: 600; }
-        .mapa { display: block; min-height: 48px; margin: 12px 0 0; padding: 12px; border-radius: 4px;
-                background: var(--azul); color: #fff; text-align: center; text-decoration: none; font-weight: 600; }
-        .mapa:hover { background: var(--navy); }
-        .mapa:focus-visible { outline: 3px solid var(--navy); outline-offset: 2px; }
+        .distancia { margin: 2px 0 0; color: var(--naranja-fuerte); font-weight: 600; font-size: .95rem; }
+        .precio { margin: 8px 0 0; font-weight: 700; font-size: 2.1rem; line-height: 1.1; letter-spacing: -.03em; }
+        .sin-precio { margin: 8px 0 0; font-weight: 600; }
+        .mapa { display: flex; align-items: center; justify-content: center; min-height: 48px; margin: 12px 0 0;
+                padding: 12px; border-radius: 14px; background: var(--naranja); color: var(--navy); text-align: center;
+                text-decoration: none; font-weight: 700; }
+        .mapa:hover { background: var(--naranja-puntero); }
+        .mapa:focus-visible { outline: 2px solid var(--navy); outline-offset: 2px; }
         .sugerencias { margin: 4px 0 0; }
-        .sugerencias p { margin: 0 0 8px; color: var(--navy); font-weight: 600; }
-        .sugerencia { margin: 0 8px 8px 0; padding: 8px 12px; border: 1px solid var(--azul); border-radius: 4px;
-                      background: #fff; color: var(--azul); font: inherit; cursor: pointer; }
-        .pie { padding-bottom: 24px; color: var(--gris); font-size: .8rem; }
+        .sugerencias p { margin: 0 0 8px; font-weight: 600; }
+        .sugerencia { min-height: 44px; margin: 0 8px 8px 0; padding: 8px 14px; border: 1px solid var(--naranja-filo);
+                      border-radius: 999px; background: transparent; color: var(--naranja-fuerte); font: inherit;
+                      font-weight: 600; cursor: pointer; }
+        .sugerencia:focus-visible { outline: 2px solid var(--navy); outline-offset: 2px; }
+        .pie { padding-bottom: 24px; color: var(--gris); font-size: .8125rem; }
         @media (min-width: 720px) {
             h1 { font-size: 2.4rem; }
             .ubicacion { display: inline-block; width: auto; }
@@ -77,7 +73,7 @@
 <body class="choferes" t-att-data-buscar="ruta_buscar" t-att-data-cerca="ruta_cerca">
     <header class="cab">
         <div class="caja">
-            <p class="marca">D'CASA Panamá · envíos desde la tienda</p>
+            <p class="marca"><t t-esc="empresa"/> · envíos desde la tienda</p>
             <h1>¿Cuánto cuesta el envío?</h1>
             <form class="buscar" role="search" novalidate="novalidate">
                 <label for="q">Busca el barrio, edificio o lugar</label>
@@ -90,7 +86,7 @@
                 <button type="button" class="ubicacion">Usar mi ubicación</button>
                 <p class="privado">Tu ubicación solo se usa para buscar el lugar más cercano; no se guarda.</p>
             </t>
-            <p t-else="" class="privado">El precio es desde D'CASA hasta el lugar que busques.</p>
+            <p t-else="" class="privado">El precio es desde la tienda hasta el lugar que busques.</p>
         </div>
     </header>
     <main class="caja">

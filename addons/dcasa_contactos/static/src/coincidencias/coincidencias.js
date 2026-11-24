@@ -100,7 +100,7 @@ export class DcasaCoincidencias extends Component {
 
 export const dcasaCoincidencias = {
     component: DcasaCoincidencias,
-    displayName: _t("Ya existe esta persona (D'CASA)"),
+    displayName: _t("Ya existe esta persona"),
     supportedTypes: ["json"],
 };
 

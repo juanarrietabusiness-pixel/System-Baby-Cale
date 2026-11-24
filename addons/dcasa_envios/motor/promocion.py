@@ -212,7 +212,7 @@ def con_lo_prometido(terminos_guardados, precio_envio, compra):
 
 def recordar(terminos_guardados, resultado):
     """Lo que ya tiene la cotización, dicho sin «hasta cuándo» (la promoción puede haber terminado; lo prometido se
-    respeta): «Tu cotización ya tiene la promoción de noviembre, así que D'CASA te regala el envío: te sale gratis (te
+    respeta): «Tu cotización ya tiene la promoción de noviembre, así que te regalamos el envío: te sale gratis (te
     ahorras $45).» Sin beneficio, ``''``."""
     if not resultado.get('aplica'):
         return ''
@@ -224,8 +224,8 @@ def _beneficio(resultado, abono):
     precio = Decimal(str(resultado['precio_normal']))
     si_aplica = Decimal(str(resultado['precio_si_aplica'] or 0))
     if resultado['zona'] == GRATIS or si_aplica == 0:
-        return f"D'CASA te regala el envío: te sale gratis (te ahorras {dinero(precio - si_aplica)})"
-    return f"D'CASA te abona {dinero(abono)} del envío: te queda en {dinero(si_aplica)}"
+        return f"te regalamos el envío: te sale gratis (te ahorras {dinero(precio - si_aplica)})"
+    return f"te abonamos {dinero(abono)} del envío: te queda en {dinero(si_aplica)}"
 
 
 def nombre_corto(promocion):

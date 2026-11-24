@@ -7,6 +7,7 @@
  */
 import { Component, onMounted, onWillUnmount, useRef, useState } from "@odoo/owl";
 import { registry } from "@web/core/registry";
+import { user } from "@web/core/user";
 import { useService } from "@web/core/utils/hooks";
 
 const LUGAR = "dcasa.envio.lugar";
@@ -106,6 +107,11 @@ export class CalculadoraEnvios extends Component {
     get tarifa() {
         return (this.state.resultado && this.state.resultado.tarifa && { ...this.datos.tarifa,
             ...this.state.resultado.tarifa }) || this.datos.tarifa || {};
+    }
+
+    /** El nombre de la empresa con que entró la persona (la plantilla sirve a cualquiera). */
+    get nombreDeLaEmpresa() {
+        return user.activeCompany?.name || "Baby Caleb";
     }
 
     get hayDatos() {

@@ -621,8 +621,8 @@ class TestCompararEnElNavegador(VentasMixin, HttpCase):
             igual(textos('.o_dcasa_interruptor_opcion'), ['Facturado', 'Con abonos', 'Completadas'], 'el interruptor');
             const activa = document.querySelector('.o_dcasa_base_facturado.o_activo');
             if (!activa) { throw new Error('abre en «Facturado»'); }
-            igual(getComputedStyle(activa).backgroundColor, 'rgb(19, 64, 177)', 'la píldora activa, azul de la marca');
-            igual(getComputedStyle(activa).color, 'rgb(255, 255, 255)', 'con texto blanco');
+            igual(getComputedStyle(activa).backgroundColor, 'rgb(238, 146, 74)', 'la píldora activa, en el naranja');
+            igual(getComputedStyle(activa).color, 'rgb(27, 50, 70)', 'con letra navy');
             igual(document.querySelector('.o_dcasa_base_detalle').textContent.trim(),
                   'Todas las facturas, igual que Contabilidad', 'la línea corta');
             // Las tres en una sola fila (también en el celular).
@@ -669,7 +669,7 @@ class TestCompararEnElNavegador(VentasMixin, HttpCase):
                     // Hoy 3 facturas contra ninguna ayer: sube, en azul.
                     const cambio = document.querySelector('.o_dcasa_cmp_fila_cuantas .o_dcasa_cmp_cambio');
                     igual(cambio.textContent.trim(), '▲ 3', 'el cambio del número de ventas');
-                    igual(getComputedStyle(cambio).color, 'rgb(19, 64, 177)', 'sube en azul');
+                    igual(getComputedStyle(cambio).color, 'rgb(27, 50, 70)', 'sube en navy');
                     const ventas = document.querySelector('.o_dcasa_cmp_fila_ventas .o_dcasa_cmp_cambio');
                     igual(ventas.textContent.trim(), '—', 'contra $0 no hay porcentaje');
                 }

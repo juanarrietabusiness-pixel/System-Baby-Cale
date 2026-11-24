@@ -5,7 +5,7 @@
 
 // El panel oscurece su gris de apoyo para el modo claro; de noche lo aclara.
 .o_dcj,
-.o_dcj_p { --dc-tinta-3: #A2A9B4; }
+.o_dcj_p { --dc-tinta-3: #A7A9A5; }
 
 // --- Rellenos azules con texto blanco -------------------------------------------------------------------------------------
 .o_dcj .o_dcj_estado.o_dcj_estado_humano,
@@ -89,7 +89,13 @@
     .o_dcj_enlace { color: #FFC9C4; }
 }
 .o_dcj_p_aviso.o_dcj_p_aviso_ok { background: var(--dc-bien-fondo); border-color: var(--dc-bien-linea); color: #B8E8CF; }
-.o_dcj_p_aviso.o_dcj_p_aviso_atencion { background: var(--dc-cabeza); border-color: var(--dc-linea-fuerte); }
+.o_dcj_p_aviso.o_dcj_p_aviso_atencion {
+    background: var(--dc-cabeza);
+    border-color: var(--dc-linea-fuerte);
+    color: var(--dc-en-cabeza);
+
+    > .fa, .o_dcj_enlace, strong { color: var(--dc-en-cabeza); }
+}
 .o_dcj .o_dcj_caja .o_dcj_sugerencia.o_dcj_sugerencia_error { background: var(--dc-mal-fondo); color: var(--dc-tinta); }
 
 .o_dcj_p_peligro {
@@ -104,7 +110,7 @@
 .o_dcj .o_dcj_fila .o_dcj_espera.o_urgente,
 .o_dcj .o_dcj_insignia_socio,
 .o_dcj .o_dcj_sensible,
-.o_dcasa_sensible { background: #1A2440; box-shadow: inset 0 0 0 1px #33426B; }
+.o_dcasa_sensible { background: var(--dc-salvia); color: var(--dc-en-salvia); box-shadow: none; }
 
 // Títulos puestos en marino a mano.
 .o_dcj_p .o_dcj_p_tasas h2,
@@ -116,10 +122,10 @@
 
 .o_dcj_p_medidor .o_dcj_p_relleno_riesgo { background: #D9892B; }
 .o_dcj_p_medidor .o_dcj_p_relleno_alcanzado { background: #E05A52; }
-.o_dcj_p_columnas .o_dcj_p_columna .o_dcj_p_etiqueta_columna { background: #111315; }
+.o_dcj_p_columnas .o_dcj_p_columna .o_dcj_p_etiqueta_columna { background: #0F161C; }
 
 // Soltar archivos encima del chat y el velo de las hojas.
-.o_dcj .o_dcj_soltar { background: rgba(31, 34, 38, .94); }
+.o_dcj .o_dcj_soltar { background: rgba(15, 22, 28, .94); }
 .o_dcj_capa { background: rgba(0, 0, 0, .6); }
 .o_dcj_capa .o_dcj_hoja .o_dcj_producto .o_dcj_producto_foto { color: var(--dc-tinta-3); }
 // El código QR de WhatsApp tiene que ser blanco para que el teléfono lo lea: se queda blanco (a propósito).

@@ -166,11 +166,12 @@ export function iconoDeArchivo(mime, nombre) {
 }
 
 /**
- * Los 12 colores de etiqueta de Odoo (0 a 11), en la paleta de D'CASA: fondos suaves con texto oscuro, todos con
- * contraste AA. Ninguno es amarillo (el amarillo de la marca nunca toca el blanco).
+ * Los 12 colores de etiqueta de Odoo (0 a 11): fondos suaves con texto oscuro, todos con contraste AA. El 0 (sin color),
+ * el 10 y el 11 van en los neutros de la marca de Baby Caleb (perla, navy y línea); los demás son la paleta de
+ * categorías que elige la persona (datos, no la marca).
  */
 export const COLORES_DE_ETIQUETA = [
-    { fondo: "#ECF0F6", texto: "#44506A" },
+    { fondo: "#E9E7DF", texto: "#475967" },
     { fondo: "#FBE4E4", texto: "#8A1C1C" },
     { fondo: "#FDE9D9", texto: "#8A3B0A" },
     { fondo: "#EFE6D0", texto: "#5C4300" },
@@ -180,8 +181,8 @@ export const COLORES_DE_ETIQUETA = [
     { fondo: "#D9F1EF", texto: "#0C625C" },
     { fondo: "#EBE4F8", texto: "#4B2A8C" },
     { fondo: "#F9E1EE", texto: "#8A1F5B" },
-    { fondo: "#0B1F52", texto: "#FFFFFF" },
-    { fondo: "#CBD3E1", texto: "#0E1A33" },
+    { fondo: "#1B3246", texto: "#F9F6ED" },
+    { fondo: "#DEDED9", texto: "#1B3246" },
 ];
 
 export function colorDeEtiqueta(numero) {

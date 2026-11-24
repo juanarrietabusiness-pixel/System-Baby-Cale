@@ -27,9 +27,9 @@ Pedido de la dueña: «Sofía puede mejorar mucho, sobre todo la interfaz visual
 celular entre clientes y para Gerencia en la computadora. **Solo cambió la interfaz**: lo que Sofía propone, los
 permisos y lo que hace cada botón son los mismos de antes (`static/src/`; el servidor no se tocó).
 
-* **Arriba, en azul:** «Revisar ahora» (amarillo), cuándo revisó y quién lo pidió («Revisó hoy a las 2:53 p. m. (la
+* **Arriba, en la superficie crema:** «Revisar ahora» (el botón naranja), cuándo revisó y quién lo pidió («Revisó hoy a las 2:53 p. m. (la
   pidió Ana)») y cuántas hay de cada prioridad («12 hoy sin falta · 13 hoy · 4 cuando puedas»).
-* **Lo urgente primero, por secciones:** «Hoy sin falta» (franja azul con el número en amarillo y tarjetas con borde
+* **Lo urgente primero, por secciones:** «Hoy sin falta» (franja naranja con el título navy y el número en crema y tarjetas con borde
   azul), «Hoy» y «Cuando puedas», cada una con su número.
 * **Filtro rápido con conteos:** «Qué mirar», por tipo (Contestarle, Cotización vence, Escribirle, Pedir sus datos,
   Guardar sus datos, Llamarlo, Darle vendedora, Poner su vendedora; solo los que hay) y, para Gerencia, «Para quién»
@@ -52,8 +52,9 @@ permisos y lo que hace cada botón son los mismos de antes (`static/src/`; el se
   revisa encima (una franja dice «Sofía está revisando el CRM…»); lo que se resolvió en la pantalla mientras tanto no
   vuelve a aparecer.
 * **Baja con la rueda y con el dedo** (la regla fuerte de `.o_action`, como el Inicio; prueba con eventos de verdad).
-* Marca: azul `#1340B1`; el amarillo solo sobre azul (avatar, «Revisar ahora», el número de «Hoy sin falta», el conteo
-  del filtro elegido y el ícono de «Todo al día»); Anton, Oswald e Inter; plano, sin sombras.
+* Marca: la de Baby Caleb (`docs/MARCA_BABY_CALEB.md`): crema y superficie, letra navy, el naranja solo de relleno y
+  con letra navy (avatar, «Revisar ahora», «Hoy sin falta», el filtro elegido y el ícono de «Todo al día»); Montserrat
+  (titulares en 700, como frase); plano, sin sombras.
 
 ## Qué propone (en este orden; un solo mensaje por cliente por revisión)
 

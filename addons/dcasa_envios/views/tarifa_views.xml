@@ -86,7 +86,7 @@
                     <separator string="Enlace para choferes" groups="dcasa_base.group_gerencia,base.group_system"/>
                     <div class="o_dcasa_envios_choferes" groups="dcasa_base.group_gerencia,base.group_system">
                         <p class="text-muted">Un solo enlace para todos los choferes, sin usuario ni clave: buscan el
-                            lugar y ven solo el precio desde D'CASA y la ruta en Google Maps; nunca los kilómetros,
+                            lugar y ven solo el precio desde la tienda y la ruta en Google Maps; nunca los kilómetros,
                             la tabla ni el desglose. Mientras la tarifa esté en revisión no ven
                             precios. Quien tenga el enlace puede abrirlo: si se pierde o alguien deja de trabajar con
                             la tienda, crea uno nuevo.</p>
@@ -94,7 +94,7 @@
                             <group>
                                 <field name="choferes_activo" string="Encendido" widget="boolean_toggle"/>
                                 <field name="choferes_ubicacion" widget="boolean_toggle"
-                                       help="Apagado: solo buscan el lugar y ven el precio desde D'CASA."/>
+                                       help="Apagado: solo buscan el lugar y ven el precio desde la tienda."/>
                                 <field name="choferes_url" widget="CopyClipboardChar" readonly="1"
                                        invisible="not choferes_url"/>
                                 <field name="choferes_creado_por" invisible="not choferes_creado_por"/>

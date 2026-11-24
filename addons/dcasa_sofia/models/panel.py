@@ -463,7 +463,8 @@ class SofiaPanel(models.AbstractModel):
             raise UserError(self.env._('El correo «%s» no está bien escrito.', valor)
                             + (self.env._(' ¿Quisiste decir %s?', sugerencia) if sugerencia else ''))
         if correo in self.env['res.partner']._dcasa_correos_del_equipo():
-            raise UserError(self.env._('%s es un correo de D\'CASA, no del cliente.', correo))
+            raise UserError(self.env._('%(correo)s es un correo de %(empresa)s, no del cliente.', correo=correo,
+                                       empresa=self.env.company.name))
         llave = claves.llave_correo(correo)
         otra = llave and partner._dcasa_otra_ficha('correo', llave)
         if otra:

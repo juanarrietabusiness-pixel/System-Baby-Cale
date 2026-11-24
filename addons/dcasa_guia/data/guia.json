@@ -1338,7 +1338,7 @@
    "grupo": "Pagar",
    "titulo": "Imprimir o mandar por correo el comprobante de pago de cada colaborador",
    "logras": "Cada colaborador recibe su comprobante de pago en PDF con lo que ganó, lo que se le descontó y lo que recibe.",
-   "nota": "Por correo solo sale con los correos de D'CASA encendidos; si no, imprímelo y entrégalo en mano.",
+   "nota": "Por correo solo sale con los correos a clientes encendidos; si no, imprímelo y entrégalo en mano.",
    "destino": {
     "menu": "dcasa_nomina.menu_planillas"
    },
@@ -1644,7 +1644,7 @@
    "grupo": "Correo",
    "titulo": "Novedades por correo: se activan solas con su correo y se quitan si dice que no",
    "logras": "Cuando le agregas el correo a la ficha de un cliente, la casilla «Quiere recibir novedades y promociones por correo» se activa sola y la ficha dice «Se activó sola al agregar su correo». Si el cliente te dice que no, la desmarcas: queda anotado y ya no se activa sola. Al confirmar una venta o registrar un pago te sale la casilla ya activada con su correo: si el cliente dijo que no, la desactivas y tocas «Listo» (si no tiene correo, te pregunta «Sí» o «No» y te lo pide). Si pide que no le escriban más, tocas «Darle de baja».",
-   "nota": "Si el cliente te dijo que sí de verdad, toca «El cliente dijo que sí» en su ficha. Juan también guarda el correo que el cliente le escribe y le avisa que le llegarán las novedades; si el cliente le dice que no, Juan las quita. Nunca se activan solas importando clientes, ni a quien se dio de baja, pidió que no lo contacten o ya dijo que no. Cada correo de novedades dice «Te llega porque nos diste tu correo en D'CASA. ¿No quieres más? Date de baja aquí». Desmarcarla no es la baja: la baja es final para ese correo.",
+   "nota": "Si el cliente te dijo que sí de verdad, toca «El cliente dijo que sí» en su ficha. Juan también guarda el correo que el cliente le escribe y le avisa que le llegarán las novedades; si el cliente le dice que no, Juan las quita. Nunca se activan solas importando clientes, ni a quien se dio de baja, pidió que no lo contacten o ya dijo que no. Cada correo de novedades dice por qué le llega y trae el enlace para darse de baja. Desmarcarla no es la baja: la baja es final para ese correo.",
    "destino": {
     "menu": "contacts.res_partner_menu_contacts"
    },
@@ -3024,7 +3024,7 @@
     "cajero",
     "rol"
    ],
-   "nota": "El rol se elige en la ficha de la persona, en «D'CASA»: Vendedora (cotiza y factura lo suyo; no cobra), Caja (para quien cobra en caja: factura y cobra las de todas) o Gerencia (además anula facturas, hace notas de crédito, devuelve dinero y controla la tienda). Caja no se le pone sola a nadie: elígela tú para quien cobra. Al guardar un usuario con correo, el sistema le manda solo la invitación para elegir su clave."
+   "nota": "El rol se elige en la ficha de la persona, en «Baby Caleb» (el selector de los roles de la tienda): Vendedora (cotiza y factura lo suyo; no cobra), Caja (para quien cobra en caja: factura y cobra las de todas) o Gerencia (además anula facturas, hace notas de crédito, devuelve dinero y controla la tienda). Caja no se le pone sola a nadie: elígela tú para quien cobra. Al guardar un usuario con correo, el sistema le manda solo la invitación para elegir su clave."
   },
   {
    "id": "vendedoras-solo-lo-suyo",
@@ -3089,7 +3089,7 @@
    "destino": {
     "menu": "dcasa_interfaz.menu_dcasa_marca_panel"
    },
-   "nota": "Si un color no se lee bien (por ejemplo, uno muy claro con letra blanca encima), el sistema te lo dice y te sugiere uno parecido que sí se lee. Si no subes el ícono, sale del logo. La página web no cambia con esto, ni el logo de las facturas. Con «Volver a la marca de fábrica» todo queda como al principio.",
+   "nota": "El color principal es la letra de títulos y enlaces, y el de acento es el relleno del botón principal, con la letra del principal encima. Si un color no se lee bien (por ejemplo, un principal muy claro sobre el crema del panel), el sistema te lo dice y te sugiere uno parecido que sí se lee. Si no subes el ícono, sale del logo. La página web no cambia con esto, ni el logo de las facturas. Con «Volver a la marca de fábrica» todo queda como al principio.",
    "palabras": [
     "logo del panel",
     "logo del sistema",
@@ -3676,7 +3676,7 @@
    "categoria": "vender",
    "grupo": "Envíos",
    "titulo": "Darle a los choferes el enlace de la calculadora",
-   "logras": "En Envíos › Tarifa, abajo, en «Enlace para choferes», lo enciendes y copias el enlace para mandárselo a los choferes. Con él buscan el lugar y ven solo el precio desde D'CASA y la ruta en Google Maps, sin los kilómetros ni la tabla. «Permitir \"Usar mi ubicación\"» viene apagado: enciéndelo solo si quieres que también vean el lugar más cercano a donde están. Si el enlace se pierde, alguien deja de trabajar con la tienda o te llega la nota de que llegó a su límite del día, tocas «Crear un enlace nuevo» y el anterior deja de funcionar.",
+   "logras": "En Envíos › Tarifa, abajo, en «Enlace para choferes», lo enciendes y copias el enlace para mandárselo a los choferes. Con él buscan el lugar y ven solo el precio desde la tienda y la ruta en Google Maps, sin los kilómetros ni la tabla. «Permitir \"Usar mi ubicación\"» viene apagado: enciéndelo solo si quieres que también vean el lugar más cercano a donde están. Si el enlace se pierde, alguien deja de trabajar con la tienda o te llega la nota de que llegó a su límite del día, tocas «Crear un enlace nuevo» y el anterior deja de funcionar.",
    "nota": "Solo Gerencia. Mientras la tarifa esté en revisión, los choferes no ven precios: les sale «confirma el precio con la tienda».",
    "destino": {
     "menu": "dcasa_envios.menu_envios_tarifa"

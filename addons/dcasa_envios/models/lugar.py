@@ -78,7 +78,7 @@ class EnvioLugar(models.Model):
                                  help='Apagado: el corregimiento es el más cercano (el mapa no tenía su límite).')
     dist = fields.Char('Distrito', required=True, index=True)
     prov = fields.Char('Provincia', index=True)
-    km = fields.Float('Km desde la tienda', help='Por carretera, en carro desde D\'CASA (La Chorrera).')
+    km = fields.Float('Km desde la tienda', help='Por carretera, en carro desde la tienda.')
     km_medido = fields.Boolean('Km medido', default=True,
                                help='Apagado: no se pudo medir la distancia (se cotiza aparte).')
     peaje = fields.Boolean('Pasa por peaje')
@@ -208,7 +208,7 @@ class EnvioLugar(models.Model):
             km = None
         if km_medido and (km is None or not 0 <= km <= MAX_KM):
             raise ValidationError(self.env._('Escribe los kilómetros por carretera desde la tienda (mídelos en Google '
-                                             'Maps, «Cómo llegar» en carro desde D\'CASA).'))
+                                             'Maps, «Cómo llegar» en carro desde la tienda).'))
         if self._ya_esta(nombre, dist, tipo):
             raise ValidationError(self.env._('«%(nombre)s» ya está en la lista (%(dist)s): búscalo en la calculadora.',
                                              nombre=nombre, dist=dist))

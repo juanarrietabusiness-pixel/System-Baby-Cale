@@ -25,17 +25,17 @@
                     </block>
                     <block title="Colores" name="dcasa_marca_colores">
                         <setting id="dcasa_panel_color_principal_setting" string="Color principal" company_dependent="1"
-                                 help="Botones, enlaces, lo que está elegido y lo activo de la barra de la izquierda. Lleva letra blanca encima, así que tiene que ser un color medio u oscuro. Toca el cuadrito para elegirlo o escribe el código (por ejemplo #1340B1).">
+                                 help="La tinta de tu marca: la letra, los títulos, los enlaces, los íconos y lo activo de la barra de la izquierda. Va como letra sobre el crema del panel, así que tiene que ser un color oscuro. Toca el cuadrito para elegirlo o escribe el código (el de fábrica es el navy de Baby Caleb, #1B3246).">
                             <div class="d-flex align-items-center gap-2 o_dcasa_marca_color">
                                 <field name="dcasa_panel_color_principal" widget="color" nolabel="1"/>
-                                <field name="dcasa_panel_color_principal" nolabel="1" placeholder="#1340B1"/>
+                                <field name="dcasa_panel_color_principal" nolabel="1" placeholder="#1B3246"/>
                             </div>
                         </setting>
                         <setting id="dcasa_panel_color_acento_setting" string="Color de acento" company_dependent="1"
-                                 help="Los detalles sobre el color oscuro de tu marca: insignias, números destacados, puntos. Nunca va sobre blanco y lleva letra oscura encima, así que tiene que ser un color claro y vivo (como el amarillo de fábrica, #FED00F).">
+                                 help="El relleno de tu marca: el botón principal, lo elegido, las barras y los puntos. Lleva encima la letra en el color principal y nunca se usa como letra, así que tiene que ser un color claro y vivo (como el naranja de fábrica, #EE924A).">
                             <div class="d-flex align-items-center gap-2 o_dcasa_marca_color">
                                 <field name="dcasa_panel_color_acento" widget="color" nolabel="1"/>
-                                <field name="dcasa_panel_color_acento" nolabel="1" placeholder="#FED00F"/>
+                                <field name="dcasa_panel_color_acento" nolabel="1" placeholder="#EE924A"/>
                             </div>
                         </setting>
                         <setting id="dcasa_panel_lectura_setting" string="Cómo se va a leer" class="col-lg-12"

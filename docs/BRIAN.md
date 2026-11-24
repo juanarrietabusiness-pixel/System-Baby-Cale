@@ -219,7 +219,7 @@ El panel (`<aside id="o_brian_panel">`) lleva **siempre** una clase `o_brian_ava
 
 Las clases existen en `brian_panel.scss` **intencionalmente vacías**: cuando se dibuje el avatar
 (ronda posterior) se cuelga de ellas sin tocar el JS, p. ej. `.o_brian_avatar_trabajando
-.o_brian_monograma { … }`. Reglas de marca de siempre: plano, sin degradados, sin amarillo sobre
+.o_brian_monograma { … }`. Reglas de marca (las de Baby Caleb): plano, sin degradados, sin naranja como letra sobre
 blanco.
 
 ## Adjuntos que Brian lee
@@ -529,8 +529,8 @@ faltan fotos?» → `fotos_que_faltan(categoria=Colchones)`. Brian no sube ni ca
 ## Roles y «Cada vendedora ve solo sus documentos» (2026-10-17)
 
 * **Roles** de `listar_usuarios`, `cambiar_rol_usuario` y `crear_usuario` (`herramientas_usuarios.py`, `ROLES`):
-  `vendedor` = «D'CASA / Vendedora», `cajero` = «D'CASA / Caja» (factura y cobra lo de toda la tienda), `gerencia` =
-  «D'CASA / Gerencia» (solo la da un administrador del sistema, igual que `administrador`), `contador` y
+  `vendedor` = «Baby Caleb / Vendedora», `cajero` = «Baby Caleb / Caja» (factura y cobra lo de toda la tienda), `gerencia` =
+  «Baby Caleb / Gerencia» (solo la da un administrador del sistema, igual que `administrador`), `contador` y
   `administrador`. Un cambio de rol quita antes los tres roles D'CASA y «Ventas: todos los documentos»: pasar de Caja a
   Vendedora no deja a la persona viendo lo de sus compañeras. Antes Brian llamaba «Cajero/a» a la Vendedora y a Gerencia.
 * **Brian corre como quien le habla**: con el interruptor encendido, a la Vendedora no le encuentra la venta, la
