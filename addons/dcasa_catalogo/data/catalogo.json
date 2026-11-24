@@ -86,8 +86,7 @@
    "orden": 6,
    "descripcion": "Portabebés ergonómico Moon: unitalla y ajustable, de recién nacido hasta ~25 lb. Carga a tu bebé cómoda y segura.",
    "origen_descripcion": "Web de Baby Caleb (content.json › products › fular-moon), sin «Disponibilidad y colores por WhatsApp»: la lista del dueño trae un solo color (gris).",
-   "foto": "producto-fular-moon.jpg",
-   "origen_foto": "Web de Baby Caleb (content.json › products › fular-moon › image; public/img/), pasada a JPEG para Odoo.",
+   "origen_foto": "Sin foto: la web de Baby Caleb muestra un aviso («Foto próximamente», producto-fular-moon.png) en su lugar. No se publica hasta tener la del producto.",
    "variantes": [
     {"codigo": "MOON-FUL", "precio": 46.00, "existencias": 2, "texto": "Fular prearmado Moon de bambú color gris — unitalla ajustable XS a 3XL (RN hasta ~25 lbs)"}
    ]

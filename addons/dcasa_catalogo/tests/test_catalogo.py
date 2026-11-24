@@ -168,9 +168,9 @@ class TestCatalogoBabyCaleb(TransactionCase):
 
     def test_con_su_foto_se_publica_y_sin_foto_no(self):
         """Las fotos de la web de Baby Caleb (pedido del dueño, 2026-11-24): la principal de cada producto y la de cada
-        talla con su segunda foto. Lo que no tiene foto (Velvee no está en su web; Dany Baby sale con el logo) no se
-        publica."""
-        con_foto = ('nateen-diapers', 'nateen-pants', 'nateen-wipes', 'fular-moon')
+        talla con su segunda foto. Lo que no tiene foto no se publica: Velvee no está en su web, Dany Baby sale con el
+        logo y Fular Moon con «Foto próximamente» (un aviso no es la foto del producto)."""
+        con_foto = ('nateen-diapers', 'nateen-pants', 'nateen-wipes')
         for clave in PRODUCTOS:
             producto = self.producto(clave)
             self.assertTrue(producto.allow_out_of_stock_order)
@@ -323,7 +323,7 @@ class TestCargaDelArchivo(TransactionCase):
         self.assertEqual(self.variante('ZZ-SIMPLE').dcasa_presentacion, 'Uno')
 
     def test_las_fotos_solo_llenan_lo_vacio_y_publican_lo_que_reciben(self):
-        foto = 'producto-fular-moon.jpg'
+        foto = 'producto-wipes-caja.jpg'
         con_tallas = _item('zz-fotos', [
             {'valor': 'CH', 'codigo': 'ZZ-F-CH', 'precio': 5.0, 'existencias': 0, 'foto': foto,
              'fotos_extra': [foto, foto]},
