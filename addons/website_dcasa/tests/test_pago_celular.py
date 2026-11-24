@@ -105,11 +105,13 @@ class TestPagoEnElCelular(PagoVisualDatos, ChromeMovilCase):
         cls.preparar_pago()
 
     def _hasta_el_pago(self, browser):
+        # Los ids se leen ANTES de abrir la página: con la página abierta, sus pedidos usan el cursor de la prueba y
+        # leer el ORM a la vez dio una vez «no results to fetch» (la misma carrera que las pruebas del chat de Andrés).
+        ids = {'plantilla': self.producto.product_tmpl_id.id, 'producto': self.producto.id}
         self.authenticate(CORREO, CLAVE, browser=browser)
         browser.navigate_to(self.base_url() + '/shop', wait_stop=True)
         self.assertTrue(browser._wait_ready(), '/shop no terminó de cargar')
-        self.assertEqual(self._evaluar(browser, AGREGAR_AL_CARRITO % {
-            'plantilla': self.producto.product_tmpl_id.id, 'producto': self.producto.id}), 'ok')
+        self.assertEqual(self._evaluar(browser, AGREGAR_AL_CARRITO % ids), 'ok')
         browser.navigate_to(self.base_url() + '/shop/payment', wait_stop=True)
         self.assertTrue(browser._wait_ready(), '/shop/payment no terminó de cargar')
         return self.env['sale.order'].search(
