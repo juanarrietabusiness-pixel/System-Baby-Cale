@@ -129,9 +129,20 @@ del puente. Ya en uso en la cuenta y **no se tocan**: `babycaleb-web`, `babycale
   `www.babycaleb.com/*` de `Baby-caleb/wrangler.jsonc`, porque esa web se despliega sola en cada push a su `main` y se
   volvería a llevar el dominio. Pasos en `docs/DOMINIO.md` (Fase B, paso 2); candado en
   `edge/test/dominio-babycaleb.test.ts`.
-- Cobros en línea del sistema nuevo: el código ya está (apagado). Falta que el dueño diga si usa las mismas cuentas de
-  Tilopay y Yappy que cobran hoy en `babycaleb.com` o unas nuevas, y que pegue las claves en Cloudflare. `YAPPY_DOMINIO`
-  es el dominio donde cobra este sistema: hoy la dirección `workers.dev`, y `babycaleb.com` el día del dominio.
+- **Cobros en línea del sistema nuevo:** el código ya está (apagado). **El dueño decidió (2026-11-24) usar las mismas
+  cuentas de Tilopay y Yappy que cobran hoy en `babycaleb.com`.** Con eso:
+  - **Se encienden el día del dominio**, cuando `babycaleb.com` ya apunte a `sistemabk`; hasta entonces cobra la web
+    vieja. El botón de Yappy está registrado para `babycaleb.com` (`YAPPY_DOMINIO` letra por letra): desde la dirección
+    `workers.dev` Yappy no lo aceptaría.
+  - **Nunca poner la cuenta de Tilopay en «Modo Prueba»** mientras la web vieja venda: el interruptor es de toda la
+    cuenta (TILOPAY.md, b'). Por eso staging (fijado en `prueba`) no se prueba con esta cuenta: la prueba es un cobro
+    real chico en producción, el día del dominio.
+  - **La clave secreta de Yappy se muestra una sola vez.** Si el dueño no la tiene guardada, generar otra rompe el
+    cobro de la web vieja hasta cambiarla allá también: mejor hacerlo el día del dominio.
+  - El aviso (webhook) de Tilopay se le pide a Soporte de Tilopay para `https://babycaleb.com/payment/tilopay/webhook`
+    ese día; sin él, el pago se confirma al volver de Tilopay o con la tarea de cada pocos minutos.
+  - Las claves se pegan en Cloudflare › `sistemabk` › Settings › Variables and Secrets (nombres en TILOPAY.md y
+    YAPPY.md), nunca en el chat ni en GitHub.
 - **Duración de cada foto del carrusel de la portada:** 3 s de fábrica (vino de un pedido de la dueña de D'CASA); se
   cambia desde el panel.
 - Qué herramientas se quitan para bajar costos (el dueño no quiere el sistema dormido, 2026-11-19). La lista para
