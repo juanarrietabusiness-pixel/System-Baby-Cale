@@ -664,6 +664,13 @@ en las páginas tipo: `/` (dos veces: con el hero de siempre y con el carrusel d
 | **Estilos computados** (bloqueante, siempre) | La pastilla de babycaleb.com (marca Baby Caleb desde el 2026-11-19, `docs/MARCA_BABY_CALEB.md`), igual en todas las páginas: `.o_main_nav::before` con `backdrop-filter` de `blur(` y `saturate(` (mate `blur(16px) saturate(2.1) brightness(1.06)`, o con `url(#dcasa-liquido)` donde hay refracción), vidrio crema `rgba(242,239,229,.5)` sin degradado, filo `rgba(27,50,70,.04)`, sombra `rgba(27,50,70,.1) 0 8px 32px` y radio de `16px`; sin barra de anuncios; «Baby Caleb» escrito en Montserrat 700 navy, en una línea, con el sello del logo al lado; enlaces navy en 500, como frase; hamburguesa navy en el celular. Hero de la portada: fondo crema, titular navy en 700 como frase, antetítulo en píldora, botón naranja con letra navy y la foto con esquinas de `24px` al lado del texto (con el carrusel, las fotos que elige Gerencia van dentro de ese mismo marco, sin velo) | cualquier valor se sale del contrato. No depende de la versión de Chrome ni de las fuentes del sistema: si falla, el navbar o el hero cambiaron de verdad |
 | **Píxeles contra las referencias** | capturas de la cabecera (todas las páginas) y del hero (portada, a media resolución) contra `addons/website_dcasa/tests/referencia/*.webp` (sin pérdida). Cuenta los píxeles con una diferencia > 40/255 en algún canal | superan la tolerancia: **1,5 %** en local, **6 %** en CI (`CI=true`); `DCASA_TOLERANCIA_VISUAL` manda sobre ambas |
 
+**Las referencias son del sistema entero**, como staging (2026-11-24): Mi cuenta pone su ícono en la cabecera, el
+catálogo publica los productos con foto (la tarjetita «Desde $…» del hero) y el chat de la tienda deja su burbuja.
+Por eso `scripts/actualizar_referencias_visuales.sh` instala todos los módulos, y la comparación de píxeles solo
+corre con todos instalados (`scripts/test.sh` sin módulos); con una parte, se salta y lo dice. Los estilos
+computados se miden siempre. Recordatorio: el CI no tiene `websocket-client` y salta todas las pruebas de
+navegador; esta solo corre en local.
+
 Las capturas son deterministas: viewport fijo, `prefers-reduced-motion: reduce`, animaciones y
 transiciones apagadas, `document.fonts.ready`, fotos de la cabecera y del hero cargadas, barra de
 desplazamiento oculta, cabecera ya medida por el observador del sitio.

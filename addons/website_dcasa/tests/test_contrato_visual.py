@@ -49,6 +49,16 @@ UMBRAL_PIXEL = 40                                  # diferencia por canal (0-255
 # letra ya suma 1-2 % de la cabecera sin cambio de diseño, así que ahí se afloja y el contrato de
 # estilos computados (test_01/test_02, bloqueante) es el que garantiza el diseño.
 TOLERANCIA_LOCAL, TOLERANCIA_CI = 1.5, 6.0
+
+
+def modulos_propios_sin_instalar(env):
+    """Los módulos de este sistema (``dcasa_*``) que no están instalados en la base de la prueba.
+
+    Las referencias son las del sistema entero, como lo ven las clientas en staging: Mi cuenta pone su ícono en la
+    cabecera, el catálogo publica los productos con su foto (la tarjetita del hero) y el chat de la tienda deja su
+    burbuja en la esquina. Con solo una parte instalada la página es otra, y compararla daría diferencias falsas.
+    """
+    return env['ir.module.module'].search([('name', '=like', 'dcasa_%'), ('state', '=', 'uninstalled')]).mapped('name')
 # Las referencias van SIN pérdida (la compresión con pérdida sola ya movía el 3 % de los píxeles de
 # los bordes del texto por encima del umbral). El hero (una foto grande) se guarda y compara a la
 # mitad de resolución: basta para ver una placa, un velo distinto o un texto movido, y pesa 4 veces menos.
@@ -488,8 +498,16 @@ class TestContratoVisual(HttpCase):
 
     # ------------------------------------------------------------------ 2. píxeles (tolerancia)
     def test_03_capturas_de_referencia(self):
-        medido = self._medir_todo()
         regenerar = os.environ.get(VAR_REGENERAR, '').lower() == 'regenerar'
+        faltan = modulos_propios_sin_instalar(self.env)
+        if faltan:
+            aviso = (f'Las referencias son del sistema entero y faltan {len(faltan)} módulos propios '
+                     f'({", ".join(faltan[:5])}…): los píxeles se comparan con scripts/test.sh sin módulos (todos) o '
+                     'se regeneran con scripts/actualizar_referencias_visuales.sh.')
+            if regenerar:
+                self.fail(aviso)
+            self.skipTest(aviso)
+        medido = self._medir_todo()
         tolerancia = float(os.environ.get(VAR_TOLERANCIA)
                            or (TOLERANCIA_CI if os.environ.get('CI') else TOLERANCIA_LOCAL))
         if regenerar:

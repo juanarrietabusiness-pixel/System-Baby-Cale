@@ -18,7 +18,9 @@ export DCASA_REFERENCIAS_VISUALES=regenerar
 export TEST_TAGS="/website_dcasa:TestContratoVisual"
 export DB_NAME="${DB_NAME:-dcasa_referencias}"
 
-"$ROOT/scripts/test.sh" website_dcasa
+# Con TODOS los módulos (como staging): Mi cuenta, el catálogo con sus fotos y el chat de la tienda cambian la cabecera y
+# el hero. Con solo website_dcasa la prueba se niega a regenerar (test_contrato_visual.modulos_propios_sin_instalar).
+"$ROOT/scripts/test.sh"
 
 echo
 echo "Referencias en $REFERENCIAS:"
