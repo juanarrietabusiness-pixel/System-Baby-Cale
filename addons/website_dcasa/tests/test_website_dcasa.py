@@ -252,7 +252,7 @@ class TestPortadaDinamica(HttpCase):
         bloques = [json.loads(b) for b in re.findall(r'<script type="application/ld\+json">(.*?)</script>', html, re.S)]
         datos = next((b for b in bloques if b.get('@type') == 'OnlineStore'), None)
         self.assertTrue(datos, 'La portada publica los datos de la tienda (en línea: Baby Caleb no tiene local)')
-        self.assertEqual(datos['name'], 'Baby Caleb')
+        self.assertEqual(datos['name'], 'Baby Caleb Panamá', 'la razón social (2026-11-24)')
         self.assertEqual(datos['telephone'], '+507 6757-5065')
         self.assertEqual(datos['email'], 'babycalebpanama@gmail.com')
         self.assertEqual(datos['address'], {'@type': 'PostalAddress', 'addressCountry': 'PA'},

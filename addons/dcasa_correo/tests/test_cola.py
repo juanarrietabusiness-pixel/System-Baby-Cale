@@ -29,7 +29,10 @@ class TestCola(CorreoCase):
         self.assertEqual(mensaje.partner_ids, self.ana)
         (adjunto,) = mensaje.attachment_ids
         self.assertTrue(adjunto.raw.startswith(b'%PDF'))
-        self.assertEqual(adjunto.name, f"{factura.name.replace('/', '_')}.pdf", 'El mismo nombre que «Imprimir»')
+        # Pagada: «Comprobante de pago …» (Baby Caleb, 2026-11-24: no es la factura fiscal de la DGI).
+        self.assertEqual(adjunto.name, f"Comprobante de pago {factura.name.replace('/', '_')}.pdf",
+                         'El mismo nombre que «Imprimir»')
+        self.assertEqual(adjunto.name, factura._get_invoice_report_filename())
         (correo,) = self.correos_de(factura)
         self.assertEqual(correo.recipient_ids, self.ana)
         self.assertIn("'X-Dcasa-Correo': 'factura'", correo.headers)

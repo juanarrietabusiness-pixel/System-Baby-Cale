@@ -437,7 +437,7 @@ class TestHerramientasApi(ApiCase):
         cuerpo = respuesta.json()
         self.assertTrue(cuerpo['ok'])
         # Los datos de la empresa de fábrica (Baby Caleb, 2026-11-18: sin dirección todavía, con su correo de contacto).
-        self.assertEqual(cuerpo['resultado']['tienda'], 'Baby Caleb')
+        self.assertEqual(cuerpo['resultado']['tienda'], 'Baby Caleb Panamá')
         self.assertEqual(cuerpo['resultado']['correo'], 'babycalebpanama@gmail.com')
         accion = self.env['brian.accion'].sudo().search([('herramienta', '=', 'juan_horario_y_tienda')], limit=1)
         self.assertEqual((accion.canal, accion.estado, accion.dcasa_conversacion_id),

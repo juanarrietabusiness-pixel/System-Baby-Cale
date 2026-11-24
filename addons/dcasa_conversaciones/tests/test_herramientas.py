@@ -759,7 +759,7 @@ class TestHorarioYTienda(HerramientasCase):
         su correo y su horario (lunes a sábado de 9 a 6)."""
         with freeze_time(panama(2026, 10, 9, 10, 0)):
             datos = self.salida('horario_y_tienda')
-        self.assertEqual(datos['tienda'], 'Baby Caleb')
+        self.assertEqual(datos['tienda'], 'Baby Caleb Panamá')
         self.assertEqual(datos['direccion'], '', 'sin dirección cargada no se dice ninguna')
         self.assertIn('/visitanos', datos['como_llegar'])
         self.assertEqual(datos['whatsapp'], '+507 6757-5065')
