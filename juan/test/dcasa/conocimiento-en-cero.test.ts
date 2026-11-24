@@ -72,7 +72,7 @@ describe("ningún prompt trae lo que el negocio es: eso lo dicen las herramienta
     const bc = normalizarConfig({ nombre_publico: "el equipo de Baby Caleb" });
     expect(promptDelBorrador(bc, { ...base, interes: "" })).toContain("una VENDEDORA de «Baby Caleb» le enviará a un cliente por WhatsApp.");
     expect(promptDelResumen(bc, base)).toContain("Resumes para una VENDEDORA de «Baby Caleb» lo que pasó en una conversación");
-    expect(promptDelBorrador(bc, { ...base, interes: "" })).toContain("- Como alguien de la tienda que conoce bien los productos: cercano, claro y directo.");
+    expect(promptDelBorrador(bc, { ...base, interes: "" })).toContain("- Como alguien de la tienda que conoce bien los productos: cálido y servicial, como una amiga experta, sin exagerar la confianza; claro y directo.");
     expect(promptDelBorrador(bc, { ...base, interes: "" })).toContain("- Productos, tallas, lo que trae cada caja o paquete, combos, precios y disponibilidad: buscar_productos y ver_producto.");
     expect(promptDelResumen(bc, base)).toContain("• Qué busca el cliente (producto, talla, código, presupuesto, fechas, para qué).");
   });

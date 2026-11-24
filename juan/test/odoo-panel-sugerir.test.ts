@@ -122,9 +122,11 @@ describe("el borrador", () => {
     expect(prompt).toContain("Cliente: Hola, ¿tienen camas queen?");
     expect(prompt).toContain("Asistente automático: Sí, tenemos varias.");
     expect(prompt).toContain("Cliente: Para dos. ¿Cuánto cuesta la Milán?");
-    expect(prompt).toContain("Tuteo SIEMPRE");
-    expect(prompt).toContain("Cero emojis");
-    expect(prompt).toContain("+ ITBMS");
+    expect(prompt).toContain("De usted, SIEMPRE: «le», «su bebé», «indíquenos», «¿le sirve?». Nunca tutees ni uses voseo, aunque el cliente tutee.");
+    expect(prompt).toContain("uno o dos como mucho (👼🏻 🙌🏻 👶🏻 🙏🏻 😁 ✨), nunca en lugar de palabras");
+    expect(prompt).not.toMatch(/Tuteo|Cero emojis/);
+    expect(prompt).toContain("copia el campo precio_texto tal cual: si trae «+ ITBMS», va con eso; si no, sin nada.");
+    expect(prompt).not.toMatch(/SIEMPRE con «\+ ITBMS»/);
     expect(prompt).toContain("[CONFIRMAR");
     expect(prompt).toContain("«Cama queen»");
     expect(prompt).toContain("Pidió precio");
@@ -497,6 +499,15 @@ describe("la revisión de la marca: corrige sin relajar las reglas", () => {
     const correccion = m.guion.prompts()[1];
     expect(correccion).toContain("<correccion>");
     expect(correccion).toContain("una promesa de entrega");
+    // De usted y con los precios tal cual (Baby Caleb, 2026-11-24): ya no «Mismo tono» ni «con + ITBMS».
+    expect(correccion).toContain("De usted, siempre (nunca tutees), con uno o dos emojis como mucho, de 2 a 4 líneas.");
+    expect(correccion).toContain("(tal cual los da precio_texto)");
+    expect(correccion).not.toContain("(con «+ ITBMS»)");
+  });
+
+  it("el borrador lleva uno o dos emojis como mucho (el tercero sale) y ningún «visto»", () => {
+    const ctx = { preciosProducto: new Set<number>(), cifrasConocidas: new Set<number>() };
+    expect(revisarBorrador("Con gusto, Karen 👼🏻 ¿Qué talla usa su bebé? 🙌🏻😁 ✅", ctx).texto).toBe("Con gusto, Karen 👼🏻 ¿Qué talla usa su bebé? 🙌🏻");
   });
 
   it("si tampoco la corrección pasa, no sale nada malo: 502 con causa «revision»", async () => {

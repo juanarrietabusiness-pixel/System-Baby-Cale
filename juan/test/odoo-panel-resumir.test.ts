@@ -177,6 +177,13 @@ describe("el prompt", () => {
     expect(promptDelResumen(cfg, validarPeticion(peticion()) as PeticionResumir)).toContain("una VENDEDORA de «Baby Caleb Panamá»");
     expect(promptDelResumen(cfg, validarPeticion(peticion()) as PeticionResumir)).not.toContain("D'CASA");
   });
+
+  it("el resumen es para el equipo: sigue SIN emojis (los emojis con medida son solo para el cliente)", () => {
+    const p = promptDelResumen(CONFIG_POR_DEFECTO, validarPeticion(peticion()) as PeticionResumir);
+    expect(p).toContain("Sin emojis, sin títulos, sin negritas ni otro formato: solo las viñetas.");
+    expect(p).not.toMatch(/\p{Extended_Pictographic}/u);
+    expect(p).not.toMatch(/uno o dos emojis/);
+  });
 });
 
 describe("POST /odoo/resumir por HTTP", () => {
