@@ -366,18 +366,18 @@ $foto-fuente: 'Montserrat', system-ui, -apple-system, 'Segoe UI', Roboto, sans-s
     }
 }
 
-// Lote «legibilidad», arreglo 5: la pista de la cámara. Texto de apoyo en el gris de la marca (7,3:1 sobre el hueso), a la
-// derecha, bajo la caja, pegada a ella (la cámara va en el lado derecho de la caja); el ícono en el azul de la cámara.
+// Lote «legibilidad» (D'CASA), arreglo 5: la pista de la cámara. Texto de apoyo en `muted` (4.95 sobre el crema), a la
+// derecha, bajo la caja, pegada a ella (la cámara va en el lado derecho de la caja); el ícono en navy, como la cámara.
 .o_dcasa_foto_pista {
     margin: .25rem .25rem 0;
     text-align: right;
     font-size: .8125rem;
     line-height: 1.2;
-    color: $dcasa-foto-gris;
+    color: $foto-muted;
 
     .fa {
         margin-right: .35rem;
-        color: $dcasa-foto-azul;
+        color: $foto-fg;
     }
 }
 
