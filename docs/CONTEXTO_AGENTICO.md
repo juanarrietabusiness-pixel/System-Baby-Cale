@@ -775,6 +775,11 @@ provocan a propósito: ruido). El resultado real está en la línea `✖ Fallaro
     «Un mueble vendido» y «combo cama + colchón» entraron limpios porque esta copia no había tocado esas líneas. Después
     de resolver los conflictos, buscar en lo añadido `mueble`, `colch`, `cama`, `D'CASA`, `#1340B1`, `Anton`, `Oswald` e
     `Inter`.
+  - **Las pruebas nuevas de D'CASA suponen sus datos.** Las que esperan puntos de Socios fallan con `puntos.json` en
+    PENDIENTE (se usa `parche_de_reglas_de_prueba()`), `dcasa_socios.premio_desc_10` no existe (se usa
+    `premio_de_prueba(env, 10)`), las que leen `migrations/19.0.1.10.0` leían la de los colores, y las que miden la
+    cabecera, el hero o las categorías de «no encontramos» miden el diseño de D'CASA. Se ponen al día a lo de Baby Caleb,
+    nunca al revés. El `scripts/test.sh` de esta copia corre las de navegador (el CI no): correrlas aquí.
   - **El ayudante quedó en una copia de trabajo de `D_Casa_new_word`, no de esta.** La rama se armó allí con
     `git fetch /home/user/System-Baby-Cale claude/nifty-keller-k8rcmz` (las dos historias comparten `d2ba8ca`), y para
     juntarla hay que traerla de ese repositorio.
