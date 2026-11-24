@@ -63,6 +63,18 @@ describe("evaluarAlerta", () => {
     expect(evaluarAlerta({ ...caido(30), sinConexionDesde: null }, "caido", T0, CFG)).toBe(null);
   });
 
+  it("los avisos no nombran a ninguna empresa escrita a mano: es «WhatsApp (el puente por QR)»", () => {
+    let d = caido(45);
+    const avisos = (["caido", "esperando-a-una-persona"] as const).map((v) => evaluarAlerta(d, v, T0, CFG)!);
+    d = { ...d, ...despuesDeAvisar(d, avisos[0], T0) };
+    avisos.push(evaluarAlerta(d, "sano", T0 + MIN, CFG)!);
+    expect(avisos.map((a) => a.tipo)).toEqual(["caida", "necesita_qr", "recuperado"]);
+    for (const a of avisos) {
+      expect(a.texto, a.tipo).toContain("WhatsApp (el puente por QR)");
+      expect(a.texto, a.tipo).not.toMatch(/D['’]CASA|dcasa/i);
+    }
+  });
+
   it("el texto nunca lleva tokens, QR ni números de teléfono", () => {
     for (const v of ["caido", "esperando-a-una-persona"] as const) {
       const a = evaluarAlerta(caido(45), v, T0, CFG)!;
