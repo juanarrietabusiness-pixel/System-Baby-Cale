@@ -10,3 +10,11 @@ Nada de esta carpeta se cargó al catálogo. Los archivos no se borran: si algun
 - `Velve-p5.jpg`: no es de ningún producto: el nombre no trae un código del Excel ni describe una cama (tamaño, color o medidas).
 - `Velve-p7.jpg`: no es de ningún producto: el nombre no trae un código del Excel ni describe una cama (tamaño, color o medidas).
 - `Velve-p9.jpg`: no es de ningún producto: el nombre no trae un código del Excel ni describe una cama (tamaño, color o medidas).
+
+## 2026-11-24
+
+- `VELVEE-G1.jpg`: no es de ningún producto: el nombre no trae un código del Excel ni describe una cama (tamaño, color o medidas).
+- `VELVEE-G14.jpg`: no es de ningún producto: el nombre no trae un código del Excel ni describe una cama (tamaño, color o medidas).
+- `VELVEE-G2.jpg`: no es de ningún producto: el nombre no trae un código del Excel ni describe una cama (tamaño, color o medidas).
+- `VELVEE-G3.jpg`: no es de ningún producto: el nombre no trae un código del Excel ni describe una cama (tamaño, color o medidas).
+- `VELVEE-G5.jpg`: no es de ningún producto: el nombre no trae un código del Excel ni describe una cama (tamaño, color o medidas).

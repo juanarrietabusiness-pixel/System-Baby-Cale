@@ -166,7 +166,7 @@ Primera foto = principal; las demás, a la galería (fotos «con colchón» al f
 - `811Q` y `811K` quedan con casi la misma imagen (los nombres de archivo dicen 213 × 158 y 213 × 199): confirmar que 811K es esa cama.
 - La foto incrustada en el Excel de `822F` muestra una cama de color tostado, no blanca: la foto de la carpeta («Full – blanco») sí es blanca. Confirmar el color con la mercancía.
 
-Fotos de la carpeta que no son de ningún producto (ni de la carga inicial ni de LTSC-07): `115.png`, `116.png`, `117.png`, `118.png`, `119.png`, `120.png`, `121.png`, `122.png`, `123.png`, `124.png`, `125.png`, `126.png`, `127.png`, `128.png`, `129.png`, `130.png`, `131.png`, `132.png`, `133.png`, `134.png`, `135.png`, `136.png`, `137.png`, `138.png`, `139.png`, `140.png`, `141.png`, `142.png`, `143.png`, `144.png`, `145.png`, `146.png`, `147.png`, `148.png`, `149.png`, `150.png`, `151.png`, `152.png`, `153.png`, `Velve-p1.jpg`, `Velve-p2.jpg`, `Velve-p3.jpg`, `Velve-p5.jpg`, `Velve-p7.jpg`, `Velve-p9.jpg`.
+Fotos de la carpeta que no son de ningún producto (ni de la carga inicial ni de LTSC-07): `115.png`, `116.png`, `117.png`, `118.png`, `119.png`, `120.png`, `121.png`, `122.png`, `123.png`, `124.png`, `125.png`, `126.png`, `127.png`, `128.png`, `129.png`, `130.png`, `131.png`, `132.png`, `133.png`, `134.png`, `135.png`, `136.png`, `137.png`, `138.png`, `139.png`, `140.png`, `141.png`, `142.png`, `143.png`, `144.png`, `145.png`, `146.png`, `147.png`, `148.png`, `149.png`, `150.png`, `151.png`, `152.png`, `153.png`, `VELVEE-G1.jpg`, `VELVEE-G14.jpg`, `VELVEE-G2.jpg`, `VELVEE-G3.jpg`, `VELVEE-G5.jpg`.
 
 
 ## Gráficas de Black Weekend (`fuentes/graficas-black-weekend/115.png` … `153.png`, revisión del 2026-10-02)

@@ -26,12 +26,11 @@ Cómo funciona esta carpeta: aquí solo queda lo **pendiente**. Lo que ya se car
 
 ### Descartado
 
-- `Velve-p1.jpg` → `descartado/2026-11-24/`: no es de ningún producto: el nombre no trae un código del Excel ni describe una cama (tamaño, color o medidas).
-- `Velve-p2.jpg` → `descartado/2026-11-24/`: no es de ningún producto: el nombre no trae un código del Excel ni describe una cama (tamaño, color o medidas).
-- `Velve-p3.jpg` → `descartado/2026-11-24/`: no es de ningún producto: el nombre no trae un código del Excel ni describe una cama (tamaño, color o medidas).
-- `Velve-p5.jpg` → `descartado/2026-11-24/`: no es de ningún producto: el nombre no trae un código del Excel ni describe una cama (tamaño, color o medidas).
-- `Velve-p7.jpg` → `descartado/2026-11-24/`: no es de ningún producto: el nombre no trae un código del Excel ni describe una cama (tamaño, color o medidas).
-- `Velve-p9.jpg` → `descartado/2026-11-24/`: no es de ningún producto: el nombre no trae un código del Excel ni describe una cama (tamaño, color o medidas).
+- `VELVEE-G1.jpg` → `descartado/2026-11-24/`: no es de ningún producto: el nombre no trae un código del Excel ni describe una cama (tamaño, color o medidas).
+- `VELVEE-G14.jpg` → `descartado/2026-11-24/`: no es de ningún producto: el nombre no trae un código del Excel ni describe una cama (tamaño, color o medidas).
+- `VELVEE-G2.jpg` → `descartado/2026-11-24/`: no es de ningún producto: el nombre no trae un código del Excel ni describe una cama (tamaño, color o medidas).
+- `VELVEE-G3.jpg` → `descartado/2026-11-24/`: no es de ningún producto: el nombre no trae un código del Excel ni describe una cama (tamaño, color o medidas).
+- `VELVEE-G5.jpg` → `descartado/2026-11-24/`: no es de ningún producto: el nombre no trae un código del Excel ni describe una cama (tamaño, color o medidas).
 
 ## Cómo subir más
 
