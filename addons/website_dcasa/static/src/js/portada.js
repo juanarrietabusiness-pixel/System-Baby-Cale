@@ -37,6 +37,8 @@ export class DcasaVitrina extends Interaction {
     start() {
         // (El botón flotante de WhatsApp ya no espera fuera mientras se ve el hero: con la marca de Baby Caleb el hero
         // no trae su propio botón de WhatsApp, y la burbuja de babycaleb.com está siempre a la vista.)
+        // La limpieza se registra UNA vez (no con cada cambio de foto: a 2 s por foto serían unas 1800 por hora).
+        this.registerCleanup(() => this.parar());
         if (this.total > 1 && !reducido()) {
             this.programar();
         }
@@ -58,7 +60,6 @@ export class DcasaVitrina extends Interaction {
         this.parar();
         const ms = tiempoDeLaVitrina(this.el);
         this.temporizador = setTimeout(() => this.siguiente(), ms);
-        this.registerCleanup(() => this.parar());
     }
 
     siguiente() {
@@ -84,12 +85,16 @@ export function barajar(lista) {
     return copia;
 }
 
-/** Lo que dura cada foto, en milisegundos, leído de `--vitrina-tiempo` (para poder acortarlo en las pruebas). */
+/**
+ * Lo que dura cada foto, en milisegundos, leído de `--vitrina-tiempo`: la plantilla lo escribe en el hero con los
+ * segundos que Gerencia eligió en el panel (3 de fábrica; website_dcasa/models/portada.py) y las pruebas lo cambian
+ * para acortarlo. Sin valor legible, los 3 segundos de fábrica.
+ */
 export function tiempoDeLaVitrina(el) {
     const valor = getComputedStyle(el).getPropertyValue("--vitrina-tiempo").trim();
     const numero = parseFloat(valor);
     if (!numero || Number.isNaN(numero)) {
-        return 7000;
+        return 3000;
     }
     return valor.endsWith("ms") ? numero : numero * 1000;
 }

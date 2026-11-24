@@ -981,7 +981,13 @@ html.o_dcasa_refraccion #wrapwrap > header#top .o_main_nav::before {
 // velo sobre las fotos: el texto va sobre el crema.
 // ---------------------------------------------------------------------------
 
-$dcasa-vitrina-tiempo: 6.5s;   // lo que dura cada foto
+// Lo que dura cada foto de fábrica (la dueña de D'CASA, 2026-11-19: «de unos 2 a 3 segundos»). Gerencia lo cambia en el panel
+// (Sitio web › Carrusel de la portada, de 2 a 15 s) y la plantilla lo escribe en el hero como --vitrina-tiempo; este
+// valor solo vale si esa variable no llega. El fundido y el zoom se calculan con ella: nada de abajo lleva segundos fijos.
+$dcasa-vitrina-tiempo: 3s;
+$dcasa-vitrina-fundido: .35;   // el fundido dura esta parte de lo que dura cada foto (con 3 s: 1,05 s)
+$dcasa-vitrina-fundido-tope: 2.4s;   // y nunca más que esto, aunque cada foto dure 15 s
+$dcasa-vitrina-zoom-vueltas: 6;      // el zoom tarda esto × lo que dura cada foto en ir (y otro tanto en volver)
 
 .o_dcasa_vitrina {
     --vitrina-tiempo: #{$dcasa-vitrina-tiempo};
@@ -1026,12 +1032,16 @@ $dcasa-vitrina-tiempo: 6.5s;   // lo que dura cada foto
     }
 }
 
-// Apiladas en el mismo sitio; la activa aparece con un fundido largo y el zoom no para nunca.
+// Apiladas en el mismo sitio; la activa aparece con un fundido largo. Nada de «imagen quieta, salto, imagen quieta»:
+// el fundido dura poco más de la tercera parte del tiempo de cada foto (con el de fábrica, 3 s: un segundo) y el
+// zoom no para nunca. Los dos escalan con --vitrina-tiempo: si Gerencia lo cambia en el panel, el movimiento se ve
+// igual de suave (a 2 s el fundido es de 0,7 s; a 15 s, de 2,4 s).
 .o_dcasa_vitrina_foto {
     position: absolute;
     inset: 0;
     opacity: 0;
-    transition: opacity 1.8s ease-in-out;
+    transition: opacity clamp(.5s, calc(var(--vitrina-tiempo, #{$dcasa-vitrina-tiempo}) * #{$dcasa-vitrina-fundido}),
+        #{$dcasa-vitrina-fundido-tope}) ease-in-out;
 
     &.is-activa {
         opacity: 1;
@@ -1042,9 +1052,13 @@ $dcasa-vitrina-tiempo: 6.5s;   // lo que dura cada foto
         width: 100%;
         height: 100%;
         object-fit: cover;
-        // Cada foto arranca en un punto distinto del recorrido (--i) para que dos seguidas no se muevan igual.
-        animation: dcasa-vitrina-zoom 38s ease-in-out infinite alternate;
-        animation-delay: calc(var(--i, 0) * -6s);
+        // El zoom lento y continuo. Va a un ritmo fijo POR FOTO (6 veces lo que dura cada una en ir, otro tanto en
+        // volver): lo que se alcanza a ver del zoom mientras una foto está a la vista es siempre el mismo, dure
+        // 2 s o 15 s, sin saltos. Cada foto arranca en un punto distinto del recorrido (--i) para que dos seguidas
+        // no se muevan igual.
+        animation: dcasa-vitrina-zoom calc(var(--vitrina-tiempo, #{$dcasa-vitrina-tiempo}) * #{$dcasa-vitrina-zoom-vueltas})
+            ease-in-out infinite alternate;
+        animation-delay: calc(var(--i, 0) * var(--vitrina-tiempo, #{$dcasa-vitrina-tiempo}) * -1);
         will-change: transform;
     }
 }
@@ -3636,6 +3650,21 @@ a[class='mt-2 mt-lg-0 text-center'] {
     color: $bc-muted !important;
 }
 
+// Y sin la mitad de opacidad con que Odoo apaga los pasos que aún no tocan («Dirección», «Pago»;
+// web/static/src/scss/ui.scss, .o_disabled): con ella el `muted` de arriba no llegaba a 4.5:1 (lote «legibilidad» de
+// D'CASA, 2026-11-19). A opacidad plena da 4.95 sobre el crema; el paso actual se sigue distinguiendo por la negrilla.
+#wrapwrap .o_wizard .o_disabled {
+    opacity: 1;
+}
+
+// Marcas de relleno (placeholder) de la búsqueda del catálogo (cabecera, menú del celular y /shop) y del celular de
+// Socios en `muted` a opacidad plena: el gris por defecto de Odoo no llega a 4.5:1 (lote «legibilidad» de D'CASA).
+.oe_search_box::placeholder,
+.o_dcasa_socios_form .form-control::placeholder {
+    color: $bc-muted;
+    opacity: 1;
+}
+
 #wrapwrap .o_wizard {
     .o_wizard_step_active,
     .o_wizard_step_active .o_wizard_steplabel {
@@ -4156,6 +4185,41 @@ html.o_dcasa_navegando::before {
     .o_wsale_products_searchbar_form .oe_search_button {
         min-height: 2.75rem;
     }
+
+    // Lote «legibilidad» de D'CASA, arreglo 4 (medidos en el celular de 390 px: de 32 a 40 px): la X y «Eliminar
+    // filtros» del cajón de los filtros (32 y 34) y los campos y «Enviar» del contacto (38). Mismo tamaño visible: solo
+    // crece el área que toca el dedo. La hamburguesa, «Ordenar por», «Filtros» y el menú del celular ya miden 44 en la
+    // cabecera de Baby Caleb (arriba): aquí no se tocan.
+    // La X del cajón de los filtros: el relleno crece y el margen negativo lo compensa, así la X queda donde estaba.
+    #o_wsale_offcanvas .offcanvas-header .btn-close {
+        padding: .875rem;
+        margin: -.875rem -.875rem -.875rem auto;
+    }
+
+    #o_wsale_offcanvas .offcanvas-body a.btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 2.75rem;
+    }
+
+    .o_dcasa_contacto .s_website_form_input:not(textarea),
+    .o_dcasa_contacto .s_website_form_send {
+        min-height: 2.75rem;
+    }
+
+    .o_dcasa_contacto .s_website_form_send {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+}
+
+// Lote «legibilidad», arreglo 6: «Enviar mensaje» del contacto como «Entrar» de /socios: a todo el ancho de los campos y de
+// 48 px o más (la plantilla le pone btn-lg w-100).
+.o_dcasa_contacto .s_website_form_send {
+    width: 100%;
+    min-height: 3rem;
 }
 
 // ---------------------------------------------------------------------------
