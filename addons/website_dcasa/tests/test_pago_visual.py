@@ -205,7 +205,9 @@ class TestPaginaDePago(PagoVisualComun):
             self.assertEqual(self.url_open(f'/payment/static/img/{archivo}.png').status_code, 200)
 
     def test_el_premio_de_socios_se_ve_como_un_descuento_en_el_resumen(self):
-        premio = self.env.ref('dcasa_socios.premio_desc_10')
+        # En esta copia el catálogo de premios de fábrica está vacío (BABY_CALEB.md): se usa el premio de PRUEBA de $10.
+        from odoo.addons.dcasa_socios.tests.common import premio_de_prueba  # noqa: PLC0415
+        premio = premio_de_prueba(self.env, 10)
         canje = self.env['dcasa.canje'].sudo().create({
             'codigo': 'TSTP10', 'partner_id': self.cliente.id, 'premio_id': premio.id,
             'premio_nombre': premio.name, 'puntos': premio.puntos, 'valor': premio.valor, 'costo': premio.costo,

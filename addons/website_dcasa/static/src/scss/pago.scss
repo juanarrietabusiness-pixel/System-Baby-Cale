@@ -366,13 +366,16 @@ $pago-alto-campo: 48px;
     color: $pago-tinta;
 }
 // Celulares (hasta 399 px): menos aire y letra un punto menor, para que el nombre + «Pago seguro» + el enlace quepan en
-// una línea (si no, el navegador ensancha la página y se ve como zoom). Los más angostos (< 380 px) achican el nombre.
+// una línea (si no, el navegador ensancha la página y se ve como zoom: a 360 px medía 373). Los más angostos (< 380 px)
+// achican un poco más el nombre y el aire entre los tres.
 @media (max-width: 399.98px) {
     .o_dcasa_pago_cabecera_in { gap: .5rem; }
+    .o_dcasa_pago_marca { font-size: 1.125rem; }
     .o_dcasa_pago_seguro, .o_dcasa_pago_volver { font-size: .875rem; }
 }
 @media (max-width: 379.98px) {
-    .o_dcasa_pago_marca { font-size: 1.0625rem; }
+    .o_dcasa_pago_cabecera_in { gap: .375rem; padding-inline: 1rem; }
+    .o_dcasa_pago_marca { font-size: 1rem; }
 }
 .o_dcasa_pago_seguro {
     display: inline-flex;
