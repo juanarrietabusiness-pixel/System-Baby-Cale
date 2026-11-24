@@ -1,5 +1,6 @@
 """De punta a punta con un Tilopay simulado: pedido → página de pago → confirmación (siempre preguntándole a Tilopay) →
 pedido confirmado, cobro en el diario «Tilopay», factura cruzada y puntos de Socios. Y cada caso raro."""
+import contextlib
 import re
 from datetime import timedelta
 
@@ -68,12 +69,24 @@ class TestFlujoFeliz(BaseTilopay):
         self.assertEqual(pago.amount, total)
         self.assertIn(pago.state, ('in_process', 'paid'))
         self.assertTrue(pago.move_id.line_ids, 'el cobro deja asiento (el método del diario tiene su cuenta)')
-        # Se factura y se publica: Odoo cruza solo el cobro, la factura queda pagada y Socios da sus puntos.
+        # Se factura y se publica: Odoo cruza solo el cobro, la factura queda pagada y Socios da sus puntos. En la copia
+        # de Baby Caleb `puntos.json` está en PENDIENTE (Socios no acredita nada hasta que el dueño ponga sus cifras):
+        # con las cifras de PRUEBA de Socios la compra queda registrada como en D'CASA.
         factura = pedido._create_invoices()
-        factura.action_post()
+        con_socios = 'dcasa_compra_ids' in factura._fields
+        with self._cifras_de_prueba_de_socios(con_socios):
+            factura.action_post()
         self.assertIn(factura.payment_state, ('paid', 'in_payment'))
         self.assertTrue(pago.move_id.line_ids.filtered('reconciled'), 'el cobro quedó cruzado con la factura')
-        self.assertTrue(factura.dcasa_compra_ids, 'la compra completa registra su compra en Socios')
+        if con_socios:
+            self.assertTrue(factura.dcasa_compra_ids, 'la compra completa registra su compra en Socios')
+
+    @staticmethod
+    def _cifras_de_prueba_de_socios(con_socios):
+        if not con_socios:
+            return contextlib.nullcontext()
+        from odoo.addons.dcasa_socios.tests.common import parche_de_reglas_de_prueba  # noqa: PLC0415
+        return parche_de_reglas_de_prueba()
 
     def test_al_confirmar_se_adelanta_el_cierre_de_odoo(self):
         """El cliente puede no estar mirando: se pide que la tarea que termina los pagos corra enseguida."""

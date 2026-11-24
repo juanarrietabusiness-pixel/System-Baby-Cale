@@ -288,19 +288,31 @@ class TestLegibilidadBurbuja(ChromeMovilCase):
                 await new Promise((ok) => setTimeout(ok, 50));
             }
             const b = document.querySelector('.o_dcasa_hero_vitrina .o_dcasa_btn_hero').getBoundingClientRect();
-            return { derecha: b.right, pantalla: document.documentElement.clientWidth, texto_partido: b.height > 70 };
+            // La burbuja de Andrés si está (68 px, a 16 px del borde derecho y de abajo); si no, donde iría.
+            const burbuja = document.querySelector('.o_dcbt_burbuja');
+            const r = burbuja && burbuja.getClientRects().length ? burbuja.getBoundingClientRect()
+                : { left: innerWidth - 84, right: innerWidth - 16, top: innerHeight - 84, bottom: innerHeight - 16 };
+            return { boton: { izquierda: b.left, derecha: b.right, arriba: b.top, abajo: b.bottom },
+                     burbuja: { izquierda: r.left, derecha: r.right, arriba: r.top, abajo: r.bottom },
+                     pantalla: document.documentElement.clientWidth, texto_partido: b.height > 70 };
         })()
     """
 
     def test_el_boton_del_hero_no_pega_con_la_burbuja(self):
+        # En D'CASA el botón de WhatsApp del hero quedaba a 8 px de la burbuja, al lado: se medía su orilla derecha.
+        # El de Baby Caleb es una pastilla a lo ancho (como en babycaleb.com), arriba de la burbuja: lo que se exige es
+        # que entre los dos queden 16 px o más (por el lado o por arriba), es decir, que no se toquen.
+        aire = 16
         for ancho in (390, 430):
             with self.subTest(ancho=ancho), self._chrome_movil(ancho) as browser:
                 browser.navigate_to(self.base_url() + '/', wait_stop=True)
                 self.assertTrue(browser._wait_ready())
                 m = self._evaluar(browser, self.MEDIR_BOTON)
-                izquierda_de_la_burbuja = m['pantalla'] - 16 - 68
-                self.assertLessEqual(m['derecha'], izquierda_de_la_burbuja - 16,
-                                     f'a menos de 16 px de la burbuja: {m}')
+                b, r = m['boton'], m['burbuja']
+                separados = (b['derecha'] <= r['izquierda'] - aire or b['izquierda'] >= r['derecha'] + aire
+                             or b['abajo'] <= r['arriba'] - aire or b['arriba'] >= r['abajo'] + aire)
+                self.assertTrue(separados, f'a menos de {aire} px de la burbuja: {m}')
+                self.assertLessEqual(b['derecha'], m['pantalla'], 'el botón cabe en la pantalla')
                 self.assertFalse(m['texto_partido'], 'el texto del botón sigue en una línea')
 
     def test_los_botones_de_categoria_de_no_encontramos_se_apartan_de_la_burbuja(self):
