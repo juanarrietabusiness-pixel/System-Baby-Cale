@@ -253,7 +253,9 @@ NOCHE_CHAT = """(async () => {
     let pase = null;
     try { pase = JSON.parse(sessionStorage.getItem('dcasa.brian.pase')); } catch (e) { pase = null; }
     return { deLaMarca, globos: globos(), noche: pase && pase.noche, avisar: pase && pase.avisar_cerrado,
-             avatares: document.querySelectorAll('#o_dcbt_panel img').length };
+             // Las fotos de los productos de la vitrina no cuentan (en la computadora el chat abre ampliado, con «Lo más
+             // buscado»): lo que no puede haber es un robot o un avatar con foto.
+             avatares: document.querySelectorAll('#o_dcbt_panel img:not(.o_dcbt_tarjeta img)').length };
 })()""".replace('/*ESPERAR*/', ESPERAR)
 
 NOCHE_BURBUJA = """(async () => {
@@ -499,6 +501,10 @@ class TestBurbujaNoTapa(NavegadorCase):
         self.assertGreater(r['devuelta']['opacidad'], .9, 'al cerrar el cajón vuelve')
 
     def test_la_burbuja_se_aparta_de_los_botones_de_categoria_de_no_encontramos(self):
+        # Los botones de «no encontramos» son las categorías de la portada que tienen algo publicado. En el catálogo de
+        # Baby Caleb ninguna lo tiene (en D'CASA, sí): se pone un producto de la prueba en una para que salga el botón.
+        self.colchon.public_categ_ids = [Command.set(self.env.ref('website_dcasa.public_category_colchones').ids)]
+        self.env.flush_all()
         with self.chrome(390) as browser:
             browser.navigate_to(self.base_url() + '/shop?search=zzqqxxnoexiste', wait_stop=True)
             r = self.evaluar(browser, CHIPS_Y_BURBUJA)
