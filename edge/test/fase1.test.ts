@@ -313,6 +313,8 @@ describe("contenedor único con PostgreSQL local", () => {
     // Baby Caleb no cobra ITBMS: la variable llega al arranque (docker/entrypoint.sh › aplicar_sin_itbms).
     expect(variablesDelContenedor({ DCASA_COBRA_ITBMS: "0" }).DCASA_COBRA_ITBMS).toBe("0");
     expect(variablesDelContenedor({})).not.toHaveProperty("DCASA_COBRA_ITBMS");
+    expect(variablesDelContenedor({ DCASA_CONOCIMIENTO_INICIAL: "baby_caleb" }).DCASA_CONOCIMIENTO_INICIAL).toBe(
+      "baby_caleb");
     // Salidas de emergencia del arranque (#97): sin ellas en la lista, pegarlas en el panel no servía de nada.
     const commit = "0123456789abcdef0123456789abcdef01234567";
     expect(variablesDelContenedor({ DCASA_PERMITIR_BAJAR: commit, DCASA_HUMO: "0" })).toMatchObject({
@@ -481,6 +483,7 @@ describe("wrangler.jsonc (producción y staging)", () => {
     expect(config.vars.DCASA_STOCK_PRUEBA).toBe("0");
     // Baby Caleb no cobra ITBMS (decisión del dueño, 2026-11-24).
     expect(config.vars.DCASA_COBRA_ITBMS).toBe("0");
+    expect(config.vars.DCASA_CONOCIMIENTO_INICIAL).toBe("baby_caleb");
     // Black Weekend en producción: solo dentro de la ventana de la dueña (hora de Panamá).
     expect(config.vars.DCASA_BLACK_WEEKEND).toBe("0");
     expect(config.vars.DCASA_BLACK_WEEKEND_INICIO).toBe("2026-10-02");
@@ -494,6 +497,7 @@ describe("wrangler.jsonc (producción y staging)", () => {
     expect(staging.vars.DCASA_ENTORNO).toBe("staging");
     expect(staging.vars.DCASA_STOCK_PRUEBA).toBe("10");
     expect(staging.vars.DCASA_COBRA_ITBMS).toBe("0");
+    expect(staging.vars.DCASA_CONOCIMIENTO_INICIAL).toBe("baby_caleb");
     // Black Weekend era una campaña de D'CASA: en la instalación de Baby Caleb queda apagado también en staging.
     expect(staging.vars.DCASA_BLACK_WEEKEND).toBe("0");
     // La puerta del equipo arranca apagada en una instalación nueva (incidente 4: "1" sin Access deja a todos afuera).

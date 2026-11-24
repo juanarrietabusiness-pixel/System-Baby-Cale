@@ -51,6 +51,7 @@
 #   DB_REINTENTOS         intentos de conexión a PostgreSQL al arrancar (por defecto 20, cada 3 s).
 #   ODOO_DESINSTALAR_SOBRANTES  0 para no desinstalar los módulos sobrantes.
 #   DCASA_COBRA_ITBMS     «0» = el negocio no cobra ITBMS (Baby Caleb): empresa y productos sin el 7 %
+#   DCASA_CONOCIMIENTO_INICIAL  negocio cuyo conocimiento se siembra una vez por ficha (p. ej. «baby_caleb»)
 #   DCASA_STOCK_PRUEBA    unidades de prueba por producto sin existencias ni movimientos
 #                         (solo con DCASA_ENTORNO=staging; por defecto 10). En producción
 #                         siempre 0: ver «2c. Existencias de prueba».
@@ -483,6 +484,28 @@ PY
     set_param dcasa_base.sin_itbms_version "$APP_VERSION"
   else
     echo "⚠ No se pudo quitar el ITBMS: Odoo arranca igual y se reintenta en el próximo arranque." >&2
+  fi
+fi
+
+# --- 2c''. Conocimiento inicial del negocio (addons/dcasa_conversaciones/conocimiento_inicial.py) --
+# DCASA_CONOCIMIENTO_INICIAL=baby_caleb siembra las fichas de «Conocimiento del bot» que nunca se cargaron en esta
+# base (cada una UNA vez: lo que el equipo cambie, apague, archive o borre en el panel no se vuelve a pisar ni a
+# crear). Sin la variable, nada: el conocimiento de fábrica es cero. Una vez por versión.
+if [[ -n "${DCASA_CONOCIMIENTO_INICIAL:-}" ]] && [[ "${NO_BAJAR:-0}" != "1" ]] \
+  && [[ "$DCASA_CONOCIMIENTO_INICIAL" =~ ^[a-z_]+$ ]] \
+  && [[ "$(sql "SELECT state FROM ir_module_module WHERE name = 'dcasa_conversaciones'")" == "installed" ]] \
+  && [[ "$(sql "SELECT value FROM ir_config_parameter WHERE key = 'dcasa_conversaciones.conocimiento_inicial_version'")" != "$APP_VERSION" ]]; then
+  echo "▶ Conocimiento inicial ($DCASA_CONOCIMIENTO_INICIAL): las fichas que falten"
+  if DCASA_NEGOCIO="$DCASA_CONOCIMIENTO_INICIAL" odoo_shell DCASA_CONOCIMIENTO_OK <<'PY'; then
+import os
+from odoo.addons.dcasa_conversaciones.conocimiento_inicial import cargar_conocimiento_inicial
+print(f'· {len(cargar_conocimiento_inicial(env, os.environ["DCASA_NEGOCIO"]))} fichas nuevas')
+env.cr.commit()
+print('DCASA_CONOCIMIENTO_OK')
+PY
+    set_param dcasa_conversaciones.conocimiento_inicial_version "$APP_VERSION"
+  else
+    echo "⚠ No se pudo cargar el conocimiento inicial: Odoo arranca igual y se reintenta en el próximo arranque." >&2
   fi
 fi
 

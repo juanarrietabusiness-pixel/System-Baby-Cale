@@ -33,6 +33,7 @@ export interface Env {
   /** Unidades de prueba por producto sin existencias: "10" en staging, "0" en producción. */
   DCASA_STOCK_PRUEBA?: string;
   DCASA_COBRA_ITBMS?: string;
+  DCASA_CONOCIMIENTO_INICIAL?: string;
   /** Black Weekend: "1" visible sin mirar fechas (staging), "0" solo dentro de la ventana. */
   DCASA_BLACK_WEEKEND?: string;
   /** Ventana de Black Weekend (AAAA-MM-DD, hora de Panamá, inclusive). */

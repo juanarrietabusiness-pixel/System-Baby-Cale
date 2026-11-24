@@ -64,3 +64,4 @@ from . import (
     test_precio_campana,
 )
 from . import test_brian_voz
+from . import test_conocimiento_inicial
