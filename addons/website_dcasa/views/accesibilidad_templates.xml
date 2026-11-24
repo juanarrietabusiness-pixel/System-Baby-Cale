@@ -59,4 +59,54 @@
             <attribute name="aria-label">Rango de precio</attribute>
         </xpath>
     </template>
+    <!-- Carrito y pago (website_sale.checkout_layout y lo que llama): auditados con un producto en el carrito. -->
+
+    <!-- Un solo h1 por página, para el lector de pantalla y los buscadores: Odoo no pone ninguno en el carrito ni en los
+         pasos del pago. -->
+    <template id="a11y_pago_titulo" inherit_id="website_sale.checkout_layout" name="Baby Caleb: título del carrito y del pago">
+        <xpath expr="//div[hasclass('o_website_sale_checkout_container')]" position="before">
+            <h1 class="visually-hidden" t-out="'Tu carrito' if request.httprequest.path.startswith('/shop/cart') else 'Tu pedido'"/>
+        </xpath>
+        <!-- La flecha del botón «Orden» (el resumen en el celular): adorno junto al texto. -->
+        <xpath expr="//i[hasclass('fa-angle-right')]" position="attributes">
+            <attribute name="role"/>
+            <attribute name="aria-hidden">true</attribute>
+        </xpath>
+    </template>
+
+    <!-- Los títulos que siguen al h1 escondido: el del resumen del carrito y el de los datos, de nivel 2; el nombre de cada
+         producto del carrito, de nivel 3. El precio de cada línea es un h6 solo para el tamaño: no es un título. -->
+    <template id="a11y_carrito_titulos" inherit_id="website_sale.cart" name="Baby Caleb: títulos del carrito">
+        <xpath expr="//div[@id='shop_cart']//h4" position="attributes">
+            <attribute name="aria-level">2</attribute>
+        </xpath>
+    </template>
+
+    <template id="a11y_carrito_lineas" inherit_id="website_sale.cart_lines" name="Baby Caleb: nombre de cada línea del carrito">
+        <xpath expr="//h6[@t-out='line._get_line_header()']" position="attributes">
+            <attribute name="aria-level">3</attribute>
+        </xpath>
+    </template>
+
+    <template id="a11y_carrito_precio" inherit_id="website_sale.cart_lines_price" name="Baby Caleb: precio de la línea sin título">
+        <xpath expr="//h6[@name='website_sale_cart_line_price']" position="attributes">
+            <attribute name="role">none</attribute>
+        </xpath>
+    </template>
+
+    <template id="a11y_datos_titulo" inherit_id="website_sale.address" name="Baby Caleb: título de los datos">
+        <xpath expr="//h4[hasclass('w-md-auto')]" position="attributes">
+            <attribute name="aria-level">2</attribute>
+        </xpath>
+    </template>
+
+    <!-- La cantidad de cada línea del carrito (la del celular y la de la computadora): sin nombre para el lector. -->
+    <template id="a11y_carrito_cantidad" inherit_id="website_sale.cart_lines_quantity" name="Baby Caleb: cantidad con nombre">
+        <xpath expr="(//input[hasclass('js_quantity')])[1]" position="attributes">
+            <attribute name="aria-label">Cantidad</attribute>
+        </xpath>
+        <xpath expr="(//input[hasclass('js_quantity')])[2]" position="attributes">
+            <attribute name="aria-label">Cantidad</attribute>
+        </xpath>
+    </template>
 </odoo>

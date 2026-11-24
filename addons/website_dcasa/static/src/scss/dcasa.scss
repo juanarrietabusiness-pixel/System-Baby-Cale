@@ -3210,6 +3210,46 @@ button[data-bs-target='#o_wsale_offcanvas'] {
     min-height: 2.75rem;
 }
 
+// Carrito y pago: los botones («Finalizar compra», «Orden») a 44 de alto (medían 38) y los enlaces de la línea y del
+// resumen («Quitar del carrito», «Guardar para después», «Seguir comprando», «Volver al carrito», el nombre del producto y
+// los pasos) a 44, sin cambiar cómo se ven.
+.o_website_sale_checkout_container .btn:not(.btn-close),
+.o_wsale_shorter_cart_summary .btn,
+#o_cart_summary_offcanvas .btn:not(.btn-close) {
+    min-height: 2.75rem;
+}
+
+.o_website_sale_checkout_container a.btn,
+.o_wsale_shorter_cart_summary a.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.o_website_sale_checkout_container a[name='o_cart_line_product_link'],
+.o_website_sale_checkout_container a.js_delete_product,
+.o_website_sale_checkout_container a.o_add_wishlist,
+.o_website_sale_checkout_container .o_wizard a,
+.o_website_sale_checkout_container a.no-decoration,
+.o_wsale_shorter_cart_summary a:not(.btn),
+.o_total_card a:not(.btn) {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+}
+
+.o_website_sale_checkout_container button.js_delete_product {
+    min-width: 2.75rem;
+}
+
+// «Volver al carrito» y «Seguir comprando» debajo del botón principal del pago (Odoo no les pone otra clase).
+a[class='mt-2 mt-lg-0 text-center'] {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.75rem;
+}
+
 // La cantidad en la ficha y el carrito: − y + de 44 × 44 (medían 34 de ancho).
 .css_quantity .btn,
 .css_quantity .css_quantity_minus,

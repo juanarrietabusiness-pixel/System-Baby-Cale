@@ -367,11 +367,12 @@ jobs:
               | python3 -c 'import json, sys; print(json.load(sys.stdin)["result"])'
           }
           cliente="$(rpc res.partner '{"name":"Cliente PDF CI"}')"
-          producto="$(rpc product.product '{"name":"Mesa PDF CI","list_price":99}')"
+          producto="$(rpc product.product '{"name":"Pañal PDF CI","list_price":99}')"
           orden="$(rpc sale.order "{\"partner_id\":$cliente,\"order_line\":[[0,0,{\"product_id\":$producto,\"product_uom_qty\":1}]]}")"
           curl -fsS -b "$jar" -o "$RUNNER_TEMP/cotizacion.pdf" "http://localhost:8069/report/pdf/sale.report_saleorder/$orden"
           head -c 4 "$RUNNER_TEMP/cotizacion.pdf" | grep -q '%PDF'
-          if ! grep -aq 'Anton' "$RUNNER_TEMP/cotizacion.pdf"; then
+          # La letra de la marca Baby Caleb (docs/MARCA_BABY_CALEB.md): los TTF de Montserrat de dcasa_base, incrustados.
+          if ! grep -aq 'Montserrat' "$RUNNER_TEMP/cotizacion.pdf"; then
             echo "::error::La cotización salió sin estilos: wkhtmltopdf no cargó el CSS (¿pide los estilos a la URL pública?)."
             exit 1
           fi

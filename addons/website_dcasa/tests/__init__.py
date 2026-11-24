@@ -25,3 +25,4 @@ from . import test_portada_v3
 from . import test_campana
 from . import test_portada_carrusel
 from . import test_paginas_baby_caleb
+from . import test_accesibilidad
