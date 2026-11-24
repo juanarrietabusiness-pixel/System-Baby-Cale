@@ -42,4 +42,31 @@ describe("rv: la guardia de lo que el modelo dice que hizo en el carrito o la co
     for (const t of ["Te lo quito del carrito?", "Te lo dejo en 2?", "¿Te lo quito del carrito?"])
       expect(afirmaCarrito(t), t).toBe(false);
   });
+  it("dicho de usted (la voz de Baby Caleb, 2026-11-24): la misma guardia", () => {
+    for (const t of [
+      "Listo, le puse dos cajas en el carrito.",
+      "Ya está en su carrito.",
+      "Quedó agregado a su carrito.",
+      "Se lo puse en el carrito.",
+      "Listo, ya le agregué el envío a su cotización.",
+      "El envío ya está en su cotización.",
+      "Ya lo tiene incluido en su cotización.",
+      "Ya lo tiene en su carrito.",
+      "Listo, le dejé una sola en su carrito.",
+      "Ya se lo quité del carrito y lo dejé en 2, ok?",
+      "Se lo sumé a la cotización.",
+    ])
+      expect(afirmaCarrito(t), t).toBe(true);
+    for (const t of [
+      "Con gusto, se lo pongo en el carrito.",
+      "¿Le pongo los pañales en el carrito?",
+      "¿Desea que se lo quite del carrito?",
+      "¿Desea que se lo sume a la cotización?",
+      "Si desea, se lo sumo a la cotización.",
+      "Puede verlo en su carrito.",
+      "Se lo quito del carrito?",
+      "Le pongo dos en el carrito.",
+    ])
+      expect(afirmaCarrito(t), t).toBe(false);
+  });
 });

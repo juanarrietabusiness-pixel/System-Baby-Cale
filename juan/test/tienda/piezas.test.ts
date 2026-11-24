@@ -13,6 +13,7 @@ import { OdooCliente } from "../../src/odoo/cliente";
 import { informeDeSalud, informePublico } from "../../src/salud";
 import { afirmaCarrito, elegirPose, esUnNo, esUnSi, mensajeDeWhatsapp, pideOConfirmaCarrito, rutaDelSitio, sinPresentacion } from "../../src/tienda/bloques";
 import { argumentosLimpios, sinCoordenadas } from "../../src/tienda/motor";
+import { detectarFuga } from "../../src/dcasa/salvaguardas";
 import { contextoTienda, HERRAMIENTAS_DE_LA_TIENDA, promptTienda, promptTiendaParaFugas, proximaAtencion, SALUDO_DE_LA_PAGINA } from "../../src/tienda/prompt";
 
 const AHORA = Date.UTC(2026, 10, 13, 16, 0);
@@ -71,7 +72,7 @@ describe("el prompt de Brian de la tienda", () => {
     const bc = promptTienda(normalizarConfig({ brian_tienda: {}, nombre_publico: "el equipo de Baby Caleb" }));
     expect(bc).toContain("Eres Andrés, de la tienda en línea de «Baby Caleb».");
     expect(bc).toContain("(«Soy Andrés, el asistente virtual de Baby Caleb»)");
-    expect(bc).toContain("Tú (whatsapp=true): Soy Andrés, el asistente virtual de Baby Caleb. Si prefieres");
+    expect(bc).toContain("Tú (whatsapp=true): Soy Andrés, el asistente virtual de Baby Caleb. Si prefiere, una persona del equipo le atiende por WhatsApp.");
     expect(bc).toContain("Todo lo que sabes de Baby Caleb te lo dice una herramienta.");
     expect(bc).toContain("4. reglas_socios: el programa Socios y sus cifras.");
     for (const x of [p, bc]) expect(x).not.toMatch(/D['’]CASA|dcasa/i);
@@ -79,9 +80,32 @@ describe("el prompt de Brian de la tienda", () => {
     expect(p).toContain("Eres Andrés, de la tienda en línea de «la tienda».");
   });
 
-  it("la voz: alguien de la tienda que conoce bien los productos (ya no «el pana que sabe de casas»)", () => {
-    expect(p).toContain("- Hablas como alguien de la tienda que conoce bien los productos: cercano, claro y con criterio. Español de Panamá;");
+  const bloque = (n: string) => p.split(`<${n}>`)[1]!.split(`</${n}>`)[0]!;
+
+  it("la voz: alguien de la tienda que conoce bien los productos, cálido y servicial, de usted siempre (la voz del CRM de Baby Caleb)", () => {
+    expect(p).toContain("- Hablas como alguien de la tienda que conoce bien los productos: cálido y servicial, como una amiga experta, sin exagerar la confianza; claro y con criterio. Español de Panamá;");
     expect(p).not.toMatch(/\bpana\b|sabe de casas/);
+    expect(p).toContain("- De usted, SIEMPRE: «le», «su bebé», «indíquenos», «¿le sirve?». Nunca tutees ni uses voseo, aunque el cliente te tutee.");
+    expect(p).toContain("si el cliente te escribe en inglés, le contestas en inglés, con trato respetuoso y las mismas reglas");
+    for (const linea of p.split("\n").filter((l) => /tute/i.test(l))) expect(linea, linea).toMatch(/[Nn]unca tute/);
+    expect(bloque("ultimo_recordatorio")).toContain("de usted, siempre (nunca tutees); 1 a 3 líneas; uno o dos emojis como mucho;");
+  });
+
+  it("emojis pocos y cálidos (uno o dos como mucho, ningún «visto»); los ejemplos le hablan de usted al cliente", () => {
+    expect(p).toContain("uno o dos por mensaje como mucho (👼🏻 🙌🏻 👶🏻 🙏🏻 😁 ✨), y nunca en lugar de palabras. Ningún signo de «visto»");
+    expect(p).not.toMatch(/Cero emojis|sin emojis/i);
+    const dichos = bloque("ejemplos_de_tono")
+      .split("\n")
+      .filter((l) => l.startsWith("Tú"))
+      .map((l) => l.replace(/^Tú(?: \([^)]*\))?:\s*/, ""));
+    expect(dichos.length).toBeGreaterThanOrEqual(6);
+    for (const d of dichos) expect(d, d).not.toMatch(/\b(?:te|tu|tus|ti|tú|quieres|prefieres|buscas|puedes|dime|mira)\b/i);
+  });
+
+  it("los precios, tal cual los da la herramienta: con «+ ITBMS» solo si precio_texto lo trae", () => {
+    expect(p).toContain("Precios: copia el campo precio_texto tal cual: si trae «+ ITBMS», va con eso; si no, sin nada.");
+    expect(p).not.toMatch(/SIEMPRE con «\+ ITBMS»|los precios son \+ ITBMS/i);
+    expect(bloque("ultimo_recordatorio")).toContain("todo precio tal cual lo da la herramienta (precio_texto: con «+ ITBMS» solo si lo trae)");
   });
 
   it("productos para bebé: tallas y lo que trae cada caja salen de las herramientas; nada de muebles ni medidas de cama", () => {
@@ -103,6 +127,20 @@ describe("el prompt de Brian de la tienda", () => {
     expect(fugas).not.toContain("<voz>");
     expect(fugas).not.toContain("<ejemplos_de_tono>");
     expect(fugas).toContain("<reglas>");
+  });
+
+  it("lo que Andrés dirá de usted (hay_sin_publicar, el carrito, el envío) no se toma por una copia del prompt", () => {
+    const ctxFugas = { preciosProducto: new Set<number>(), cifrasConocidas: new Set<number>(), textoDelPrompt: promptTiendaParaFugas(cfg) };
+    for (const frase of [
+      "Sí, lo trabajamos, solo que no está en la tienda en línea. Una vendedora le confirma modelos y precios por WhatsApp.",
+      "Le digo que sí lo trabajamos y que una vendedora le confirma modelos y precios por WhatsApp.",
+      "Sí, lo trabajamos y una vendedora se los confirma por WhatsApp, los modelos y los precios.",
+      "Buena elección. ¿Le pongo los pañales Nateen talla M en el carrito?",
+      "Con gusto se lo calculo. ¿A dónde se lo llevamos? Puede usar su ubicación o escribirme el barrio o un punto de referencia.",
+      "El total lo ve en su carrito y en la cotización, yo no lo sumo.",
+    ]) {
+      expect(detectarFuga(frase, ctxFugas), frase).toBeNull();
+    }
   });
 
   it("el contexto del turno: la hora, el horario (de noche lo dice), la página y el carrito como datos neutralizados", () => {

@@ -51,8 +51,8 @@ export interface RespuestaTienda {
   chips: string[];
 }
 
-export const TEXTO_DEL_BOTON_DE_WHATSAPP = "Escríbenos por WhatsApp";
-export const TEXTO_DE_UBICACION = "¿A dónde te lo llevamos?";
+export const TEXTO_DEL_BOTON_DE_WHATSAPP = "Escríbanos por WhatsApp";
+export const TEXTO_DE_UBICACION = "¿A dónde se lo llevamos?";
 export const MAX_TARJETAS = 6;
 export const MAX_CHIPS = 4;
 export const MAX_OPCIONES = 3;
@@ -238,24 +238,25 @@ export function esUnNo(textoDelVisitante: string): boolean {
 
 /**
  * «Te lo puse en el carrito», «ya está en tu carrito», «lo agregué»: el modelo NUNCA pone nada en el carrito (lo hace el navegador con
- * Odoo y avisa). Solo el turno en que Odoo confirmó, y con el texto del Worker, se dice. Se revisa por oración, sin acentos.
+ * Odoo y avisa). Solo el turno en que Odoo confirmó, y con el texto del Worker, se dice. Se revisa por oración, sin acentos. Dicho de
+ * usted también («le puse dos en el carrito», «ya está en su carrito», «ya lo tiene en su cotización»): la voz de Baby Caleb (2026-11-24).
  */
 const AFIRMA_CARRITO = [
   /\b(?:te |ya )?(?:lo|la|los|las) (?:puse|agregue|a[nñ]adi|meti)\b/,
-  /\bte (?:puse|agregue|a[nñ]adi|meti|deje) (?:\S+ ){0,6}en (?:el|tu) carrito\b/,
-  /\bya (?:esta|estan|quedo|quedaron|lo tienes|la tienes|los tienes|las tienes) en (?:el|tu) carrito\b/,
-  /\b(?:agregad[oa]s?|a[nñ]adid[oa]s?|puest[oa]s?) (?:a|al|en) (?:el |tu )?carrito\b/,
+  /\b(?:te|le) (?:puse|agregue|a[nñ]adi|meti|deje) (?:\S+ ){0,6}en (?:el|tu|su) carrito\b/,
+  /\bya (?:esta|estan|quedo|quedaron|lo tienes|la tienes|los tienes|las tienes|lo tiene|la tiene|los tiene|las tiene) en (?:el|tu|su) carrito\b/,
+  /\b(?:agregad[oa]s?|a[nñ]adid[oa]s?|puest[oa]s?) (?:a|al|en) (?:el |tu |su )?carrito\b/,
   /\bi (?:added|put) (?:it|them)\b/,
   /\b(?:added|is now) (?:to|in) your cart\b/,
   // Quitar del carrito, cambiar la cantidad o sumar el envío (A2, A4): tampoco lo hace el modelo; lo confirma Odoo y lo dice
   // el Worker (revisión adversarial, 2026-11-16: «agregué / incluí / cambié / retiré», «el envío ya está en tu cotización»).
   /\b(?:te |ya )?(?:lo|la|los|las) (?:quite|saque|sume|borre|elimine|retire)\b/,
   /\b(?:quite|saque|borre|elimine|retire) (?:\S+ ){0,6}del carrito\b/,
-  /\b(?:deje|cambie) (?:\S+ ){0,6}(?:en|del) (?:el |tu )?carrito\b/,
+  /\b(?:deje|cambie) (?:\S+ ){0,6}(?:en|del) (?:el |tu |su )?carrito\b/,
   /\b(?:sume|agregue|a[nñ]adi|inclui|puse|meti) (?:\S+ ){0,3}(?:envio|flete)\b/,
   /\b(?:cambie|actualice|ajuste|deje|baje|subi) (?:\S+ ){0,3}(?:cantidad|cantidades)\b/,
-  /\b(?:envio|flete)\b(?: \S+){0,3} (?:esta|estan|quedo|queda) (?:sumad[oa]|incluid[oa]|agregad[oa]|puest[oa]|en (?:tu|la) (?:cotizacion|carrito))\b/,
-  /\bya (?:lo|la|los|las) tienes (?:sumad[oa]s?|incluid[oa]s?|agregad[oa]s?|en (?:tu|la) cotizacion)\b/,
+  /\b(?:envio|flete)\b(?: \S+){0,3} (?:esta|estan|quedo|queda) (?:sumad[oa]|incluid[oa]|agregad[oa]|puest[oa]|en (?:tu|su|la) (?:cotizacion|carrito))\b/,
+  /\bya (?:lo|la|los|las) tienes? (?:sumad[oa]s?|incluid[oa]s?|agregad[oa]s?|en (?:tu|su|la) cotizacion)\b/,
 ];
 
 /**
@@ -271,7 +272,7 @@ const AFIRMA_CARRITO = [
 export function afirmaCarrito(oracion: string): boolean {
   let t = sinAcentos(oracion.toLowerCase()).trim();
   t = t.replace(/¿[^?]*\??/g, " ");
-  t = t.replace(/\bque (?:te |me |se )?(?:lo|la|los|las) \S+/g, "que");
+  t = t.replace(/\bque (?:te |me |se |le )?(?:lo|la|los|las) \S+/g, "que");
   return AFIRMA_CARRITO.some((r) => r.test(t));
 }
 

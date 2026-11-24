@@ -347,7 +347,7 @@ const nota = (texto: string): Entrada => ({ texto, origen: "sistema" });
 
 /** De noche, quien quiera una persona sabe cuándo le contestan (el horario sale de Ajustes de Juan). Sin «a. m..»: una sola vez el punto. */
 export function lineaDeNoche(cfg: Config): string {
-  return `Como ahora la tienda está cerrada, te responden en cuanto abramos, a partir de las ${sinPuntoFinal(horaLegible(cfg.horario.inicio))}.`;
+  return `Como ahora la tienda está cerrada, le responden en cuanto abramos, a partir de las ${sinPuntoFinal(horaLegible(cfg.horario.inicio))}.`;
 }
 
 /**
@@ -365,65 +365,66 @@ export function anunciaLaNoche(cfg: Config, ms: number): boolean {
 export function lineaDelHorarioAmable(cfg: Config, ms: number): string | null {
   if (cfg.tienda.avisar_cerrado) return null;
   const proxima = proximaAtencion(cfg, ms);
-  return proxima ? `Las vendedoras atienden ${horarioLegible(cfg)}; te escriben ${sinPuntoFinal(proxima)}.` : null;
+  return proxima ? `Las vendedoras atienden ${horarioLegible(cfg)}; le escriben ${sinPuntoFinal(proxima)}.` : null;
 }
 
-export const TEXTO_PERSONA = "Claro que sí. Una persona del equipo te atiende por WhatsApp.";
-export const TEXTO_SEGURO = "Para no darte un dato equivocado, prefiero que te lo confirme una persona del equipo por WhatsApp.";
-export const TEXTO_GRACIAS_POR_CALIFICAR = "Gracias por calificarme, de verdad me ayuda. Que tengas un lindo día.";
-export const TEXTO_CARRITO_FALLO = "No pude ponerlo en el carrito ahorita, disculpa. Puedes intentarlo desde su ficha o, si prefieres, te atiende una persona por WhatsApp.";
-export const TEXTO_SIN_CONFIRMAR = "Gracias. ¿Te ayudo con algo más?";
-export const TEXTO_SI = "Con gusto, te lo pongo en el carrito.";
-export const TEXTO_NO = "Perfecto, sin problema. ¿Te muestro algo más?";
-export const TEXTO_OCUPADO = "Hay mucha gente escribiendo en este momento. Inténtalo otra vez en un momentito, o escríbenos por WhatsApp.";
+// De usted, siempre (la voz de Baby Caleb, 2026-11-24). Los chips («Sí, ponlo en el carrito») son lo que toca el cliente: van en su voz.
+export const TEXTO_PERSONA = "Claro que sí. Una persona del equipo le atiende por WhatsApp.";
+export const TEXTO_SEGURO = "Para no darle un dato equivocado, prefiero que se lo confirme una persona del equipo por WhatsApp.";
+export const TEXTO_GRACIAS_POR_CALIFICAR = "Gracias por calificarme, de verdad me ayuda. Que tenga un lindo día.";
+export const TEXTO_CARRITO_FALLO = "No pude ponerlo en el carrito ahorita, disculpe. Puede intentarlo desde su ficha o, si prefiere, le atiende una persona por WhatsApp.";
+export const TEXTO_SIN_CONFIRMAR = "Gracias. ¿Le ayudo con algo más?";
+export const TEXTO_SI = "Con gusto, se lo pongo en el carrito.";
+export const TEXTO_NO = "Perfecto, sin problema. ¿Le muestro algo más?";
+export const TEXTO_OCUPADO = "Hay mucha gente escribiendo en este momento. Inténtelo otra vez en un momentito, o escríbanos por WhatsApp.";
 export const OPCIONES_DESPUES_DEL_CARRITO = ["¿Cuánto cuesta el envío?", "Seguir viendo"];
 export const CHIPS_DE_OFERTA = ["Sí, ponlo en el carrito", "No, gracias"];
 
 export function textoListo(nombre: string, cantidad: number): string {
-  return `Listo, te puse ${cantidad > 1 ? `${cantidad} × ` : ""}${nombre} en el carrito. ¡Gracias!`;
+  return `Listo, le puse ${cantidad > 1 ? `${cantidad} × ` : ""}${nombre} en el carrito. ¡Gracias!`;
 }
 
 // A2. El envío en la cotización: Andrés ofrece; la página le pide a Odoo que lo ponga; Andrés nunca dice la cifra sumada.
-export const TEXTO_OFRECER_ENVIO = "¿Te lo sumo a la cotización?";
+export const TEXTO_OFRECER_ENVIO = "¿Se lo sumo a la cotización?";
 export const CHIPS_DE_ENVIO = ["Sí, súmalo a la cotización", "No, gracias"];
-export const TEXTO_SUMO_ENVIO = "Con gusto, te lo sumo a la cotización.";
-export const TEXTO_ENVIO_SUMADO = "Listo, te lo sumé: el total lo ves en tu carrito y en la cotización.";
-export const TEXTO_ENVIO_YA_ESTABA = "Ese envío ya está sumado: el total lo ves en tu carrito y en la cotización.";
-export const TEXTO_ENVIO_SIN_CARRITO = "Para sumarte el envío, primero pon en el carrito lo que te gustó; después te lo sumo con gusto.";
+export const TEXTO_SUMO_ENVIO = "Con gusto, se lo sumo a la cotización.";
+export const TEXTO_ENVIO_SUMADO = "Listo, se lo sumé: el total lo ve en su carrito y en la cotización.";
+export const TEXTO_ENVIO_YA_ESTABA = "Ese envío ya está sumado: el total lo ve en su carrito y en la cotización.";
+export const TEXTO_ENVIO_SIN_CARRITO = "Para sumarle el envío, primero ponga en el carrito lo que le gustó; después se lo sumo con gusto.";
 export const OPCIONES_DESPUES_DEL_ENVIO = ["Formas de pago", "Seguir viendo"];
 
 /** Lo que dice Andrés cuando Odoo no sumó el envío (por el motivo que contó la página). Nunca una cifra. */
 export function textoEnvioNoSumado(motivo: MotivoDelEnvio | null): string {
   if (motivo === "sin_carrito") return TEXTO_ENVIO_SIN_CARRITO;
-  if (motivo === "sin_tarifa" || motivo === "aparte" || motivo === "lugar") return "Ese envío te lo confirma una vendedora por WhatsApp, para no darte un dato equivocado.";
-  if (motivo === "tope") return "Por ahora no puedo sumar más envíos. Inténtalo en un rato o escríbenos por WhatsApp.";
+  if (motivo === "sin_tarifa" || motivo === "aparte" || motivo === "lugar") return "Ese envío se lo confirma una vendedora por WhatsApp, para no darle un dato equivocado.";
+  if (motivo === "tope") return "Por ahora no puedo sumar más envíos. Inténtelo en un rato o escríbanos por WhatsApp.";
   // Ya hay un envío que no puso el chat (una persona, o un flete): volver a intentarlo no cambia nada (revisión, 2026-11-16).
-  if (motivo === "ajeno") return "Tu carrito ya tiene un envío que no puedo cambiar desde aquí: una vendedora te lo confirma por WhatsApp.";
-  return "No pude sumar el envío ahorita, disculpa. Inténtalo otra vez en un momento o escríbenos por WhatsApp.";
+  if (motivo === "ajeno") return "Su carrito ya tiene un envío que no puedo cambiar desde aquí: una vendedora se lo confirma por WhatsApp.";
+  return "No pude sumar el envío ahorita, disculpe. Inténtelo otra vez en un momento o escríbanos por WhatsApp.";
 }
 
 // A4. Cambiar el carrito conversando: la página lo aplica en Odoo y Andrés confirma con lo que dice el carrito de Odoo.
 export const CHIPS_DE_CAMBIO = ["Sí, cámbialo", "No, gracias"];
 export const TEXTO_CAMBIO = "Con gusto, ya lo cambio.";
-export const TEXTO_CAMBIO_FALLO = "No pude cambiar el carrito ahorita, disculpa. Puedes hacerlo desde «Ver» en la barra del carrito o, si prefieres, te ayudan por WhatsApp.";
+export const TEXTO_CAMBIO_FALLO = "No pude cambiar el carrito ahorita, disculpe. Puede hacerlo desde «Ver» en la barra del carrito o, si prefiere, le ayudan por WhatsApp.";
 
 export function preguntaDeCambio(o: Oferta): string {
   return o.cantidad === 0 ? `¿Quito ${o.nombre} del carrito?` : `¿Cambio la cantidad de ${o.nombre} a ${o.cantidad}?`;
 }
 
 export function textoCambioHecho(nombre: string, cantidad: number): string {
-  return cantidad === 0 ? `Listo, quité ${nombre} del carrito.` : `Listo, ahora tienes ${cantidad} × ${nombre} en el carrito.`;
+  return cantidad === 0 ? `Listo, quité ${nombre} del carrito.` : `Listo, ahora tiene ${cantidad} × ${nombre} en el carrito.`;
 }
 
 // A3. La reacción al quitar o vaciar: una sola vez por sesión, amable, con una alternativa y sin insistir (sin la IA).
 export const CHIPS_DE_ALTERNATIVA = ["Una más económica", "Con más prestaciones", "No, gracias"];
 
 export function textoDeReaccion(nombre: string, vacio: boolean, quitado: boolean): string {
-  if (vacio) return "Vi que vaciaste el carrito. ¿Te ayudo a buscar otra opción, más económica o con más prestaciones?";
-  if (!nombre) return "Vi que quitaste algo del carrito. ¿Te busco otra opción, más económica o con más prestaciones?";
+  if (vacio) return "Vi que vació el carrito. ¿Le ayudo a buscar otra opción, más económica o con más prestaciones?";
+  if (!nombre) return "Vi que quitó algo del carrito. ¿Le busco otra opción, más económica o con más prestaciones?";
   return quitado
-    ? `Vi que quitaste ${nombre}. ¿Te busco una opción más económica o una con más prestaciones?`
-    : `Vi que bajaste la cantidad de ${nombre}. Si quieres, te busco otra opción, más económica o con más prestaciones.`;
+    ? `Vi que quitó ${nombre}. ¿Le busco una opción más económica o una con más prestaciones?`
+    : `Vi que bajó la cantidad de ${nombre}. Si desea, le busco otra opción, más económica o con más prestaciones.`;
 }
 
 /** Un nombre que viene de la página (una línea del carrito), para decirlo y anotarlo: corto, sin enlaces ni corchetes. */
@@ -448,8 +449,9 @@ function notaDeCorreccion(graves: readonly TipoProblema[]): string {
   const que = [...new Set(graves)].map((t) => QUE_ESTUVO_MAL[t]).join("; ");
   return (
     `Tu respuesta anterior NO se mostró porque tenía ${que}. Vuelve a contestar con responder_tienda sin eso: precios solo copiados de ` +
-    "buscar_productos o ver_producto (con «+ ITBMS»), nunca cuántas unidades hay, ninguna cifra que no te dio una herramienta, y lo de " +
-    "entregas, apartados, financiamiento y descuentos solo como lo dice buscar_conocimiento (o por WhatsApp). De 1 a 3 líneas, en tuteo."
+    "buscar_productos o ver_producto (tal cual los da precio_texto), nunca cuántas unidades hay, ninguna cifra que no te dio una herramienta, y lo de " +
+    "entregas, apartados, financiamiento y descuentos solo como lo dice buscar_conocimiento (o por WhatsApp). De 1 a 3 líneas, de usted, siempre " +
+    "(nunca tutees), con uno o dos emojis como mucho."
   );
 }
 
@@ -1117,7 +1119,7 @@ export class MotorTienda {
         this.poner("oferta", JSON.stringify(oferta));
         chips = [...CHIPS_DE_OFERTA];
         hayOferta = true;
-        if (prop && !/carrito/i.test(principal)) bloques.push({ tipo: "texto", texto: `¿Te pongo ${oferta.nombre} en el carrito?` });
+        if (prop && !/carrito/i.test(principal)) bloques.push({ tipo: "texto", texto: `¿Le pongo ${oferta.nombre} en el carrito?` });
       }
       // A4: cambiar o quitar algo que YA está en el carrito: con el pedido del visitante, la página lo aplica; si no, se pregunta.
       const cambio = prop ?? ofr ? null : cambioDelCarrito(respuesta.cambiar_carrito, p.carrito, sesion.values());
