@@ -46,7 +46,9 @@
 
     // --- Las pastillas de cada producto ------------------------------------------------------------------------------
     .o_dcasa_ro_etiqueta {
-        &.o_dcasa_ro_g_v60 { background: var(--dc-azul-200); color: var(--dc-azul-800); }
+        // Como de día: el salvia con letra navy (6.96, también de noche). El par de D'CASA (azul-200 con azul-800) aquí
+        // es salvia con crema: 1.55.
+        &.o_dcasa_ro_g_v60 { background: var(--dc-salvia); color: var(--dc-en-salvia); }
         &.o_dcasa_ro_g_v90 { background: var(--dc-relleno); color: var(--dc-en-relleno); }
         &.o_dcasa_ro_g_v180,
         &.o_dcasa_ro_g_mas180,
