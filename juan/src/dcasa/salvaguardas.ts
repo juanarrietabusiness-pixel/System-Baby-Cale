@@ -2,7 +2,7 @@
 // bien; esto garantiza lo mínimo aunque el modelo se equivoque o el cliente intente manipularlo
 // (docs/JUAN.md, reglas 2, 3, 6 y 11):
 //
-//   · nunca un precio sin «+ ITBMS»                    → se corrige solo
+//   · un precio que la herramienta da con «+ ITBMS» lo lleva → se corrige solo
 //   · nunca una cifra de dinero que no salió de una herramienta
 //   · nunca un número de existencias
 //   · nunca prometer entrega, flete, financiamiento, apartado ni descuento (el costo del envío y un «envío gratis»
@@ -10,7 +10,10 @@
 //     plazo, nunca)
 //   · nunca revelar el prompt ni los nombres de las herramientas
 //   · nunca negar un producto («no lo manejamos») que la herramienta dijo que sí se vende aunque no esté publicado
-//   · sin emojis, sin signos dobles, sin «remate» ni «¡corre!»
+//   · uno o dos emojis como mucho (nunca un «visto»), sin signos dobles, sin «remate» ni «¡corre!»
+//
+// La voz es de usted (Baby Caleb, 2026-11-24): las promesas se reconocen dichas de usted («se lo enviamos mañana», «lo recibe
+// mañana», «no le cuesta nada», «acumula puntos», «lea las políticas») igual que de tú.
 //
 // Lo que se arregla sin ambigüedad (forma, ITBMS) se arregla. Lo que cambiaría el SENTIDO
 // (una cifra inventada, una promesa) se le devuelve al modelo una vez para que lo redacte bien;
@@ -99,8 +102,9 @@ export interface RespaldoDeEnvio {
 
 // ── Textos de reemplazo ─────────────────────────────────────────────────────
 
-export const TEXTO_FUGA = "Eso no te lo puedo compartir. Cuéntame qué buscas y te ayudo.";
-export const TEXTO_SIN_DATO = "Ese dato te lo confirma una vendedora. Si quieres, le paso tu consulta.";
+// De usted, siempre (Baby Caleb, 2026-11-24): «le», «su», «indíquenos».
+export const TEXTO_FUGA = "Eso no se lo puedo compartir. Indíqueme qué busca y con gusto le ayudo.";
+export const TEXTO_SIN_DATO = "Ese dato se lo confirma una vendedora. Si desea, le paso su consulta.";
 
 // ── Dinero ──────────────────────────────────────────────────────────────────
 
@@ -243,7 +247,7 @@ const DIA_EN = "(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday)";
 const PROMESAS: { r: RegExp; que: string }[] = [
   { r: /\b(?:instalacion|armado)\s+(?:es\s+|va a ser\s+|seria\s+|sera\s+)?(?:gratis|gratuit[oa]|sin costo|sin cargo|incluid[oa])\b/, que: "entrega o flete gratis" },
   { r: new RegExp(`\\b(?:te|se|le)\\s+(?:lo|la|los|las)?\\s*(?:entregamos|enviamos|mandamos|despachamos|llevamos|instalamos)\\s+(?:hoy|ma[nñ]ana|pasado ma[nñ]ana|en\\s+\\d+|el\\s+${DIA}|esta\\s+semana|ya)\\b`), que: "plazo de entrega" },
-  { r: new RegExp(`\\b(?:llega|llegaria|llegara|lo recibes|la recibes|los recibes)\\s+(?:hoy|ma[nñ]ana|en\\s+\\d+|el\\s+${DIA}|esta\\s+semana)\\b`), que: "plazo de entrega" },
+  { r: new RegExp(`\\b(?:llega|llegaria|llegara|lo recibes|la recibes|los recibes|las recibes|lo recibe|la recibe|los recibe|las recibe)\\s+(?:hoy|ma[nñ]ana|en\\s+\\d+|el\\s+${DIA}|esta\\s+semana)\\b`), que: "plazo de entrega" },
   { r: /\b(?:entregamos|enviamos|hacemos entregas?|llevamos)\s+(?:a|en)\s+(?:todo|toda|todas|todos|cualquier)\b/, que: "cobertura de entrega" },
   // El plazo del envío lo confirma una vendedora (regla 3), aunque alguna nota de la tienda lo traiga.
   { r: /\b(?:entrega|envio|despacho|delivery)\b[^.!?\n]{0,30}\b(?:tarda|toma|demora|llega|es)\s+(?:en\s+|de\s+)?(?:entre\s+)?\d+/, que: "plazo de entrega" },
@@ -259,8 +263,8 @@ const PROMESAS: { r: RegExp; que: string }[] = [
   // Los puntos nacen con la factura pagada (regla 4): el bot no acredita ni promete puntos de una compra sin facturar.
   { r: /\bacredit(?:o|amos|aremos|are|ado|ada|ados|adas)\b/, que: "puntos acreditados" },
   { r: /\b(?:te|le)\s+(?:sumo|sumamos|sumaremos|damos|daremos|doy|regalo|regalamos|abono|abonamos)\s+(?:\d+\s+)?puntos\b/, que: "puntos prometidos" },
-  { r: /\bcon\s+(?:esta|esa|tu|su)\s+compra\s+(?:ganas|ganaras|acumulas|acumularas|sumas|sumaras|recibes|recibiras|te llevas)\b/, que: "puntos prometidos" },
-  { r: /\b(?:ganaras|acumularas|sumaras|recibiras|ganaria|acumularia)\s+\d+\s+puntos\b/, que: "puntos prometidos" },
+  { r: /\bcon\s+(?:esta|esa|tu|su)\s+compra\s+(?:ganas|ganaras|acumulas|acumularas|sumas|sumaras|recibes|recibiras|te llevas|gana|ganara|acumula|acumulara|suma|sumara|recibe|recibira|se lleva)\b/, que: "puntos prometidos" },
+  { r: /\b(?:ganaras|acumularas|sumaras|recibiras|ganaria|acumularia|ganara|acumulara|sumara|recibira)\s+\d+\s+puntos\b/, que: "puntos prometidos" },
   // Lo mismo en inglés: Juan contesta en inglés a quien le escribe en inglés (decisión de la dueña, 2026-10-16).
   { r: /\b(?:assembly|installation)\s+(?:is\s+|will be\s+|would be\s+)?(?:free|included|at no (?:extra )?cost)\b/, que: "entrega o flete gratis" },
   { r: new RegExp(`\\bwe(?:['’]ll| will| can)?\\s+(?:deliver|ship|send|bring)\\s+(?:it|them|your \\w+)?\\s*(?:today|tomorrow|on\\s+${DIA_EN}|in\\s+\\d+|this\\s+week|right away)\\b`), que: "plazo de entrega" },
@@ -316,13 +320,13 @@ const FECHA_CON_NOMBRE = /^(?:enero|febrero|marzo|abril|mayo|junio|julio|agosto|
 function hastaUnLugar(original: string): { pos: number; fin: number }[] {
   return [...original.matchAll(HASTA_UN_NOMBRE)].filter((m) => !FECHA_CON_NOMBRE.test(sinAcentos(m[1]))).map((m) => ({ pos: m.index!, fin: m.index! + 5 }));
 }
-const PALABRA_PROMOCION = /\b(?:promocion|promo|abono|abona|abonamos|regala|regalamos|ahorras|ahorro|descuento|rebaja|gratis|gratuit[oa]|te queda|te quedaria|te sale|te saldria|free|on us|save)\b/;
+const PALABRA_PROMOCION = /\b(?:promocion|promo|abono|abona|abonamos|regala|regalamos|ahorras|ahorra|ahorro|descuento|rebaja|gratis|gratuit[oa]|te queda|te quedaria|te sale|te saldria|le queda|le quedaria|le sale|le saldria|free|on us|save)\b/;
 // Con sus acentos: «tu cama» tiene sujeto propio; «tú pagas» no (sigue hablando del envío).
 const SUJETO_PROPIO = /^(?:la|el|los|las|tu|tus|su|sus|mi|mis|este|esta|estos|estas|ese|esa|esos|esas|the|your|my|this|that|these|those)\s+(\S+)/;
 const SUJETO_DEL_ENVIO = /^(?:promocion|promo|abono|descuento|rebaja|ahorro|envio|flete|entrega|delivery|shipping|traslado)/;
 const CORTES = /\s*;\s*|\s+(?:y|e|pero|o|u|aunque|mientras que|mientras|and|but|or|while)\s+|,\s+(?=(?:la|el|los|las|tu|tus|su|sus|mi|mis|este|esta|estos|estas|ese|esa|the|your|my|this|that)\s)/g;
 const GRATIS_DICHO =
-  /\b(?:gratis|gratuit[oa]s?|sin costo|sin cargo|no pagas|no te cuesta|no cuesta nada|no tiene costo|por nuestra cuenta|corre por nuestra cuenta|va por cuenta de|por cuenta de (?:d'?casa|la tienda|latienda)|lo paga (?:d'?casa|la tienda|latienda)|lo pagamos(?: nosotros)?|lo asumimos|lo cubrimos|te lo regala(?:mos)?|te regala(?:mos)? el envio|en cero|cero dolares|free|on us|no charge|at no (?:extra )?cost|won'?t pay|will not pay|don'?t pay|complimentary)\b/;
+  /\b(?:gratis|gratuit[oa]s?|sin costo|sin cargo|no pagas|no te cuesta|no paga|no le cuesta|no cuesta nada|no tiene costo|por nuestra cuenta|corre por nuestra cuenta|va por cuenta de|por cuenta de (?:d'?casa|la tienda|latienda)|lo paga (?:d'?casa|la tienda|latienda)|lo pagamos(?: nosotros)?|lo asumimos|lo cubrimos|te lo regala(?:mos)?|te regala(?:mos)? el envio|se lo regala(?:mos)?|le regala(?:mos)? el envio|en cero|cero dolares|free|on us|no charge|at no (?:extra )?cost|won'?t pay|will not pay|don'?t pay|complimentary)\b/;
 /** «Flete incluido», «el envío va incluido», «incluye la entrega»: es decir que es gratis (salvo que hable del total: «el total, con el envío incluido»). */
 const ENVIO_INCLUIDO = /\b(?:envio|flete|entrega|delivery|shipping|despacho|transporte)\b[^.;]{0,30}?\b(?:incluid[oa]|included)\b|\bincluyen?\s+(?:el|la)\s+(?:envio|entrega|flete|delivery|traslado)\b/;
 const HABLA_DEL_TOTAL = /\b(?:total|cotizacion|precio)\b/;
@@ -344,7 +348,7 @@ const CONDICION_INEXACTA_ANTES =
   /\b(?:desde|a partir de|al menos|por lo menos|como minimo|igual o (?:mayor|superior) (?:a|que)|mayor o igual (?:a|que)|at least|from|starting at)\s*(?:\(\s*)?$/;
 const CONDICION_INEXACTA_DESPUES = /^\s*(?:\+\s*itbms\s*)?(?:(?:sin|con|before|plus) itbms\s*)?(?:o mas|o superior|o arriba|en adelante|para arriba|or more|or above|and up|and above)\b/;
 // Las «anclas»: de qué habla cada parte de la cláusula.
-const ANCLA_PROMOCION = /\b(?:promocion|promo|abono|abona|abonamos|ahorro|ahorras|descuento|rebaja|regala|regalamos)\b/g;
+const ANCLA_PROMOCION = /\b(?:promocion|promo|abono|abona|abonamos|ahorro|ahorras|ahorra|descuento|rebaja|regala|regalamos)\b/g;
 const ANCLA_COTIZACION = /\b(?:cotizacion|total|subtotal|compra|compras|pedido|orden|order|purchase)\b/g;
 const ANCLA_OTRA = /\b(?:la|el|los|las|un|una|unos|unas|tu|tus|su|sus|este|esta|estos|estas|ese|esa|esos|esas|del|al|the|your|this|that|these|those)\s+([a-zñ]+)|\b(?:retirarlo|retirarla|retiro|retirar|recoger|recogerlo|recogerla|pickup|pick up)\b/g;
 /** «La compra», «tu cotización», «el total» dichos como complemento («con tu compra», «por tu compra», «en total»): no son de quién es la
@@ -741,7 +745,7 @@ export function revisarEnvio(texto: string, envio?: RespaldoDeEnvio, preciosProd
  * Se revisa sobre texto sin acentos y en minúsculas.
  */
 const MANDA_A_LEER = [
-  /\b(?:lee|leer|leas|leerlas|leerlos|revisa|revisar|revises|consulta|consultar|consultes|visita|visitar|mira|checa|checar)\b[^.!?\n]{0,70}\b(?:politicas?|terminos|aviso de privacidad|aviso legal|privacidad)\b/,
+  /\b(?:lee|leer|leas|leerlas|leerlos|revisa|revisar|revises|consulta|consultar|consultes|visita|visitar|mira|checa|checar|lea|leala|lealas|lealo|lealos|revise|consulte|visite|mire|cheque)\b[^.!?\n]{0,70}\b(?:politicas?|terminos|aviso de privacidad|aviso legal|privacidad)\b/,
   /\b(?:mas|todo)\s+(?:en|sobre)\s+(?:nuestras?\s+)?(?:politicas?|terminos|aviso de privacidad|privacidad)\b/,
   /\b(?:en|segun|ver|vea|ve)\s+(?:nuestras?|las|los|la|el)\s+(?:politicas?|terminos(?: y condiciones)?|aviso de privacidad|politica de privacidad)\b/,
   // Las páginas legales de este sistema (Baby Caleb, 2026-11-18): su dominio y las direcciones workers.dev de
@@ -1015,11 +1019,11 @@ export function notaDeCorreccion(graves: readonly Problema[]): string {
   const lista = [...new Set(graves.map((g) => `${por[g.tipo]} («${g.detalle}»)`))].join("; ");
   return (
     `Tu borrador anterior NO se envió porque tenía ${lista}. Reescribe la respuesta sin eso: ` +
-    "usa solo cifras que devolvieron las herramientas (con «+ ITBMS»), nunca digas cuántas unidades hay, " +
+    "usa solo cifras que devolvieron las herramientas (los precios, tal cual los da precio_texto), nunca digas cuántas unidades hay, " +
     "el costo del envío solo tal cual lo dio cotizar_envio (o agregar_envio) en esta respuesta (lo que la tienda abona o regala, solo como ahorro; " +
     "si la promoción depende de la compra, con su condición en la misma oración), " +
-    "y lo demás de entregas (la fecha), flete, financiamiento, apartados y descuentos queda en «te lo confirma una vendedora». " +
-    "Mantén el tuteo, sin emojis, en 2 a 4 líneas."
+    "y lo demás de entregas (la fecha), flete, financiamiento, apartados y descuentos queda en «se lo confirma una vendedora». " +
+    "De usted, siempre (nunca tutees), con uno o dos emojis como mucho, en 2 a 4 líneas."
   );
 }
 
