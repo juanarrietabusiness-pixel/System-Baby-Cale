@@ -201,8 +201,8 @@ export function pideSumarEnvio(textoDelVisitante: string): boolean {
 }
 
 /**
- * A4. ¿Pide en ESTE mensaje cambiar la cantidad de algo del carrito o quitarlo? («quita la cama», «déjame solo uno», «mejor dos»,
- * «ya no quiero el colchón», «uno menos»). Conservador: sin uno de estos verbos, el modelo solo puede preguntar.
+ * A4. ¿Pide en ESTE mensaje cambiar la cantidad de algo del carrito o quitarlo? («quita los pañales», «déjame solo una caja»,
+ * «mejor dos», «ya no quiero las toallitas», «uno menos»). Conservador: sin uno de estos verbos, el modelo solo puede preguntar.
  */
 export function pideCambiarCarrito(textoDelVisitante: string): boolean {
   const t = ` ${normalizar(textoDelVisitante)} `;
@@ -328,7 +328,8 @@ export function elegirPose(s: SenalesDePose): Pose {
   if (s.delModelo) return s.delModelo;
   if (s.herramientas.includes("reglas_socios")) return "fidelidad";
   if (s.herramientas.includes("horario_y_tienda")) return "escritorio";
-  if (/\b(mide|miden|medida|medidas|cabe|caben|espacio)\b/.test(sinAcentos(s.textoDelVisitante.toLowerCase()))) return "cinta_metrica";
+  // Las tallas de los pañales son las «medidas» de esta tienda: la cinta métrica también.
+  if (/\b(mide|miden|medida|medidas|talla|tallas|cabe|caben|espacio)\b/.test(sinAcentos(s.textoDelVisitante.toLowerCase()))) return "cinta_metrica";
   if (hay("productos")) {
     const palabras = sinAcentos(s.productos.flatMap((p) => [p.nombre, ...p.categorias]).join(" ").toLowerCase());
     if (/\b(colchon|colchones|cama|camas|base|bases|almohada)/.test(palabras)) return "cama";
