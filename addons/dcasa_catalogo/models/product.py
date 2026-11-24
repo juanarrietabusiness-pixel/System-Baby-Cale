@@ -61,9 +61,20 @@ class ProductTemplate(models.Model):
                 plantilla.product_variant_ids.dcasa_presentacion = plantilla.dcasa_presentacion
 
     def _dcasa_presentaciones(self):
-        """``[(variante, texto)]`` de las variantes activas que tienen su presentación (para la ficha de la tienda)."""
+        """``[(variante, texto)]`` de las variantes activas que tienen su presentación (para la ficha de la tienda).
+
+        En el orden de las tallas de la tienda (RN, P, S, M, L, G, XL, XXL: el orden de los valores del atributo), no
+        en el del código (NAT-L, NAT-M, NAT-RN…), que es como Odoo ordena las variantes.
+        """
         self.ensure_one()
-        return [(v, v.dcasa_presentacion) for v in self.sudo().product_variant_ids if v.dcasa_presentacion]
+
+        def orden(variante):
+            valores = variante.product_template_attribute_value_ids
+            return tuple((v.attribute_id.sequence, v.product_attribute_value_id.sequence,
+                          v.product_attribute_value_id.id) for v in valores) or ((0, 0, variante.id),)
+
+        variantes = self.sudo().product_variant_ids.sorted(orden)
+        return [(v, v.dcasa_presentacion) for v in variantes if v.dcasa_presentacion]
 
     def _dcasa_disponibilidad(self, variante=None):
         """``disponible`` / ``pocas`` / ``agotado`` de este producto (o de una de sus medidas) para el cliente.

@@ -52,12 +52,12 @@ de la web (`content.json`: «Caja L, 15 a 39 lb, 128 uds»).
   principal del producto y, en cada talla, `foto` y `fotos_extra` (su segunda foto). `poner_fotos` las pone al
   instalar y en la migración 19.0.2.1.0, **solo donde no hay ninguna**, y **publica lo que recibe su foto
   principal**. Una foto que puso una persona no se cambia y a ese producto no se le toca la publicación.
-  - Publicados: Pañales Nateen de cierre (RN a XXL), Pañales Nateen Pants (L, XL y XXL) y Water wipes Nateen.
-  - **Sin foto y sin publicar** (`origen_foto` dice por qué): Velvee (no está en la web de Baby Caleb), Dany Baby (la
-    web muestra el logo en su lugar) y Fular Moon (la web muestra un aviso, «Foto próximamente»). Un aviso o el logo no
-    se ponen como foto: el producto parecería tenerla y saldría de «fotos que faltan». Se publican desde la ficha (o con
-    Brian) cuando tengan su foto. Mientras tanto Juan no da nombre ni precio de lo no publicado: dice que está en el
-    sistema y pasa la conversación a una vendedora.
+  - Publicados, todos con su foto: Pañales Nateen de cierre (RN a XXL), Pañales Nateen Pants (L, XL y XXL) y Water
+    wipes Nateen, con las fotos de su web; Pañales Velvee (P, M y G), Water wipes Dany Baby y Fular Moon, con las que
+    tomó el dueño (subidas a «up media» el 2026-11-24, migración 19.0.2.2.0). De las del dueño se dejaron fuera las casi
+    iguales a la principal (Velve-p1, Velve-p9 y MOON-FUL6). Un aviso («Foto próximamente») o el logo no se ponen
+    como foto: el producto parecería tenerla y saldría de «fotos que faltan».
+  - La lista «Presentación» de la ficha va en el orden de las tallas (RN, P, S, M, L, G, XL, XXL), no en el del código.
 
 ### Qué muestra la web
 

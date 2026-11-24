@@ -46,12 +46,13 @@
    "orden": 3,
    "descripcion": null,
    "origen_descripcion": "Velvee no está en la web de Baby Caleb: solo el texto del dueño (en cada talla).",
-   "origen_foto": "Sin foto: Velvee no está en la web de Baby Caleb. No se publica hasta tener la del producto.",
+   "foto": "producto-velvee-m.jpg",
+   "origen_foto": "Fotos del dueño (subidas a «up media» el 2026-11-24), pasadas a JPEG de calidad 85. Se dejaron fuera las casi iguales a la principal.",
    "atributo": "Talla",
    "variantes": [
-    {"valor": "P", "codigo": "VELVEE-P", "precio": 35.00, "existencias": 2, "texto": "Pañal Velvee Talla P (S): (7.5 - 13 lb) (3.5 - 6 kg) 150 pañales"},
-    {"valor": "M", "codigo": "VELVEE-M", "precio": 35.00, "existencias": 1, "texto": "Pañal Velvee Talla M (M): (12 - 21 lb) (5.5 - 9.5 kg) 132 pañales"},
-    {"valor": "G", "codigo": "VELVEE-L", "precio": 33.00, "existencias": 3, "texto": "Pañal Velvee Talla G (L): (20 - 27 lb) (9 - 12.5 kg) 126 pañales"}
+    {"valor": "P", "codigo": "VELVEE-P", "precio": 35.00, "existencias": 2, "texto": "Pañal Velvee Talla P (S): (7.5 - 13 lb) (3.5 - 6 kg) 150 pañales", "foto": "producto-velvee-p.jpg", "fotos_extra": ["producto-velvee-p-2.jpg", "producto-velvee-p-3.jpg", "producto-velvee-p-4.jpg"]},
+    {"valor": "M", "codigo": "VELVEE-M", "precio": 35.00, "existencias": 1, "texto": "Pañal Velvee Talla M (M): (12 - 21 lb) (5.5 - 9.5 kg) 132 pañales", "foto": "producto-velvee-m.jpg", "fotos_extra": ["producto-velvee-m-2.jpg", "producto-velvee-m-3.jpg", "producto-velvee-m-4.jpg", "producto-velvee-m-5.jpg"]},
+    {"valor": "G", "codigo": "VELVEE-L", "precio": 33.00, "existencias": 3, "texto": "Pañal Velvee Talla G (L): (20 - 27 lb) (9 - 12.5 kg) 126 pañales", "foto": "producto-velvee-g.jpg", "fotos_extra": ["producto-velvee-g-2.jpg", "producto-velvee-g-3.jpg", "producto-velvee-g-4.jpg", "producto-velvee-g-5.jpg"]}
    ]
   },
   {
@@ -74,9 +75,10 @@
    "orden": 5,
    "descripcion": "Toallitas de agua 99% pura, sin alcohol ni perfumes, ideales para recién nacidos.",
    "origen_descripcion": "Web de Baby Caleb (content.json › products › danybaby-aquawipes), sin «Caja de 12 paquetes de 50»: el dueño dice 6 paquetes de 100.",
-   "origen_foto": "Sin foto: la web de Baby Caleb muestra el logo (logo-badge.png) en su lugar. No se publica hasta tener la del producto.",
+   "foto": "producto-dany-aw600.jpg",
+   "origen_foto": "Fotos del dueño (subidas a «up media» el 2026-11-24), pasadas a JPEG de calidad 85. Se dejaron fuera las casi iguales a la principal.",
    "variantes": [
-    {"codigo": "DANY-AW600", "precio": 20.00, "existencias": 26, "texto": "Water wipes hipoalergénicas Dany Baby — caja de 600 toallitas (6 paquetes de 100)"}
+    {"codigo": "DANY-AW600", "precio": 20.00, "existencias": 26, "texto": "Water wipes hipoalergénicas Dany Baby — caja de 600 toallitas (6 paquetes de 100)", "fotos_extra": ["producto-dany-aw600-2.jpg", "producto-dany-aw600-3.jpg", "producto-dany-aw600-4.jpg", "producto-dany-aw600-5.jpg", "producto-dany-aw600-6.jpg", "producto-dany-aw600-7.jpg"]}
    ]
   },
   {
@@ -86,9 +88,10 @@
    "orden": 6,
    "descripcion": "Portabebés ergonómico Moon: unitalla y ajustable, de recién nacido hasta ~25 lb. Carga a tu bebé cómoda y segura.",
    "origen_descripcion": "Web de Baby Caleb (content.json › products › fular-moon), sin «Disponibilidad y colores por WhatsApp»: la lista del dueño trae un solo color (gris).",
-   "origen_foto": "Sin foto: la web de Baby Caleb muestra un aviso («Foto próximamente», producto-fular-moon.png) en su lugar. No se publica hasta tener la del producto.",
+   "foto": "producto-moon-ful.jpg",
+   "origen_foto": "Fotos del dueño (subidas a «up media» el 2026-11-24), pasadas a JPEG de calidad 85. Se dejaron fuera las casi iguales a la principal.",
    "variantes": [
-    {"codigo": "MOON-FUL", "precio": 46.00, "existencias": 2, "texto": "Fular prearmado Moon de bambú color gris — unitalla ajustable XS a 3XL (RN hasta ~25 lbs)"}
+    {"codigo": "MOON-FUL", "precio": 46.00, "existencias": 2, "texto": "Fular prearmado Moon de bambú color gris — unitalla ajustable XS a 3XL (RN hasta ~25 lbs)", "fotos_extra": ["producto-moon-ful-2.jpg", "producto-moon-ful-3.jpg", "producto-moon-ful-4.jpg", "producto-moon-ful-5.jpg"]}
    ]
   }
  ]

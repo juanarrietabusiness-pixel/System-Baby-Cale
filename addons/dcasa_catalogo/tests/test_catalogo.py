@@ -157,6 +157,10 @@ class TestCatalogoBabyCaleb(TransactionCase):
         self.assertEqual(moon.product_variant_id.dcasa_presentacion, 'Fular Moon gris', 'Se edita desde la ficha')
         self.assertEqual([texto for _v, texto in pants._dcasa_presentaciones()],
                          [LISTA_DEL_DUENO[c][0] for c in ('NAT-P-L', 'NAT-P-XL', 'NAT-P-XXL')])
+        # En el orden de las tallas, no en el del código (NAT-L, NAT-M, NAT-RN… y VELVEE-L, -M, -P).
+        for clave in ('nateen-diapers', 'velvee-diapers'):
+            esperado = [LISTA_DEL_DUENO[codigo][0] for _talla, codigo in PRODUCTOS[clave][2]]
+            self.assertEqual([texto for _v, texto in self.producto(clave)._dcasa_presentaciones()], esperado, clave)
 
     def test_las_vistas_muestran_la_presentacion(self):
         for modelo, xmlid, tipo in (('product.template', 'product.product_template_only_form_view', 'form'),
@@ -166,26 +170,27 @@ class TestCatalogoBabyCaleb(TransactionCase):
             arch = self.env[modelo].get_view(self.env.ref(xmlid).id, tipo)['arch']
             self.assertIn('name="dcasa_presentacion"', arch, xmlid)
 
-    def test_con_su_foto_se_publica_y_sin_foto_no(self):
-        """Las fotos de la web de Baby Caleb (pedido del dueño, 2026-11-24): la principal de cada producto y la de cada
-        talla con su segunda foto. Lo que no tiene foto no se publica: Velvee no está en su web, Dany Baby sale con el
-        logo y Fular Moon con «Foto próximamente» (un aviso no es la foto del producto)."""
-        con_foto = ('nateen-diapers', 'nateen-pants', 'nateen-wipes')
+    def test_con_su_foto_se_publica(self):
+        """Las fotos del catálogo (2026-11-24): las de la web de Baby Caleb para los Nateen y las que tomó el dueño para
+        Velvee, Dany Baby y Fular Moon. Todos los productos tienen su foto principal y salen en la web; cada talla, la
+        suya y las de más que dice data/catalogo.json."""
+        extras = {v['codigo']: len(v.get('fotos_extra') or []) for item in leer_catalogo()['productos']
+                  for v in item['variantes']}
         for clave in PRODUCTOS:
             producto = self.producto(clave)
             self.assertTrue(producto.allow_out_of_stock_order)
-            if clave in con_foto:
-                self.assertTrue(producto.image_1920, clave)
-                self.assertTrue(producto.is_published, f'{clave}: con su foto sale en la web')
-            else:
-                self.assertFalse(producto.image_1920, clave)
-                self.assertFalse(producto.is_published, f'{clave}: sin foto no sale en la web')
-        for clave in ('nateen-diapers', 'nateen-pants'):
+            self.assertTrue(producto.image_1920, clave)
+            self.assertTrue(producto.is_published, f'{clave}: con su foto sale en la web')
+            for variante in producto.product_variant_ids:
+                self.assertEqual(len(variante.product_variant_image_ids), extras[variante.default_code],
+                                 f'{variante.default_code}: sus fotos de más')
+        self.assertEqual((extras['VELVEE-P'], extras['VELVEE-M'], extras['VELVEE-L'], extras['DANY-AW600'],
+                          extras['MOON-FUL']), (3, 4, 4, 6, 4), 'las del dueño, sin las casi iguales')
+        for clave in ('nateen-diapers', 'nateen-pants', 'velvee-diapers'):
             variantes = self.producto(clave).product_variant_ids
             self.assertEqual(len(variantes), len(PRODUCTOS[clave][2]))
             for variante in variantes:
                 self.assertTrue(variante.image_variant_1920, f'{variante.default_code}: la foto de su talla')
-                self.assertEqual(len(variante.product_variant_image_ids), 1, f'{variante.default_code}: y su segunda')
             fotos = {v.image_variant_1920 for v in variantes}
             self.assertEqual(len(fotos), len(variantes), f'{clave}: cada talla con la suya')
 

@@ -88,9 +88,13 @@ del puente. Ya en uso en la cuenta y **no se tocan**: `babycaleb-web`, `babycale
   - Los testimonios van de dos en dos.
   - En la ficha del producto, WhatsApp sigue siendo el botón principal y «Agregar al carrito» va de contorno.
   - En los PDF el papel queda blanco, porque se imprimen.
-- **Sin foto y sin publicar:** Velvee (no está en la web de Baby Caleb), Dany Baby (su web muestra el logo en lugar de
-  la foto) y Fular Moon (su web muestra «Foto próximamente»). Se publican cuando el dueño suba su foto (en la ficha del
-  producto o con Brian).
+- **Fotos del dueño (2026-11-24):** Velvee (P, M y G), Dany Baby y Fular Moon ya tienen las suyas en el catálogo. Las
+  subió a «up media» de la rama `main` (la de D'CASA): el robot de D'CASA movió las de Velvee P y G a `descartado/` y las
+  de Velvee M quedaron en la raíz. No se perdió ninguna; se tomaron de ahí. **Para la próxima:** subirlas igual; se
+  recogen de `main`.
+- **Lo que dicen las fotos y conviene confirmar:** cada paquete de Velvee trae 50 (P), 44 (M) y 42 (G) pañales, y la
+  lista del dueño dice 150, 132 y 126: ¿se vende el bulto de 3 paquetes? Si es así, la ficha debería decirlo. La caja
+  de Dany Baby dice «6 PCS» de 100: confirma la lista (6 paquetes de 100) y no la web (12 de 50).
 - **Water wipes Nateen** quedó publicado, pero la web de Baby Caleb lo marca «descatalogado» (`content.json`). Si ya no
   se vende, se despublica en su ficha.
 - Datos de la empresa: razón social, RUC y DV, dirección, teléfono, correo, web, lema de los documentos.
