@@ -1,6 +1,6 @@
 # up media: qué pasó con lo que subiste
 
-Procesado el 2026-10-12 por `scripts/procesar_up_media.py` (lo corre GitHub solo, con cada subida: `.github/workflows/up-media.yml`; cómo leer esto: `docs/OPERACION.md` › «Cómo subir fotos»).
+Procesado el 2026-11-24 por `scripts/procesar_up_media.py` (lo corre GitHub solo, con cada subida: `.github/workflows/up-media.yml`; cómo leer esto: `docs/OPERACION.md` › «Cómo subir fotos»).
 
 Cómo funciona esta carpeta: aquí solo queda lo **pendiente**. Lo que ya se cargó al catálogo está en `fuentes/<pedido>/` y lo que no era de ningún producto, en `descartado/<fecha>/` (con el motivo en su LEEME.md). Las dudas del catálogo (precios, fotos, medidas) están en `docs/CATALOGO_REVISAR.md`.
 
@@ -26,7 +26,12 @@ Cómo funciona esta carpeta: aquí solo queda lo **pendiente**. Lo que ya se car
 
 ### Descartado
 
-- Nada.
+- `Velve-p1.jpg` → `descartado/2026-11-24/`: no es de ningún producto: el nombre no trae un código del Excel ni describe una cama (tamaño, color o medidas).
+- `Velve-p2.jpg` → `descartado/2026-11-24/`: no es de ningún producto: el nombre no trae un código del Excel ni describe una cama (tamaño, color o medidas).
+- `Velve-p3.jpg` → `descartado/2026-11-24/`: no es de ningún producto: el nombre no trae un código del Excel ni describe una cama (tamaño, color o medidas).
+- `Velve-p5.jpg` → `descartado/2026-11-24/`: no es de ningún producto: el nombre no trae un código del Excel ni describe una cama (tamaño, color o medidas).
+- `Velve-p7.jpg` → `descartado/2026-11-24/`: no es de ningún producto: el nombre no trae un código del Excel ni describe una cama (tamaño, color o medidas).
+- `Velve-p9.jpg` → `descartado/2026-11-24/`: no es de ningún producto: el nombre no trae un código del Excel ni describe una cama (tamaño, color o medidas).
 
 ## Cómo subir más
 
