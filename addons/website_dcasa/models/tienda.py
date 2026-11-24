@@ -38,6 +38,20 @@ ENTREGAS = [
 # Nombres que tuvieron estas entregas: una base ya instalada los renombra (``_dcasa_entregas``) en vez de crear otra.
 ENTREGAS_ANTES = {'Retiro en tienda (La Chorrera)': 'Retiro en tienda'}
 
+# Negocio sin tienda física (Baby Caleb: «Venta 100% online con entrega a domicilio», el dueño 2026-11-24). Con
+# este parámetro en «1» el pago no ofrece «Pago en la tienda» (que aparta el pedido para pagarlo en el local) ni la
+# entrega «Retiro en tienda»: quedan apagados, no borrados, y al reinstalar o migrar no se vuelven a encender. Lo
+# pone el arranque con DCASA_TIENDA_FISICA=0 (docker/entrypoint.sh, edge/wrangler.jsonc). Sin él (D'CASA, las
+# pruebas), todo como siempre.
+PARAMETRO_SIN_TIENDA = 'website_dcasa.sin_tienda_fisica'
+PAGO_EN_TIENDA = 'delivery.payment_provider_cod'
+RETIRO_EN_TIENDA = 'Retiro en tienda'
+
+
+def sin_tienda_fisica(env):
+    """¿El negocio vende sin local (no hay pago ni retiro en la tienda)?"""
+    return env['ir.config_parameter'].sudo().get_param(PARAMETRO_SIN_TIENDA) == '1'
+
 
 class DeliveryCarrier(models.Model):
     _inherit = 'delivery.carrier'
@@ -76,13 +90,17 @@ class Website(models.Model):
         Provider = self.env['payment.provider'].sudo().with_context(active_test=False)
         transferencia = self.env.ref('payment.payment_provider_transfer')
         idiomas = [codigo for codigo, _n in self.env['res.lang'].get_installed()]
+        sin_tienda = sin_tienda_fisica(self.env)
         for xmlid, nombre, modo, mensaje in PAGOS:
             proveedor = self.env.ref(xmlid, raise_if_not_found=False) if xmlid else Provider.search(
                 [('code', '=', 'custom'), ('custom_mode', '=', modo), ('name', '=', nombre)], limit=1)
             if not proveedor:
                 proveedor = transferencia.copy({
                     'name': nombre, 'payment_method_ids': [(6, 0, transferencia.payment_method_ids.ids)]})
-            proveedor.write({'state': 'enabled', 'is_published': True})
+            if sin_tienda and xmlid == PAGO_EN_TIENDA:
+                proveedor.write({'state': 'disabled', 'is_published': False})
+            else:
+                proveedor.write({'state': 'enabled', 'is_published': True})
             _nombrar(proveedor, nombre)
             # La tienda muestra MÉTODOS (no proveedores): Yappy necesita el suyo, si no se
             # juntaría con la transferencia en una sola opción.
@@ -144,12 +162,32 @@ class Website(models.Model):
                 'list_price': 0, 'sale_ok': False, 'purchase_ok': False, 'taxes_id': [(5, 0, 0)],
             })
         self._dcasa_renombrar_entregas()
+        sin_tienda = sin_tienda_fisica(self.env)
         for orden, (nombre, por_cotizar) in enumerate(ENTREGAS, start=1):
             carrier = Carrier.search([('name', '=', nombre)], limit=1) or Carrier.create({
                 'name': nombre, 'delivery_type': 'fixed', 'fixed_price': 0, 'product_id': producto.id,
             })
+            visible = not (sin_tienda and nombre == RETIRO_EN_TIENDA)
             carrier.write({
-                'active': True, 'is_published': True, 'sequence': orden,
+                'active': visible, 'is_published': visible, 'sequence': orden,
                 'allow_cash_on_delivery': True, 'dcasa_por_cotizar': por_cotizar,
             })
             _nombrar(carrier, nombre)
+
+    @api.model
+    def _dcasa_aplicar_sin_tienda_fisica(self):
+        """Deja al negocio sin tienda física (``PARAMETRO_SIN_TIENDA``): apaga «Pago en la tienda» y archiva «Retiro en
+        tienda». No borra nada (los pedidos viejos con esa entrega o ese pago siguen como estaban). Se puede repetir.
+        Devuelve lo que quedó apagado, para el registro del arranque."""
+        self.env['ir.config_parameter'].sudo().set_param(PARAMETRO_SIN_TIENDA, '1')
+        apagados = []
+        cod = self.env.ref(PAGO_EN_TIENDA, raise_if_not_found=False)
+        if cod:
+            cod.sudo().write({'state': 'disabled', 'is_published': False})
+            apagados.append(cod.sudo().name)
+        retiro = self.env['delivery.carrier'].sudo().with_context(active_test=False).search(
+            [('name', '=', RETIRO_EN_TIENDA)])
+        if retiro:
+            retiro.write({'active': False, 'is_published': False})
+            apagados += retiro.mapped('name')
+        return apagados

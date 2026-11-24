@@ -65,6 +65,8 @@
     "DCASA_COBRA_ITBMS": "0",
     // El conocimiento de Baby Caleb se siembra una vez por ficha; después manda el panel.
     "DCASA_CONOCIMIENTO_INICIAL": "baby_caleb",
+    // Baby Caleb vende solo en línea, sin local (el dueño, 2026-11-24): sin pago ni retiro en la tienda.
+    "DCASA_TIENDA_FISICA": "0",
     // Black Weekend (addons/website_dcasa/models/black_weekend.py): en producción solo dentro de la
     // ventana que fijó la dueña (lunes 5 a domingo 11 de octubre de 2026, hora de Panamá,
     // inclusive); pasada la fecha se apaga sola. "1" la mostraría sin mirar fechas.
@@ -174,6 +176,7 @@
         // Baby Caleb no cobra ITBMS (decisión del dueño, 2026-11-24), igual que producción.
         "DCASA_COBRA_ITBMS": "0",
         "DCASA_CONOCIMIENTO_INICIAL": "baby_caleb",
+        "DCASA_TIENDA_FISICA": "0",
         // Black Weekend apagado: es una campaña de D'CASA; Baby Caleb no tiene campaña cargada.
         "DCASA_BLACK_WEEKEND": "0",
         "DCASA_BLACK_WEEKEND_INICIO": "2026-10-02",

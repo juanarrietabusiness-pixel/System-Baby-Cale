@@ -35,6 +35,31 @@ class TestTiendaConfigurada(TransactionCase):
         self.assertNotIn('al recibir', mensaje)
         self.assertIn('pagado completo', mensaje)
 
+    def test_sin_tienda_fisica_no_hay_pago_ni_retiro_en_la_tienda(self):
+        """Baby Caleb vende solo en línea (el dueño, 2026-11-24; DCASA_TIENDA_FISICA=0 en el arranque): el pago no
+        ofrece «Pago en la tienda» ni la entrega «Retiro en tienda». Quedan apagados, no borrados, y una migración
+        (``_dcasa_configurar_tienda``) no los vuelve a encender."""
+        Carrier = self.env['delivery.carrier'].sudo().with_context(active_test=False)
+        cod = self.env.ref('delivery.payment_provider_cod').sudo()
+        apagados = self.website._dcasa_aplicar_sin_tienda_fisica()
+        self.assertIn('Pago en la tienda', apagados)
+        self.assertIn('Retiro en tienda', apagados)
+        for vuelta in ('al aplicarlo', 'después de una migración'):
+            with self.subTest(vuelta=vuelta):
+                pagos = self.env['payment.provider'].search([('state', '=', 'enabled'), ('is_published', '=', True)])
+                self.assertEqual(set(pagos.mapped('name')), {'Transferencia bancaria', 'Yappy'})
+                self.assertEqual(cod.state, 'disabled')
+                retiro = Carrier.search([('name', '=', 'Retiro en tienda')])
+                self.assertEqual(len(retiro), 1, 'apagado, no borrado')
+                self.assertFalse(retiro.active or retiro.is_published)
+                entregas = self.env['delivery.carrier'].search([('is_published', '=', True)])
+                self.assertNotIn('Retiro en tienda', entregas.mapped('name'))
+                self.assertIn('Entrega a domicilio: te cotizamos por WhatsApp', entregas.mapped('name'))
+                self.website._dcasa_configurar_tienda()
+        # Se puede repetir sin duplicar nada.
+        self.website._dcasa_aplicar_sin_tienda_fisica()
+        self.assertEqual(Carrier.search_count([('name', '=', 'Retiro en tienda')]), 1)
+
     def test_el_pedido_hecho_agradece_con_tuteo(self):
         """La voz de la marca es de tú: «¡Gracias por tu compra!», no «Gracias por su orden.» de Odoo."""
         vista = self.env.ref('website_sale.confirmation')

@@ -526,6 +526,8 @@ export const VARIABLES_DEL_CONTENEDOR = [
   "DCASA_COBRA_ITBMS",
   // El conocimiento del bot que se siembra una vez por ficha (addons/dcasa_conversaciones/conocimiento_inicial.py)
   "DCASA_CONOCIMIENTO_INICIAL",
+  // «0» = el negocio vende sin local (Baby Caleb): docker/entrypoint.sh › _dcasa_aplicar_sin_tienda_fisica
+  "DCASA_TIENDA_FISICA",
   // Black Weekend: "1" = visible sin mirar fechas (staging); ventana AAAA-MM-DD en hora de Panamá
   "DCASA_BLACK_WEEKEND",
   "DCASA_BLACK_WEEKEND_INICIO",

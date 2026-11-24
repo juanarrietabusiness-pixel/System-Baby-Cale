@@ -52,6 +52,7 @@
 #   ODOO_DESINSTALAR_SOBRANTES  0 para no desinstalar los módulos sobrantes.
 #   DCASA_COBRA_ITBMS     «0» = el negocio no cobra ITBMS (Baby Caleb): empresa y productos sin el 7 %
 #   DCASA_CONOCIMIENTO_INICIAL  negocio cuyo conocimiento se siembra una vez por ficha (p. ej. «baby_caleb»)
+#   DCASA_TIENDA_FISICA   «0» = el negocio vende sin local (Baby Caleb): sin «Pago en la tienda» ni «Retiro en tienda»
 #   DCASA_STOCK_PRUEBA    unidades de prueba por producto sin existencias ni movimientos
 #                         (solo con DCASA_ENTORNO=staging; por defecto 10). En producción
 #                         siempre 0: ver «2c. Existencias de prueba».
@@ -484,6 +485,26 @@ PY
     set_param dcasa_base.sin_itbms_version "$APP_VERSION"
   else
     echo "⚠ No se pudo quitar el ITBMS: Odoo arranca igual y se reintenta en el próximo arranque." >&2
+  fi
+fi
+
+# --- 2c'''. Sin tienda física (negocios que venden solo en línea, p. ej. Baby Caleb) -------------
+# DCASA_TIENDA_FISICA=0 (staging y producción de Baby Caleb, edge/wrangler.jsonc): el pago no ofrece «Pago en la
+# tienda» y la entrega «Retiro en tienda» queda archivada (addons/website_dcasa/models/tienda.py:
+# _dcasa_aplicar_sin_tienda_fisica). Se apagan, no se borran, y las migraciones no los vuelven a encender. Sin la
+# variable (o "1") no se toca nada: así se comporta D'CASA y así corren las pruebas. Una vez por versión.
+if [[ "${DCASA_TIENDA_FISICA:-1}" == "0" ]] && [[ "${NO_BAJAR:-0}" != "1" ]] \
+  && [[ "$(sql "SELECT state FROM ir_module_module WHERE name = 'website_dcasa'")" == "installed" ]] \
+  && [[ "$(sql "SELECT value FROM ir_config_parameter WHERE key = 'website_dcasa.sin_tienda_fisica_version'")" != "$APP_VERSION" ]]; then
+  echo "▶ Sin tienda física: fuera «Pago en la tienda» y «Retiro en tienda»"
+  if odoo_shell DCASA_SIN_TIENDA_OK <<'PY'; then
+print(f"· Apagados: {', '.join(env['website']._dcasa_aplicar_sin_tienda_fisica()) or 'nada'}")
+env.cr.commit()
+print('DCASA_SIN_TIENDA_OK')
+PY
+    set_param website_dcasa.sin_tienda_fisica_version "$APP_VERSION"
+  else
+    echo "⚠ No se pudo quitar el pago y el retiro en tienda: Odoo arranca igual y se reintenta en el próximo arranque." >&2
   fi
 fi
 
