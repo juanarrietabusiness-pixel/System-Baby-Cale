@@ -11,7 +11,9 @@
         border-color: var(--dc-relleno);
         color: var(--dc-en-relleno);
     }
-    .o_dcasa_combo_ahorro { background: var(--dc-cabeza); }
+    // «Ahorras…»: de día es el naranja con letra navy; de noche, el relleno de la marca con su letra (no el fondo de las
+    // cabeceras con la letra navy encima: 1.04:1).
+    .o_dcasa_combo_ahorro { background: var(--dc-relleno); color: var(--dc-en-relleno); }
     .o_dcasa_combo_falta,
     .o_dcasa_combo_existencia.o_agotado { color: var(--dc-mal); }
     // La foto del producto se queda sobre blanco (a propósito).

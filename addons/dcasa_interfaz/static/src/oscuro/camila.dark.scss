@@ -18,7 +18,8 @@
     .o_camila_encabezado { background: var(--dc-cabeza); color: var(--dc-en-cabeza); }
     // «Nueva campaña» era el botón amarillo sobre el azul: de noche es el botón principal.
     .o_camila_nueva { background: var(--dc-relleno); border-color: var(--dc-relleno); color: var(--dc-en-relleno); }
-    .o_camila_avatar { color: var(--dc-en-amarillo); }
+    // El avatar es verde de día y de noche: la letra es la de encima del verde, que no gira con la marca de cada empresa.
+    .o_camila_avatar { background: var(--dc-salvia); color: var(--dc-en-salvia); }
 
     .o_camila_cifra,
     .o_camila_bloqueos,

@@ -69,7 +69,10 @@ class TestWebsitePages(HttpCase):
         self.assertNotIn('Suma puntos y gana invitando', home)
         response = self.url_open('/socios')
         self.assertEqual(response.status_code, 200)
-        self.assertIn('https://wa.me/50767575065', response.text, 'La app del socio usa el mismo sitio y pie')
+        # El mismo sitio y el mismo pie (con su WhatsApp). El botón flotante de WhatsApp no sirve de prueba: con
+        # Brian de la tienda encendido, la burbuja es la del chat.
+        self.assertIn('o_dcasa_pie_nombre', response.text, 'La app del socio usa el mismo sitio y pie')
+        self.assertIn('href="/whatsapp"', response.text)
 
     def test_terminos_de_odoo_llevan_a_los_reales(self):
         """La factura y el portal enlazan /terms: la plantilla de Odoo trae términos inventados en inglés."""

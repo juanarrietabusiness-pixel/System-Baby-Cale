@@ -110,7 +110,7 @@ class TestBrianVendedores(TransactionCase):
                          (1, padrino['codigo'], 'ninguno'))
         otra = self.ok(self.ejecutar(self.caja, 'consultar_vendedor', {'vendedor': 'Brianzeta Luis'}))
         self.assertEqual(otra['patrocinador'], self.ana.display_name)
-        self.assertEqual(otra['tipo'], 'Empleado de D’CASA')
+        self.assertEqual(otra['tipo'], 'Empleado de Baby Caleb')
 
     def test_consultar_a_quien_no_es_vendedor_lo_explica(self):
         respuesta = self.ejecutar(self.caja, 'consultar_vendedor', {'vendedor': 'Brianzeta Luis'})

@@ -116,7 +116,8 @@ class TestPuertas(ContactoCommon):
         self.sin_correo.with_context(**EXCEPCION).email = correo_del_equipo
         with self.assertRaises(UserError) as error:
             self.cotizar(self.sin_correo).action_confirm()
-        self.assertIn("es de D'CASA o de alguien del equipo", error.exception.args[0])
+        # El nombre de la empresa (Baby Caleb), no el de la tienda de origen.
+        self.assertIn(f'es de {self.env.company.name} o de alguien del equipo', error.exception.args[0])
         with self.assertRaises(ValidationError):
             self.sin_nada.with_user(self.vendedora).email = correo_del_equipo
 

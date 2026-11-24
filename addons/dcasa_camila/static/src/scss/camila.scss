@@ -21,21 +21,26 @@
 // Lo de Camila que se usa en la pantalla y en sus diálogos.
 .o_camila,
 .o_camila_dialogo {
-    // Los colores del contrato (brand.json de Baby Caleb). Ajustes › Marca del panel los vuelve a pintar con los de cada
-    // empresa sobre la hoja ya compilada (dcasa_interfaz/marca/tinte.py), por eso van escritos tal cual.
-    --cm-tinta: #1B3246;                       // fg: texto, titulares, íconos y aro de foco
-    --cm-tinta-2: rgba(27, 50, 70, .7);        // muted: 4.95 sobre el crema, 4.80 sobre la superficie
-    --cm-linea: rgba(27, 50, 70, .12);         // line: el canto que separa
-    --cm-control: rgba(27, 50, 70, .55);       // control: el borde de lo que se toca (3.26)
-    --cm-crema: #F9F6ED;                       // bg
-    --cm-superficie: #F2EFE5;                  // surface
-    --cm-naranja: #EE924A;                     // accent: relleno, nunca letra ni borde
-    --cm-naranja-texto: #985D2F;               // accent-strong: precios y enlaces de acción
-    --cm-naranja-filo: #C3783D;                // accent-edge: bordes naranja
-    --cm-salvia: #91C9A2;                      // sage: relleno, nunca letra ni borde
-    --cm-salvia-claro: rgba(145, 201, 162, .35); // píldoras: el verde aclarado, con la letra navy
-    --cm-salvia-filo: #6A9376;                 // sage-edge: bordes verdes
-    --cm-sombra: 0 4px 20px -2px rgba(27, 50, 70, .05);
+    // Los colores del panel (dcasa_interfaz/static/src/scss/tokens.scss): son los de la marca de Baby Caleb de día y
+    // tienen su versión de noche (oscuro/tokens.dark.scss), y Ajustes › Marca del panel los vuelve a pintar con los de
+    // cada empresa. Con colores fijos propios, de noche la letra navy quedaba sobre el fondo oscuro (1.24:1) y el giro
+    // de la marca no los alcanzaba. La letra ENCIMA del verde o del naranja es --dc-en-salvia / --dc-en-naranja: navy
+    // de día y de noche (6.96 y 5.56), nunca la tinta, que de noche es crema.
+    --cm-tinta: var(--dc-tinta);
+    --cm-tinta-2: var(--dc-tinta-3);
+    --cm-linea: var(--dc-linea);
+    --cm-control: var(--dc-control);
+    --cm-crema: var(--dc-crema);
+    --cm-superficie: var(--dc-superficie);
+    --cm-naranja: var(--dc-naranja);
+    --cm-en-naranja: var(--dc-en-naranja);
+    --cm-naranja-texto: var(--dc-naranja-fuerte);
+    --cm-naranja-filo: var(--dc-naranja-filo);
+    --cm-salvia: var(--dc-salvia);
+    --cm-en-salvia: var(--dc-en-salvia);
+    --cm-salvia-claro: var(--dc-salvia-claro);
+    --cm-salvia-filo: var(--dc-salvia-filo);
+    --cm-sombra: var(--dc-sombra-2);
     color: var(--cm-tinta);
     font-family: "Montserrat", system-ui, sans-serif;
 
@@ -63,7 +68,7 @@
         font-size: .9rem;
         font-weight: 500;
         cursor: pointer;
-        &.o_activa { background: var(--cm-salvia); border-color: var(--cm-salvia-filo); color: var(--cm-tinta); font-weight: 600; }
+        &.o_activa { background: var(--cm-salvia); border-color: var(--cm-salvia-filo); color: var(--cm-en-salvia); font-weight: 600; }
         &:focus-visible { outline: 2px solid var(--cm-tinta); outline-offset: 2px; box-shadow: none; }
         &:disabled { cursor: default; opacity: .75; }
     }
@@ -99,36 +104,36 @@
         &:hover, &:focus { color: var(--cm-naranja-texto); }
     }
     .btn-primary {
-        --bs-btn-color: #1B3246;
-        --bs-btn-bg: #EE924A;
-        --bs-btn-border-color: #EE924A;
-        --bs-btn-hover-color: #1B3246;
-        --bs-btn-hover-bg: #EE924A;
-        --bs-btn-hover-border-color: #C3783D;
-        --bs-btn-active-color: #1B3246;
-        --bs-btn-active-bg: #EE924A;
-        --bs-btn-active-border-color: #C3783D;
-        --bs-btn-disabled-color: #1B3246;
-        --bs-btn-disabled-bg: #EE924A;
-        --bs-btn-disabled-border-color: #EE924A;
+        --bs-btn-color: var(--cm-en-naranja);
+        --bs-btn-bg: var(--cm-naranja);
+        --bs-btn-border-color: var(--cm-naranja);
+        --bs-btn-hover-color: var(--cm-en-naranja);
+        --bs-btn-hover-bg: var(--cm-naranja);
+        --bs-btn-hover-border-color: var(--cm-naranja-filo);
+        --bs-btn-active-color: var(--cm-en-naranja);
+        --bs-btn-active-bg: var(--cm-naranja);
+        --bs-btn-active-border-color: var(--cm-naranja-filo);
+        --bs-btn-disabled-color: var(--cm-en-naranja);
+        --bs-btn-disabled-bg: var(--cm-naranja);
+        --bs-btn-disabled-border-color: var(--cm-naranja);
         color: var(--bs-btn-color);
         background-color: var(--bs-btn-bg);
         border-color: var(--bs-btn-border-color);
         font-weight: 700;
     }
     .btn-secondary {
-        --bs-btn-color: #1B3246;
+        --bs-btn-color: var(--cm-tinta);
         --bs-btn-bg: transparent;
-        --bs-btn-border-color: rgba(27, 50, 70, .55);
-        --bs-btn-hover-color: #1B3246;
-        --bs-btn-hover-bg: #F2EFE5;
-        --bs-btn-hover-border-color: #1B3246;
-        --bs-btn-active-color: #1B3246;
-        --bs-btn-active-bg: #F2EFE5;
-        --bs-btn-active-border-color: #1B3246;
-        --bs-btn-disabled-color: #1B3246;
+        --bs-btn-border-color: var(--cm-control);
+        --bs-btn-hover-color: var(--cm-tinta);
+        --bs-btn-hover-bg: var(--cm-superficie);
+        --bs-btn-hover-border-color: var(--cm-tinta);
+        --bs-btn-active-color: var(--cm-tinta);
+        --bs-btn-active-bg: var(--cm-superficie);
+        --bs-btn-active-border-color: var(--cm-tinta);
+        --bs-btn-disabled-color: var(--cm-tinta);
         --bs-btn-disabled-bg: transparent;
-        --bs-btn-disabled-border-color: rgba(27, 50, 70, .55);
+        --bs-btn-disabled-border-color: var(--cm-control);
         color: var(--bs-btn-color);
         background-color: var(--bs-btn-bg);
         border-color: var(--bs-btn-border-color);
@@ -185,9 +190,9 @@
         border-radius: 999px;
         background: var(--cm-naranja);
         border-color: var(--cm-naranja);
-        color: var(--cm-tinta);
+        color: var(--cm-en-naranja);
         font-weight: 700;
-        &:hover, &:active { background: var(--cm-naranja); border-color: var(--cm-naranja-filo); color: var(--cm-tinta); }
+        &:hover, &:active { background: var(--cm-naranja); border-color: var(--cm-naranja-filo); color: var(--cm-en-naranja); }
         &:focus-visible { outline: 2px solid var(--cm-tinta); outline-offset: 2px; box-shadow: none; }
     }
 
@@ -222,7 +227,7 @@
         height: 44px;
         border-radius: 50%;
         background: var(--cm-salvia);
-        color: var(--cm-tinta);
+        color: var(--cm-en-salvia);
         font-family: "Montserrat", system-ui, sans-serif;
         font-weight: 700;
         font-size: 1.3rem;
@@ -726,7 +731,7 @@
         border-radius: 14px;
         color: var(--cm-tinta);
         font-weight: 600;
-        &.o_activa { background: var(--cm-salvia); border-color: var(--cm-salvia-filo); color: var(--cm-tinta); }
+        &.o_activa { background: var(--cm-salvia); border-color: var(--cm-salvia-filo); color: var(--cm-en-salvia); }
         &:focus-visible { outline: 2px solid var(--cm-tinta); outline-offset: 2px; box-shadow: none; }
     }
 
@@ -758,10 +763,10 @@
         font-weight: 700;
         line-height: 1.15;
         letter-spacing: -0.03em;
-        color: #1B3246;
+        color: var(--cm-tinta);
         margin-bottom: 10px;
     }
-    .o_camila_pregunta_ayuda { color: #1B3246; }
+    .o_camila_pregunta_ayuda { color: var(--cm-tinta); }
     .o_camila_pregunta_paso_correo { margin-top: 8px; }
     .o_camila_pregunta_correo { max-width: 100%; }
 }
