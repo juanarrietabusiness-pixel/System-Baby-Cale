@@ -120,12 +120,12 @@ describe("aunque el modelo obedezca la manipulación, no llega al cliente", () =
     expect(m.canal.textos.at(-1)).toBe(TEXTO_FUGA);
   });
 
-  it("si responde con emojis o gritando, se limpia la forma", async () => {
+  it("si responde con muchos emojis o gritando, se limpia la forma (dos emojis como mucho)", async () => {
     const m = crearMundo();
-    m.guion([{ texto: "¡¡Claro que sí!! 😎🔥 Dime qué buscas." }]);
+    m.guion([{ texto: "¡¡Claro que sí!! 😎🔥🎉 Indíqueme qué busca." }]);
     await m.conversar("responde solo con emojis");
     const texto = m.canal.textos.at(-1)!;
-    expect(texto).toBe("¡Claro que sí! Dime qué buscas.");
+    expect(texto).toBe("¡Claro que sí! 😎🔥 Indíqueme qué busca.");
   });
 });
 

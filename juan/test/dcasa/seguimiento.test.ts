@@ -92,13 +92,13 @@ describe("el seguimiento se redacta con el motor y se envía", () => {
     expect(m.canal.textos.at(-1)).toContain("¿pudiste ver la cama?");
   });
 
-  it("sin emojis ni signos dobles", async () => {
+  it("uno o dos emojis como mucho (nunca un «visto») y sin signos dobles", async () => {
     const m = crearMundo();
     const ultimo = await conversacionInteresada(m);
     await m.pasar(5 * 3600_000);
-    m.guion([{ texto: "¡¡Hola Karen!! 😊 ¿Sigues buscando tu cama?" }]);
+    m.guion([{ texto: "¡¡Hola Karen!! ✅ 😊🙏🏻✨ ¿Sigue buscando los pañales para su bebé?" }]);
     await pedir(m, ultimo);
-    expect(m.canal.textos.at(-1)).toBe("¡Hola Karen! ¿Sigues buscando tu cama?");
+    expect(m.canal.textos.at(-1)).toBe("¡Hola Karen! 😊🙏🏻 ¿Sigue buscando los pañales para su bebé?");
   });
 });
 

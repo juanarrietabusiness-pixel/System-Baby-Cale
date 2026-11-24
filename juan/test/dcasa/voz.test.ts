@@ -9,16 +9,19 @@ import { marcaDe, presentacionPorDefecto } from "../../src/dcasa/prompt";
 import { crearMundo } from "../helpers/mundo";
 
 const EMOJI = /\p{Extended_Pictographic}/u;
+const EMOJIS = /\p{Extended_Pictographic}/gu;
 
 describe("lo que llega al cliente", () => {
-  it("sin emojis, sin signos dobles y sin formato de documento", async () => {
+  it("uno o dos emojis como mucho, ningún «visto», sin signos dobles y sin formato de documento", async () => {
     const m = crearMundo();
-    m.guion([{ texto: "¡¡Claro que sí!! 😎🔥 ¿Qué talla buscas??\n## Opciones\n**de cierre** o pants" }]);
+    m.guion([{ texto: "¡¡Claro que sí!! 👼🏻🙌🏻😁 ✅ ¿Qué talla busca??\n## Opciones\n**de cierre** o pants ✨" }]);
     await m.conversar("hola");
     const todo = m.canal.textos.join("\n");
-    expect(todo).not.toMatch(EMOJI);
+    expect(todo.match(EMOJIS) ?? []).toEqual(["👼", "🙌"]);
+    expect(todo).toContain("👼🏻🙌🏻");
+    expect(todo).not.toMatch(/[✓✔✅☑]/u);
     expect(todo).not.toMatch(/[¡!]{2}|[¿?]{2}|##|\*\*/);
-    expect(todo).toContain("¿Qué talla buscas?");
+    expect(todo).toContain("¿Qué talla busca?");
   });
 
   it("«remate» y «¡corre!» no salen: el modelo reescribe sin presión", async () => {

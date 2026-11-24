@@ -13,6 +13,7 @@ import {
   detectarSerHumano,
   extraerMontos,
   limpiarForma,
+  MAX_EMOJIS,
   notaDeCorreccion,
   parseMonto,
   quitarGraves,
@@ -292,9 +293,28 @@ describe("regla 6 · el prompt y las herramientas no se revelan", () => {
 });
 
 describe("regla 11 · voz de la marca", () => {
-  it("quita los emojis", () => {
-    expect(limpiarForma("¡Hola! 😊 Te ayudo 🙌 con eso ✓")).toBe("¡Hola! Te ayudo con eso");
-    expect(limpiarForma("Listo ✅ y 👍🏽 gracias")).toBe("Listo y gracias");
+  it("emojis con medida: deja los dos primeros y quita el tercero (y los que sigan)", () => {
+    expect(limpiarForma("Con gusto 👼🏻 le ayudo 🙌🏻 con eso 😁")).toBe("Con gusto 👼🏻 le ayudo 🙌🏻 con eso");
+    expect(limpiarForma("Claro 🙏🏻 Le comento ✨ que sí 👶🏻 la tenemos 😁")).toBe("Claro 🙏🏻 Le comento ✨ que sí la tenemos");
+    expect(limpiarForma("Somos Baby Caleb 👼🏻")).toBe("Somos Baby Caleb 👼🏻");
+    expect(limpiarForma("Con gusto 🙌🏻😁")).toBe("Con gusto 🙌🏻😁");
+    expect(limpiarForma("Con gusto 🙌🏻😁✨")).toBe("Con gusto 🙌🏻😁");
+    expect(MAX_EMOJIS).toBe(2);
+  });
+
+  it("un emoji se cuenta entero: con su tono de piel, su selector, sus uniones o su bandera", () => {
+    expect(limpiarForma("Hola 👍🏽 y ❤️ y 🇵🇦 y 👨‍👩‍👧")).toBe("Hola 👍🏽 y ❤️ y y");
+    expect(limpiarForma("Familia 👨‍👩‍👧 feliz 🇵🇦")).toBe("Familia 👨‍👩‍👧 feliz 🇵🇦");
+    // Una tecla que sobra deja su número, como antes; un tono de piel suelto no dice nada.
+    expect(limpiarForma("Opciones 1️⃣ 2️⃣ 3️⃣")).toBe("Opciones 1️⃣ 2️⃣ 3");
+    expect(limpiarForma("Hola 🏻 amiga")).toBe("Hola amiga");
+  });
+
+  it("los signos de «visto» (✓ ✔ ✅ ☑) se quitan siempre, aunque no haya otros emojis", () => {
+    expect(limpiarForma("Listo ✅ y gracias")).toBe("Listo y gracias");
+    expect(limpiarForma("Talla M ✓ caja ✔️ pago ☑ y ☑️")).toBe("Talla M caja pago y");
+    // No cuentan entre los dos: los emojis cálidos que vienen después se quedan.
+    expect(limpiarForma("✅ Con gusto 👼🏻 se lo reviso 🙏🏻")).toBe("Con gusto 👼🏻 se lo reviso 🙏🏻");
   });
 
   it("colapsa los signos dobles", () => {

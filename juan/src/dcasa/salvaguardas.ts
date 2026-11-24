@@ -820,12 +820,35 @@ function palabraProhibida(texto: string, palabras: readonly string[]): string | 
   return null;
 }
 
-const EMOJI = /[\p{Extended_Pictographic}\u{1F1E6}-\u{1F1FF}\u{1F3FB}-\u{1F3FF}\u{FE0F}\u{200D}\u{20E3}✓✔✅☑]/gu;
+/**
+ * Emojis con medida (pedido del dueño de Baby Caleb, 2026-11-24, con la voz de su CRM: 👼🏻 🙌🏻 👶🏻 🙏🏻 😁 ✨): uno o dos por mensaje como
+ * mucho. Se dejan los dos primeros y se quitan los demás. Cada emoji se cuenta entero, con su tono de piel, su selector, sus uniones
+ * («👨‍👩‍👧») o su bandera. Los signos de «visto» (✓ ✔ ✅ ☑) no se dejan nunca: parecen una confirmación de algo que el bot no hizo.
+ */
+export const MAX_EMOJIS = 2;
+const VISTO = /[✓✔✅☑]\u{FE0F}?/gu;
+/** Lo que hace de un grafema un emoji: un pictograma, una bandera (dos letras regionales) o una tecla («1️⃣»). */
+const ES_EMOJI = /[\p{Extended_Pictographic}\u{1F1E6}-\u{1F1FF}\u{20E3}]/u;
+/** Las piezas de un emoji (el pictograma, el tono de piel, el selector, la unión, la tecla): lo que se quita de uno que sobra. */
+const PIEZAS_DE_EMOJI = /[\p{Extended_Pictographic}\u{1F1E6}-\u{1F1FF}\u{1F3FB}-\u{1F3FF}\u{FE0F}\u{200D}\u{20E3}]/gu;
+/** Un tono de piel, un selector o una unión sueltos, sin emoji al lado: no dicen nada. */
+const PIEZAS_SUELTAS = /[\u{1F3FB}-\u{1F3FF}\u{FE0F}\u{200D}]/gu;
+const GRAFEMAS = new Intl.Segmenter("es", { granularity: "grapheme" });
 
-/** Forma: sin emojis, sin signos dobles, sin markdown de documento. WhatsApp usa *un* asterisco. */
+function emojisConMedida(texto: string): string {
+  let vistos = 0;
+  let salida = "";
+  for (const { segment } of GRAFEMAS.segment(texto.replace(VISTO, ""))) {
+    if (!ES_EMOJI.test(segment)) salida += segment.replace(PIEZAS_SUELTAS, "");
+    else if (++vistos <= MAX_EMOJIS) salida += segment;
+    else salida += segment.replace(PIEZAS_DE_EMOJI, ""); // una tecla que sobra («3️⃣») deja su número, como antes
+  }
+  return salida;
+}
+
+/** Forma: uno o dos emojis como mucho (nunca un «visto»), sin signos dobles, sin markdown de documento. WhatsApp usa *un* asterisco. */
 export function limpiarForma(texto: string): string {
-  return texto
-    .replace(EMOJI, "")
+  return emojisConMedida(texto)
     .replace(/^#{1,6}\s+/gm, "")
     .replace(/\*\*([^*\n]+)\*\*/g, "*$1*")
     .replace(/__([^_\n]+)__/g, "_$1_")
