@@ -10,15 +10,56 @@ export const LATIDO_MS = 60_000;
 /** Cada cuánto el vigilante del contenedor revisa su propio socket. */
 export const VIGILANTE_MS = 30_000;
 
+// ── La paciencia del vigilante ─────────────────────────────────────────────
+//
+// Lección de la caída del CRM de Baby Caleb (24-nov-2026). Su vigilante daba por muerto al
+// puente si el /estado tardaba más de 4 s, le pedía reconectar cada 30 s y lo destruía a los
+// 2,5 min. Un puente LENTO porque estaba procesando lo que se acumuló mientras estuvo caído
+// nunca terminaba: lo cortaban antes, y cada vuelta encontraba todavía más pendiente. Una caída
+// de un rato se volvió un bucle de 14 horas. Aquí el martillo (destruir el contenedor) solo cae
+// cuando NO hay progreso, y cada vez espera más.
+
 /**
- * Cuántas vigilancias seguidas con el contenedor prendido pero SIN conexión a
- * WhatsApp antes de destruirlo y levantarlo de cero.
- *
- * Cinco (≈2,5 min) y no una: reconectar es lo barato y hay que darle tiempo a que
- * funcione. Destruir el contenedor es el martillo — las credenciales viven en el
- * Durable Object y sobreviven, pero cuesta una resincronización entera.
+ * Gracia después de cada arranque del contenedor (incluido un reinicio forzado): ni se le pide
+ * reconectar ni se le destruye. Arrancar Node, leer la sesión, iniciar sesión en WhatsApp,
+ * reponer pre-keys y empezar a recibir lo atrasado toma minutos en un `lite` (1/16 de CPU).
  */
-export const LATIDOS_ANTES_DE_REINICIAR = 5;
+export const GRACIA_TRAS_ARRANQUE_MS = 10 * 60_000;
+
+/**
+ * Cuánto vale una señal de trabajo para decir «está ocupado, no caído». Trabajo = la sesión
+ * escribió llaves de tráfico (sesiones, identidades, LID, pre-keys USADAS) o se le entregó un
+ * mensaje de una clienta a Juan. Reponer pre-keys NO cuenta: era justo lo que hacía el bucle.
+ */
+export const PROGRESO_VIGENTE_MS = 5 * 60_000;
+
+/**
+ * Sin conexión y sin progreso durante esto, la primera vez se destruye el contenedor y se levanta
+ * de cero. Antes eran 5 vigilancias (≈2,5 min). Se cuenta desde lo último que pasó: la caída, el
+ * último progreso o el último reinicio forzado.
+ */
+export const REINICIAR_SIN_PROGRESO_MS = 10 * 60_000;
+
+/**
+ * Cada reinicio forzado SEGUIDO (sin un rato sano en medio) duplica la espera para el siguiente:
+ * 10 → 20 → 40 → 60 min y ahí se queda. Si reiniciar no lo arregló, reiniciar más rápido tampoco
+ * lo va a arreglar; lo que hace es cortar el trabajo a la mitad.
+ */
+export const REINICIO_ESPERA_MAX_MS = 60 * 60_000;
+
+/**
+ * «Ocupado» (no contesta o no conecta, pero hay progreso) no se cree para siempre: si dura más que
+ * esto sin llegar a conectar, se trata como caído. Es la red para algo que escribe llaves sin parar
+ * pero nunca termina.
+ */
+export const OCUPADO_MAXIMO_MS = 60 * 60_000;
+
+/**
+ * Cuánto espera la vigilancia la respuesta del /estado del contenedor. El CRM de origen esperaba
+ * 4 s y con eso lo daba por muerto; aquí no contestar a tiempo NO es morir (con progreso es
+ * «ocupado»), y el tope solo evita que una vigilancia se quede colgada.
+ */
+export const TOPE_ESTADO_VIGILANCIA_MS = 20_000;
 
 /**
  * Cada cuántos SEGUNDOS el Durable Object vigila su contenedor (en segundos porque
@@ -133,7 +174,7 @@ export async function derivarTokenContenedor(waToken: string): Promise<string> {
 
 // ── Salud real del canal ───────────────────────────────────────────────────
 
-export type Veredicto = "sano" | "esperando-a-una-persona" | "caido";
+export type Veredicto = "sano" | "esperando-a-una-persona" | "ocupado" | "caido";
 
 /**
  * Qué hacer con lo que contesta el contenedor.
@@ -146,11 +187,18 @@ export type Veredicto = "sano" | "esperando-a-una-persona" | "caido";
  * `esperando-a-una-persona` no es un estado sano, pero TAMPOCO es un fallo que se
  * arregle reiniciando: si nadie ha escaneado el QR, reiniciar solo genera un código
  * nuevo y le tumba al dueño el que está mirando.
+ *
+ * `ocupado` (caída del 24-nov): no está conectado —o no contestó a tiempo— PERO hay progreso
+ * reciente (la sesión escribe llaves de tráfico o se le entregan mensajes a Juan). Está
+ * trabajando en lo atrasado: se le deja en paz.
  */
-export function veredictoDeSalud(conexion: string | null | undefined): Veredicto {
+export function veredictoDeSalud(
+  conexion: string | null | undefined,
+  { progresoReciente = false }: { progresoReciente?: boolean } = {},
+): Veredicto {
   if (conexion === "conectada") return "sano";
   if (conexion === "esperando-qr" || conexion === "desvinculada") return "esperando-a-una-persona";
-  return "caido";
+  return progresoReciente ? "ocupado" : "caido";
 }
 
 /**
@@ -166,6 +214,8 @@ export function latidoVencido(ultimoLatidoEn: number | null | undefined, ahora: 
 export interface ReinicioPedido {
   ultimaMuerteVista: string;
   desconectadoSeguidos: 0;
+  reiniciosSeguidos: 0;
+  ocupadoDesde: null;
 }
 
 /**
@@ -173,7 +223,8 @@ export interface ReinicioPedido {
  * punto y aparte, no la continuación de la racha de fallos anterior: si heredara el
  * conteo, el siguiente tropiezo lo destruiría de inmediato (en el CRM de origen el
  * botón «Reiniciar» tampoco reiniciaba nada por heredar el castigo del retroceso).
+ * Tampoco hereda la espera creciente entre reinicios forzados.
  */
 export function reinicioPedido(ahora: Date): ReinicioPedido {
-  return { ultimaMuerteVista: ahora.toISOString(), desconectadoSeguidos: 0 };
+  return { ultimaMuerteVista: ahora.toISOString(), desconectadoSeguidos: 0, reiniciosSeguidos: 0, ocupadoDesde: null };
 }

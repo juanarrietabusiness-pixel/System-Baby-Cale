@@ -120,7 +120,12 @@ describe("salud", () => {
     expect(veredictoDeSalud("desvinculada")).toBe("esperando-a-una-persona");
     for (const c of ["cerrada", "arrancando", null, undefined, "", "otra-cosa"]) {
       expect(veredictoDeSalud(c)).toBe("caido");
+      // Sin conexión (o sin respuesta) PERO con progreso reciente: está trabajando en lo atrasado.
+      expect(veredictoDeSalud(c, { progresoReciente: true })).toBe("ocupado");
     }
+    // El progreso no cambia nada si está conectado o esperando a una persona.
+    expect(veredictoDeSalud("conectada", { progresoReciente: true })).toBe("sano");
+    expect(veredictoDeSalud("esperando-qr", { progresoReciente: true })).toBe("esperando-a-una-persona");
   });
 
   it("latidoVencido", () => {
@@ -136,6 +141,8 @@ describe("salud", () => {
     expect(reinicioPedido(new Date("2026-10-09T12:00:00Z"))).toEqual({
       ultimaMuerteVista: "2026-10-09T12:00:00.000Z",
       desconectadoSeguidos: 0,
+      reiniciosSeguidos: 0, // tampoco hereda la espera creciente entre reinicios forzados
+      ocupadoDesde: null,
     });
   });
 });

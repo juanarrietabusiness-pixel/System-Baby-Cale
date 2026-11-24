@@ -11,12 +11,16 @@
 //   wa_enviados    ids de lo que mandó el puente (para no confundir su eco con la dueña)
 //   wa_contactos   cuándo escribió cada cliente por última vez (¿es un envío «frío»?)
 //   wa_pendientes  mensajes entrantes que Juan no pudo recibir (se reintentan)
+//   wa_actividad   qué escribió la sesión, minuto a minuto (solo CUENTAS, nunca llaves): la señal
+//                  de «está trabajando» contra «da vueltas reponiendo pre-keys» (caída del 24-nov)
+//   wa_prekeys_podadas  respaldo (cifrado) de las pre-keys que se podaron; se puede deshacer
 //
 // El acceso al SQL va por una interfaz mínima (`SqlLike`) para poder probarlo con el
 // SQLite de Node sin Cloudflare.
 
 import type { Cifrador } from "./cifrado";
 import type { Envio } from "../contenedor/lib/ritmo.mjs";
+import { PREFIJO_PRE_KEY } from "../contenedor/lib/llaves.mjs";
 
 /** Lo mínimo que se usa de `SqlStorage` de Cloudflare. */
 export interface SqlLike {
@@ -33,8 +37,18 @@ export interface DepsAlmacen {
 
 /** Copias de la sesión que se conservan en el Durable Object. */
 export const COPIAS_A_CONSERVAR = 7;
-/** Cuántas pre-keys se conservan al podar. Ver `/api/podar`. */
+/**
+ * Cuántas pre-keys se conservan al podar (las de número más alto). Ver `/api/podar` y src/poda.ts.
+ *
+ * Mil, como la limpieza que destrabó el CRM de Baby Caleb el 24-nov-2026 (de 15.934 dejó 1.005):
+ * Baileys sube 812 al vincular y repone de 5 en 5, así que las que todavía pueden estar en los
+ * servidores de WhatsApp —o en un mensaje atrasado— son siempre de las más nuevas.
+ */
 export const PRE_KEYS_A_CONSERVAR = 1000;
+/** Cuántos días se guarda el respaldo de lo podado (el CRM de origen lo borró a la semana de confirmar). */
+export const RESPALDO_PODA_DIAS = 14;
+/** Cuánto se guarda la actividad minuto a minuto. */
+export const ACTIVIDAD_MS = 48 * 60 * 60 * 1000;
 /** Filas por consulta al leer/escribir en lote (no pasarse de los límites de SQLite). */
 export const FILAS_POR_IDA = 90;
 
@@ -73,6 +87,21 @@ export interface EstadoSesion {
   instalacionCompleta: boolean | null;
 }
 
+/** Cuentas de lo que escribió la sesión (y de los mensajes de clientas entregados) en un rato. */
+export interface ConteoActividad {
+  preKeysNuevas: number;
+  preKeysUsadas: number;
+  trafico: number;
+  lotesSoloPreKeys: number;
+  creds: number;
+  entrantes: number;
+}
+
+export interface ResumenActividad extends ConteoActividad {
+  /** El último momento con trabajo real (tráfico de llaves o un mensaje entregado), o null. */
+  ultimoProgresoEn: number | null;
+}
+
 export function iniciarEsquema(sql: SqlLike): void {
   const sentencias = [
     `CREATE TABLE IF NOT EXISTS wa_auth (
@@ -91,6 +120,15 @@ export function iniciarEsquema(sql: SqlLike): void {
     `CREATE TABLE IF NOT EXISTS wa_pendientes (
        id INTEGER PRIMARY KEY AUTOINCREMENT, creado_en INTEGER NOT NULL,
        intentos INTEGER NOT NULL DEFAULT 0, cuerpo TEXT NOT NULL)`,
+    `CREATE TABLE IF NOT EXISTS wa_actividad (
+       minuto INTEGER PRIMARY KEY,
+       prekeys_nuevas INTEGER NOT NULL DEFAULT 0, prekeys_usadas INTEGER NOT NULL DEFAULT 0,
+       trafico INTEGER NOT NULL DEFAULT 0, lotes_solo_prekeys INTEGER NOT NULL DEFAULT 0,
+       creds INTEGER NOT NULL DEFAULT 0, entrantes INTEGER NOT NULL DEFAULT 0,
+       ultimo_progreso_en INTEGER)`,
+    `CREATE TABLE IF NOT EXISTS wa_prekeys_podadas (
+       clave TEXT PRIMARY KEY, valor TEXT NOT NULL, actualizado_en INTEGER NOT NULL, podada_en INTEGER NOT NULL)`,
+    `CREATE INDEX IF NOT EXISTS idx_wa_prekeys_podadas_en ON wa_prekeys_podadas (podada_en)`,
   ];
   // Una sentencia por llamada: no se depende de que `exec` admita varias.
   for (const s of sentencias) sql.exec(s);
@@ -238,22 +276,171 @@ export function crearAlmacen({ sql, transaccion, cifrador, ahora }: DepsAlmacen)
     };
   }
 
+  /** Cuántas pre-keys hay guardadas. */
+  function contarPreKeys(): number {
+    return filas<{ n: number }>(`SELECT COUNT(*) AS n FROM wa_auth WHERE clave LIKE '${PREFIJO_PRE_KEY}%'`)[0].n;
+  }
+
   /**
-   * Válvula de seguridad, a propósito NO automática: las pre-keys son material
-   * criptográfico y borrar una que todavía haga falta rompe el descifrado de un
-   * mensaje pendiente. Conserva las más recientes.
+   * Poda las pre-keys viejas y conserva las `conservar` de NÚMERO más alto (las más nuevas).
+   *
+   * Por número y no por fecha: Baileys las numera en orden y las 812 del vínculo llevan todas la
+   * misma hora, así que la fecha no dice cuál es más nueva. Las que se borran quedan antes en
+   * `wa_prekeys_podadas` (las MISMAS filas cifradas) y se pueden devolver con `deshacerUltimaPoda()`.
+   *
+   * NUNCA toca `creds` (la identidad del dispositivo: tocarla obligaría a escanear el QR) ni ninguna
+   * otra llave: solo filas `pre-key-*`. Todo en una transacción: o se respalda y se borra, o nada.
+   * Devuelve cuántas se borraron.
    */
   function podarPreKeys(conservar = PRE_KEYS_A_CONSERVAR): number {
-    const [antes] = filas<{ n: number }>("SELECT COUNT(*) AS n FROM wa_auth WHERE clave LIKE 'pre-key-%'");
+    const antes = contarPreKeys();
+    if (antes <= conservar) return 0;
+    const t = ahora();
+    // Las que sobran: todas menos las `conservar` de número más alto. «pre-key-» son 8 caracteres.
+    const sobrantes = `SELECT clave FROM wa_auth WHERE clave LIKE '${PREFIJO_PRE_KEY}%'
+                        ORDER BY CAST(SUBSTR(clave, 9) AS INTEGER) DESC LIMIT -1 OFFSET ?`;
+    transaccion(() => {
+      sql.exec(
+        `INSERT INTO wa_prekeys_podadas (clave, valor, actualizado_en, podada_en)
+           SELECT clave, valor, actualizado_en, ? FROM wa_auth WHERE clave IN (${sobrantes})
+           ON CONFLICT(clave) DO UPDATE SET valor = excluded.valor, actualizado_en = excluded.actualizado_en,
+                                            podada_en = excluded.podada_en`,
+        t,
+        conservar,
+      );
+      sql.exec(`DELETE FROM wa_auth WHERE clave IN (${sobrantes})`, conservar);
+    });
+    return antes - contarPreKeys();
+  }
+
+  /**
+   * Devuelve a la sesión las pre-keys de la ÚLTIMA poda (por si alguna hacía falta). No pisa una
+   * llave que exista. Saca esas filas del respaldo. Devuelve cuántas volvieron.
+   */
+  function deshacerUltimaPoda(): { restauradas: number; podadaEn: string | null } {
+    const [r] = filas<{ t: number | null }>("SELECT MAX(podada_en) AS t FROM wa_prekeys_podadas");
+    if (!r?.t) return { restauradas: 0, podadaEn: null };
+    const antes = contarPreKeys();
+    transaccion(() => {
+      sql.exec(
+        `INSERT INTO wa_auth (clave, valor, actualizado_en)
+           SELECT clave, valor, actualizado_en FROM wa_prekeys_podadas WHERE podada_en = ?
+           ON CONFLICT(clave) DO NOTHING`,
+        r.t,
+      );
+      sql.exec("DELETE FROM wa_prekeys_podadas WHERE podada_en = ?", r.t);
+    });
+    return { restauradas: contarPreKeys() - antes, podadaEn: new Date(r.t).toISOString() };
+  }
+
+  /** Cuántas pre-keys hay en el respaldo de la poda y de cuándo es la última. */
+  function respaldoDePoda(): { llaves: number; ultimaPodaEn: string | null } {
+    const [r] = filas<{ n: number; t: number | null }>("SELECT COUNT(*) AS n, MAX(podada_en) AS t FROM wa_prekeys_podadas");
+    return { llaves: r.n, ultimaPodaEn: r.t ? new Date(r.t).toISOString() : null };
+  }
+
+  /** Borra del respaldo lo podado hace más de `RESPALDO_PODA_DIAS` (para entonces, si algo faltaba, ya se notó). */
+  function purgarRespaldoDePoda(): number {
+    const limite = ahora() - RESPALDO_PODA_DIAS * DIA_MS;
+    const [r] = filas<{ n: number }>("SELECT COUNT(*) AS n FROM wa_prekeys_podadas WHERE podada_en < ?", limite);
+    if (r.n) sql.exec("DELETE FROM wa_prekeys_podadas WHERE podada_en < ?", limite);
+    return r.n;
+  }
+
+  // ── Actividad de la sesión (solo cuentas) ────────────────────────────────
+
+  /**
+   * Suma a la cuenta del minuto actual. `progreso` = hubo trabajo real (tráfico de llaves, pre-keys
+   * usadas o un mensaje entregado): se anota la hora exacta para saber «desde cuándo no avanza».
+   */
+  function anotarActividad(c: Partial<ConteoActividad>, progreso: boolean): void {
+    const t = ahora();
     sql.exec(
-      `DELETE FROM wa_auth
-        WHERE clave LIKE 'pre-key-%'
-          AND clave NOT IN (
-            SELECT clave FROM wa_auth WHERE clave LIKE 'pre-key-%' ORDER BY actualizado_en DESC LIMIT ?)`,
-      conservar,
+      `INSERT INTO wa_actividad (minuto, prekeys_nuevas, prekeys_usadas, trafico, lotes_solo_prekeys, creds, entrantes, ultimo_progreso_en)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+       ON CONFLICT(minuto) DO UPDATE SET
+         prekeys_nuevas = prekeys_nuevas + excluded.prekeys_nuevas,
+         prekeys_usadas = prekeys_usadas + excluded.prekeys_usadas,
+         trafico = trafico + excluded.trafico,
+         lotes_solo_prekeys = lotes_solo_prekeys + excluded.lotes_solo_prekeys,
+         creds = creds + excluded.creds,
+         entrantes = entrantes + excluded.entrantes,
+         ultimo_progreso_en = NULLIF(MAX(COALESCE(ultimo_progreso_en, 0), COALESCE(excluded.ultimo_progreso_en, 0)), 0)`,
+      Math.floor(t / 60_000),
+      c.preKeysNuevas ?? 0,
+      c.preKeysUsadas ?? 0,
+      c.trafico ?? 0,
+      c.lotesSoloPreKeys ?? 0,
+      c.creds ?? 0,
+      c.entrantes ?? 0,
+      progreso ? t : null,
     );
-    const [despues] = filas<{ n: number }>("SELECT COUNT(*) AS n FROM wa_auth WHERE clave LIKE 'pre-key-%'");
-    return antes.n - despues.n;
+  }
+
+  /** Lo que se escribió desde `desde` (ms), sumado. */
+  function actividadDesde(desde: number): ResumenActividad {
+    const [r] = filas<Record<string, number | null>>(
+      `SELECT COALESCE(SUM(prekeys_nuevas), 0) AS preKeysNuevas, COALESCE(SUM(prekeys_usadas), 0) AS preKeysUsadas,
+              COALESCE(SUM(trafico), 0) AS trafico, COALESCE(SUM(lotes_solo_prekeys), 0) AS lotesSoloPreKeys,
+              COALESCE(SUM(creds), 0) AS creds, COALESCE(SUM(entrantes), 0) AS entrantes,
+              MAX(ultimo_progreso_en) AS ultimoProgresoEn
+         FROM wa_actividad WHERE minuto >= ?`,
+      Math.floor(desde / 60_000),
+    );
+    return {
+      preKeysNuevas: Number(r.preKeysNuevas),
+      preKeysUsadas: Number(r.preKeysUsadas),
+      trafico: Number(r.trafico),
+      lotesSoloPreKeys: Number(r.lotesSoloPreKeys),
+      creds: Number(r.creds),
+      entrantes: Number(r.entrantes),
+      ultimoProgresoEn: r.ultimoProgresoEn ?? null,
+    };
+  }
+
+  /**
+   * El último momento con trabajo real desde `desde` (por defecto, todo lo guardado: 48 h), o null.
+   * La vigilancia mira solo las últimas horas: un progreso más viejo ya no cambia ninguna decisión.
+   */
+  function ultimoProgresoEn(desde = 0): number | null {
+    const [r] = filas<{ t: number | null }>(
+      "SELECT MAX(ultimo_progreso_en) AS t FROM wa_actividad WHERE minuto >= ?",
+      Math.floor(desde / 60_000),
+    );
+    return r?.t ?? null;
+  }
+
+  /**
+   * Hora por hora desde `desde`: la misma lectura que destapó la caída del CRM de origen (si una
+   * hora solo tiene pre-keys nuevas y nada más, el puente estaba en bucle).
+   */
+  function actividadPorHora(desde: number): (ConteoActividad & { hora: string })[] {
+    return filas<Record<string, number>>(
+      `SELECT minuto / 60 AS h, SUM(prekeys_nuevas) AS preKeysNuevas, SUM(prekeys_usadas) AS preKeysUsadas,
+              SUM(trafico) AS trafico, SUM(lotes_solo_prekeys) AS lotesSoloPreKeys, SUM(creds) AS creds,
+              SUM(entrantes) AS entrantes
+         FROM wa_actividad WHERE minuto >= ? GROUP BY h ORDER BY h`,
+      Math.floor(desde / 60_000),
+    ).map((f) => ({
+      hora: new Date(Number(f.h) * 3_600_000).toISOString(),
+      preKeysNuevas: Number(f.preKeysNuevas),
+      preKeysUsadas: Number(f.preKeysUsadas),
+      trafico: Number(f.trafico),
+      lotesSoloPreKeys: Number(f.lotesSoloPreKeys),
+      creds: Number(f.creds),
+      entrantes: Number(f.entrantes),
+    }));
+  }
+
+  /** Olvida la actividad de hace más de 48 h (no crece sin límite). */
+  function podarActividad(): void {
+    sql.exec("DELETE FROM wa_actividad WHERE minuto < ?", Math.floor((ahora() - ACTIVIDAD_MS) / 60_000));
+  }
+
+  /** Cuándo escribió la última clienta (de `wa_contactos`, que no se borra), o null. */
+  function ultimoEntranteEn(): number | null {
+    const [r] = filas<{ t: number | null }>("SELECT MAX(ultimo_entrante) AS t FROM wa_contactos");
+    return r?.t ?? null;
   }
 
   /** Vuelve a cifrar con la clave ACTUAL todo lo que esté con la anterior (rotación de clave). */
@@ -465,7 +652,17 @@ export function crearAlmacen({ sql, transaccion, cifrador, ahora }: DepsAlmacen)
     lote,
     hayCreds,
     estadoSesion,
+    contarPreKeys,
     podarPreKeys,
+    deshacerUltimaPoda,
+    respaldoDePoda,
+    purgarRespaldoDePoda,
+    anotarActividad,
+    actividadDesde,
+    ultimoProgresoEn,
+    actividadPorHora,
+    podarActividad,
+    ultimoEntranteEn,
     recifrar,
     copiar,
     listarCopias,

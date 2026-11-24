@@ -69,12 +69,33 @@ export function evaluarAlerta(
         "desde el teléfono del negocio. Mientras tanto el asistente no contesta por WhatsApp. Pasos en docs/JUAN_PUENTE.md.",
     };
   }
+  if (veredicto === "ocupado") {
+    return {
+      tipo: "caida",
+      texto:
+        `${sigue}WhatsApp (el puente de D'CASA) lleva ${min} min sin contestar a clientas, pero está trabajando: ` +
+        "procesa los mensajes que se acumularon mientras estuvo desconectado. NO lo reinicies (lo cortarías a la mitad); " +
+        "el sistema lo deja terminar. Si pasa una hora así, revisa docs/JUAN_PUENTE.md («Si WhatsApp se atasca»).",
+    };
+  }
   return {
     tipo: "caida",
     texto:
       `${sigue}WhatsApp (el puente por QR) lleva ${min} min sin conexión y el asistente no está contestando por ahí. ` +
       "El sistema intenta reconectar solo; si no se arregla, revisa docs/JUAN_PUENTE.md («Si WhatsApp lo desconecta»).",
   };
+}
+
+/**
+ * El chat de Telegram de los avisos. El puente usa `ALERTA_TELEGRAM_CHAT`; el Worker `juan` usa
+ * `ALERTA_TELEGRAM_CHAT_ID` para lo mismo. Se acepta cualquiera de los dos para que la dueña no
+ * tenga que cargar dos nombres distintos con el mismo valor (manda el del puente si están los dos).
+ */
+export function chatDeAvisos(env: { ALERTA_TELEGRAM_CHAT?: string; ALERTA_TELEGRAM_CHAT_ID?: string }): string | null {
+  const propio = env.ALERTA_TELEGRAM_CHAT?.trim();
+  if (propio) return propio;
+  const deJuan = env.ALERTA_TELEGRAM_CHAT_ID?.trim();
+  return deJuan || null;
 }
 
 /** Lo que cambia en el diario una vez enviado (o intentado) un aviso. */

@@ -273,6 +273,8 @@ describe("la vigilancia", () => {
     const dia = await d.diario();
     expect(dia.ultimoFalloDelLatido).toContain("puerto");
     expect(dia.latidos).toBe(1);
+    // y la vigilancia SIGUIÓ (progreso, alarmas): un contenedor que no contesta ni el ping cuenta como sin conexión
+    expect(dia.sinConexionDesde).not.toBe(null);
   });
 
   it("el cron solo revive la cadena si se cortó (no multiplica las cadenas)", async () => {
@@ -301,19 +303,70 @@ describe("la vigilancia", () => {
     expect(dia).toMatchObject({ latidos: 20, desconectadoSeguidos: 0, sinConexionDesde: null });
   });
 
-  it("caído: primero pide reconectar (barato); a la quinta vigilancia seguida destruye y levanta de cero", async () => {
+  // CAMBIO de sentido (caída del CRM de Baby Caleb, 24-nov-2026): antes a la QUINTA vigilancia seguida (≈2,5 min)
+  // se destruía el contenedor, aunque estuviera procesando lo atrasado. Ahora: 10 min de gracia tras arrancar, y el
+  // martillo solo tras 10 min sin conexión NI progreso (ver test/vigilancia.test.ts y test/carga.test.ts).
+  it("caído desde que arrancó: 10 min de gracia sin tocarlo; si termina la gracia sin conexión ni progreso, el martillo (una vez)", async () => {
     const { d } = await montar();
+    contenedor(d, "cerrada");
+    const reconexiones = () => d.llamadas.filter((l: any) => l.url.endsWith("/reconectar")).length;
+    // Primeros 10 min: el contenedor acaba de arrancar. Ni reconexiones ni martillo.
+    for (let i = 0; i < 20; i++) {
+      await d.vigilar();
+      avanzar(30_000);
+    }
+    expect(reconexiones()).toBe(0);
+    expect(d.paradas).toHaveLength(0);
+    // 10,5 min sin conexión y sin una sola llave de tráfico: ahora sí, el martillo.
+    avanzar(30_000);
+    await d.vigilar();
+    expect(d.paradas).toHaveLength(1);
+    expect(d.arranques).toHaveLength(2);
+    expect((await d.diario()).reiniciosForzados).toBe(1);
+  });
+
+  it("caído tras haber estado conectado: primero pide reconectar (lo barato)", async () => {
+    const { d } = await montar();
+    contenedor(d, "conectada");
+    await d.vigilar();
+    avanzar(11 * MIN); // fuera de la gracia del arranque
     contenedor(d, "cerrada");
     for (let i = 0; i < 4; i++) {
       await d.vigilar();
       avanzar(30_000);
     }
     expect(d.llamadas.filter((l: any) => l.url.endsWith("/reconectar"))).toHaveLength(4);
-    expect(d.paradas).toHaveLength(0);
-    await d.vigilar(); // la quinta
-    expect(d.paradas).toHaveLength(1);
-    expect(d.arranques).toHaveLength(2);
-    expect((await d.diario()).reiniciosForzados).toBe(1);
+    expect(d.paradas).toHaveLength(0); // con la regla vieja, aquí ya lo habría destruido
+  });
+
+  it("si el contenedor tiene un intento de conexión en curso, no le pide otro", async () => {
+    const { d } = await montar();
+    contenedor(d, "conectada");
+    await d.vigilar();
+    avanzar(11 * MIN);
+    contenedor(d, "cerrada", { intentoEnCurso: true });
+    await d.vigilar();
+    expect(d.llamadas.filter((l: any) => l.url.endsWith("/reconectar"))).toHaveLength(0);
+  });
+
+  it("caído pasada la gracia: el martillo cae a los 10 min sin progreso y el siguiente espera el doble", async () => {
+    const { d } = await montar();
+    contenedor(d, "conectada");
+    await d.vigilar(); // arranca y conecta
+    avanzar(11 * MIN); // fuera de la gracia
+    contenedor(d, "cerrada");
+    const martillos: number[] = [];
+    const t0 = Date.now();
+    for (let i = 0; i < 2 * 60 * 2; i++) {
+      const antes = d.paradas.length;
+      await d.vigilar();
+      if (d.paradas.length > antes) martillos.push(Math.round((Date.now() - t0) / MIN));
+      avanzar(30_000);
+    }
+    expect(martillos[0]).toBe(10);
+    expect(martillos[1] - martillos[0]).toBe(20);
+    expect(martillos[2] - martillos[1]).toBe(40);
+    expect(martillos).toHaveLength(3); // en 2 horas: 3 martillos (con la regla vieja eran 48)
   });
 
   it("el contenedor que ni contesta cuenta como caído", async () => {
@@ -856,7 +909,10 @@ describe("mantenimiento", () => {
     contenedor(d);
     await d.vigilar();
     await d.kvLote({ escribir: Object.fromEntries(Array.from({ length: 1100 }, (_, i) => [`pre-key-${i}`, "x"])) }, "1");
-    expect(await d.podar()).toEqual({ borradas: 100, conservadas: 1000 });
+    expect(await d.podar()).toMatchObject({ borradas: 100, conservadas: 1000, respaldo: { llaves: 100 } });
+    expect((await d.diario()).ultimaPoda).toMatchObject({ borradas: 100, motivo: "manual" });
+    // y se puede deshacer: vuelven las 100
+    expect(await d.deshacerPoda()).toMatchObject({ restauradas: 100 });
     expect(await d.recifrar()).toMatchObject({ recifradas: 0 });
   });
 

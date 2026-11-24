@@ -34,8 +34,17 @@ export interface Env {
   ENTRE_BURBUJAS_MS?: string;
   /** Chat de Telegram de la dueña para los avisos de caída. */
   ALERTA_TELEGRAM_CHAT?: string;
+  /** El mismo chat con el nombre que usa el Worker `juan`; se acepta si falta el de arriba. */
+  ALERTA_TELEGRAM_CHAT_ID?: string;
   ALERTA_MINUTOS?: string;
   ALERTA_REAVISO_MINUTOS?: string;
+  /** Minutos sin mensajes de clientas, en horario de atención, para avisar (0 = apagada). */
+  ALERTA_SIN_MENSAJES_MINUTOS?: string;
+  /** Horario de atención (para la alarma «sin mensajes»): «HH:MM», días 0-6 (0 = domingo) y zona IANA. */
+  HORARIO_INICIO?: string;
+  HORARIO_FIN?: string;
+  HORARIO_DIAS?: string;
+  HORARIO_ZONA?: string;
   /** «on» sube además la copia diaria a R2 (necesita el bucket COPIAS). */
   COPIA_R2?: string;
 }
@@ -73,6 +82,7 @@ export interface PuenteStub {
   listarCopias(): Promise<{ copia: string; creada: string; filas: number }[]>;
   exportarCopia(copia?: string): Promise<ArchivoDeCopia | null>;
   restaurar(opciones: { copia?: string; archivo?: ArchivoDeCopia }): Promise<{ status: number; cuerpo: unknown }>;
-  podar(): Promise<{ borradas: number; conservadas: number }>;
+  podar(): Promise<{ borradas: number; conservadas: number; respaldo: { llaves: number; ultimaPodaEn: string | null } }>;
+  deshacerPoda(): Promise<{ restauradas: number; podadaEn: string | null }>;
   recifrar(): Promise<{ revisadas: number; recifradas: number }>;
 }

@@ -18,6 +18,8 @@ describe("revisarConfiguracion (solo nombres, nunca valores)", () => {
     expect(c).toMatchObject({ faltan: [], invalidos: [], listo: true });
     expect(c.opcionalesFaltan.length).toBe(2);
     expect(revisarConfiguracion({ WA_TOKEN: TOKEN, WA_SESION_CLAVE: CLAVE, TELEGRAM_BOT_TOKEN_JUAN: "x", ALERTA_TELEGRAM_CHAT: "1" }).opcionalesFaltan).toEqual([]);
+    // el chat de avisos también vale con el nombre que usa el Worker `juan`
+    expect(revisarConfiguracion({ WA_TOKEN: TOKEN, WA_SESION_CLAVE: CLAVE, TELEGRAM_BOT_TOKEN_JUAN: "x", ALERTA_TELEGRAM_CHAT_ID: "1" }).opcionalesFaltan).toEqual([]);
   });
 
   it("vacíos o con solo espacios cuentan como faltantes", () => {

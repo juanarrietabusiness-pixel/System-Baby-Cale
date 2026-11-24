@@ -70,9 +70,12 @@ export function crearClienteKv(puente, BufferJSON) {
 /**
  * @param {ReturnType<typeof crearClienteKv>} kv
  * @param {{ BufferJSON: any, initAuthCreds: () => any, proto: any }} baileys
+ * @param {{ alEscribir?: (escritas: string[], borradas: string[]) => void }} [opciones]
+ *   `alEscribir` se entera de cada lote guardado (solo las CLAVES, nunca los valores): con eso
+ *   el /estado cuenta cuántas llaves se escriben y de qué clase (ver lib/llaves.mjs).
  * @returns {Promise<{ state: any, saveCreds: () => Promise<void>, veniaGuardada: boolean }>}
  */
-export async function crearEstadoRemoto(kv, { BufferJSON, initAuthCreds, proto }) {
+export async function crearEstadoRemoto(kv, { BufferJSON, initAuthCreds, proto }, { alEscribir } = {}) {
   const guardadas = await kv.get("creds");
   const creds = guardadas || initAuthCreds();
 
@@ -121,9 +124,21 @@ export async function crearEstadoRemoto(kv, { BufferJSON, initAuthCreds, proto }
           }
           if (!Object.keys(escribir).length && !borrar.length) return;
           await kv.lote({ escribir, borrar });
+          try {
+            alEscribir?.(Object.keys(escribir), borrar);
+          } catch {
+            // Contar es una ayuda: nunca puede romper el guardado de la sesión.
+          }
         },
       },
     },
-    saveCreds: () => kv.set("creds", creds),
+    saveCreds: async () => {
+      await kv.set("creds", creds);
+      try {
+        alEscribir?.(["creds"], []);
+      } catch {
+        /* contar es una ayuda */
+      }
+    },
   };
 }

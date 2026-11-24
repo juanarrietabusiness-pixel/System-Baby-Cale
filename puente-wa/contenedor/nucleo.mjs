@@ -15,19 +15,56 @@
 //   · un error no capturado mata Node 22; el contenedor entraba en ciclo de caídas.
 //   · el QR vence a los 45 s: uno viejo hace que el teléfono diga «revisa tu conexión».
 //   · el QR no se sirve con la sesión activa: cualquiera con acceso vincularía OTRO teléfono.
+//   · PACIENCIA (caída del CRM de Baby Caleb, 24-nov-2026): al volver de un rato desconectado,
+//     WhatsApp entrega de golpe todo lo atrasado y el puente tarda en procesarlo. Un vigilante
+//     que lo recicla porque «tarda» lo corta a la mitad, y la vuelta siguiente encuentra todavía
+//     más pendiente: así una caída de un rato se volvió un bucle de 14 horas. Aquí cada intento
+//     de conexión vivo tiene su margen, y `/reconectar` NO interrumpe un intento en curso.
 
 import { crearClienteKv, crearEstadoRemoto } from "./lib/auth-remoto.mjs";
 import { ColaLlena, EsperaAgotada, crearCola } from "./lib/cola.mjs";
 import { validarEnviar } from "./lib/contrato.mjs";
 import { armarEntrante } from "./lib/entrante.mjs";
 import { enviarSecuencia } from "./lib/envio.mjs";
+import { crearFiltroDeHistorial } from "./lib/historial.mjs";
+import { clasificarLlaves } from "./lib/llaves.mjs";
 import { LIMITE_SALIENTE, MIMES_SALIENTES, nombreSeguro } from "./lib/medios.mjs";
+import { VENTANA_MS, crearMedidor, crearSerie } from "./lib/metricas.mjs";
 import { enmascarar, resolverDestino, sinDispositivo } from "./lib/numeros.mjs";
-import { crearRegistroDeEnvios, decidirUpsert } from "./lib/propios.mjs";
+import { ATRASADO_VIGENTE_MS, crearRegistroDeEnvios, decidirUpsert } from "./lib/propios.mjs";
 import { RITMO_POR_DEFECTO } from "./lib/ritmo.mjs";
 
 /** Cada cuánto se revisa a sí mismo. Mismo valor que VIGILANTE_MS en src/comun.ts. */
 export const VIGILANTE_MS = 30_000;
+
+/**
+ * Cuánto se le deja a un intento de conexión cuya conexión sigue VIVA (abriendo o abierta)
+ * antes de que el vigilante lo dé por perdido y abra otro.
+ *
+ * Antes eran 30 s (`VIGILANTE_MS`). En el `lite` (1/16 de procesador) el inicio de sesión,
+ * reponer pre-keys y empezar a recibir lo atrasado puede tomar más que eso, y reciclar un
+ * intento sano a la mitad es exactamente lo que armó el bucle del 24-nov. Un intento cuya
+ * conexión ya MURIÓ (se cerró sin avisar) sigue teniendo solo `VIGILANTE_MS`: ahí no hay nada
+ * que esperar. Baileys corta por su cuenta un intento colgado (latido de 30 s), así que esto
+ * es solo la red de seguridad.
+ */
+export const GRACIA_INTENTO_MS = 2 * 60_000;
+
+/**
+ * De a cuántos mensajes se atiende un paquete grande. Baileys junta lo que llega al conectar
+ * y lo entrega de una sola vez (cientos de mensajes en un evento); repartirlo en tandas y
+ * ceder el turno entre una y otra deja que el proceso conteste su /estado y siga vivo para
+ * el vigilante del Durable Object.
+ */
+export const LOTE_ENTRANTES = 25;
+
+/**
+ * Si WhatsApp nunca dice «ya te entregué todo lo atrasado», a los tantos minutos se deja de
+ * considerar que el puente está «sincronizando» (solo afecta lo que se informa).
+ */
+export const SINCRONIZACION_MAXIMA_MS = 15 * 60_000;
+
+const HORA_MS = 60 * 60_000;
 
 /**
  * Cuánto vale un QR antes de estar muerto.
@@ -59,10 +96,13 @@ const VISTOS_MAX = 1000;
  *     hostsPermitidos?: string[],
  *     navegador?: [string, string, string],
  *     vigilanteMs?: number,
+ *     graciaIntentoMs?: number,
  *   },
  *   dormir?: (ms: number) => Promise<void>,
+ *   ceder?: () => Promise<void>,
  *   azar?: () => number,
  *   log?: { log: (...a: any[]) => void, error: (...a: any[]) => void },
+ *   medidor?: ReturnType<typeof crearMedidor>,
  * }} Dependencias
  */
 
@@ -73,11 +113,46 @@ export function crearNucleo(deps) {
   const hostsPermitidos = deps.config?.hostsPermitidos ?? [];
   const navegador = deps.config?.navegador ?? NAVEGADOR_POR_DEFECTO;
   const vigilanteMs = deps.config?.vigilanteMs ?? VIGILANTE_MS;
+  const graciaIntentoMs = deps.config?.graciaIntentoMs ?? GRACIA_INTENTO_MS;
   const dormir = deps.dormir ?? ((/** @type {number} */ ms) => new Promise((r) => setTimeout(r, ms)));
+  /** Ceder el turno al bucle de eventos entre tandas (deja contestar /estado en medio de una avalancha). */
+  const ceder = deps.ceder ?? (() => new Promise((r) => setImmediate(r)));
   const azar = deps.azar ?? Math.random;
   const log = deps.log ?? console;
+  const medidor = deps.medidor ?? crearMedidor();
+  /** Qué historial de WhatsApp se baja al conectar: solo lo chico y necesario (ver lib/historial.mjs). */
+  const historialQueSirve = crearFiltroDeHistorial(baileys.proto);
 
   const kv = crearClienteKv(puente, baileys.BufferJSON);
+
+  // ── Contadores por ventana (últimos 15 min) para /estado ─────────────────
+  const series = {
+    llaves: crearSerie(),
+    preKeysNuevas: crearSerie(),
+    preKeysUsadas: crearSerie(),
+    trafico: crearSerie(),
+    lotesSoloPreKeys: crearSerie(),
+    mensajes: crearSerie(),
+  };
+
+  /**
+   * Cada lote que la sesión guarda: solo se cuentan CLAVES por clase (nunca valores).
+   * @param {string[]} escritas @param {string[]} borradas
+   */
+  function alEscribirLlaves(escritas, borradas) {
+    const c = clasificarLlaves(escritas, borradas);
+    series.llaves.sumar(escritas.length + borradas.length);
+    series.preKeysNuevas.sumar(c.preKeysNuevas);
+    series.preKeysUsadas.sumar(c.preKeysUsadas);
+    series.trafico.sumar(c.trafico);
+    if (c.soloPreKeys) series.lotesSoloPreKeys.sumar(1);
+  }
+
+  /**
+   * Las reconexiones de la última hora: muchas seguidas es un bucle (lo avisa el Durable Object).
+   * @type {number[]}
+   */
+  const reconexionesRecientes = [];
 
   // ── Estado observable ────────────────────────────────────────────────────
 
@@ -109,7 +184,24 @@ export function crearNucleo(deps) {
     credencialesVenianDeAlmacen: false,
     qrGenerados: 0,
     avisoVersion: /** @type {string | null} */ (null),
+    /**
+     * Conectada, pero WhatsApp todavía está entregando lo que se acumuló mientras estuvo
+     * desconectada. Es trabajo, no una falla: nadie debe reiniciar al puente por eso.
+     */
+    sincronizando: false,
+    /** Mensajes de clientas que el Worker recibió (entregados de verdad, no solo llegados). */
+    mensajesProcesados: 0,
+    /** Cuándo llegó el último mensaje de una clienta (ISO). */
+    ultimoMensajeEn: /** @type {string | null} */ (null),
+    /**
+     * Lo atrasado de la ÚLTIMA reconexión: lo reciente se atiende; lo viejo se cuenta para que
+     * la dueña lo conteste a mano (el Durable Object le avisa). `id` = cuándo empezó ese intento de conexión.
+     */
+    ultimaReconexion: /** @type {null | { id: string, terminada: boolean, atendidos: number, sinContestar: number, conversacionesSinContestar: number }} */ (null),
   };
+
+  /** Las conversaciones (jid) con mensajes atrasados viejos en la última reconexión; solo se cuentan. */
+  let chatsSinContestar = new Set();
 
   /** @param {string} valor */
   function ponerConexion(valor) {
@@ -156,8 +248,14 @@ export function crearNucleo(deps) {
   let intentosReconexion = 0;
   /** Verdadero mientras el arranque inicial siga reintentando por su cuenta. */
   let arrancando = true;
-  /** Cuándo se abrió el último socket: cada intento nuevo tiene `vigilanteMs` para conectar antes de que el vigilante lo recicle. */
+  /** Cuándo se abrió el último socket: cada intento nuevo tiene su margen para conectar antes de que el vigilante lo recicle. */
   let intentoDesde = 0;
+  /** El socket vigente ya emitió su `close`: ese intento terminó (aunque el objeto siga ahí). */
+  let intentoCerrado = false;
+  /** WhatsApp ya avisó que terminó de entregar lo atrasado en ESTE socket (puede llegar antes del `open`). */
+  let pendientesEntregados = false;
+  /** Desde cuándo está sincronizando (para el tope de `SINCRONIZACION_MAXIMA_MS`). */
+  let sincronizandoDesde = 0;
 
   // Lo que mandó el bot contra lo que mandó una persona.
   const enviadosPorElBot = crearRegistroDeEnvios();
@@ -208,7 +306,7 @@ export function crearNucleo(deps) {
     cerrarAnterior();
     const mia = ++generacion;
 
-    const { state, saveCreds, veniaGuardada } = await crearEstadoRemoto(kv, baileys);
+    const { state, saveCreds, veniaGuardada } = await crearEstadoRemoto(kv, baileys, { alEscribir: alEscribirLlaves });
     estado.credencialesVenianDeAlmacen = veniaGuardada;
     await precargarEnviados();
 
@@ -228,10 +326,18 @@ export function crearNucleo(deps) {
 
     const s = baileys.makeWASocket({
       version,
-      auth: state,
+      // Las llaves de Signal pasan por una caché en memoria (5 min, la de Baileys) cuando la
+      // librería la trae: cada mensaje lee varias veces la misma sesión, y sin caché cada lectura
+      // es un viaje HTTPS al Worker. Al volver con cientos de mensajes atrasados, eso es la
+      // diferencia entre minutos y horas. Las escrituras siguen yendo TODAS al Worker.
+      auth: baileys.makeCacheableSignalKeyStore
+        ? { creds: state.creds, keys: baileys.makeCacheableSignalKeyStore(state.keys, logger) }
+        : state,
       logger,
       browser: navegador,
+      // Reconexión LIVIANA: nada de historial viejo (ver lib/historial.mjs).
       syncFullHistory: false,
+      shouldSyncHistoryMessage: historialQueSirve,
       // No marcarse «en línea» al conectar: si el puente se anuncia en línea, el
       // teléfono de la dueña deja de sonar con los mensajes nuevos.
       markOnlineOnConnect: false,
@@ -239,6 +345,12 @@ export function crearNucleo(deps) {
     });
     socket = s;
     intentoDesde = Date.now();
+    intentoCerrado = false;
+    pendientesEntregados = false;
+    // Lo atrasado se cuenta por socket: lo que WhatsApp guardó llega después de iniciar sesión
+    // en ESTE socket (a veces incluso antes del `open`).
+    chatsSinContestar = new Set();
+    estado.ultimaReconexion = { id: new Date(intentoDesde).toISOString(), terminada: false, atendidos: 0, sinContestar: 0, conversacionesSinContestar: 0 };
 
     /** Un socket viejo que todavía emite eventos no tiene voz. */
     const vigente = () => mia === generacion;
@@ -251,6 +363,15 @@ export function crearNucleo(deps) {
     s.ev.on("connection.update", async (/** @type {any} */ u) => {
       if (!vigente()) return;
       const { connection, lastDisconnect, qr } = u;
+
+      // WhatsApp terminó de entregar lo atrasado. Puede llegar ANTES del `open` (Baileys termina
+      // de iniciar sesión mientras ya entran los mensajes guardados): por eso se anota aparte.
+      if (u.receivedPendingNotifications === true) {
+        pendientesEntregados = true;
+        if (estado.sincronizando) log.log("Terminó de recibir lo atrasado.");
+        estado.sincronizando = false;
+        if (estado.ultimaReconexion) estado.ultimaReconexion.terminada = true;
+      }
 
       if (qr) {
         ponerConexion("esperando-qr");
@@ -271,6 +392,9 @@ export function crearNucleo(deps) {
         estado.ultimoError = null;
         intentosReconexion = 0;
         qrActual = null; // ya no sirve, y servirlo sería un riesgo
+        // Desde aquí y hasta que WhatsApp diga «eso es todo», entra lo que se acumuló.
+        estado.sincronizando = !pendientesEntregados;
+        sincronizandoDesde = Date.now();
         log.log("Conectada.");
       }
 
@@ -278,6 +402,8 @@ export function crearNucleo(deps) {
         // Sin `instanceof Boom`: Baileys y esta app pueden traer versiones distintas
         // de la librería y el instanceof fallaría en silencio. Se lee el código a pelo.
         const causa = Number(lastDisconnect?.error?.output?.statusCode ?? 0);
+        intentoCerrado = true;
+        estado.sincronizando = false;
         ponerConexion("cerrada");
         estado.ultimoError = `cierre ${causa}`;
 
@@ -298,7 +424,7 @@ export function crearNucleo(deps) {
     // contenedor no conoce a Juan: así el token de Juan no viaja hasta aquí.
     s.ev.on("messages.upsert", (/** @type {any} */ u) => {
       if (!vigente()) return;
-      alLlegarMensajes(s, u.messages ?? [], u.type);
+      alLlegarMensajes(s, u.messages ?? [], u.type, vigente);
     });
   }
 
@@ -317,6 +443,9 @@ export function crearNucleo(deps) {
     if (estado.conexion === "desvinculada") return; // esto necesita una persona
     reconexionProgramada = true;
     estado.reconexiones += 1;
+    const ahora = Date.now();
+    reconexionesRecientes.push(ahora);
+    while (reconexionesRecientes.length && ahora - reconexionesRecientes[0] > HORA_MS) reconexionesRecientes.shift();
 
     // 515 (restartRequired) es el reinicio que WhatsApp pide tras vincular: es
     // esperado y se atiende de inmediato. Lo demás espera cada vez más.
@@ -363,6 +492,33 @@ export function crearNucleo(deps) {
   }
 
   /**
+   * ¿La conexión del intento vigente sigue VIVA (abriendo o abierta)? Una que ya se cerró
+   * (o que nunca existió) no tiene nada que esperar.
+   */
+  function intentoVivo() {
+    if (!socket || intentoCerrado) return false;
+    try {
+      const ws = socket.ws;
+      if (!ws) return false;
+      if (ws.isConnecting === true || ws.isOpen === true) return true;
+      if (typeof ws.isOpen === "boolean") return false;
+      const cual = ws.readyState ?? ws.socket?.readyState;
+      if (typeof cual === "number") return cual === 0 || cual === 1; // 0 = CONNECTING, 1 = OPEN
+      return true;
+    } catch {
+      return true;
+    }
+  }
+
+  /**
+   * ¿Hay un intento de conexión en curso que todavía merece paciencia? Mientras lo haya, ni el
+   * vigilante ni un `/reconectar` lo interrumpen: cortarlo a la mitad es empezar de cero.
+   */
+  function intentoEnCurso() {
+    return estado.conexion !== "conectada" && intentoVivo() && Date.now() - intentoDesde < graciaIntentoMs;
+  }
+
+  /**
    * El vigilante: la red de seguridad de última instancia. Cubre los casos en los
    * que el camino normal (`connection.update`) no llega a ejecutarse: una promesa
    * que rechazó, un socket que murió sin emitir `close`, un `setTimeout` perdido.
@@ -370,9 +526,17 @@ export function crearNucleo(deps) {
    * `esperando-qr` y `desvinculada` se dejan en paz a propósito: no son fallos, son
    * estados que esperan a una persona. Reconectar ahí solo genera un código nuevo y
    * le tumba al dueño el que está mirando en la pantalla.
+   *
+   * Paciente: un intento cuya conexión sigue viva tiene `graciaIntentoMs` (2 min); solo uno
+   * cuya conexión ya murió se recicla a los `vigilanteMs` (30 s).
    */
   function vigilar() {
     estado.ultimaVigilancia = new Date().toISOString();
+    medidor.muestrear();
+    if (estado.sincronizando && Date.now() - sincronizandoDesde > SINCRONIZACION_MAXIMA_MS) {
+      estado.sincronizando = false;
+      log.log("Lleva demasiado «sincronizando»: se deja de informar así (no se toca la conexión).");
+    }
 
     if (estado.conexion === "desvinculada" || estado.conexion === "esperando-qr") return;
 
@@ -390,8 +554,10 @@ export function crearNucleo(deps) {
     // `cerrada` o `arrancando`. Si ya hay algo en camino, no se pisa.
     if (reconexionProgramada || arrancando) return;
     // Y se le da al camino normal el tiempo de hacer su trabajo antes de meterse: desde que se
-    // cayó, y desde que se abrió el último intento de conexión.
-    if (Date.now() - Math.max(estado.conexionDesde, intentoDesde) < vigilanteMs) return;
+    // cayó, y desde que se abrió el último intento de conexión. Si ese intento sigue vivo, el
+    // margen es el largo (ver GRACIA_INTENTO_MS).
+    const margen = intentoVivo() ? graciaIntentoMs : vigilanteMs;
+    if (Date.now() - Math.max(estado.conexionDesde, intentoDesde) < margen) return;
 
     log.error(`Nadie está reconectando y lleva caída. Rescatando (${estado.conexion}).`);
     estado.rescatesDelVigilante += 1;
@@ -424,11 +590,34 @@ export function crearNucleo(deps) {
   }
 
   /**
+   * Un paquete de mensajes de Baileys. Los paquetes chicos (lo normal: uno o dos mensajes) se
+   * atienden enseguida; uno grande —lo que se acumuló mientras el puente estaba desconectado—
+   * se atiende de a `LOTE_ENTRANTES`, cediendo el turno entre tandas para que el proceso siga
+   * contestando su /estado y nadie lo crea muerto.
+   *
+   * @param {any} s
+   * @param {any[]} mensajes
+   * @param {string} type
+   * @param {() => boolean} [vigente]  Si el socket dejó de ser el vigente, las tandas que faltan se descartan.
+   */
+  function alLlegarMensajes(s, mensajes, type, vigente = () => true) {
+    atenderTanda(s, mensajes.slice(0, LOTE_ENTRANTES), type);
+    if (mensajes.length <= LOTE_ENTRANTES) return;
+    (async () => {
+      for (let i = LOTE_ENTRANTES; i < mensajes.length; i += LOTE_ENTRANTES) {
+        await ceder();
+        if (!vigente()) return;
+        atenderTanda(s, mensajes.slice(i, i + LOTE_ENTRANTES), type);
+      }
+    })().catch((e) => anotarError("entrantes en tandas", e));
+  }
+
+  /**
    * @param {any} s
    * @param {any[]} mensajes
    * @param {string} type
    */
-  function alLlegarMensajes(s, mensajes, type) {
+  function atenderTanda(s, mensajes, type) {
     for (const msg of mensajes) {
       const decision = decidirUpsert(msg, type, {
         enviados: enviadosPorElBot,
@@ -436,8 +625,16 @@ export function crearNucleo(deps) {
       });
       if (decision.accion === "ignorar") {
         ignorar(decision.motivo);
+        // Lo que una clienta escribió mientras el puente estaba caído y ya es viejo para contestarlo
+        // solo: se cuenta, para que la dueña sepa cuántas conversaciones revisar a mano.
+        if (decision.motivo === "historial" && type !== "notify" && !msg.key?.fromMe && estado.ultimaReconexion) {
+          estado.ultimaReconexion.sinContestar += 1;
+          chatsSinContestar.add(sinDispositivo(msg.key?.remoteJid ?? ""));
+          estado.ultimaReconexion.conversacionesSinContestar = chatsSinContestar.size;
+        }
         continue;
       }
+      if (decision.accion === "entrante" && decision.atrasado && estado.ultimaReconexion) estado.ultimaReconexion.atendidos += 1;
       const id = msg.key.id;
       if (vistos.has(id)) {
         ignorar("duplicado");
@@ -450,6 +647,8 @@ export function crearNucleo(deps) {
       if (propio) estado.respuestasDelTelefono += 1;
       else {
         estado.mensajesRecibidos += 1;
+        estado.ultimoMensajeEn = new Date().toISOString();
+        series.mensajes.sumar(1);
         ultimosEntrantes.set(sinDispositivo(msg.key.remoteJid), { key: msg.key, ts: Date.now() });
         if (ultimosEntrantes.size > 200) ultimosEntrantes.delete(ultimosEntrantes.keys().next().value);
       }
@@ -497,7 +696,10 @@ export function crearNucleo(deps) {
           headers: { "content-type": "application/json" },
           body: cuerpo,
         });
-        if (r.ok) return;
+        if (r.ok) {
+          if (!propio) estado.mensajesProcesados += 1;
+          return;
+        }
         const detalle = (await r.text().catch(() => "")).replace(/\s+/g, " ").slice(0, 200);
         ultimo = new Error(`entrante → ${r.status} · ${detalle}`);
         // Un 4xx es definitivo (cuerpo mal formado, token): repetir no lo arregla.
@@ -652,6 +854,40 @@ export function crearNucleo(deps) {
     return { status: 200, cuerpo: { ok: true, mime: r.mime, base64: Buffer.from(r.bytes).toString("base64") } };
   }
 
+  // ── Métricas para /estado ────────────────────────────────────────────────
+
+  /**
+   * Lo que se necesitó y no se tuvo el 24-nov: memoria y procesador por dentro, cuántas llaves
+   * escribe y de qué clase, cuántos mensajes procesa, qué hay en cola y desde cuándo no entra nada.
+   * Solo números: nunca un texto, un número de teléfono ni una llave.
+   */
+  function metricas() {
+    const ahora = Date.now();
+    while (reconexionesRecientes.length && ahora - reconexionesRecientes[0] > HORA_MS) reconexionesRecientes.shift();
+    const ultimo = estado.ultimoMensajeEn ? Date.parse(estado.ultimoMensajeEn) : null;
+    return {
+      ...medidor.leer(),
+      ventanaMin: Math.round(VENTANA_MS / 60_000),
+      llaves: {
+        escritas: series.llaves.total(),
+        preKeysNuevas: series.preKeysNuevas.total(),
+        preKeysUsadas: series.preKeysUsadas.total(),
+        trafico: series.trafico.total(),
+        lotesSoloPreKeys: series.lotesSoloPreKeys.total(),
+      },
+      mensajes: {
+        recibidos: estado.mensajesRecibidos,
+        procesados: estado.mensajesProcesados,
+        enLaVentana: series.mensajes.total(),
+        ultimoEn: estado.ultimoMensajeEn,
+        minutosDesdeElUltimo: ultimo === null ? null : Math.floor((ahora - ultimo) / 60_000),
+      },
+      colas: { entrantes: colaEntrantes.pendientes, envios: colaEnvios.pendientes },
+      reconexionesUltimaHora: reconexionesRecientes.length,
+      atrasadoVigenteMin: Math.round(ATRASADO_VIGENTE_MS / 60_000),
+    };
+  }
+
   // ── HTTP interno: lo que el Worker consulta ──────────────────────────────
 
   /**
@@ -660,7 +896,17 @@ export function crearNucleo(deps) {
    */
   async function manejar({ metodo, ruta, cuerpo = "" }) {
     if (ruta === "/estado") {
-      return { status: 200, cuerpo: { ...estado, enviosEnCola: colaEnvios.pendientes } };
+      return {
+        status: 200,
+        cuerpo: {
+          ...estado,
+          enviosEnCola: colaEnvios.pendientes,
+          // Un intento de conexión en curso que todavía merece paciencia (el Durable Object no le
+          // pide reconectar ni lo reinicia por eso).
+          intentoEnCurso: intentoEnCurso(),
+          metricas: metricas(),
+        },
+      };
     }
 
     // El error va incluido a propósito: cuando no hay QR ni conexión, el error ES la
@@ -687,11 +933,22 @@ export function crearNucleo(deps) {
     // La empuja el latido del Durable Object cuando ve el contenedor prendido pero
     // WhatsApp desconectado. Es idempotente: si ya hay una reconexión en camino, no
     // hace nada. Lo barato antes que el martillo de destruir el contenedor entero.
+    // Y es PACIENTE: si ya está conectada, o hay un intento de conexión vivo y reciente, no
+    // se toca (cortar un intento a la mitad para abrir otro fue parte del bucle del 24-nov).
     if (ruta === "/reconectar" && metodo === "POST") {
       if (estado.conexion === "desvinculada") {
         return {
           status: 409,
           cuerpo: { error: "El número está desvinculado. Hay que escanear un código nuevo.", estado: estado.conexion },
+        };
+      }
+      if (estado.conexion === "conectada" && socketAbierto()) {
+        return { status: 200, cuerpo: { ok: true, estado: estado.conexion, ignorada: "ya está conectada" } };
+      }
+      if (!reconexionProgramada && intentoEnCurso()) {
+        return {
+          status: 200,
+          cuerpo: { ok: true, estado: estado.conexion, ignorada: "hay un intento de conexión en curso; se le da tiempo", programada: false },
         };
       }
       programarReconexion(0);
@@ -772,6 +1029,6 @@ export function crearNucleo(deps) {
     vigilar,
     anotarError,
     /** Solo para pruebas. */
-    _interno: { programarReconexion, conectar, get socket() { return socket; }, enviadosPorElBot, colaEnvios },
+    _interno: { programarReconexion, conectar, get socket() { return socket; }, enviadosPorElBot, colaEnvios, colaEntrantes, intentoEnCurso },
   };
 }

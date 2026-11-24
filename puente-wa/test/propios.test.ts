@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ENTRANTE_VIGENTE_MS, RESPUESTA_VIGENTE_MS, contenidoDe, crearRegistroDeEnvios, decidirUpsert, textoDe, tipoDe } from "../contenedor/lib/propios.mjs";
+import { ATRASADO_VIGENTE_MS, ENTRANTE_VIGENTE_MS, RESPUESTA_VIGENTE_MS, contenidoDe, crearRegistroDeEnvios, decidirUpsert, textoDe, tipoDe } from "../contenedor/lib/propios.mjs";
 import {
   CLIENTE,
   NEGOCIO,
@@ -89,8 +89,26 @@ describe("decidirUpsert: ¿cliente, vendedora desde el teléfono, eco o nada?", 
     expect(decidirUpsert(msgTexto("hola", { de: jid, fromMe: true, ts: s(AHORA) }), "notify", ctx())).toEqual({ accion: "ignorar", motivo: "no_es_chat" });
   });
 
-  it("ignora el historial viejo (append) de otros", () => {
-    expect(decidirUpsert(msgTexto("viejo", { ts: s(AHORA) }), "append", ctx())).toEqual({ accion: "ignorar", motivo: "historial" });
+  // CAMBIO de sentido (2026-11-24, caída del CRM de Baby Caleb): antes TODO `append` de una clienta se tiraba
+  // como «historial». En Baileys 7 `append` es lo que WhatsApp guardó mientras el puente estaba desconectado,
+  // así que un corte de segundos dejaba sin respuesta a quien escribió justo entonces. Ahora lo atrasado
+  // RECIENTE se atiende y solo lo viejo sigue siendo historial (se cuenta y se avisa).
+  it("ignora lo atrasado viejo (append de hace más de 15 min) de otros", () => {
+    expect(decidirUpsert(msgTexto("viejo", { ts: s(AHORA - ATRASADO_VIGENTE_MS - 1000) }), "append", ctx())).toEqual({ accion: "ignorar", motivo: "historial" });
+    expect(decidirUpsert(msgTexto("de hace 3 h", { ts: s(AHORA - 3 * 3_600_000) }), "append", ctx())).toEqual({ accion: "ignorar", motivo: "historial" });
+  });
+
+  it("atiende lo atrasado reciente (lo que escribió una clienta durante un corte corto)", () => {
+    expect(decidirUpsert(msgTexto("hola, ¿tienen talla M?", { ts: s(AHORA - 60_000) }), "append", ctx())).toEqual({ accion: "entrante", atrasado: true });
+    expect(decidirUpsert(msgTexto("justo al límite", { ts: s(AHORA - ATRASADO_VIGENTE_MS) }), "append", ctx())).toEqual({ accion: "entrante", atrasado: true });
+  });
+
+  it("lo atrasado sin fecha no se contesta (no se sabe si es de hace un minuto o de hace un mes)", () => {
+    expect(decidirUpsert({ ...msgTexto("sin fecha"), messageTimestamp: undefined }, "append", ctx())).toEqual({ accion: "ignorar", motivo: "historial" });
+  });
+
+  it("el margen de lo atrasado es el mismo que el de una respuesta de la dueña (no se le contesta encima)", () => {
+    expect(ATRASADO_VIGENTE_MS).toBe(RESPUESTA_VIGENTE_MS);
   });
 
   it("ignora un mensaje de cliente de hace más de un día aunque llegue «en vivo»", () => {

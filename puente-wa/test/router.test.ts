@@ -31,6 +31,7 @@ function stubFalso(sobre: Partial<Record<keyof PuenteStub, any>> = {}) {
     exportarCopia: f({ version: 1, copia: "c1", creada: "x", filas: [] }),
     restaurar: f({ status: 200, cuerpo: { ok: true } }),
     podar: f({ borradas: 1, conservadas: 1000 }),
+    deshacerPoda: f({ restauradas: 1, podadaEn: "2026-11-24T19:00:00.000Z" }),
     recifrar: f({ revisadas: 2, recifradas: 2 }),
     ...sobre,
   };
@@ -116,6 +117,7 @@ describe("autenticación de /api/* (WA_TOKEN, en tiempo constante)", () => {
     ["GET", "/api/copias/exportar"],
     ["POST", "/api/restaurar"],
     ["POST", "/api/podar"],
+    ["POST", "/api/podar/deshacer"],
     ["POST", "/api/recifrar"],
   ];
 
@@ -273,6 +275,7 @@ describe("/api/*: lo que ve Juan", () => {
   it("podar y recifrar", async () => {
     const stub = stubFalso();
     expect(await cuerpo(await api(envBase(), stub, "/api/podar", { method: "POST" }))).toMatchObject({ borradas: 1 });
+    expect(await cuerpo(await api(envBase(), stub, "/api/podar/deshacer", { method: "POST" }))).toMatchObject({ ok: true, restauradas: 1 });
     expect(await cuerpo(await api(envBase(), stub, "/api/recifrar", { method: "POST" }))).toMatchObject({ recifradas: 2 });
   });
 });

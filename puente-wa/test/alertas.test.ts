@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { ALERTA_POR_DEFECTO, despuesDeAvisar, enviarTelegram, evaluarAlerta, leerConfigAlerta } from "../src/alertas";
+import { ALERTA_POR_DEFECTO, chatDeAvisos, despuesDeAvisar, enviarTelegram, evaluarAlerta, leerConfigAlerta } from "../src/alertas";
 import { aplicarVigilancia, diarioNuevo, type Diario } from "../src/vigilancia";
 
 const T0 = 1_800_000_000_000;
@@ -18,6 +18,13 @@ describe("evaluarAlerta", () => {
     const a = evaluarAlerta(caido(10), "caido", T0, CFG);
     expect(a?.tipo).toBe("caida");
     expect(a?.texto).toContain("10 min");
+  });
+
+  it("si está ocupado procesando lo atrasado, el aviso lo dice y pide NO reiniciarlo", () => {
+    const a = evaluarAlerta(caido(12), "ocupado", T0, CFG);
+    expect(a?.tipo).toBe("caida");
+    expect(a?.texto).toContain("está trabajando");
+    expect(a?.texto).toContain("NO lo reinicies");
   });
 
   it("si está esperando el QR (desvinculado) el aviso lo dice con claridad", () => {
@@ -123,6 +130,12 @@ describe("enviarTelegram", () => {
     const [url, init] = llamar.mock.calls[0] as unknown as [string, RequestInit];
     expect(url).toBe(`https://api.telegram.org/bot${TOKEN_FALSO}/sendMessage`);
     expect(JSON.parse(init.body as string)).toMatchObject({ chat_id: "-100999", text: "hola dueña" });
+  });
+
+  it("el chat de avisos: el del puente, o el que usa el Worker `juan` (ALERTA_TELEGRAM_CHAT_ID)", () => {
+    expect(chatDeAvisos({ ALERTA_TELEGRAM_CHAT: " -100 ", ALERTA_TELEGRAM_CHAT_ID: "-200" })).toBe("-100");
+    expect(chatDeAvisos({ ALERTA_TELEGRAM_CHAT_ID: "-200" })).toBe("-200");
+    expect(chatDeAvisos({})).toBe(null);
   });
 
   it("si Telegram falla o no se llega, devuelve un motivo sin el token y no lanza", async () => {

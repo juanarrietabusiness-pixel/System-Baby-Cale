@@ -1,11 +1,31 @@
 import { describe, expect, it } from "vitest";
-import { LATIDOS_ANTES_DE_REINICIAR } from "../src/comun";
-import { aplicarVigilancia, diarioNuevo, normalizarDiario, resumirEstado } from "../src/vigilancia";
+import { GRACIA_TRAS_ARRANQUE_MS, OCUPADO_MAXIMO_MS, PROGRESO_VIGENTE_MS, REINICIAR_SIN_PROGRESO_MS } from "../src/comun";
+import { aplicarVigilancia, diarioNuevo, esperaAntesDeReiniciar, normalizarDiario, resumirEstado, type Diario } from "../src/vigilancia";
 
 const T0 = 1_800_000_000_000;
 const MIN = 60_000;
 
-describe("aplicarVigilancia: qué hacer en cada latido", () => {
+/** Un diario cuyo contenedor arrancó hace `hace` minutos (fuera de la gracia si es > 10). */
+function arrancadoHace(hace: number, extra: Partial<Diario> = {}): Diario {
+  return { ...diarioNuevo(), ultimoArranque: new Date(T0 - hace * MIN).toISOString(), ...extra };
+}
+
+/** Corre vigilancias cada 30 s desde `desde` hasta `hasta` (ms) con el mismo veredicto; devuelve las acciones. */
+function correr(d: Diario, veredicto: Parameters<typeof aplicarVigilancia>[1], desde: number, hasta: number, ctx = {}) {
+  const acciones: { t: number; accion: string }[] = [];
+  for (let t = desde; t <= hasta; t += 30_000) {
+    const r = aplicarVigilancia(d, veredicto, t, ctx);
+    d = r.diario;
+    acciones.push({ t, accion: r.accion });
+  }
+  return { diario: d, acciones };
+}
+
+// CAMBIO de sentido (2026-11-24, caída del CRM de Baby Caleb): antes el martillo (destruir el contenedor) caía a la
+// quinta vigilancia seguida sin conexión, ≈2,5 min, aunque el puente estuviera procesando lo atrasado. Así una caída
+// de un rato se volvió un bucle de 14 horas. Ahora: gracia tras cada arranque, el martillo solo tras 10 min sin
+// conexión NI progreso, y cada reinicio seguido espera el doble.
+describe("aplicarVigilancia: el vigilante paciente", () => {
   it("sano: todo al día, nada que hacer", () => {
     const { diario, accion } = aplicarVigilancia(diarioNuevo(), "sano", T0);
     expect(accion).toBe("nada");
@@ -13,8 +33,8 @@ describe("aplicarVigilancia: qué hacer en cada latido", () => {
     expect(diario.ultimaConexionVista).toBe(new Date(T0).toISOString());
   });
 
-  it("caído: primero se pide reconectar (lo barato) y se anota desde cuándo no hay conexión", () => {
-    const r = aplicarVigilancia(diarioNuevo(), "caido", T0);
+  it("caído (fuera de la gracia): primero se pide reconectar (lo barato) y se anota desde cuándo no hay conexión", () => {
+    const r = aplicarVigilancia(arrancadoHace(60), "caido", T0);
     expect(r.accion).toBe("pedir_reconexion");
     expect(r.diario).toMatchObject({ desconectadoSeguidos: 1, sinConexionDesde: T0 });
     // «desde cuándo» no se pisa en los latidos siguientes
@@ -23,30 +43,83 @@ describe("aplicarVigilancia: qué hacer en cada latido", () => {
     expect(r2.diario.desconectadoSeguidos).toBe(2);
   });
 
-  it(`tras ${LATIDOS_ANTES_DE_REINICIAR} latidos caídos seguidos, el martillo (y la cuenta vuelve a cero)`, () => {
-    let d = diarioNuevo();
-    const acciones: string[] = [];
-    for (let i = 0; i < LATIDOS_ANTES_DE_REINICIAR; i++) {
-      const r = aplicarVigilancia(d, "caido", T0 + i * 30_000);
-      acciones.push(r.accion);
-      d = r.diario;
-    }
-    expect(acciones.slice(0, -1).every((a) => a === "pedir_reconexion")).toBe(true);
-    expect(acciones.at(-1)).toBe("reiniciar");
-    expect(d).toMatchObject({ reiniciosForzados: 1, desconectadoSeguidos: 0 });
+  it("en los minutos de gracia tras un arranque solo espera: ni le pide reconectar ni lo destruye", () => {
+    expect(GRACIA_TRAS_ARRANQUE_MS).toBe(10 * MIN);
+    const { acciones } = correr(arrancadoHace(0), "caido", T0, T0 + GRACIA_TRAS_ARRANQUE_MS - 30_000);
+    expect(acciones.every((a) => a.accion === "esperar")).toBe(true);
   });
 
-  it("un latido sano en medio corta la racha", () => {
-    let d = diarioNuevo();
-    for (let i = 0; i < LATIDOS_ANTES_DE_REINICIAR - 1; i++) d = aplicarVigilancia(d, "caido", T0).diario;
+  it("el martillo cae solo tras 10 min sin conexión NI progreso (antes: 2,5 min)", () => {
+    const { acciones, diario } = correr(arrancadoHace(60), "caido", T0, T0 + REINICIAR_SIN_PROGRESO_MS);
+    const primero = acciones.find((a) => a.accion === "reiniciar")!;
+    expect(primero.t - T0).toBe(REINICIAR_SIN_PROGRESO_MS);
+    expect(acciones.filter((a) => a.accion === "reiniciar")).toHaveLength(1);
+    expect(acciones.filter((a) => a.t - T0 < REINICIAR_SIN_PROGRESO_MS).every((a) => a.accion === "pedir_reconexion")).toBe(true);
+    expect(diario).toMatchObject({ reiniciosForzados: 1, reiniciosSeguidos: 1, desconectadoSeguidos: 0, ultimoReinicioForzadoEn: primero.t });
+  });
+
+  it("un progreso reciente corre el reloj del martillo (se cuenta desde lo último que avanzó)", () => {
+    const progresoEn = T0 + 8 * MIN; // escribió sesiones hace poco
+    const r = aplicarVigilancia(arrancadoHace(60, { sinConexionDesde: T0 }), "caido", T0 + 12 * MIN, { progresoEn });
+    expect(r.accion).toBe("pedir_reconexion"); // 4 min desde el progreso, no 12 desde la caída
+    const r2 = aplicarVigilancia(r.diario, "caido", progresoEn + REINICIAR_SIN_PROGRESO_MS, { progresoEn });
+    expect(r2.accion).toBe("reiniciar");
+  });
+
+  it("cada reinicio seguido espera el doble: 10 → 20 → 40 → 60 → 60 min", () => {
+    expect([0, 1, 2, 3, 4, 9].map((n) => esperaAntesDeReiniciar(n) / MIN)).toEqual([10, 20, 40, 60, 60, 60]);
+    // Simulado: 4 horas caído y sin progreso. Tras cada martillo hay un arranque (y su gracia).
+    let d = arrancadoHace(60);
+    const martillos: number[] = [];
+    for (let t = T0; t <= T0 + 4 * 60 * MIN; t += 30_000) {
+      const r = aplicarVigilancia(d, "caido", t);
+      d = r.diario;
+      if (r.accion === "reiniciar") {
+        martillos.push(t);
+        d = { ...d, ultimoArranque: new Date(t).toISOString() };
+      }
+    }
+    const separaciones = martillos.slice(1).map((t, i) => (t - martillos[i]) / MIN);
+    expect((martillos[0] - T0) / MIN).toBe(10);
+    expect(separaciones.slice(0, 4)).toEqual([20, 40, 60, 60]);
+    // En 4 horas, 6 martillos y no 96 como con la regla vieja (uno cada 2,5 min).
+    expect(martillos.length).toBeLessThanOrEqual(6);
+  });
+
+  it("un latido sano en medio corta la racha y la espera vuelve a 10 min", () => {
+    let d = arrancadoHace(60, { reiniciosSeguidos: 3, ultimoReinicioForzadoEn: T0 - 90 * MIN });
     d = aplicarVigilancia(d, "sano", T0).diario;
+    expect(d.reiniciosSeguidos).toBe(0);
     expect(d.desconectadoSeguidos).toBe(0);
-    expect(aplicarVigilancia(d, "caido", T0).accion).toBe("pedir_reconexion");
+    const { acciones } = correr(d, "caido", T0 + 30_000, T0 + 30_000 + REINICIAR_SIN_PROGRESO_MS);
+    expect(acciones.at(-1)!.accion).toBe("reiniciar");
+  });
+
+  it("ocupado (sin conexión pero con progreso): espera, aunque pasen horas de la regla vieja", () => {
+    const { acciones, diario } = correr(arrancadoHace(60), "ocupado", T0, T0 + 50 * MIN, { progresoEn: T0 });
+    expect(acciones.every((a) => a.accion === "esperar")).toBe(true);
+    expect(diario.ocupadoDesde).toBe(T0);
+    expect(diario.reiniciosForzados).toBe(0);
+  });
+
+  it("ocupado más de una hora sin llegar a conectar: ya no se le cree al progreso", () => {
+    const d = arrancadoHace(120, { sinConexionDesde: T0, ocupadoDesde: T0 });
+    const ahora = T0 + OCUPADO_MAXIMO_MS;
+    const r = aplicarVigilancia(d, "ocupado", ahora, { progresoEn: ahora - PROGRESO_VIGENTE_MS / 2 });
+    expect(r.accion).toBe("reiniciar");
+  });
+
+  it("si el contenedor tiene un intento de conexión en curso, NO se le pide otro (cortarlo es empezar de cero)", () => {
+    const r = aplicarVigilancia(arrancadoHace(60), "caido", T0, { conectando: true });
+    expect(r.accion).toBe("esperar");
+    // pero el martillo sigue valiendo si se pasa del tiempo sin conectar ni avanzar
+    const r2 = aplicarVigilancia(r.diario, "caido", T0 + REINICIAR_SIN_PROGRESO_MS, { conectando: true });
+    expect(r2.accion).toBe("reiniciar");
   });
 
   it("esperando a una persona (QR / desvinculado): NUNCA se reinicia (tumbaría el QR que está mirando)", () => {
-    let d = diarioNuevo();
-    for (let i = 0; i < 50; i++) {
+    let d = arrancadoHace(60);
+    for (let i = 0; i < 200; i++) {
       const r = aplicarVigilancia(d, "esperando-a-una-persona", T0 + i * 30_000);
       expect(r.accion).toBe("nada");
       d = r.diario;
@@ -56,9 +129,9 @@ describe("aplicarVigilancia: qué hacer en cada latido", () => {
   });
 
   it("no muta el diario que recibe", () => {
-    const original = diarioNuevo();
+    const original = arrancadoHace(60, { arranquesRecientes: [T0 - MIN] });
     const copia = structuredClone(original);
-    aplicarVigilancia(original, "caido", T0);
+    aplicarVigilancia(original, "caido", T0 + REINICIAR_SIN_PROGRESO_MS);
     expect(original).toEqual(copia);
   });
 });

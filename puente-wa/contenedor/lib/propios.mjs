@@ -58,6 +58,19 @@ export const RESPUESTA_VIGENTE_MS = 15 * 60 * 1000;
 export const ENTRANTE_VIGENTE_MS = 24 * 60 * 60 * 1000;
 
 /**
+ * Lo que una clienta escribió MIENTRAS el puente estaba desconectado y que, al volver, sí se
+ * atiende. Baileys 7 entrega eso como `append` (lo «atrasado» que WhatsApp guardó), no como
+ * historial: antes se tiraba todo, y un corte de 10 segundos dejaba sin respuesta a quien
+ * escribió justo en ese momento.
+ *
+ * El mismo margen que una respuesta de la dueña (`RESPUESTA_VIGENTE_MS`) a propósito: todo lo
+ * atrasado que se le pasa a Juan llega junto con lo que la dueña haya contestado desde el
+ * teléfono en ese rato, así el bot no le contesta encima. Lo más viejo NO se contesta solo
+ * (sería responder tarde y quizá encima de una persona): se cuenta y se avisa para hacerlo a mano.
+ */
+export const ATRASADO_VIGENTE_MS = RESPUESTA_VIGENTE_MS;
+
+/**
  * El contenido del mensaje, sin las envolturas de «temporal» o «ver una vez».
  * @param {any} msg
  * @returns {any}
@@ -174,7 +187,7 @@ export function contenidoDe(msg) {
 }
 
 /**
- * @typedef {{ accion: "entrante" | "propio" } | { accion: "ignorar", motivo: string }} Decision
+ * @typedef {{ accion: "entrante", atrasado?: boolean } | { accion: "propio" } | { accion: "ignorar", motivo: string }} Decision
  */
 
 /**
@@ -183,9 +196,11 @@ export function contenidoDe(msg) {
  *   · estados, difusiones, grupos, canales y bots de Meta → ignorar
  *   · `fromMe` → eco del propio puente (ignorar) o una persona desde el teléfono
  *     (`propio`), solo si es reciente
- *   · de otros: solo en vivo (`notify`); `append` es historial que llega al
- *     reconectar y contestarlo sería responder mensajes viejos
- *   · sin contenido que atender, stickers y mensajes de más de 24 h → ignorar
+ *   · de otros, en vivo (`notify`): se atiende si no tiene más de 24 h
+ *   · de otros, atrasado (`append`: llegó mientras el puente estaba desconectado): se
+ *     atiende solo si no tiene más de `ATRASADO_VIGENTE_MS` (`atrasado: true`); lo más
+ *     viejo es «historial» y NO se contesta (se cuenta y se avisa)
+ *   · sin contenido que atender y stickers → ignorar
  *
  * @param {any} msg
  * @param {string} type  `notify` o `append` (Baileys).
@@ -208,11 +223,15 @@ export function decidirUpsert(msg, type, ctx) {
     return { accion: "propio" };
   }
 
-  if (type !== "notify") return { accion: "ignorar", motivo: "historial" };
   const contenido = contenidoDe(msg);
   if (contenido.clase === null) return { accion: "ignorar", motivo: "sin_contenido" };
   if (contenido.clase === "sticker") return { accion: "ignorar", motivo: "sticker" };
   const ts = aNumero(msg.messageTimestamp) * 1000;
+  if (type !== "notify") {
+    // Sin fecha no se puede saber si es de hace un minuto o de hace un mes: no se contesta.
+    if (!ts || ahora - ts > ATRASADO_VIGENTE_MS) return { accion: "ignorar", motivo: "historial" };
+    return { accion: "entrante", atrasado: true };
+  }
   if (ts && ahora - ts > ENTRANTE_VIGENTE_MS) return { accion: "ignorar", motivo: "viejo" };
   return { accion: "entrante" };
 }

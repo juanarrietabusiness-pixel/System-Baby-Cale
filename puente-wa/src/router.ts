@@ -284,8 +284,13 @@ async function rutasDeApi(request: Request, env: Env, s: PuenteStub, ruta: strin
     }
   }
 
+  // Poda de pre-keys a mano (conserva las 1.000 más nuevas, con respaldo; nunca toca `creds`) y su
+  // vuelta atrás: devuelve las de la última poda. Ver src/poda.ts y docs/JUAN_PUENTE.md.
   if (ruta === "/api/podar" && request.method === "POST") {
     return json(200, { ok: true, ...(await s.podar()) });
+  }
+  if (ruta === "/api/podar/deshacer" && request.method === "POST") {
+    return json(200, { ok: true, ...(await s.deshacerPoda()) });
   }
   if (ruta === "/api/recifrar" && request.method === "POST") {
     return json(200, { ok: true, ...(await s.recifrar()) });

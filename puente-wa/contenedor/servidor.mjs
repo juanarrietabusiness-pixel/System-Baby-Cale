@@ -11,7 +11,10 @@
 // Las credenciales de la sesión NO tocan el disco —el disco del contenedor es
 // descartable—: van al Worker, que las guarda cifradas en el Durable Object.
 
+import { readFileSync } from "node:fs";
 import http from "node:http";
+import os from "node:os";
+import { monitorEventLoopDelay } from "node:perf_hooks";
 import makeWASocket, {
   DisconnectReason,
   BufferJSON,
@@ -19,12 +22,14 @@ import makeWASocket, {
   fetchLatestBaileysVersion,
   generateMessageIDV2,
   initAuthCreds,
+  makeCacheableSignalKeyStore,
   proto,
 } from "@whiskeysockets/baileys";
 import pino from "pino";
 import QRCode from "qrcode";
 import { crearNucleo } from "./nucleo.mjs";
 import { descargarSeguro } from "./lib/descarga.mjs";
+import { crearMedidor } from "./lib/metricas.mjs";
 import { leerRitmo } from "./lib/ritmo.mjs";
 import { parsearListaHosts } from "./lib/urls.mjs";
 
@@ -60,6 +65,20 @@ function puente(ruta, init = {}) {
   });
 }
 
+// El atraso del bucle de eventos (cuánto tarda en atender algo que ya está listo): la medida de
+// «ocupado descifrando» contra «muerto». Resolución de 20 ms: barato y suficiente.
+const retraso = monitorEventLoopDelay({ resolution: 20 });
+retraso.enable();
+
+// Memoria, procesador y carga para /estado (lib/metricas.mjs). Los archivos de cgroup dicen lo
+// que gasta el contenedor entero y su tope; si no se pueden leer, quedan en null.
+const medidor = crearMedidor({
+  proceso: process,
+  so: os,
+  leerArchivo: (ruta) => readFileSync(ruta, "utf8"),
+  retraso,
+});
+
 const nucleo = crearNucleo({
   baileys: {
     makeWASocket,
@@ -69,8 +88,10 @@ const nucleo = crearNucleo({
     fetchLatestBaileysVersion,
     generateMessageIDV2,
     initAuthCreds,
+    makeCacheableSignalKeyStore,
     proto,
   },
+  medidor,
   puente,
   qr: QRCode,
   logger,

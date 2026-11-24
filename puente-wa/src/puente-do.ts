@@ -34,11 +34,16 @@
 
 import type { DurableObject } from "cloudflare:workers";
 import { Container } from "@cloudflare/containers";
-import { enviarTelegram, evaluarAlerta, despuesDeAvisar, leerConfigAlerta } from "./alertas";
+import { avisoDeAtrasados, evaluarAlarmas, leerConfigAlarmas } from "./alarmas";
+import { chatDeAvisos, enviarTelegram, evaluarAlerta, despuesDeAvisar, leerConfigAlerta } from "./alertas";
 import { crearAlmacen, iniciarEsquema, type Almacen, PRE_KEYS_A_CONSERVAR } from "./almacen";
 import { crearCifrador } from "./cifrado";
 import { revisarConfiguracion } from "./configuracion";
 import {
+  GRACIA_TRAS_ARRANQUE_MS,
+  PROGRESO_VIGENTE_MS,
+  REINICIAR_SIN_PROGRESO_MS,
+  TOPE_ESTADO_VIGILANCIA_MS,
   VIGILANCIA_S,
   derivarTokenContenedor,
   latidoVencido,
@@ -46,11 +51,14 @@ import {
   veredictoDeSalud,
 } from "./comun";
 import { entregarAJuan } from "./juan";
+import { decidirPoda, PODA_AUTOMATICA_DESDE } from "./poda";
 import { armarArchivo, debeCopiar, leerArchivo, subirCopiaR2, type ArchivoDeCopia } from "./respaldo";
 import type { Env, Fallo } from "./tipos";
-import { aplicarVigilancia, normalizarDiario, resumirEstado, type Diario } from "./vigilancia";
+import { aplicarVigilancia, esperaAntesDeReiniciar, normalizarDiario, resumirEstado, type Diario, type UltimasMetricas } from "./vigilancia";
 import { validarEnviar } from "../contenedor/lib/contrato.mjs";
+import { clasificarLlaves } from "../contenedor/lib/llaves.mjs";
 import { enmascarar } from "../contenedor/lib/numeros.mjs";
+import { ATRASADO_VIGENTE_MS } from "../contenedor/lib/propios.mjs";
 import { evaluarCuotas, leerRitmo } from "../contenedor/lib/ritmo.mjs";
 import { parsearListaHosts } from "../contenedor/lib/urls.mjs";
 
@@ -58,6 +66,24 @@ const PUERTO_CONTENEDOR = 8080;
 
 /** Cuántos pendientes se intentan entregar por vigilancia. */
 const PENDIENTES_POR_VIGILANCIA = 10;
+
+const HORA_MS = 60 * 60_000;
+
+/** Cada cuánto se limpia lo viejo (actividad de más de 48 h, respaldo de poda de más de 14 días). */
+const MANTENIMIENTO_CADA_MS = HORA_MS;
+
+/** Lo que importa de las métricas del contenedor, para guardarlo en el diario (sobrevive a su muerte). */
+function resumirMetricas(m: any, ahora: number): UltimasMetricas {
+  const num = (x: unknown) => (typeof x === "number" && Number.isFinite(x) ? x : null);
+  return {
+    en: new Date(ahora).toISOString(),
+    rssMB: num(m?.memoria?.rssMB),
+    rssMaximoMB: num(m?.memoria?.rssMaximoMB),
+    heapUsadoMB: num(m?.memoria?.heapUsadoMB),
+    cpuPorcentaje: num(m?.cpu?.porcentaje),
+    retrasoBucleMs: num(m?.bucle?.retrasoP99Ms),
+  };
+}
 
 function obsoleto(): Fallo {
   return {
@@ -88,6 +114,7 @@ export class PuenteWa extends Container<Env> {
   #drenando = false;
   #drenajeProximo = 0;
   #drenajeFallos = 0;
+  #ultimoMantenimiento = 0;
 
   constructor(ctx: DurableObject["ctx"], env: Env) {
     super(ctx, env);
@@ -224,22 +251,28 @@ export class PuenteWa extends Container<Env> {
   override async onStart(): Promise<void> {
     if (this.#yaEstabaPrendido) return; // no fue un arranque, fue una comprobación
     const diario = await this.#diario();
+    const ahora = Date.now();
     diario.arranquesContenedor += 1;
-    diario.ultimoArranque = new Date().toISOString();
+    diario.ultimoArranque = new Date(ahora).toISOString();
+    // Los arranques de la última hora: muchos seguidos son un bucle (alarma «bucle», src/alarmas.ts).
+    diario.arranquesRecientes = [...diario.arranquesRecientes.filter((t) => ahora - t < HORA_MS), ahora].slice(-50);
     await this.ctx.storage.put("diario", diario);
     console.log(`contenedor arriba (época ${this.#epoca})`);
   }
 
   /**
    * Por qué murió, en el diario y en el log. Durante dos horas el contenedor del CRM de
-   * origen se apagó 89 veces y NADA decía por qué.
+   * origen se apagó 89 veces y NADA decía por qué. Y el 24-nov-2026 murió con 137 sin que se
+   * pudiera saber si fue por memoria: ahora el log lleva también la última memoria que reportó.
    */
   override async onStop({ exitCode, reason }: { exitCode: number; reason: string }): Promise<void> {
     const diario = await this.#diario();
     diario.ultimaMuerteVista = new Date().toISOString();
     diario.ultimaSalida = `código ${exitCode} · ${reason}`;
     await this.ctx.storage.put("diario", diario);
-    console.log(`contenedor abajo: código ${exitCode} · ${reason}`);
+    const m = diario.ultimasMetricas;
+    const memoria = m ? ` · última memoria ${m.rssMB ?? "?"} MB (pico ${m.rssMaximoMB ?? "?"} MB) a las ${m.en}` : "";
+    console.log(`contenedor abajo: código ${exitCode} · ${reason}${memoria}`);
   }
 
   override onError(error: unknown): unknown {
@@ -269,32 +302,110 @@ export class PuenteWa extends Container<Env> {
     let falloDelLatido: string | null = null;
     try {
       // Que el contenedor esté vivo y con el puerto listo. Idempotente: si ya lo está no cuesta.
-      await this.#arrancar();
+      // Si falla (p. ej. un contenedor tan ocupado que no contesta ni el ping del puerto, o Cloudflare
+      // sin instancia libre), se anota y la vigilancia SIGUE: el progreso y las alarmas se miran igual.
+      let falloDelArranque: string | null = null;
+      try {
+        await this.#arrancar();
+      } catch (e) {
+        falloDelArranque = enmascarar(e instanceof Error ? e.message : String(e));
+        console.error("vigilancia: arranque:", falloDelArranque);
+      }
       // La actividad se renueva aunque WhatsApp esté caído: se está diciendo «este contenedor
       // sigue haciendo falta», no «está sano».
       this.renewActivityTimeout();
 
-      const conexion = await this.#conexionDelContenedor();
-      const veredicto = veredictoDeSalud(conexion);
+      const alm = await this.#alm();
+      // El /estado con un tope (que no deja colgada la vigilancia), pero un tope largo: no contestar
+      // a tiempo NO es estar muerto. Lo que decide es si hay PROGRESO, y eso se ve en lo que la
+      // sesión escribe aquí, en el Durable Object, conteste o no el contenedor.
+      const delContenedor = falloDelArranque ? null : await this.#estadoDelContenedor(TOPE_ESTADO_VIGILANCIA_MS);
+      const progresoEn = alm.ultimoProgresoEn(ahora - 2 * HORA_MS);
+      const progresoReciente = progresoEn !== null && ahora - progresoEn < PROGRESO_VIGENTE_MS;
+      const veredicto = veredictoDeSalud(delContenedor?.conexion, { progresoReciente });
 
       // Se lee el diario DESPUÉS de las esperas y se escribe enseguida: otras operaciones
       // (un reinicio pedido, el arranque) también lo tocan.
       const previo = await this.#diario();
-      const { diario: nuevo, accion } = aplicarVigilancia(previo, veredicto, ahora);
-      let diario: Diario = { ...nuevo, latidos: nuevo.latidos + 1, ultimoLatidoEn: ahora, ultimoFalloDelLatido: null };
+      const { diario: nuevo, accion } = aplicarVigilancia(previo, veredicto, ahora, {
+        progresoEn,
+        conectando: delContenedor?.intentoEnCurso === true,
+      });
+      let diario: Diario = { ...nuevo, latidos: nuevo.latidos + 1, ultimoLatidoEn: ahora, ultimoFalloDelLatido: falloDelArranque };
+      if (delContenedor?.metricas) diario.ultimasMetricas = resumirMetricas(delContenedor.metricas, ahora);
 
       // Aviso por Telegram. Se anota ANTES de enviar: si el envío falla no se repite cada 30 s.
       const alerta = evaluarAlerta(veredicto === "sano" ? previo : diario, veredicto, ahora, leerConfigAlerta(this.env));
       if (alerta) diario = { ...diario, ...despuesDeAvisar(diario, alerta, ahora) };
 
+      // Las alarmas que avisan antes de que alguien note el silencio (src/alarmas.ts).
+      const avisos: string[] = [];
+      const cfgAlarmas = leerConfigAlarmas(this.env as unknown as Record<string, unknown>);
+      const reconexiones = Number(delContenedor?.metricas?.reconexionesUltimaHora);
+      const alarmas = evaluarAlarmas(
+        {
+          vinculado: Boolean(diario.ultimaConexionVista),
+          caidaAvisada: diario.avisoActivo,
+          ventana: alm.actividadDesde(ahora - cfgAlarmas.soloPreKeysMinutos * 60_000),
+          ultimoEntranteEn: alm.ultimoEntranteEn(),
+          arranquesUltimaHora: diario.arranquesRecientes.filter((t) => ahora - t < HORA_MS).length,
+          reconexionesUltimaHora: Number.isFinite(reconexiones) ? reconexiones : null,
+          ultimaSalida: diario.ultimaSalida,
+          rssMaximoMB: diario.ultimasMetricas?.rssMaximoMB ?? null,
+        },
+        diario.alarmas,
+        ahora,
+        cfgAlarmas,
+      );
+      diario.alarmas = alarmas.estado;
+      for (const a of alarmas.avisos) avisos.push(a.texto);
+      const atrasados = avisoDeAtrasados(delContenedor?.ultimaReconexion, diario.atrasadosAvisadosDe, Math.round(ATRASADO_VIGENTE_MS / 60_000));
+      if (atrasados) {
+        avisos.push(atrasados.texto);
+        diario.atrasadosAvisadosDe = String(delContenedor?.ultimaReconexion?.id);
+      }
+
+      // La autolimpieza de pre-keys (src/poda.ts): de rutina con el canal sano, o de emergencia si
+      // lleva media hora en la firma del bucle. Siempre con respaldo y sin tocar `creds`.
+      const mantenimiento = ahora - this.#ultimoMantenimiento >= MANTENIMIENTO_CADA_MS;
+      const motivoPoda = decidirPoda({
+        contarPreKeys: () => alm.contarPreKeys(),
+        veredicto,
+        ultimaPodaAutomaticaEn: diario.ultimaPodaAutomaticaEn,
+        soloPreKeys: diario.alarmas.solo_prekeys,
+        ahora,
+        revisarRutina: mantenimiento,
+      });
+      if (motivoPoda) {
+        const borradas = alm.podarPreKeys(PRE_KEYS_A_CONSERVAR);
+        diario.ultimaPodaAutomaticaEn = ahora;
+        diario.ultimaPoda = { en: new Date(ahora).toISOString(), borradas, motivo: motivoPoda };
+        console.log(`poda automática de pre-keys (${motivoPoda}): ${borradas} al respaldo, quedan las ${PRE_KEYS_A_CONSERVAR} más nuevas`);
+        if (motivoPoda === "emergencia") {
+          avisos.push(
+            `Para destrabar WhatsApp (el puente QR) se limpiaron ${borradas} pre-keys viejas: quedan las ${PRE_KEYS_A_CONSERVAR} ` +
+              "más nuevas y lo borrado quedó respaldado 14 días (se puede deshacer). No hay que escanear el QR. Si en 15 minutos " +
+              "no vuelven a entrar mensajes, revisa docs/JUAN_PUENTE.md («Si WhatsApp se atasca»).",
+          );
+        }
+      }
+      if (mantenimiento) {
+        this.#ultimoMantenimiento = ahora;
+        alm.podarActividad();
+        const purgadas = alm.purgarRespaldoDePoda();
+        if (purgadas) console.log(`respaldo de poda: ${purgadas} pre-keys de hace más de 14 días borradas del respaldo`);
+      }
+
       if (accion === "reiniciar") diario.ultimaMuerteVista = new Date(ahora).toISOString();
       await this.ctx.storage.put("diario", diario);
 
       if (alerta) await this.#avisar(alerta.texto);
+      for (const aviso of avisos) await this.#avisar(aviso);
 
       if (accion === "reiniciar") {
         // El martillo. Sale gratis en credenciales —viven en el Durable Object— y cuesta una resincronización.
-        console.log("el canal lleva demasiado sin conexión: se reinicia el contenedor");
+        // Solo cae tras un buen rato sin conexión NI progreso (src/vigilancia.ts), y cada vez espera más.
+        console.log(`el canal lleva demasiado sin conexión ni progreso: se reinicia el contenedor (reinicio seguido n.º ${diario.reiniciosSeguidos})`);
         try {
           await this.destroy();
         } catch {
@@ -359,9 +470,9 @@ export class PuenteWa extends Container<Env> {
 
   async #avisar(texto: string): Promise<void> {
     const token = this.env.TELEGRAM_BOT_TOKEN_JUAN;
-    const chat = this.env.ALERTA_TELEGRAM_CHAT;
+    const chat = chatDeAvisos(this.env);
     if (!token || !chat) {
-      console.log("aviso de caída sin enviar: faltan TELEGRAM_BOT_TOKEN_JUAN o ALERTA_TELEGRAM_CHAT");
+      console.log("aviso sin enviar: faltan TELEGRAM_BOT_TOKEN_JUAN o ALERTA_TELEGRAM_CHAT");
       return;
     }
     const r = await enviarTelegram(fetch, token, chat, texto);
@@ -421,27 +532,45 @@ export class PuenteWa extends Container<Env> {
 
   // ── Contenedor ───────────────────────────────────────────────────────────
 
-  /** Qué dice el contenedor de sí mismo. `null` si no contesta. */
-  async #conexionDelContenedor(): Promise<string | null> {
-    return (await this.#estadoDelContenedor())?.conexion ?? null;
-  }
-
-  async #estadoDelContenedor(): Promise<Record<string, any> | null> {
+  /**
+   * Qué dice el contenedor de sí mismo. `null` si no contesta (o no contesta antes de `topeMs`).
+   * No contestar se cuenta como «sin conexión», pero NO como muerto si hay progreso (ver vigilar()).
+   */
+  async #estadoDelContenedor(topeMs = TOPE_ESTADO_VIGILANCIA_MS): Promise<Record<string, any> | null> {
+    let reloj: ReturnType<typeof setTimeout> | undefined;
+    const tope = new Promise<null>((r) => {
+      reloj = setTimeout(() => r(null), topeMs);
+    });
+    const pedido = (async () => {
+      try {
+        const r = await this.containerFetch("http://contenedor/estado");
+        if (!r.ok) return null;
+        return (await r.json()) as Record<string, any>;
+      } catch {
+        return null;
+      }
+    })();
     try {
-      const r = await this.containerFetch("http://contenedor/estado");
-      if (!r.ok) return null;
-      return (await r.json()) as Record<string, any>;
-    } catch {
-      // Un contenedor prendido que no contesta ES un contenedor caído, y así se cuenta.
-      return null;
+      return await Promise.race([pedido, tope]);
+    } finally {
+      clearTimeout(reloj);
     }
   }
 
   async #pedirReconexion(): Promise<void> {
+    let reloj: ReturnType<typeof setTimeout> | undefined;
     try {
-      await this.containerFetch("http://contenedor/reconectar", { method: "POST" });
+      // Con tope, como el /estado: un contenedor ocupado no puede dejar colgada la vigilancia.
+      await Promise.race([
+        this.containerFetch("http://contenedor/reconectar", { method: "POST" }),
+        new Promise((r) => {
+          reloj = setTimeout(r, TOPE_ESTADO_VIGILANCIA_MS);
+        }),
+      ]);
     } catch (e) {
       console.error("no se pudo pedir la reconexión:", enmascarar(e instanceof Error ? e.message : String(e)));
+    } finally {
+      clearTimeout(reloj);
     }
   }
 
@@ -478,13 +607,17 @@ export class PuenteWa extends Container<Env> {
 
   async kvSet(clave: string, valor: string, epoca: string | null): Promise<{ ok: true } | Fallo> {
     if (!this.#epocaVigente(epoca)) return obsoleto();
-    await (await this.#alm()).set(clave, valor);
+    const alm = await this.#alm();
+    await alm.set(clave, valor);
+    this.#anotarLlaves(alm, [clave], []);
     return { ok: true };
   }
 
   async kvDel(clave: string, epoca: string | null): Promise<{ ok: true } | Fallo> {
     if (!this.#epocaVigente(epoca)) return obsoleto();
-    await (await this.#alm()).del(clave);
+    const alm = await this.#alm();
+    await alm.del(clave);
+    this.#anotarLlaves(alm, [], [clave]);
     return { ok: true };
   }
 
@@ -495,15 +628,41 @@ export class PuenteWa extends Container<Env> {
     // Leer es inofensivo; escribir o borrar solo lo hace el escritor vigente.
     const escribe = Boolean(cuerpo.escribir && Object.keys(cuerpo.escribir).length) || Boolean(cuerpo.borrar?.length);
     if (escribe && !this.#epocaVigente(epoca)) return obsoleto();
-    return (await this.#alm()).lote(cuerpo);
+    const alm = await this.#alm();
+    const r = await alm.lote(cuerpo);
+    if (escribe) this.#anotarLlaves(alm, Object.keys(cuerpo.escribir ?? {}), cuerpo.borrar ?? []);
+    return r;
+  }
+
+  /**
+   * Cuenta (por clase, nunca valores) lo que la sesión acaba de escribir: es la señal de progreso
+   * de la vigilancia y la de la alarma «solo pre-keys». Contar nunca rompe una escritura.
+   */
+  #anotarLlaves(alm: Almacen, escritas: string[], borradas: string[]): void {
+    try {
+      const c = clasificarLlaves(escritas, borradas);
+      alm.anotarActividad(
+        { preKeysNuevas: c.preKeysNuevas, preKeysUsadas: c.preKeysUsadas, trafico: c.trafico, lotesSoloPreKeys: c.soloPreKeys ? 1 : 0, creds: c.creds },
+        c.progreso,
+      );
+    } catch (e) {
+      console.error("actividad:", enmascarar(e instanceof Error ? e.message : String(e)));
+    }
   }
 
   async enviadosRecientes() {
     return (await this.#alm()).enviadosRecientes();
   }
 
+  /** Escribió una clienta: ya no es «fría» para los topes, y es progreso (llegó un mensaje de verdad). */
   async marcarEntrante(celular: string): Promise<void> {
-    (await this.#alm()).marcarEntrante(celular);
+    const alm = await this.#alm();
+    alm.marcarEntrante(celular);
+    try {
+      alm.anotarActividad({ entrantes: 1 }, true);
+    } catch (e) {
+      console.error("actividad:", enmascarar(e instanceof Error ? e.message : String(e)));
+    }
   }
 
   async encolarPendiente(cuerpo: string): Promise<number> {
@@ -615,14 +774,17 @@ export class PuenteWa extends Container<Env> {
     const alm = await this.#alm();
 
     // El estado NO puede depender de que el contenedor conteste: con el contenedor frío el
-    // proxy reintenta hasta 12,5 s y quien consulta se rendiría antes. Tope de 4 s.
-    const delContenedor = activo
-      ? await Promise.race([
-          this.#estadoDelContenedor(),
-          new Promise<null>((r) => setTimeout(() => r(null), 4000)),
-        ])
-      : null;
+    // proxy reintenta hasta 12,5 s y quien consulta se rendiría antes. Tope de 4 s. (Esto es solo
+    // lo que se MUESTRA: que no conteste en 4 s no lo marca como muerto para nadie.)
+    const delContenedor = activo ? await this.#estadoDelContenedor(4000) : null;
     const [sesion, diario] = await Promise.all([alm.estadoSesion(), this.#diario()]);
+    const progresoEn = alm.ultimoProgresoEn(ahora - 2 * HORA_MS);
+    const ultimoEntrante = alm.ultimoEntranteEn();
+    const ventana = alm.actividadDesde(ahora - 15 * 60_000);
+    const ocupado =
+      activo && delContenedor?.conexion !== "conectada" && progresoEn !== null && ahora - progresoEn < PROGRESO_VIGENTE_MS;
+    const arranque = diario.ultimoArranque ? Date.parse(diario.ultimoArranque) : NaN;
+    const finDeGracia = Number.isFinite(arranque) ? arranque + GRACIA_TRAS_ARRANQUE_MS : null;
 
     const resumen = resumirEstado({
       activo,
@@ -640,24 +802,42 @@ export class PuenteWa extends Container<Env> {
       desconectado_desde: diario.sinConexionDesde ? new Date(diario.sinConexionDesde).toISOString() : null,
       ultima_conexion: diario.ultimaConexionVista,
       activo,
+      // Sin conexión (o sin respuesta) PERO trabajando: procesa lo que se acumuló. No reiniciar.
+      ocupado,
       vinculado_como: delContenedor?.vinculadoComo ?? null,
       contenedor: delContenedor
         ? {
             conexion: delContenedor.conexion,
+            sincronizando: delContenedor.sincronizando,
+            intentoEnCurso: delContenedor.intentoEnCurso,
             reconexiones: delContenedor.reconexiones,
             rescatesDelVigilante: delContenedor.rescatesDelVigilante,
             ultimaVigilancia: delContenedor.ultimaVigilancia,
             mensajesRecibidos: delContenedor.mensajesRecibidos,
+            mensajesProcesados: delContenedor.mensajesProcesados,
             mensajesEnviados: delContenedor.mensajesEnviados,
             respuestasDelTelefono: delContenedor.respuestasDelTelefono,
             archivosRecibidos: delContenedor.archivosRecibidos,
             entregasFallidas: delContenedor.entregasFallidas,
             ignorados: delContenedor.ignorados,
             enviosEnCola: delContenedor.enviosEnCola,
+            ultimaReconexion: delContenedor.ultimaReconexion,
+            // memoria (rss/heap), procesador, atraso del bucle, llaves y mensajes de los últimos 15 min, colas
+            metricas: delContenedor.metricas,
             ultimoError: delContenedor.ultimoError,
           }
-        : { error: activo ? "el contenedor no respondió en 4 s (puede estar arrancando)" : "apagado" },
+        : { error: activo ? "el contenedor no respondió en 4 s (puede estar arrancando u ocupado procesando lo atrasado)" : "apagado" },
+      // Lo último que el contenedor dijo de su memoria y procesador: sirve aunque ya no conteste.
+      ultimas_metricas: diario.ultimasMetricas,
       sesion,
+      // Lo que escribió la sesión (visto desde aquí, conteste o no el contenedor). Solo cuentas.
+      actividad: {
+        ultimos_15_min: ventana,
+        ultimo_progreso: progresoEn ? new Date(progresoEn).toISOString() : null,
+        ultimo_mensaje_de_clienta: ultimoEntrante ? new Date(ultimoEntrante).toISOString() : null,
+        minutos_sin_mensajes_de_clientas: ultimoEntrante ? Math.floor((ahora - ultimoEntrante) / 60_000) : null,
+        por_hora_24h: alm.actividadPorHora(ahora - 24 * HORA_MS),
+      },
       latido: {
         ultimoEn: diario.ultimoLatidoEn ? new Date(diario.ultimoLatidoEn).toISOString() : null,
         vencido: latidoVencido(diario.ultimoLatidoEn, ahora),
@@ -666,7 +846,22 @@ export class PuenteWa extends Container<Env> {
         ultimoFallo: diario.ultimoFalloDelLatido,
         epoca: this.#epoca,
         arranquesContenedor: diario.arranquesContenedor,
+        arranquesUltimaHora: diario.arranquesRecientes.filter((t) => ahora - t < HORA_MS).length,
         ultimaSalida: diario.ultimaSalida,
+      },
+      // Cómo decide el vigilante (src/vigilancia.ts): cuánta paciencia le queda antes del martillo.
+      paciencia: {
+        gracia_tras_arranque_hasta: finDeGracia && finDeGracia > ahora ? new Date(finDeGracia).toISOString() : null,
+        reiniciar_sin_progreso_min: Math.round(REINICIAR_SIN_PROGRESO_MS / 60_000),
+        reinicios_seguidos: diario.reiniciosSeguidos,
+        proximo_martillo_tras_min: Math.round(esperaAntesDeReiniciar(diario.reiniciosSeguidos) / 60_000),
+        ocupado_desde: diario.ocupadoDesde ? new Date(diario.ocupadoDesde).toISOString() : null,
+      },
+      alarmas: diario.alarmas,
+      poda: {
+        respaldo: alm.respaldoDePoda(),
+        ultima: diario.ultimaPoda,
+        automatica: { desde: PODA_AUTOMATICA_DESDE, conserva: PRE_KEYS_A_CONSERVAR },
       },
       copias: {
         ultima: alm.ultimaCopiaEn() ? new Date(alm.ultimaCopiaEn()!).toISOString() : null,
@@ -678,7 +873,7 @@ export class PuenteWa extends Container<Env> {
       pendientes: alm.contarPendientes(),
       cuotas: this.#cuotasEnUso(alm, ahora),
       aviso_telegram: {
-        configurado: Boolean(this.env.TELEGRAM_BOT_TOKEN_JUAN && this.env.ALERTA_TELEGRAM_CHAT),
+        configurado: Boolean(this.env.TELEGRAM_BOT_TOKEN_JUAN && chatDeAvisos(this.env)),
         activo: diario.avisoActivo,
       },
     };
@@ -795,9 +990,25 @@ export class PuenteWa extends Container<Env> {
     }
   }
 
+  /**
+   * La poda a mano (`POST /api/podar`): conserva las 1.000 pre-keys más nuevas y respalda lo demás.
+   * Nunca toca `creds`. Ver src/poda.ts.
+   */
   async podar() {
-    const borradas = (await this.#alm()).podarPreKeys(PRE_KEYS_A_CONSERVAR);
-    return { borradas, conservadas: PRE_KEYS_A_CONSERVAR };
+    const alm = await this.#alm();
+    const borradas = alm.podarPreKeys(PRE_KEYS_A_CONSERVAR);
+    const diario = await this.#diario();
+    diario.ultimaPoda = { en: new Date().toISOString(), borradas, motivo: "manual" };
+    await this.ctx.storage.put("diario", diario);
+    console.log(`poda manual de pre-keys: ${borradas} al respaldo`);
+    return { borradas, conservadas: PRE_KEYS_A_CONSERVAR, respaldo: alm.respaldoDePoda() };
+  }
+
+  /** Devuelve a la sesión las pre-keys de la última poda (`POST /api/podar/deshacer`). */
+  async deshacerPoda() {
+    const r = (await this.#alm()).deshacerUltimaPoda();
+    console.log(`poda deshecha: ${r.restauradas} pre-keys devueltas a la sesión`);
+    return r;
   }
 
   async recifrar() {

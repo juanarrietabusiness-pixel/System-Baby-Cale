@@ -2,6 +2,7 @@ import { execFileSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
+import { leerHorario } from "../src/alarmas";
 
 // Guardas de lo que NO se puede probar ejecutándolo (no se despliega nada): la configuración de Cloudflare, el
 // workflow, la imagen del contenedor y la higiene de secretos. Si alguien rompe una de estas reglas, falla aquí.
@@ -97,6 +98,13 @@ describe("wrangler.jsonc: producción y staging", () => {
       for (const secreto of ["WA_TOKEN", "WA_SESION_CLAVE", "WA_SESION_CLAVE_ANTERIOR", "TELEGRAM_BOT_TOKEN_JUAN", "ALERTA_TELEGRAM_CHAT"]) {
         expect(c).not.toHaveProperty(secreto);
       }
+    }
+  });
+
+  it("los avisos de la caída del 24-nov vienen encendidos con un horario válido (uno mal escrito apagaría «sin mensajes»)", () => {
+    for (const v of [wrangler.vars, wrangler.env.staging.vars]) {
+      expect(leerHorario(v)).toEqual({ inicio: "09:00", fin: "18:00", dias: [1, 2, 3, 4, 5, 6], zona: "America/Panama" });
+      expect(Number(v.ALERTA_SIN_MENSAJES_MINUTOS)).toBeGreaterThan(0);
     }
   });
 

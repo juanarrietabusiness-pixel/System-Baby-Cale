@@ -44,7 +44,10 @@ export function revisarConfiguracion(env: object): Configuracion {
   return {
     faltan,
     invalidos,
-    opcionalesFaltan: SECRETOS_OPCIONALES.filter((n) => vacio(valores[n])) as string[],
+    // El chat de avisos también vale con el nombre que usa el Worker `juan` (ALERTA_TELEGRAM_CHAT_ID).
+    opcionalesFaltan: SECRETOS_OPCIONALES.filter(
+      (n) => vacio(valores[n]) && !(n === "ALERTA_TELEGRAM_CHAT" && !vacio(valores.ALERTA_TELEGRAM_CHAT_ID)),
+    ) as string[],
     listo: faltan.length === 0 && invalidos.length === 0,
   };
 }

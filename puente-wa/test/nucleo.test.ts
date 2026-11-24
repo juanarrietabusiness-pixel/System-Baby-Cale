@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { crearNucleo, QR_VENCE_MS, VIGILANTE_MS } from "../contenedor/nucleo.mjs";
+import { crearNucleo, GRACIA_INTENTO_MS, LOTE_ENTRANTES, QR_VENCE_MS, VIGILANTE_MS } from "../contenedor/nucleo.mjs";
 import { validarWebhook } from "../contenedor/lib/contrato.mjs";
 import { RITMO_POR_DEFECTO } from "../contenedor/lib/ritmo.mjs";
 import {
@@ -330,7 +330,8 @@ describe("el vigilante", () => {
     vi.useFakeTimers();
     const m = nuevo();
     await conectado(m);
-    // Se pierde el cierre: queda «cerrada» sin ninguna reconexión programada.
+    // Se pierde el cierre: la conexión murió sin emitir `close` y queda «cerrada» sin ninguna reconexión programada.
+    m.sock.ws.isOpen = false;
     m.nucleo.estado.conexion = "cerrada";
     (m.nucleo.estado as any).conexionDesde = Date.now();
     m.nucleo.vigilar();
@@ -341,16 +342,33 @@ describe("el vigilante", () => {
     expect(m.baileys.makeWASocket.mock.calls.length).toBeGreaterThanOrEqual(2);
   });
 
-  it("cada intento nuevo tiene 30 s para conectar antes de que el vigilante lo recicle", async () => {
+  // CAMBIO de sentido (2026-11-24, caída del CRM de Baby Caleb): antes CUALQUIER intento tenía 30 s. En el `lite`
+  // un inicio de sesión con lo atrasado encima puede tardar más, y reciclarlo a la mitad armó el bucle de 14 h.
+  // Ahora un intento cuya conexión sigue viva tiene GRACIA_INTENTO_MS (2 min); uno cuya conexión murió, 30 s.
+  it("cada intento nuevo con la conexión viva tiene 2 min para conectar antes de que el vigilante lo recicle", async () => {
     vi.useFakeTimers();
     const m = nuevo();
     await m.nucleo.arrancar(); // t = 0
     m.sock.cierre(428);
-    await vi.advanceTimersByTimeAsync(3001); // t = 3 s: nace el 2.º socket, que no llega a abrir
+    await vi.advanceTimersByTimeAsync(3001); // t = 3 s: nace el 2.º socket, que no llega a abrir (pero su conexión vive)
     expect(m.baileys.makeWASocket).toHaveBeenCalledTimes(2);
-    await vi.advanceTimersByTimeAsync(27_200); // t = 30,2 s: primera revisión del vigilante (el intento lleva 27 s)
+    expect(GRACIA_INTENTO_MS).toBe(120_000);
+    await vi.advanceTimersByTimeAsync(117_200); // t = 120,2 s: el intento lleva 117 s → todavía se espera
     expect(m.nucleo.estado.rescatesDelVigilante).toBe(0);
-    await vi.advanceTimersByTimeAsync(30_000); // t = 60,2 s: ya pasó de 30 s sin abrir → lo recicla
+    await vi.advanceTimersByTimeAsync(30_000); // t = 150,2 s: ya pasó de 2 min sin abrir → lo recicla
+    expect(m.nucleo.estado.rescatesDelVigilante).toBe(1);
+  });
+
+  it("si la conexión del intento ya murió (sin avisar), solo 30 s: ahí no hay nada que esperar", async () => {
+    vi.useFakeTimers();
+    const m = nuevo();
+    await m.nucleo.arrancar(); // t = 0
+    m.sock.cierre(428);
+    await vi.advanceTimersByTimeAsync(3001); // t = 3 s: nace el 2.º socket…
+    m.sock.ws.isOpen = false; // …y su conexión se cae sin emitir `close`
+    await vi.advanceTimersByTimeAsync(27_200); // t = 30,2 s: el intento lleva 27 s
+    expect(m.nucleo.estado.rescatesDelVigilante).toBe(0);
+    await vi.advanceTimersByTimeAsync(30_000); // t = 60,2 s: más de 30 s → lo recicla
     expect(m.nucleo.estado.rescatesDelVigilante).toBe(1);
   });
 
@@ -422,7 +440,8 @@ describe("mensajes que llegan → JSON del contrato hacia el Worker", () => {
       msgTexto("de un canal", { de: "120363025246125486@newsletter" }),
       msgTexto("difusión", { de: "lista@broadcast" }),
     ]);
-    sock.upsert([msgTexto("mensaje viejo del historial")], "append");
+    // Lo atrasado VIEJO (de más de 15 min) no se entrega; lo reciente sí (ver «lo atrasado» más abajo).
+    sock.upsert([msgTexto("mensaje viejo del historial", { ts: Math.floor(Date.now() / 1000) - 2 * 3600 })], "append");
     sock.upsert([{ ...msgTexto("x"), message: { reactionMessage: { text: "👍" } } }]);
     await asentar();
     expect(m.puente.entrantes).toHaveLength(0);
@@ -783,5 +802,203 @@ describe("rutas de operación", () => {
     m.nucleo.anotarError("prueba", new Error("falló el envío a 50760261919@s.whatsapp.net"));
     expect(m.nucleo.estado.ultimoError).toBe("prueba: falló el envío a ***1919@s.whatsapp.net");
     expect(JSON.stringify(m.log.error.mock.calls)).not.toContain("50760261919");
+  });
+});
+
+// ── Lo que se agregó tras la caída del CRM de Baby Caleb (24-nov-2026) ─────────────────────────────
+
+const ahoraS = () => Math.floor(Date.now() / 1000);
+
+describe("reconexión liviana", () => {
+  it("no baja historial viejo: solo el arranque inicial (mapas de LID), nombres y datos chicos", async () => {
+    const m = nuevo();
+    await m.nucleo.arrancar();
+    const filtro = m.sock.config.shouldSyncHistoryMessage;
+    expect(m.sock.config.syncFullHistory).toBe(false);
+    expect(typeof filtro).toBe("function");
+    const tipos = { INITIAL_BOOTSTRAP: 0, INITIAL_STATUS_V3: 1, FULL: 2, RECENT: 3, PUSH_NAME: 4, NON_BLOCKING_DATA: 5, ON_DEMAND: 6 };
+    const si = Object.entries(tipos).filter(([, n]) => filtro({ syncType: n })).map(([k]) => k);
+    expect(si.sort()).toEqual(["INITIAL_BOOTSTRAP", "NON_BLOCKING_DATA", "PUSH_NAME"]);
+  });
+
+  it("si la librería trae la caché de llaves de Baileys, las lecturas pasan por ella (las escrituras siguen yendo al Worker)", async () => {
+    const m = nuevo();
+    const envoltura = vi.fn((keys: any) => ({ ...keys, envuelta: true }));
+    (m.baileys as any).makeCacheableSignalKeyStore = envoltura;
+    await m.nucleo.arrancar();
+    expect(envoltura).toHaveBeenCalledOnce();
+    expect(m.sock.config.auth.keys.envuelta).toBe(true);
+    expect(m.sock.config.auth.creds).toMatchObject({ registrationId: 1234 });
+  });
+
+  it("los mensajes de un paquete grande se atienden en tandas, cediendo el turno entre una y otra", async () => {
+    const cedidas: number[] = [];
+    const m = montarConCeder(() => {
+      cedidas.push(1);
+      return Promise.resolve();
+    });
+    const sock = await conectado(m);
+    const n = LOTE_ENTRANTES * 4 + 3;
+    sock.upsert(Array.from({ length: n }, (_, i) => msgTexto(`hola ${i}`, { id: `T${i}`, de: `5076000${String(i).padStart(4, "0")}@s.whatsapp.net` })));
+    // la primera tanda se atiende enseguida (lo normal, uno o dos mensajes, no espera nada)
+    expect(m.nucleo.estado.mensajesRecibidos).toBe(LOTE_ENTRANTES);
+    await asentar();
+    expect(m.nucleo.estado.mensajesRecibidos).toBe(n);
+    expect(cedidas).toHaveLength(4);
+  });
+});
+
+/** Como `nuevo()`, pero con un `ceder` propio (para contar las tandas). */
+function montarConCeder(ceder: () => Promise<void>) {
+  const baileys = crearBaileysFalso();
+  const puente = crearPuenteFalso();
+  const log = { log: vi.fn(), error: vi.fn() };
+  const dormir = async () => {
+    await Promise.resolve();
+  };
+  const nucleo = crearNucleo({
+    baileys,
+    puente: puente as any,
+    qr: { toDataURL: vi.fn(async () => "data:image/png;base64,QQ") },
+    logger: {},
+    descargar: vi.fn(),
+    dormir,
+    ceder,
+    azar: () => 0.5,
+    log,
+    config: { ritmo: RITMO_POR_DEFECTO, hostsPermitidos: [] },
+  });
+  const m = { baileys, puente, log, nucleo, descargar: vi.fn(), dormido: [] as number[], qr: {} as any, get sock(): SockFalso { return baileys.ultimo; } };
+  activos.push(m as any);
+  return m as any as M;
+}
+
+describe("lo atrasado (lo que llegó mientras el puente estaba desconectado)", () => {
+  it("lo reciente se atiende; lo viejo NO, pero se cuenta por conversación para avisar a la dueña", async () => {
+    const m = nuevo();
+    const sock = await conectado(m);
+    const hace = (min: number) => ahoraS() - min * 60;
+    sock.upsert(
+      [
+        msgTexto("hola, ¿tienen talla M?", { id: "A1", ts: hace(3) }),
+        msgTexto("¿siguen ahí?", { id: "A2", ts: hace(2) }),
+        msgTexto("de anoche", { id: "V1", ts: hace(9 * 60), de: "50761110000@s.whatsapp.net" }),
+        msgTexto("de anoche otra vez", { id: "V2", ts: hace(8 * 60), de: "50761110000@s.whatsapp.net" }),
+        msgTexto("de la tarde", { id: "V3", ts: hace(3 * 60), de: "50762220000@s.whatsapp.net" }),
+      ],
+      "append",
+    );
+    await asentar();
+    expect(m.puente.entrantes.map((e) => e.id_mensaje)).toEqual(["A1", "A2"]);
+    expect(m.nucleo.estado.ultimaReconexion).toMatchObject({ atendidos: 2, sinContestar: 3, conversacionesSinContestar: 2, terminada: false });
+    // Cuando WhatsApp avisa que ya entregó todo lo atrasado, la cuenta queda cerrada (el Durable Object avisa una vez).
+    sock.conexion({ receivedPendingNotifications: true });
+    expect(m.nucleo.estado.ultimaReconexion?.terminada).toBe(true);
+    // Nunca guarda un número en lo que muestra.
+    expect(JSON.stringify(m.nucleo.estado.ultimaReconexion)).not.toContain("5076111");
+  });
+
+  it("«sincronizando»: desde que conecta hasta que WhatsApp dice que entregó todo (aunque ese aviso llegue antes del open)", async () => {
+    const m = nuevo();
+    await m.nucleo.arrancar();
+    m.sock.conexion({ connection: "open" });
+    expect(m.nucleo.estado.sincronizando).toBe(true);
+    m.sock.conexion({ receivedPendingNotifications: true });
+    expect(m.nucleo.estado.sincronizando).toBe(false);
+
+    const otro = nuevo();
+    await otro.nucleo.arrancar();
+    otro.sock.conexion({ receivedPendingNotifications: true }); // llega primero
+    otro.sock.conexion({ connection: "open" });
+    expect(otro.nucleo.estado.sincronizando).toBe(false);
+  });
+
+  it("las descargas de fotos y audios van en fila: nunca dos a la vez, aunque lleguen veinte juntas", async () => {
+    const m = nuevo();
+    const sock = await conectado(m);
+    let enCurso = 0;
+    let maximo = 0;
+    m.baileys.downloadMediaMessage.mockImplementation(async () => {
+      enCurso += 1;
+      maximo = Math.max(maximo, enCurso);
+      for (let i = 0; i < 5; i++) await Promise.resolve();
+      enCurso -= 1;
+      return Buffer.from("FOTO");
+    });
+    sock.upsert(Array.from({ length: 20 }, (_, i) => (i % 2 ? msgImagen({ id: `F${i}` }) : msgAudio({ id: `F${i}` }))));
+    await asentar();
+    await asentar();
+    expect(m.baileys.downloadMediaMessage).toHaveBeenCalledTimes(20);
+    expect(maximo).toBe(1);
+    expect(m.puente.entrantes).toHaveLength(20);
+  });
+});
+
+describe("/reconectar paciente", () => {
+  it("con la sesión conectada no hace nada", async () => {
+    vi.useFakeTimers();
+    const m = nuevo();
+    await conectado(m);
+    const r = await post(m, "/reconectar", "");
+    expect(r.cuerpo).toMatchObject({ ok: true, ignorada: "ya está conectada" });
+    await vi.advanceTimersByTimeAsync(5 * 60_000);
+    expect(m.baileys.makeWASocket).toHaveBeenCalledOnce();
+  });
+
+  it("con un intento de conexión vivo y reciente, NO lo interrumpe (cortarlo es empezar de cero)", async () => {
+    vi.useFakeTimers();
+    const m = nuevo();
+    await m.nucleo.arrancar(); // intento en curso: el socket existe y su conexión vive, pero no abrió
+    const r = await post(m, "/reconectar", "");
+    expect(r.cuerpo).toMatchObject({ ok: true, programada: false });
+    expect(r.cuerpo.ignorada).toContain("intento");
+    await vi.advanceTimersByTimeAsync(60_000);
+    expect(m.baileys.makeWASocket).toHaveBeenCalledOnce();
+    expect(m.sock.ended).toBe(false);
+    expect((await get(m, "/estado")).cuerpo.intentoEnCurso).toBe(true);
+    // Pasado el margen del intento ya no merece paciencia: el vigilante interno lo recicla (un intento nuevo).
+    await vi.advanceTimersByTimeAsync(GRACIA_INTENTO_MS);
+    expect(m.baileys.makeWASocket).toHaveBeenCalledTimes(2);
+    expect(m.nucleo.estado.rescatesDelVigilante).toBe(1);
+  });
+});
+
+describe("/estado con métricas", () => {
+  it("memoria, procesador, llaves por clase, mensajes, colas y reconexiones: solo números", async () => {
+    const m = nuevo();
+    const sock = await conectado(m);
+    const keys = sock.config.auth.keys;
+    // Tres ráfagas de «solo pre-keys» (la firma del bucle) y una de tráfico de verdad
+    for (let r = 0; r < 3; r++) {
+      await keys.set({ "pre-key": Object.fromEntries(Array.from({ length: 5 }, (_, i) => [String(100 + r * 5 + i), { public: "x" }])) });
+    }
+    await keys.set({ session: { "50760261919.0": "S" }, "pre-key": { "100": null } });
+    sock.upsert([msgTexto("hola", { id: "M1" })]);
+    await asentar();
+    const e = (await get(m, "/estado")).cuerpo;
+    expect(e.metricas.llaves).toMatchObject({ preKeysNuevas: 15, preKeysUsadas: 1, trafico: 1, lotesSoloPreKeys: 3 });
+    expect(e.metricas.mensajes).toMatchObject({ recibidos: 1, procesados: 1, enLaVentana: 1, minutosDesdeElUltimo: 0 });
+    expect(e.metricas.colas).toEqual({ entrantes: 0, envios: 0 });
+    expect(e.metricas.memoria.rssMB).toBeGreaterThan(0);
+    expect(e.metricas.memoria.heapUsadoMB).toBeGreaterThan(0);
+    expect(e.metricas).toHaveProperty("cpu");
+    expect(e.metricas).toHaveProperty("bucle");
+    expect(e.metricas.reconexionesUltimaHora).toBe(0);
+    expect(e.metricas.ventanaMin).toBe(15);
+    expect(JSON.stringify(e)).not.toMatch(/50760261919|token|TOKEN/);
+  });
+
+  it("cuenta las reconexiones de la última hora (muchas seguidas = bucle, lo avisa el Durable Object)", async () => {
+    vi.useFakeTimers();
+    const m = nuevo();
+    await m.nucleo.arrancar();
+    for (let i = 0; i < 3; i++) {
+      m.baileys.ultimo.cierre(428);
+      await vi.advanceTimersByTimeAsync(Date.parse(m.nucleo.estado.proximoIntentoEn!) - Date.now() + 1);
+    }
+    expect((await get(m, "/estado")).cuerpo.metricas.reconexionesUltimaHora).toBe(3);
+    m.baileys.ultimo.conexion({ connection: "open" }); // conecta y se queda sano
+    await vi.advanceTimersByTimeAsync(61 * 60_000);
+    expect((await get(m, "/estado")).cuerpo.metricas.reconexionesUltimaHora).toBe(0);
   });
 });

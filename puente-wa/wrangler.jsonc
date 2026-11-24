@@ -21,9 +21,16 @@
       "image": "./contenedor/Dockerfile",
       "image_build_context": "./contenedor",
       // Política "default", como el borde (edge/wrangler.jsonc): es INMUTABLE, cambiarla después exige otra app.
+      // OJO (2026-11-24): Cloudflare declaró "default" OBSOLETA y recomienda "durable_object" para apps nuevas.
+      // No se cambia todavía porque @cloudflare/containers 0.3.7 (la última) no sabe arrancar con esa política
+      // (no le pasa `image`/`instance` a `ctx.container.start()`) y la política está en beta. Como el puente
+      // NUNCA se ha desplegado, cambiarla antes del primer despliegue real cuesta $0: propuesta y pasos en
+      // docs/JUAN_PUENTE.md («Decisiones de infraestructura»).
       "scheduling_policy": "default",
       // `lite` = 1/16 vCPU, 256 MiB, 2 GB de disco: el tamaño cuyo costo se midió en el CRM de origen
       // (≈ $1.50–2.00/mes encendido 24/7). Por eso los archivos entrantes tienen tope (≤ 12 MB).
+      // El 24-nov-2026 ese CRM se cayó 14 h con este tamaño; `basic` (1/4 vCPU, 1 GiB) ronda $7/mes. Lo decide
+      // el dueño: el /api/estado ahora dice memoria y CPU para decidirlo con datos (docs/JUAN_PUENTE.md).
       "instance_type": "lite",
       // UNO. WhatsApp admite una sola conexión por dispositivo vinculado: dos contenedores sobre el mismo
       // número se expulsan entre sí en bucle. (Además: un único Durable Object y la «época» de la sesión.)
@@ -51,8 +58,9 @@
   // Cloudflare (Workers → este Worker → Settings → Variables and Secrets). Los despliegues nunca los borran.
   //   obligatorios:  WA_TOKEN (el mismo valor que en el Worker `juan`), WA_SESION_CLAVE (cifra la sesión;
   //                  se genera UNA vez y NO se cambia: docs/JUAN_PUENTE.md)
-  //   opcionales:    TELEGRAM_BOT_TOKEN_JUAN y ALERTA_TELEGRAM_CHAT (aviso si WhatsApp se desconecta),
-  //                  WA_SESION_CLAVE_ANTERIOR (solo durante una rotación de clave)
+  //   opcionales:    TELEGRAM_BOT_TOKEN_JUAN y ALERTA_TELEGRAM_CHAT (avisos: caída, bucle, «solo pre-keys»,
+  //                  sin mensajes, atrasados sin contestar; también sirve ALERTA_TELEGRAM_CHAT_ID, el nombre que
+  //                  usa el Worker `juan`), WA_SESION_CLAVE_ANTERIOR (solo durante una rotación de clave)
   // Sin los obligatorios el puente arranca «sin configurar»: no enciende el contenedor, no conecta WhatsApp y
   // GET /api/estado dice qué nombres faltan.
   "vars": {
@@ -72,6 +80,14 @@
     // Aviso por Telegram: minutos sin conexión antes del primer aviso, y cada cuántos se repite.
     "ALERTA_MINUTOS": "10",
     "ALERTA_REAVISO_MINUTOS": "120",
+    // Aviso «no entra ningún mensaje de clientas desde hace N min» (solo en horario de atención; 0 = apagado).
+    "ALERTA_SIN_MENSAJES_MINUTOS": "60",
+    // Horario de atención para ese aviso: el publicado en la web de Baby Caleb («Lunes a Sábado: 9:00 - 18:00»,
+    // Baby-caleb/content.json). Días: 0 = domingo … 6 = sábado. Si algo no tiene la forma correcta, el aviso se apaga.
+    "HORARIO_INICIO": "09:00",
+    "HORARIO_FIN": "18:00",
+    "HORARIO_DIAS": "1,2,3,4,5,6",
+    "HORARIO_ZONA": "America/Panama",
     // Copia diaria de la sesión en R2 (además de la que siempre se guarda dentro del Durable Object).
     // APAGADA: encenderla exige crear el bucket y descomentar r2_buckets (lo decide la dueña).
     "COPIA_R2": "off"
@@ -115,6 +131,11 @@
         "LIMITE_FRIOS_DIA": "15",
         "ALERTA_MINUTOS": "10",
         "ALERTA_REAVISO_MINUTOS": "120",
+        "ALERTA_SIN_MENSAJES_MINUTOS": "60",
+        "HORARIO_INICIO": "09:00",
+        "HORARIO_FIN": "18:00",
+        "HORARIO_DIAS": "1,2,3,4,5,6",
+        "HORARIO_ZONA": "America/Panama",
         "COPIA_R2": "off"
       }
     }
