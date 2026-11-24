@@ -54,6 +54,11 @@ del puente. Ya en uso en la cuenta y **no se tocan**: `babycaleb-web`, `babycale
 | 2026-11-24 | Web pública | **Igual a babycaleb.com:** la cabecera (solo el nombre y los enlaces Productos, Beneficios, Historia, Tips, Cómo comprar y FAQ), la portada, el pie y las páginas `/beneficios`, `/historia`, `/tips`, `/como-comprar` y `/faq`. Se conservan y se irán mejorando la ficha del producto, el carrito y la cuenta. Socios y Contacto salen del menú y quedan en el pie. La banda de Socios sale de la portada hasta que el programa tenga cifras. Las tallas pasan a pastillas. Auditoría de accesibilidad: 0 problemas |
 | 2026-11-24 | Fotos y publicación | «Sube las fotos de Baby Caleb y publica los productos»: las de su web (`content.json`, `public/img/`) entran con el catálogo (`dcasa_catalogo/data/fotos/`, la principal y la de cada talla con su segunda foto) y se publica lo que tiene foto: Nateen de cierre, Nateen Pants y Water wipes Nateen. Una foto puesta a mano no se pisa. Velvee, Dany Baby y Fular Moon (en su web, el logo o «Foto próximamente») siguen sin publicar hasta tener la suya |
 | 2026-11-24 | Asistentes de Baby Caleb | Juan (mensajería) y Andrés (chat de la web) ya no son de mueblería: hablan de pañales, toallitas y fulares, de tallas (RN a XXL) y de lo que trae cada caja, siempre con las herramientas; el nombre de la empresa sale de *Ajustes de Juan* (`nombre_publico`), nunca escrito a mano; voz neutra («alguien de la tienda que conoce bien los productos»), lo demás igual. El lector de fotos y «Busca con una foto» reconocen pañales, toallitas y fulares con su talla. **Ajustes de Juan todavía dice «el equipo de D'CASA» y «Hola, soy Juan de D'CASA.»** (la decisión del 2026-11-18): se cambia ahí cuando el dueño diga. `docs/JUAN.md` describe la voz y la presentación de D'CASA: manda esto |
+| 2026-11-24 | «Comprobante de pago» | El papel de Odoo no es la factura fiscal de la DGI, así que **no dice «Factura»**: pagado, «Comprobante de pago»; sin ningún pago, «Comprobante de compra»; con saldo, «Abono». También el nombre del PDF, el asunto y el cuerpo del correo, Mi cuenta, la nota de entrega y el aviso del correo en el pago (`_dcasa_titulo_documento`). Issue para D'CASA: dcasapty/D_Casa_new_word#137 |
+| 2026-11-24 | Razón social | **Baby Caleb Panamá** (`res_company_data.xml`; las bases ya instaladas, por `dcasa_base` 19.0.1.12.0 si nadie lo cambió a mano). El RUC lo escribe el dueño en *Ajustes › Empresas*: el repositorio es público |
+| 2026-11-24 | Sin tienda física | Venta 100 % en línea: el pago no ofrece «Pago en la tienda» y la entrega «Retiro en tienda» queda archivada (apagados, no borrados). Interruptor `DCASA_TIENDA_FISICA=0` en staging y producción (`edge/wrangler.jsonc` → arranque → `website._dcasa_aplicar_sin_tienda_fisica`) |
+| 2026-11-24 | Textos del comprobante | Garantía, cambios y términos armados **solo con lo que respondió el dueño** (cambios, defectos, pagos, delivery, factura fiscal), sin cifras nuevas; reemplazan los de D'CASA (muebles, colchones, flete). **Propuestos: falta su visto bueno**; se cambian en *Ajustes › Empresas › Documentos* |
+| 2026-11-24 | Pagos en línea | Tilopay, Yappy directo y la comisión del sitio, traídos de D'CASA (#130 y #131). **Nacen apagados y sin credenciales**; staging fijado en modo de prueba. Cómo se encienden: `docs/TILOPAY.md` y `docs/YAPPY.md` |
 
 ## Estado
 
@@ -88,11 +93,8 @@ del puente. Ya en uso en la cuenta y **no se tocan**: `babycaleb-web`, `babycale
     sigue con el Gratuito (en el cambio se usan los dos hasta 90 días, Resolución 201-9775).
 
 - **Marca Baby Caleb (2026-11-19), lo que decide el dueño:**
-  - **Textos de garantía, cambios y términos de la factura:** siguen siendo los de D'CASA y hablan de muebles («Tus muebles
-    tienen garantía…», colchones, flete). Se cambian en *Ajustes › Empresas › Documentos*. Ninguno se inventa: los da el
-    dueño.
-  - **El checkout ofrece «Retiro en tienda» y «Pago en la tienda»**, y Baby Caleb no tiene tienda física. Solo se
-    cambiaron los textos. Quitarlos cambia la lógica, porque toca los apartados.
+  - **Textos de garantía, cambios y términos del comprobante:** desde el 2026-11-24 son los de Baby Caleb (armados con
+    sus respuestas), pendientes de su visto bueno. Se cambian en *Ajustes › Empresas › Documentos*.
   - **La banda de Socios de la portada** dice «Suma puntos y gana invitando». Desde el 2026-11-24 **no sale** mientras
     las cifras de `puntos.json` estén en PENDIENTE (`website._dcasa_socios_con_cifras`); vuelve sola cuando las haya.
   - **Lo técnico que todavía dice «D'CASA»:** los nombres de los módulos en *Aplicaciones* y los de las plantillas. No
@@ -113,7 +115,8 @@ del puente. Ya en uso en la cuenta y **no se tocan**: `babycaleb-web`, `babycale
   de Dany Baby dice «6 PCS» de 100: confirma la lista (6 paquetes de 100) y no la web (12 de 50).
 - **Water wipes Nateen** quedó publicado, pero la web de Baby Caleb lo marca «descatalogado» (`content.json`). Si ya no
   se vende, se despublica en su ficha.
-- Datos de la empresa: razón social, RUC y DV, dirección, teléfono, correo, web, lema de los documentos.
+- Datos de la empresa: RUC y DV (los escribe el dueño en *Ajustes › Empresas*), web y lema de los documentos. La razón
+  social ya es «Baby Caleb Panamá» y no hay dirección (vende en línea).
 - Promoción de Dany Baby (DANY-AW600): «2 cajas (1,200 toallitas) por $35.00». Anotada, no programada.
 - **Cifras de Socios y del programa de vendedores de Baby Caleb**: `addons/dcasa_socios/data/puntos.json` (versión 6)
   está todo en `null` y el catálogo de premios vacío (hecho el 2026-11-18). Qué cifra enciende qué parte:
@@ -126,7 +129,11 @@ del puente. Ya en uso en la cuenta y **no se tocan**: `babycaleb-web`, `babycale
   `www.babycaleb.com/*` de `Baby-caleb/wrangler.jsonc`, porque esa web se despliega sola en cada push a su `main` y se
   volvería a llevar el dominio. Pasos en `docs/DOMINIO.md` (Fase B, paso 2); candado en
   `edge/test/dominio-babycaleb.test.ts`.
-- Cobros en línea del sistema nuevo (hoy Tilopay y Yappy viven en la web actual, en `babycaleb.com`).
+- Cobros en línea del sistema nuevo: el código ya está (apagado). Falta que el dueño diga si usa las mismas cuentas de
+  Tilopay y Yappy que cobran hoy en `babycaleb.com` o unas nuevas, y que pegue las claves en Cloudflare. `YAPPY_DOMINIO`
+  es el dominio donde cobra este sistema: hoy la dirección `workers.dev`, y `babycaleb.com` el día del dominio.
+- **Duración de cada foto del carrusel de la portada:** 3 s de fábrica (vino de un pedido de la dueña de D'CASA); se
+  cambia desde el panel.
 - Qué herramientas se quitan para bajar costos (el dueño no quiere el sistema dormido, 2026-11-19). La lista para
   marcar está en [HERRAMIENTAS_BABY_CALEB.md](HERRAMIENTAS_BABY_CALEB.md). El dueño ya dijo que quitará las llamadas y
   videollamadas y las notificaciones de fábrica: son parte de `mail`, así que se esconden, no se desinstalan. Lo que más pesa es la

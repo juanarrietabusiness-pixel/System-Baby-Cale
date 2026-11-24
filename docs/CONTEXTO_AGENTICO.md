@@ -2248,3 +2248,23 @@ Un revisor sin mi contexto (con acceso de lectura y bases de prueba) encontró c
 - **Una factura se cuenta con la misma base que la lista.** Las unidades salían de los productos activos y a la venta, pero los pedidos y la gráfica salían de todas las facturas: con un producto archivado, el resumen no cuadraba. Los tres usan ahora el mismo dominio.
 - Menores arreglados: fechas del año 0001 daban error 500 (ahora un mensaje; no antes del 2000), «año pasado» con un periodo de 366 días se cruzaba un día, y el cambio % de un producto con devoluciones de sobra llegaba a −166 % (ahora −100 %).
 - **Cuándo pedir la revisión:** en paralelo al CI largo (80 minutos), no después. Esta llegó antes de que terminara el CI y costó cancelarlo y relanzar; si hubiera llegado después, habría costado un ciclo entero más.
+
+## Lo que enseñó preparar Baby Caleb para producción (2026-11-24)
+
+- **Al replicar el sistema para otro negocio, revisar lo que se siembra UNA vez en la base**, no solo los archivos de
+  `data/`: los textos iniciales de garantía, cambios y términos (`dcasa_invoice/models/res_company.py:
+  TEXTOS_INICIALES`) los escribe un gancho la primera vez, y seguían siendo los de D'CASA (muebles, colchones, flete,
+  «el ITBMS se suma»). Una instalación nueva de producción los habría impreso en cada comprobante. Buscar con
+  `grep -rn "mueble\|colch\|flete" addons --include=*.py` lo que no está en las vistas.
+- **Las diferencias de negocio van como interruptor de entorno, no borrando código de la plantilla**: sin ITBMS
+  (`DCASA_COBRA_ITBMS=0`), sin tienda física (`DCASA_TIENDA_FISICA=0`), conocimiento inicial
+  (`DCASA_CONOCIMIENTO_INICIAL`). Las tres siguen el mismo camino: `edge/wrangler.jsonc` → lista de variables del
+  contenedor (`edge/src/handler.ts`, si falta ahí no llega) → `docker/entrypoint.sh`, una vez por versión con su
+  parámetro `*_version` → una función del módulo con su prueba. Las pruebas corren sin la variable, así que la conducta
+  de D'CASA sigue probada; la del negocio se prueba llamando la función.
+- **Un papel que no es la factura fiscal no se llama «Factura»** (Baby Caleb usa el Facturador Gratuito de la DGI).
+  El título sale de un solo método (`account.move._dcasa_titulo_documento`) que usan el PDF y su nombre de archivo;
+  el correo y Mi cuenta tienen sus propios textos y hay que cambiarlos aparte.
+- **La rama de un ayudante puede quedar en otro repositorio**: el agente de los pagos trabajó en una copia de
+  `D_Casa_new_word` porque la sesión empezó en `/home/user`. Se trae con `git fetch <ruta-local> <rama>` y se une; las
+  dos historias comparten el espejo `d2ba8ca`.
