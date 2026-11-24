@@ -18,7 +18,7 @@ import { VIDA_DE_UN_COMENTARIO_MS } from "../canales/metaComentarios";
 import { EnvioParcialError, enlaceDeMedio, partirPorLargo, sinNegritas } from "../canales/tipos";
 import { crudoDe, entranteDeCrudo, prepararEntrante } from "../canales/preparar";
 import { noQuiereSeguimiento, pideUnaPersona } from "../dcasa/intencion";
-import { contextoDelChat, promptEstable, promptParaFugas, promptSeguimiento, presentacionPorDefecto } from "../dcasa/prompt";
+import { contextoDelChat, marcaDe, promptEstable, promptParaFugas, promptSeguimiento, presentacionPorDefecto } from "../dcasa/prompt";
 import { analizar, detectarSerHumano, notaDeCorreccion, quitarGraves, TEXTO_FUGA, TEXTO_SIN_DATO, limpiarForma, type ContextoRevision } from "../dcasa/salvaguardas";
 import { pinesEscritos, taparPines, textoParaElModelo } from "../dcasa/sensibles";
 import { TEXTO_FALLO_TECNICO, TEXTO_TOPE_DIARIO, textoPasoAVendedora } from "../dcasa/textos";
@@ -2070,6 +2070,7 @@ export class MotorConversacion {
       secretos: registro.pines,
       envio: registro.envio,
       haySinPublicar: registro.haySinPublicar,
+      marca: marcaDe(cfg.nombre_publico),
     });
     let analisis = analizar(salida.texto, contextoDeRevision());
     const reparables = analisis.graves.filter((g) => g.tipo !== "fuga");
@@ -2561,7 +2562,13 @@ export class MotorConversacion {
     await this.anotarGasto(mes, modelo, r.salida.uso, cfg);
 
     // Un seguimiento no lleva cifras de dinero: cualquiera es una invención.
-    const ctx: ContextoRevision = { preciosProducto: new Set(), cifrasConocidas: new Set(), palabrasProhibidas: cfg.palabras_prohibidas, textoDelPrompt: promptParaFugas(cfg) };
+    const ctx: ContextoRevision = {
+      preciosProducto: new Set(),
+      cifrasConocidas: new Set(),
+      palabrasProhibidas: cfg.palabras_prohibidas,
+      textoDelPrompt: promptParaFugas(cfg),
+      marca: marcaDe(cfg.nombre_publico),
+    };
     const a = analizar(r.salida.texto, ctx);
     const texto = a.graves.length ? quitarGraves(a.limpio, ctx) : a.limpio;
     if (!texto) return { ok: false, error: "el borrador del seguimiento no pasó la guardia de salida" };

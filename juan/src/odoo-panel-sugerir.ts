@@ -460,6 +460,7 @@ export async function sugerir(p: PeticionSugerir, d: DepsSugerir): Promise<{ sta
     palabrasProhibidas: cfg.palabras_prohibidas,
     textoDelPrompt: promptParaFugas(cfg),
     escribePersona: true, // el borrador lo revisa, lo edita y lo envía una vendedora: ahí «soy vendedora» es cierto
+    marca: marcaDe(cfg.nombre_publico),
   });
   let revision = revisarBorrador(salida.texto, contexto());
   diagnostico.revision = revision.graves;
