@@ -76,13 +76,35 @@ class TestAjustesPorDefecto(JuanCase):
         self.env.flush_all()
         mig.migrate(self.env.cr, '19.0.1.0.1')
         self.ajustes.invalidate_recordset()
-        self.assertEqual(self.ajustes.mensaje_bienvenida, 'Buenas, un gusto atenderle. Somos Baby Caleb Panamá 👼🏻')
+        self.assertEqual(self.ajustes.mensaje_bienvenida, mig.BIENVENIDA_NUEVA)
         # Editado por la dueña: no se pisa.
         self.ajustes.write({'mensaje_bienvenida': 'Hola, soy Juan. ¿Qué buscas?'})
         self.env.flush_all()
         mig.migrate(self.env.cr, '19.0.1.0.1')
         self.ajustes.invalidate_recordset()
         self.assertEqual(self.ajustes.mensaje_bienvenida, 'Hola, soy Juan. ¿Qué buscas?')
+
+    def test_la_migracion_de_baby_caleb_solo_cambia_lo_de_d_casa(self):
+        """19.0.1.6.0: el nombre y el saludo pasan a Baby Caleb Panamá solo si todavía dicen lo de D'CASA."""
+        import importlib.util
+
+        from odoo.tools.misc import file_path
+        spec = importlib.util.spec_from_file_location(
+            'mig6', file_path('dcasa_conversaciones/migrations/19.0.1.6.0/post-migrate.py'))
+        mig = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mig)
+        self.ajustes.write({'nombre_publico': mig.NOMBRE_ANTERIOR, 'mensaje_bienvenida': mig.BIENVENIDA_ANTERIOR})
+        self.env.flush_all()
+        mig.migrate(self.env.cr, '19.0.1.5.0')
+        self.ajustes.invalidate_recordset()
+        self.assertEqual((self.ajustes.nombre_publico, self.ajustes.mensaje_bienvenida),
+                         ('Baby Caleb Panamá', 'Buenas, un gusto atenderle. Somos Baby Caleb Panamá 👼🏻'))
+        self.ajustes.write({'nombre_publico': 'Otro nombre', 'mensaje_bienvenida': 'Otro saludo'})
+        self.env.flush_all()
+        mig.migrate(self.env.cr, '19.0.1.5.0')
+        self.ajustes.invalidate_recordset()
+        self.assertEqual((self.ajustes.nombre_publico, self.ajustes.mensaje_bienvenida), ('Otro nombre', 'Otro saludo'),
+                         'lo editado en Ajustes no se pisa')
 
     def test_la_migracion_acorta_solo_los_textos_originales(self):
         import importlib.util
