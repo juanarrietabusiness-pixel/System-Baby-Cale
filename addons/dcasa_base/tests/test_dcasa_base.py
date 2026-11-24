@@ -24,8 +24,10 @@ class TestDcasaBase(TransactionCase):
         self.assertEqual(order.currency_id, usd)
 
     def test_company_es_baby_caleb(self):
-        """Los datos que aprobó el dueño (docs/BABY_CALEB.md, 2026-11-18): nombre, país, teléfono y correo."""
-        self.assertEqual(self.company.name, 'Baby Caleb')
+        """Los datos que aprobó el dueño (docs/BABY_CALEB.md, 2026-11-18): nombre, país, teléfono y correo. La razón
+        social es «Baby Caleb Panamá» (2026-11-24)."""
+        self.assertEqual(self.company.name, 'Baby Caleb Panamá')
+        self.assertEqual(self.company.partner_id.name, 'Baby Caleb Panamá', 'la ficha de la empresa va con ella')
         self.assertEqual(self.company.phone, '+507 6757-5065')
         self.assertEqual(self.company.email, 'babycalebpanama@gmail.com')
 
@@ -65,6 +67,24 @@ class TestDcasaBase(TransactionCase):
         mig.migrate(self.env.cr, '19.0.1.6.0')
         self.company.invalidate_recordset()
         self.assertEqual(self.company.street, 'Editada por la dueña', 'No pisa una dirección editada')
+
+    def test_la_migracion_pone_la_razon_social_solo_si_no_se_cambio_a_mano(self):
+        import importlib.util
+
+        from odoo.tools.misc import file_path
+        spec = importlib.util.spec_from_file_location(
+            'mig_razon_social', file_path('dcasa_base/migrations/19.0.1.12.0/post-migrate.py'))
+        mig = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mig)
+        self.company.name = 'Baby Caleb'
+        mig.migrate(self.env.cr, '19.0.1.11.0')
+        self.company.invalidate_recordset()
+        self.assertEqual(self.company.name, 'Baby Caleb Panamá')
+        self.assertEqual(self.company.partner_id.name, 'Baby Caleb Panamá')
+        self.company.name = 'Nombre escrito por el dueño'
+        mig.migrate(self.env.cr, '19.0.1.11.0')
+        self.company.invalidate_recordset()
+        self.assertEqual(self.company.name, 'Nombre escrito por el dueño', 'No pisa un nombre escrito a mano')
 
     def test_default_sale_tax_is_itbms_7(self):
         tax = self.company.account_sale_tax_id

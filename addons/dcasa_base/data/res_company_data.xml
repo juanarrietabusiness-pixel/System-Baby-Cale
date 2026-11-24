@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Datos de la empresa (Baby Caleb, decisión del dueño del 2026-11-18, docs/BABY_CALEB.md): el nombre, el país, el
+    <!-- Datos de la empresa (Baby Caleb, decisión del dueño del 2026-11-18, docs/BABY_CALEB.md): el nombre (la razón
+         social «Baby Caleb Panamá», 2026-11-24; las bases ya instaladas la reciben por migrations/19.0.1.12.0), el país, el
          teléfono y el correo de contacto que aprobó, y el logo de su web (logo-babycaleb.png). RUC, DV, dirección,
          ciudad, web y lema de los documentos: vacíos hasta que el dueño los dé (nunca se inventan ni se copian los de
          otra empresa). noupdate: una vez instalados, se editan desde Ajustes > Empresas. -->
     <data noupdate="1">
         <record id="base.main_company" model="res.company">
-            <field name="name">Baby Caleb</field>
+            <field name="name">Baby Caleb Panamá</field>
             <field name="country_id" ref="base.pa"/>
             <field name="phone">+507 6757-5065</field>
             <field name="email">babycalebpanama@gmail.com</field>
