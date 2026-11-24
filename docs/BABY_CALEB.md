@@ -145,6 +145,12 @@ del puente. Ya en uso en la cuenta y **no se tocan**: `babycaleb-web`, `babycale
     minutos). La pantalla «Gestión de URLs» del panel de Tilopay no es para esto (TILOPAY.md, d3').
   - Las claves se pegan en Cloudflare › `sistemabk` › Settings › Variables and Secrets (nombres en TILOPAY.md y
     YAPPY.md), nunca en el chat ni en GitHub.
+- **WhatsApp por QR (`puente-wa`), blindado el 2026-11-24 tras la caída del CRM** (detalle en `docs/JUAN_PUENTE.md`,
+  §F y §G): vigilante paciente, limpieza automática de pre-keys con respaldo, avisos por Telegram y memoria y CPU en
+  `/api/estado`. Sigue **sin desplegar**. Lo que confirma el dueño: (1) contestar solo los mensajes atrasados de 15
+  minutos o menos y avisar del resto; (2) el aviso «no entran mensajes» tras 60 minutos, de lunes a sábado de 9:00 a
+  18:00; (3) seguir en la caja `lite` (≈ $2 al mes) y pasar a `basic` (≈ $7,30) solo si el estado lo pide. La
+  recomendación: la API oficial de Meta como canal principal y el QR de respaldo.
 - **Duración de cada foto del carrusel de la portada:** 3 s de fábrica (vino de un pedido de la dueña de D'CASA); se
   cambia desde el panel.
 - Qué herramientas se quitan para bajar costos (el dueño no quiere el sistema dormido, 2026-11-19). La lista para
