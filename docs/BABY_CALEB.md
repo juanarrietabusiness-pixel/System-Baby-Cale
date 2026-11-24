@@ -71,6 +71,22 @@ del puente. Ya en uso en la cuenta y **no se tocan**: `babycaleb-web`, `babycale
 
 ## Pendiente (preguntas abiertas y trabajo por hacer)
 
+- **Factura electrónica de la DGI (averiguado el 2026-11-24, con fuentes):**
+  - El **Facturador Gratuito no se puede conectar**: la DGI dice que «no permite integración con otros sistemas»
+    (https://dgi.mef.gob.pa/_7FacturaElectronica/f-Gratuito). Para emitir desde Odoo hace falta un **PAC**.
+  - Desde el 2026-01-01 el Gratuito solo vale hasta **B/.36,000 al año y 100 documentos al mes** (Resolución 201-6299).
+    Si Baby Caleb pasa de eso, el PAC es obligatorio: lo confirma la contadora.
+  - PAC con API y que mandan el correo a la clienta: **Hypernova Labs** (módulo para Odoo 19, Community, $95),
+    **efacturapty / Ideati** (API pública; $40, $60 o $119 al año por 50, 100 o 200 facturas al mes) y **Factura
+    Fácil** (API pública con pruebas). Lista oficial de los 18 PAC: https://dgi.mef.gob.pa/_7FacturaElectronica/Proveedorespac
+  - `addons/dcasa_fe_pa` (de D'CASA, no instalado) ya arma el XML y el CUFE y tiene la cola, la contingencia y la
+    anulación, pero **no tiene conector con ningún PAC real**, no firma, `xsd/` está vacía, arrastra combos de D'CASA y
+    no retiene el correo hasta la autorización (la clienta recibiría la factura sin CUFE ni QR). Elegido el PAC: o su
+    conector, o un conector para `dcasa_fe_pa`.
+  - Lo del dueño: la firma electrónica del Registro Público (B/.50), el contrato y las credenciales del PAC (como
+    secretos), la Declaración Jurada rectificativa en e-Tax 2.0 y la confirmación de la afiliación. Mientras tanto,
+    sigue con el Gratuito (en el cambio se usan los dos hasta 90 días, Resolución 201-9775).
+
 - **Marca Baby Caleb (2026-11-19), lo que decide el dueño:**
   - **Textos de garantía, cambios y términos de la factura:** siguen siendo los de D'CASA y hablan de muebles («Tus muebles
     tienen garantía…», colchones, flete). Se cambian en *Ajustes › Empresas › Documentos*. Ninguno se inventa: los da el
