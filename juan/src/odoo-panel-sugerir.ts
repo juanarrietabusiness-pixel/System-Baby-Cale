@@ -1,7 +1,7 @@
 // `POST /odoo/sugerir`: el botón «Sugerir» de la pantalla Conversaciones de Odoo (docs/JUAN_ODOO.md).
 //
 // Odoo manda los últimos mensajes de la conversación y este Worker REDACTA un borrador con el mismo motor de IA y las mismas
-// reglas de marca (voz, «+ ITBMS», nada de existencias en número, nada de promesas de entrega o descuento). NO ENVÍA NADA: no
+// reglas de marca (la voz de usted, los precios tal cual, nada de existencias en número, nada de promesas de entrega o descuento). NO ENVÍA NADA: no
 // toca el canal, no cambia el estado de la conversación, no crea oportunidades ni notas. La vendedora lo edita y lo envía ella.
 //
 //   · Puede CONSULTAR el catálogo, Socios, el horario y la base de conocimiento (herramientas de solo lectura de Odoo);
@@ -128,9 +128,10 @@ Escribe SOLO el texto del mensaje, listo para pegar: sin comillas, sin títulos,
 </tarea>
 
 <voz>
-- Como alguien de la tienda que conoce bien los productos: cercano, claro y directo. Español de Panamá. Tuteo SIEMPRE («tú», «te», «escríbeme»); nunca «usted» ni voseo.
-- Breve: de 2 a 4 líneas, una sola pregunta a la vez. Cero emojis, sin signos dobles (!! o ??), sin mayúsculas gritadas.
-- Nada de «remate», «¡corre!», «última oportunidad», «no te lo pierdas» ni presión para comprar.${prohibidas}
+- Como alguien de la tienda que conoce bien los productos: cálido y servicial, como una amiga experta, sin exagerar la confianza; claro y directo. Español de Panamá.
+- De usted, SIEMPRE: «le», «su bebé», «indíquenos», «¿le sirve?». Nunca tutees ni uses voseo, aunque el cliente tutee.
+- Breve: de 2 a 4 líneas, una sola pregunta a la vez. Emojis, pocos y cálidos: uno o dos como mucho (👼🏻 🙌🏻 👶🏻 🙏🏻 😁 ✨), nunca en lugar de palabras y ningún «visto» (✓ ✅). Sin signos dobles (!! o ??), sin mayúsculas gritadas.
+- Nada de «remate», «¡corre!», «última oportunidad», «no se lo pierda» ni presión para comprar.${prohibidas}
 - Sin formato de documento. Para resaltar una palabra usa un asterisco a cada lado.
 - Responde a lo último que preguntó el cliente. Si la conversación sigue a medias, retómala con naturalidad; no repitas lo que ya se dijo.
 </voz>
@@ -138,7 +139,7 @@ Escribe SOLO el texto del mensaje, listo para pegar: sin comillas, sin títulos,
 <fuentes_de_verdad>
 Todo lo que sabes de la tienda te lo dicen las herramientas; fuera de ellas NO SABES NADA: ni de memoria ni «por lo normal en una tienda».
 - Productos, tallas, lo que trae cada caja o paquete, combos, precios y disponibilidad: buscar_productos y ver_producto. Llámalas ANTES de nombrar un producto o dar un precio.
-- Precios SIEMPRE con «+ ITBMS», copiando el campo precio_texto. No sumes ni calcules totales. Disponibilidad solo con la etiqueta («disponible», «quedan pocas», «agotado»), JAMÁS cuántas unidades hay.
+- Precios: copia el campo precio_texto tal cual: si trae «+ ITBMS», va con eso; si no, sin nada. Nunca le agregues un impuesto que la herramienta no puso. No sumes ni calcules totales. Disponibilidad solo con la etiqueta («disponible», «quedan pocas», «agotado»), JAMÁS cuántas unidades hay.
 - El programa Socios: reglas_socios. Horario y dirección: horario_y_tienda. Políticas, garantía, formas de pago: buscar_conocimiento.
 - Si algo no aparece en una herramienta, no lo inventes ni lo deduzcas: escribe [CONFIRMAR: lo que falta] en ese lugar para que la vendedora lo complete antes de enviar.
 - Entregas, flete, financiamiento, apartados y descuentos: no los prometas ni los niegues ni los estimes. Escribe [CONFIRMAR: entrega] (o flete, financiamiento, apartado, descuento) para que la vendedora lo resuelva.
@@ -223,8 +224,9 @@ export function notaDeCorreccionDelBorrador(graves: readonly TipoProblema[]): st
   const que = [...new Set(graves)].map((t) => QUE_SE_QUITO[t]).join("; ");
   return (
     `Tu borrador anterior no sirvió porque tenía ${que}. Escríbelo de nuevo sin eso: precios solo copiados de buscar_productos o ` +
-    "ver_producto (con «+ ITBMS»), nunca cuántas unidades hay, ninguna cifra que no te haya dado una herramienta, y lo de entregas, " +
-    "flete, financiamiento, apartados y descuentos va como [CONFIRMAR: …] para que la vendedora lo complete. Mismo tono, de 2 a 4 líneas."
+    "ver_producto (tal cual los da precio_texto), nunca cuántas unidades hay, ninguna cifra que no te haya dado una herramienta, y lo de entregas, " +
+    "flete, financiamiento, apartados y descuentos va como [CONFIRMAR: …] para que la vendedora lo complete. De usted, siempre (nunca tutees), " +
+    "con uno o dos emojis como mucho, de 2 a 4 líneas."
   );
 }
 

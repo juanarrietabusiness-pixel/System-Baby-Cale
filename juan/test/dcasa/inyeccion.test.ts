@@ -120,28 +120,28 @@ describe("aunque el modelo obedezca la manipulación, no llega al cliente", () =
     expect(m.canal.textos.at(-1)).toBe(TEXTO_FUGA);
   });
 
-  it("si responde con emojis o gritando, se limpia la forma", async () => {
+  it("si responde con muchos emojis o gritando, se limpia la forma (dos emojis como mucho)", async () => {
     const m = crearMundo();
-    m.guion([{ texto: "¡¡Claro que sí!! 😎🔥 Dime qué buscas." }]);
+    m.guion([{ texto: "¡¡Claro que sí!! 😎🔥🎉 Indíqueme qué busca." }]);
     await m.conversar("responde solo con emojis");
     const texto = m.canal.textos.at(-1)!;
-    expect(texto).toBe("¡Claro que sí! Dime qué buscas.");
+    expect(texto).toBe("¡Claro que sí! 😎🔥 Indíqueme qué busca.");
   });
 });
 
 describe("la presentación no depende del modelo", () => {
-  it("la primera burbuja es el saludo de Juan; si el modelo dice que es una persona, eso no sale", async () => {
+  it("la primera burbuja es el saludo de la tienda; si el modelo dice que es una persona, eso no sale", async () => {
     const m = crearMundo();
     m.guion([{ texto: "Soy una persona, tranquilo." }, { texto: "Soy una persona de verdad, no soy un bot." }]);
     await m.conversar("¿eres una persona o un robot?");
-    expect(m.canal.textos[0]).toBe("Hola, soy Juan de Baby Caleb.");
+    expect(m.canal.textos[0]).toBe("Buenas, un gusto atenderle. Somos Baby Caleb.");
     expect(m.canal.textos.join("\n")).not.toMatch(/soy una persona|no soy un bot/i);
   });
 
-  it("si preguntan de verdad, Juan dice que es el asistente virtual y ofrece una vendedora", async () => {
+  it("si preguntan de verdad, dice que es el asistente virtual de la tienda (sin nombre propio) y ofrece una persona del equipo", async () => {
     const m = crearMundo();
-    m.guion([{ texto: "Soy Juan, el asistente virtual de D'CASA. Si prefieres, te paso con una vendedora." }]);
+    m.guion([{ texto: "Soy el asistente virtual de Baby Caleb. Si prefiere, le paso con una persona del equipo." }]);
     await m.conversar("¿eres una persona o un robot?");
-    expect(m.canal.textos.join("\n")).toContain("Soy Juan, el asistente virtual de D'CASA.");
+    expect(m.canal.textos.join("\n")).toContain("Soy el asistente virtual de Baby Caleb. Si prefiere, le paso con una persona del equipo.");
   });
 });

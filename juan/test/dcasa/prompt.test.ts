@@ -47,15 +47,16 @@ describe("<fuentes_de_verdad> apunta a las herramientas de Odoo", () => {
   it("«no lo manejamos» solo cuando la herramienta lo dice; lo que se vende sin publicar va a una vendedora (incidente del 2026-11-13)", () => {
     expect(fuentes).toContain("«No lo manejamos» SOLO cuando la herramienta lo diga (estado no_lo_manejamos");
     expect(fuentes).toMatch(/Con hay_sin_publicar el producto SÍ se trabaja/);
-    expect(fuentes).toMatch(/sin dar modelos ni precios, dile que sí lo trabajamos y que una vendedora se los confirma, y llama a pasar_a_vendedora/);
-    expect(fuentes).toMatch(/Si no está claro .*«te lo confirma una vendedora»/);
+    // Dicho de forma distinta a como lo dirá Juan de usted («que sí lo trabajamos y que una vendedora se los confirma»): así decirlo no es una fuga.
+    expect(fuentes).toMatch(/no des modelos ni precios: explícale que la tienda sí lo maneja y que eso lo confirma una vendedora, y llama a pasar_a_vendedora/);
+    expect(fuentes).toMatch(/Si no está claro .*«se lo confirma una vendedora»/);
     expect(fuentes).toMatch(/Nunca lo ofrezcas por si acaso/);
     // El texto viejo («si no aparece, ese producto NO lo manejamos») le hizo negar los colchones a un cliente.
     expect(prompt).not.toMatch(/ese producto NO lo manejamos|si no aparece: «no lo manejamos»/);
     // Se pasa a una vendedora con lo que busca el cliente, y hay un ejemplo de cómo se dice.
     expect(bloque("como_trabajas")).toContain("pide algo que la búsqueda marcó hay_sin_publicar (en el motivo, qué busca)");
     expect(bloque("voz")).toContain("un producto con hay_sin_publicar");
-    expect(bloque("ejemplos_de_tono")).toMatch(/hay_sin_publicar, después de pasar_a_vendedora\): Sí, los trabajamos\. Los modelos y los precios te los confirma una vendedora\./);
+    expect(bloque("ejemplos_de_tono")).toMatch(/hay_sin_publicar, después de pasar_a_vendedora\): Sí, los trabajamos\. Los modelos y los precios se los confirma una vendedora\./);
   });
 
   it("las frases que Juan le dirá a un cliente con hay_sin_publicar no se confunden con una copia del prompt", () => {
@@ -68,14 +69,27 @@ describe("<fuentes_de_verdad> apunta a las herramientas de Odoo", () => {
       "Lo tenemos en el sistema aunque no esté publicado en la tienda en línea, y una vendedora te confirma los modelos.",
       "Sí, lo trabajamos aunque no esté en la tienda en línea. Una vendedora te confirma modelos y precios.",
       "Te digo que sí lo trabajamos y que una vendedora te confirma los modelos y los precios.",
+      // De usted (la voz de Baby Caleb, 2026-11-24): se parece más a cómo el prompt habla del cliente, y tampoco es una copia.
+      "Sí, lo trabajamos, solo que no sale en la tienda en línea. Los modelos y los precios se los confirma una vendedora.",
+      "Sí trabajamos ese producto aunque no esté publicado en la tienda en línea; una vendedora le confirma modelos y precios.",
+      "Sí, los trabajamos. Los modelos y los precios se los confirma una vendedora. Listo, ya le pasé su consulta a una vendedora.",
+      "Es un producto que trabajamos pero no está publicado en la tienda en línea: una vendedora le confirma modelos y precios.",
+      "Le digo que sí lo trabajamos y que una vendedora se los confirma, los modelos y los precios.",
+      "Sí, lo trabajamos aunque no esté en la tienda en línea. Una vendedora le confirma modelos y precios.",
+      "Con gusto 👼🏻 Tenemos estos pañales de cierre. ¿Para qué talla lo busca?",
+      "La entrega se la confirma una vendedora. ¿Desea que le pase su consulta para que le escriba?",
     ]) {
       expect(detectarFuga(frase, ctxFugas), frase).toBeNull();
     }
   });
 
-  it("los precios llevan «+ ITBMS» y se copian de precio_texto", () => {
-    expect(fuentes).toContain("+ ITBMS");
-    expect(fuentes).toContain("precio_texto");
+  it("los precios se copian de precio_texto tal cual: con «+ ITBMS» solo si lo trae (Baby Caleb no cobra ITBMS)", () => {
+    expect(fuentes).toContain("copia el campo precio_texto tal cual: si trae «+ ITBMS», va con eso; si no, sin nada.");
+    expect(fuentes).toContain("Nunca le agregues un impuesto que la herramienta no puso.");
+    expect(prompt).not.toMatch(/SIEMPRE con «\+ ITBMS»|Precios con «\+ ITBMS»|los precios son \+ ITBMS/i);
+    expect(fuentes).toContain("(subtotal, impuestos si los hay, y total)");
+    expect(fuentes).toContain("el subtotal, los impuestos si los hay, y el total");
+    expect(prompt).not.toMatch(/subtotal, (?:el )?ITBMS y (?:el )?total/);
     expect(fuentes).toMatch(/No sumes, no multipliques ni calcules totales/);
     // Con varios productos, el total lo arma Odoo con la cotización: esas cifras sí se pueden decir.
     expect(fuentes).toMatch(/llama a cotizar/);
@@ -115,7 +129,7 @@ describe("las 11 reglas de comportamiento del contrato (docs/JUAN.md)", () => {
 
   it("1 · el saludo como Juan lo manda el sistema; persona/vendedora/humano pasan SIEMPRE", () => {
     const r = regla(1);
-    expect(r).toContain("Hola, soy Juan de la tienda.");
+    expect(r).toContain('El sistema manda el saludo (como "Buenas, un gusto atenderle. Somos la tienda.") como primera burbuja: no lo repitas ni te presentes con un nombre.');
     expect(r).not.toMatch(/asistente automático/);
     expect(r).toMatch(/No ofrezcas escribir \*persona\*/);
     expect(r).toMatch(/\*vendedora\*/);
@@ -127,19 +141,20 @@ describe("las 11 reglas de comportamiento del contrato (docs/JUAN.md)", () => {
   it("2 · nunca inventa precio, existencia, talla, peso, contenido de una caja, color, plazo, descuento ni promesa", () => {
     const r = regla(2);
     for (const x of ["precio", "existencia", "talla", "peso", "contenido de una caja", "color", "plazo", "descuento", "promesa"]) expect(r).toContain(x);
-    expect(r).toContain("+ ITBMS");
+    expect(r).toContain("Precios tal cual los da la herramienta (precio_texto).");
+    expect(r).not.toContain("+ ITBMS");
     expect(r).toMatch(/Existencias solo como etiqueta/);
     // «No lo manejamos» solo con la herramienta; lo que se vende sin publicar nunca se niega (incidente del 2026-11-13).
     expect(r).toContain("«No lo manejamos» solo cuando la herramienta lo diga (no_lo_manejamos)");
     expect(r).toContain("lo que tiene hay_sin_publicar nunca se niega");
-    expect(r).toContain("si no está claro, «te lo confirma una vendedora»");
+    expect(r).toContain("si no está claro, «se lo confirma una vendedora»");
   });
 
   it("3 · entregas, flete, financiamiento, apartados y descuentos: solo lo que diga la base de conocimiento; lo demás, una vendedora", () => {
     const r = regla(3);
     for (const x of ["Entregas", "flete", "financiamiento", "apartados", "descuentos"]) expect(r).toContain(x);
     expect(r).toContain("SOLO lo que diga buscar_conocimiento");
-    expect(r).toContain("eso te lo confirma una vendedora");
+    expect(r).toContain("eso se lo confirma una vendedora");
     expect(r).toMatch(/no haces apartados, ni apruebas créditos, ni das descuentos, ni fijas entregas/);
     expect(r).toContain("crear_oportunidad");
   });
@@ -193,24 +208,23 @@ describe("las 11 reglas de comportamiento del contrato (docs/JUAN.md)", () => {
     expect(r).toMatch(/no se le escribe más/);
   });
 
-  it("11 · español de Panamá, tuteo, 2 a 4 líneas, sin emojis ni signos dobles; en inglés si el cliente escribe en inglés", () => {
+  it("11 · español de Panamá, de usted, 2 a 4 líneas, uno o dos emojis como mucho y sin signos dobles; en inglés con trato respetuoso", () => {
     const r = regla(11);
-    expect(r).toMatch(/Español de Panamá/);
-    expect(r).toMatch(/te escribe en inglés, contéstale en inglés/);
-    expect(r).toMatch(/tuteo/);
+    expect(r).toMatch(/Español de Panamá y de usted, siempre \(nunca tuteas, aunque el cliente te tutee\)/);
+    expect(r).toMatch(/te escribe en inglés, contéstale en inglés, con trato respetuoso/);
+    expect(r).toMatch(/precios tal cual los da la herramienta/);
     expect(r).toMatch(/2 a 4 líneas/);
-    expect(r).toMatch(/sin emojis/);
+    expect(r).toMatch(/uno o dos emojis como mucho y sin signos dobles/);
   });
 });
 
 describe("la voz de la marca", () => {
   const voz = bloque("voz");
 
-  it("alguien de la tienda que conoce bien los productos (ya no «el pana que sabe de casas»), con tuteo siempre", () => {
-    expect(voz).toMatch(/Hablas como alguien de la tienda que conoce bien los productos: cercano, claro, directo y con criterio\. Español de Panamá/);
+  it("alguien de la tienda que conoce bien los productos, cálido y servicial como una amiga experta, y de usted siempre (la voz del CRM)", () => {
+    expect(voz).toMatch(/Hablas como alguien de la tienda que conoce bien los productos: cálido y servicial, como una amiga experta, sin exagerar la confianza; claro, directo y con criterio\. Español de Panamá/);
     expect(prompt).not.toMatch(/\bpana\b|sabe de casas/);
-    expect(voz).toMatch(/Tuteo SIEMPRE/);
-    expect(voz).toMatch(/Nunca «usted» ni voseo/);
+    expect(voz).toContain("De usted, SIEMPRE: «le», «su bebé», «indíquenos», «¿le sirve?». Nunca tutees ni uses voseo («vos», «tenés»), aunque el cliente te tutee.");
   });
 
   it("nada de «remate», «¡corre!» ni presión para comprar", () => {
@@ -218,8 +232,9 @@ describe("la voz de la marca", () => {
     expect(voz).toMatch(/presión para comprar/);
   });
 
-  it("cero emojis y sin signos dobles", () => {
-    expect(voz).toMatch(/Cero emojis/);
+  it("emojis pocos y cálidos (uno o dos como mucho, nunca en lugar de palabras, ningún «visto») y sin signos dobles", () => {
+    expect(voz).toContain("uno o dos por mensaje como mucho (👼🏻 🙌🏻 👶🏻 🙏🏻 😁 ✨), y nunca en lugar de palabras");
+    expect(voz).toMatch(/Ningún signo de «visto»/);
     expect(voz).toMatch(/Sin signos dobles/);
   });
 
@@ -239,17 +254,28 @@ describe("la voz de la marca", () => {
     expect(voz).toMatch(/No prometas avisar de novedades, reservar, apartar ni escribirle después/);
   });
 
-  it("«usted» solo aparece para PROHIBIRLO", () => {
-    for (const linea of prompt.split("\n").filter((l) => /usted/i.test(l))) {
-      expect(linea, linea).toMatch(/Nunca|nunca|aunque el cliente te hable de usted/);
-    }
+  it("tutear solo aparece para PROHIBIRLO", () => {
+    const lineas = prompt.split("\n").filter((l) => /tute/i.test(l));
+    expect(lineas.length).toBeGreaterThan(0);
+    for (const linea of lineas) expect(linea, linea).toMatch(/[Nn]unca tute/);
+  });
+
+  it("los ejemplos le hablan de usted al cliente, aunque el cliente tutee («Tú:» es solo la etiqueta del turno)", () => {
+    const dichos = bloque("ejemplos_de_tono")
+      .split("\n")
+      .filter((l) => l.startsWith("Tú"))
+      .map((l) => l.replace(/^Tú(?: \([^)]*\))?:\s*/, ""));
+    expect(dichos.length).toBeGreaterThanOrEqual(7);
+    for (const d of dichos) expect(d, d).not.toMatch(/\b(?:te|tu|tus|ti|tú|quieres|prefieres|buscas|dime|cuéntame|escríbeme|mira)\b/i);
+    expect(dichos.join(" ")).toMatch(/\b(?:le|su|se lo|se la|Desea|prefiere|busca)\b/);
   });
 
   it("se presenta como Juan, de la empresa de Ajustes, sin anunciarse como asistente, pero nunca dice que es humano", () => {
-    expect(prompt).toMatch(/Eres Juan, de «la tienda»\. Atiendes a clientes/);
+    expect(prompt).toMatch(/Eres el asistente de mensajería de «la tienda» y hablas en su nombre: no tienes nombre propio\. Atiendes a clientes/);
+    expect(prompt).toContain("Con el cliente hablas como la tienda («somos la tienda», «le atiende la tienda»), cálido y servicial. Nunca te pongas un nombre de persona.");
     expect(prompt).toMatch(/No te anuncias como «asistente» ni como «bot»/);
     expect(prompt).toMatch(/NUNCA afirmes ser humano ni digas «no soy un bot»/);
-    expect(prompt).toMatch(/si alguien te pregunta de verdad si habla con una persona, un bot o una IA, lo dices con naturalidad/);
+    expect(prompt).toMatch(/si alguien te pregunta de verdad si habla con una persona, un bot o una IA, lo dices con naturalidad y sin rodeos \(«Soy el asistente virtual de la tienda»\) y ofreces pasarle con una persona del equipo/);
   });
 
   it("habla de sí mismo en masculino o sin género (nunca «atenta»)", () => {
@@ -257,7 +283,7 @@ describe("la voz de la marca", () => {
   });
 
   it("las fotos solo se mandan si el cliente las pide; «más fotos» usa adicionales", () => {
-    expect(prompt).toMatch(/NO ofrezcas mandar fotos ni preguntes «¿te envío la foto\?»/);
+    expect(prompt).toMatch(/NO ofrezcas mandar fotos ni preguntes «¿le envío la foto\?»/);
     expect(prompt).toMatch(/solo cuando el cliente la pida/);
     expect(prompt).toMatch(/adicionales=true/);
     expect(prompt).not.toMatch(/¿Te mando la foto de alguna\?/);
@@ -292,15 +318,21 @@ describe("la voz de la marca", () => {
     expect(p).toContain("«oferta imperdible»");
   });
 
-  it("el prompt no trae emojis", () => {
-    expect(prompt).not.toMatch(/\p{Extended_Pictographic}/u);
+  it("los únicos emojis del prompt son los cálidos de la voz (y el del ejemplo)", () => {
+    const permitidos = new Set(["👼", "🙌", "👶", "🙏", "😁", "✨"]);
+    const usados = prompt.match(/\p{Extended_Pictographic}/gu) ?? [];
+    expect(usados.length).toBeGreaterThan(0);
+    // Los de «visto» solo aparecen para prohibirlos.
+    for (const e of usados.filter((x) => !permitidos.has(x))) expect(["✓", "✅"], e).toContain(e);
+    expect(bloque("ejemplos_de_tono").match(/\p{Extended_Pictographic}/gu) ?? []).toEqual(["👼"]);
   });
 
   it("se repite el recordatorio AL FINAL, que es lo último que lee un modelo pequeño", () => {
     expect(prompt.trimEnd().endsWith("</ultimo_recordatorio>")).toBe(true);
     expect(prompt.indexOf("<ultimo_recordatorio>")).toBeGreaterThan(prompt.indexOf("</reglas>"));
-    expect(bloque("ultimo_recordatorio")).toMatch(/tuteo/);
-    expect(bloque("ultimo_recordatorio")).toMatch(/\+ ITBMS/);
+    expect(bloque("ultimo_recordatorio")).toMatch(/de usted, siempre \(nunca tutees\)/);
+    expect(bloque("ultimo_recordatorio")).toMatch(/uno o dos emojis como mucho/);
+    expect(bloque("ultimo_recordatorio")).toContain("tal cual lo da la herramienta (precio_texto: con «+ ITBMS» solo si lo trae)");
     expect(bloque("ultimo_recordatorio")).toContain("«no lo manejamos» solo si la herramienta lo dice");
   });
 
@@ -316,10 +348,10 @@ describe("el nombre de la empresa sale de Ajustes de Juan, nunca escrito a mano"
   const bc = promptEstable(normalizarConfig({ nombre_publico: "el equipo de Baby Caleb" }));
 
   it("Juan es de la empresa configurada: en la identidad, el saludo, el ejemplo de «¿eres un bot?» y las fuentes", () => {
-    expect(bc).toContain("Eres Juan, de «Baby Caleb». Atiendes a clientes");
-    expect(bc).toContain("Te presentas como Juan, de Baby Caleb, y hablas cercano");
-    expect(bc).toContain('El sistema manda el saludo ("Hola, soy Juan de Baby Caleb.")');
-    expect(bc).toContain("Tú: Soy Juan, el asistente virtual de Baby Caleb. Si prefieres, te paso con una vendedora.");
+    expect(bc).toContain("Eres el asistente de mensajería de «Baby Caleb» y hablas en su nombre: no tienes nombre propio. Atiendes a clientes");
+    expect(bc).toContain("Con el cliente hablas como la tienda («somos Baby Caleb», «le atiende Baby Caleb»), cálido y servicial.");
+    expect(bc).toContain('El sistema manda el saludo (como "Buenas, un gusto atenderle. Somos Baby Caleb.")');
+    expect(bc).toContain("Tú: Soy el asistente virtual de Baby Caleb. Si prefiere, le paso con una persona del equipo.");
     expect(bc).toContain("Todo lo que sabes de Baby Caleb te lo dice una herramienta.");
   });
 
@@ -464,11 +496,12 @@ describe("el texto para detectar fugas del prompt", () => {
 describe("el prompt del seguimiento", () => {
   const p = promptSeguimiento(cfg, { numero: 1, interes: "pañales talla M NAT-M", ahora: AHORA_INICIAL, nombreCliente: "Karen" });
 
-  it("es corto, con tuteo y sin presión", () => {
-    expect(p).toMatch(/Tuteo/);
+  it("es corto, de usted y sin presión, con uno o dos emojis cálidos como mucho", () => {
+    expect(p).toMatch(/De usted, siempre \(«le», «su bebé», «¿le sirve\?»\): nunca tutees/);
+    expect(p).not.toMatch(/Tuteo|Cero emojis/);
     expect(p).toMatch(/2 a 3 líneas/);
     expect(p).toMatch(/Sin presión/);
-    expect(p).toMatch(/Cero emojis/);
+    expect(p).toMatch(/Uno o dos emojis cálidos como mucho/);
   });
 
   it("no puede traer precios, descuentos, existencias ni promesas", () => {
@@ -477,9 +510,9 @@ describe("el prompt del seguimiento", () => {
   });
 
   it("no se anuncia como asistente ni ofrece fotos, y deja que una vendedora lo atienda si prefiere", () => {
-    expect(p).toMatch(/^Eres Juan, de «la tienda»\. Vas a redactar/);
+    expect(p).toMatch(/^Eres el asistente de «la tienda» y escribes en su nombre, sin nombre propio \(«somos la tienda»\)\. Vas a redactar/);
     const bc = promptSeguimiento(normalizarConfig({ nombre_publico: "el equipo de Baby Caleb" }), { numero: 1, interes: "", ahora: AHORA_INICIAL });
-    expect(bc).toMatch(/^Eres Juan, de «Baby Caleb»\. Vas a redactar/);
+    expect(bc).toMatch(/^Eres el asistente de «Baby Caleb» y escribes en su nombre, sin nombre propio \(«somos Baby Caleb»\)\. Vas a redactar/);
     expect(bc).not.toContain("D'CASA");
     expect(p).toMatch(/No te anuncies como asistente ni ofrezcas fotos/);
     expect(p).toMatch(/puede pedir que lo atienda una vendedora/);

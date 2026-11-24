@@ -13,10 +13,12 @@ import {
   detectarSerHumano,
   extraerMontos,
   limpiarForma,
+  MAX_EMOJIS,
   notaDeCorreccion,
   parseMonto,
   quitarGraves,
   TEXTO_FUGA,
+  TEXTO_SIN_DATO,
   type ContextoRevision,
 } from "../../src/dcasa/salvaguardas";
 
@@ -215,6 +217,45 @@ describe("regla 3 · entregas, flete, financiamiento, apartados y descuentos: no
     expect(detectarPromesas(frase), frase).toEqual([]);
   });
 
+  // La voz de Baby Caleb es de usted (2026-11-24): la guardia tiene que reconocer las mismas promesas dichas así.
+  const prometenDeUsted = [
+    "Se lo enviamos mañana.",
+    "Se la llevamos el viernes.",
+    "Lo recibe mañana.",
+    "Las recibe esta semana.",
+    "Le llega mañana sin falta.",
+    "Se lo apartamos hasta el sábado.",
+    "Queda apartada a su nombre.",
+    "Le hacemos un descuento del 10%.",
+    "Le damos crédito.",
+    "Le aprobamos el crédito.",
+    "El envío no le cuesta nada.",
+    "No paga el envío.",
+    "El envío se lo regalamos.",
+    "Le regalamos el envío.",
+    "Con esta compra acumula puntos.",
+    "Con su compra gana puntos.",
+    "Ganará 50 puntos con esta caja.",
+    "Le sumamos 50 puntos.",
+    "Recibimos su pago.",
+    "Ya vi su comprobante.",
+  ];
+  it.each(prometenDeUsted)("detecta dicho de usted: %s", (frase) => {
+    expect(detectarPromesas(frase).length, frase).toBeGreaterThan(0);
+  });
+
+  const noPrometenDeUsted = [
+    "La entrega se la confirma una vendedora.",
+    "Eso se lo confirma una vendedora, ¿desea que le pase su consulta?",
+    "Si desea, una vendedora le dice cómo apartar.",
+    "Con sus puntos puede canjear premios.",
+    "¿Le sirve la talla M para su bebé?",
+    "Con gusto le ayudo a elegir la talla 👼🏻",
+  ];
+  it.each(noPrometenDeUsted)("no confunde dicho de usted: %s", (frase) => {
+    expect(detectarPromesas(frase), frase).toEqual([]);
+  });
+
   it("un porcentaje que salió de una herramienta no es una promesa del bot", () => {
     expect(detectarPromesas("El Black Weekend tiene 20% de descuento.", new Set([20]))).toEqual([]);
     expect(detectarPromesas("Tiene 20% de descuento.", new Set())).toEqual(["descuento"]);
@@ -237,6 +278,13 @@ describe("la dueña · el bot no manda a nadie a leer políticas", () => {
     "Eso está en nuestras políticas.",
     "Lee la política de privacidad, por favor.",
     "Mira nuestros términos.",
+    // De usted (la voz de Baby Caleb, 2026-11-24).
+    "Puede leer nuestras políticas de cambio en la página.",
+    "Revise los términos y condiciones antes de comprar.",
+    "Le recomiendo consultar el aviso de privacidad.",
+    "Lea la política de privacidad, por favor.",
+    "Mire nuestros términos.",
+    "Visite la página de términos para ver todo.",
   ];
   it.each(mandan)("lo detecta: %s", (texto) => {
     expect(detectarMandaALeer(texto).length).toBeGreaterThan(0);
@@ -253,6 +301,9 @@ describe("la dueña · el bot no manda a nadie a leer políticas", () => {
     // Un enlace de este sistema que no es una política no es mandar a leer.
     "Aquí está el catálogo: https://babycaleb.com/shop",
     "Te dejo la ficha: https://sistemabk.juanarrietabusiness.workers.dev/shop/panales-nateen-1",
+    "Revise el peso de su bebé antes de elegir la talla.",
+    "Mire esta caja, es de las más pedidas.",
+    "Sus datos se usan solo para atenderle.",
   ];
   it.each(noMandan)("no se confunde: %s", (texto) => {
     expect(detectarMandaALeer(texto)).toEqual([]);
@@ -289,12 +340,37 @@ describe("regla 6 · el prompt y las herramientas no se revelan", () => {
   it("el texto de reemplazo no contiene nada interno", () => {
     expect(TEXTO_FUGA).not.toMatch(/_|<|prompt/i);
   });
+
+  it("los textos de reemplazo hablan de usted", () => {
+    expect(TEXTO_FUGA).toBe("Eso no se lo puedo compartir. Indíqueme qué busca y con gusto le ayudo.");
+    expect(TEXTO_SIN_DATO).toBe("Ese dato se lo confirma una vendedora. Si desea, le paso su consulta.");
+    for (const t of [TEXTO_FUGA, TEXTO_SIN_DATO]) expect(t, t).not.toMatch(/\b(?:te|tu|tú|ti|quieres|buscas|cuéntame|dime)\b/i);
+  });
 });
 
 describe("regla 11 · voz de la marca", () => {
-  it("quita los emojis", () => {
-    expect(limpiarForma("¡Hola! 😊 Te ayudo 🙌 con eso ✓")).toBe("¡Hola! Te ayudo con eso");
-    expect(limpiarForma("Listo ✅ y 👍🏽 gracias")).toBe("Listo y gracias");
+  it("emojis con medida: deja los dos primeros y quita el tercero (y los que sigan)", () => {
+    expect(limpiarForma("Con gusto 👼🏻 le ayudo 🙌🏻 con eso 😁")).toBe("Con gusto 👼🏻 le ayudo 🙌🏻 con eso");
+    expect(limpiarForma("Claro 🙏🏻 Le comento ✨ que sí 👶🏻 la tenemos 😁")).toBe("Claro 🙏🏻 Le comento ✨ que sí la tenemos");
+    expect(limpiarForma("Somos Baby Caleb 👼🏻")).toBe("Somos Baby Caleb 👼🏻");
+    expect(limpiarForma("Con gusto 🙌🏻😁")).toBe("Con gusto 🙌🏻😁");
+    expect(limpiarForma("Con gusto 🙌🏻😁✨")).toBe("Con gusto 🙌🏻😁");
+    expect(MAX_EMOJIS).toBe(2);
+  });
+
+  it("un emoji se cuenta entero: con su tono de piel, su selector, sus uniones o su bandera", () => {
+    expect(limpiarForma("Hola 👍🏽 y ❤️ y 🇵🇦 y 👨‍👩‍👧")).toBe("Hola 👍🏽 y ❤️ y y");
+    expect(limpiarForma("Familia 👨‍👩‍👧 feliz 🇵🇦")).toBe("Familia 👨‍👩‍👧 feliz 🇵🇦");
+    // Una tecla que sobra deja su número, como antes; un tono de piel suelto no dice nada.
+    expect(limpiarForma("Opciones 1️⃣ 2️⃣ 3️⃣")).toBe("Opciones 1️⃣ 2️⃣ 3");
+    expect(limpiarForma("Hola 🏻 amiga")).toBe("Hola amiga");
+  });
+
+  it("los signos de «visto» (✓ ✔ ✅ ☑) se quitan siempre, aunque no haya otros emojis", () => {
+    expect(limpiarForma("Listo ✅ y gracias")).toBe("Listo y gracias");
+    expect(limpiarForma("Talla M ✓ caja ✔️ pago ☑ y ☑️")).toBe("Talla M caja pago y");
+    // No cuentan entre los dos: los emojis cálidos que vienen después se quedan.
+    expect(limpiarForma("✅ Con gusto 👼🏻 se lo reviso 🙏🏻")).toBe("Con gusto 👼🏻 se lo reviso 🙏🏻");
   });
 
   it("colapsa los signos dobles", () => {
@@ -382,9 +458,10 @@ describe("lo que se vende sin estar publicado no se niega (incidente del 2026-11
 });
 
 describe("la nota para que el modelo reescriba", () => {
-  it("no nombra a D'CASA: Juan es «el asistente virtual de la tienda» y lo abonado es de la tienda", () => {
+  it("no nombra a D'CASA: es «el asistente virtual de la tienda», sin nombre propio, y lo abonado es de la tienda", () => {
     const n = notaDeCorreccion([{ tipo: "se_hace_pasar_por_persona", detalle: "soy una persona" }]);
-    expect(n).toContain("eres Juan, el asistente virtual de la tienda");
+    expect(n).toContain("eres el asistente virtual de la tienda, sin nombre propio");
+    expect(n).not.toMatch(/\bJuan\b|Andrés/);
     expect(n).toContain("lo que la tienda abona o regala, solo como ahorro");
     expect(n).not.toMatch(/D['’]CASA/);
   });
@@ -394,7 +471,15 @@ describe("la nota para que el modelo reescriba", () => {
     expect(n).toMatch(/NO se envió/);
     expect(n).toMatch(/número de existencias/);
     expect(n).toMatch(/promesa de entrega/);
-    expect(n).toMatch(/te lo confirma una vendedora/);
+    expect(n).toMatch(/se lo confirma una vendedora/);
+  });
+
+  it("pide reescribir de usted, con uno o dos emojis como mucho y los precios tal cual (sin «+ ITBMS» de más)", () => {
+    const n = notaDeCorreccion([{ tipo: "precio_inventado", detalle: "$5.00" }]);
+    expect(n).toMatch(/De usted, siempre \(nunca tutees\)/);
+    expect(n).toMatch(/uno o dos emojis como mucho/);
+    expect(n).toMatch(/tal cual los da precio_texto/);
+    expect(n).not.toMatch(/tuteo|sin emojis|\+ ITBMS/i);
   });
 });
 

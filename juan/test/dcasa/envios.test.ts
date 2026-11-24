@@ -180,6 +180,25 @@ describe("revisión adversarial: lo que antes se colaba ahora no pasa (F1…F7)"
     expect(graves("El envío a Villa Lucre te queda en $0.", respaldo([VILLA_LUCRE_APLICA]))).toEqual([]);
   });
 
+  it("dicho de usted (la voz de Baby Caleb, 2026-11-24): lo respaldado pasa y lo que no, no", () => {
+    const r = respaldo([lugar({ nombres: ["villa lucre"], normal: 15 }), lugar({ nombres: ["colon"], normal: 90, final: 70, ahorro: 20, minimo: 200 })]);
+    for (const frase of ["El flete a Colón sale en $90 y con la promoción le queda en $70.", "El envío le sale en 15 dólares.", "El envío cuesta $15 hasta su casa."]) {
+      expect(detectarPromesas(frase, new Set(), r), frase).toEqual([]);
+    }
+    for (const frase of ["Con la promoción, la tienda le abona $20 del envío a Colón.", "El envío a Colón le sale $20 más barato.", "Con la promoción se ahorra $20 del envío a Colón."]) {
+      expect(graves(frase, respaldo([COLON_APLICA])), frase).toEqual([]);
+    }
+    expect(graves("El envío a Colón cuesta $90 y el de Villa Lucre le sale gratis.", respaldo([VILLA_LUCRE_APLICA, COLON_APLICA]))).toEqual([]);
+    expect(graves("No paga envío.", respaldo([VILLA_LUCRE_APLICA]))).toEqual([]);
+    for (const t of ["El envío a Colón le queda en $20.", "Por el envío a Colón paga $20.", "Le cobramos $20 por el envío a Colón.", "Para el envío a Colón: le queda en $20."]) {
+      expect(graves(t, respaldo([COLON])), t).toContain("costo de entrega");
+    }
+    for (const t of ["El envío le sale gratis.", "El envío a Colón le queda gratis.", "No paga envío.", "El envío no le cuesta nada.", "Se lo llevamos sin costo.", "El envío se lo regalamos.", "Le regalamos el envío."]) {
+      expect(graves(t), t).toContain("entrega o flete gratis");
+      expect(graves(t, respaldo([COLON_APLICA])), t).toContain("entrega o flete gratis");
+    }
+  });
+
   it("F5 con la promoción condicional, el «gratis» o lo que queda solo con el mínimo en la misma oración", () => {
     expect(graves("El envío a Villa Lucre es gratis.", respaldo([VILLA_LUCRE]))).toContain("entrega o flete gratis");
     expect(graves("El envío a Colón cuesta $70.", respaldo([COLON]))).toContain("costo de entrega");
@@ -472,7 +491,7 @@ describe("el prompt: la regla de envíos", () => {
     expect(como).toContain("cotizar_envio");
     expect(como).toMatch(/Si devuelve varios lugares, pregúntale cuál es/);
     expect(como).toMatch(/frase_para_el_cliente tal cual/);
-    expect(como).toContain("«¿Quieres que te lo sume a la cotización?»");
+    expect(como).toContain("«¿Desea que se lo sume a la cotización?»");
     expect(como).toMatch(/solo si dice que sí, llama a agregar_envio/);
     expect(como).toMatch(/La promoción de envío NUNCA la calculas tú/);
     expect(como).toMatch(/La fecha de entrega la confirma siempre una vendedora/);

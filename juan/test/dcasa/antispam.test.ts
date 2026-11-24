@@ -93,10 +93,13 @@ describe("tope diario de turnos por persona", () => {
     expect(m.canal.textos).toHaveLength(1);
   });
 
-  it("la despedida respeta la voz: tuteo, sin emojis, ofrece una persona", () => {
+  it("la despedida respeta la voz: de usted, sin emojis (es un aviso fijo), ofrece una persona", () => {
     expect(TEXTO_TOPE_DIARIO).toContain("*persona*");
     expect(TEXTO_TOPE_DIARIO).not.toMatch(/\p{Extended_Pictographic}/u);
-    expect(TEXTO_TOPE_DIARIO).not.toMatch(/\busted\b/i);
+    expect(TEXTO_TOPE_DIARIO).toBe(
+      "Gracias por escribirnos tanto. Por hoy ya le acompañé un buen rato; mañana seguimos con gusto. Si prefiere, escríbame *persona* y le atiende una vendedora.",
+    );
+    expect(TEXTO_TOPE_DIARIO).not.toMatch(/\b(?:te|tu|ti|tú|prefieres|escríbeme)\b/i);
   });
 
   it("a las 12 horas vuelve", async () => {
