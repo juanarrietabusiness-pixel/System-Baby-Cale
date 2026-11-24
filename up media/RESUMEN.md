@@ -26,11 +26,19 @@ Cómo funciona esta carpeta: aquí solo queda lo **pendiente**. Lo que ya se car
 
 ### Descartado
 
-- `VELVEE-G1.jpg` → `descartado/2026-11-24/`: no es de ningún producto: el nombre no trae un código del Excel ni describe una cama (tamaño, color o medidas).
-- `VELVEE-G14.jpg` → `descartado/2026-11-24/`: no es de ningún producto: el nombre no trae un código del Excel ni describe una cama (tamaño, color o medidas).
-- `VELVEE-G2.jpg` → `descartado/2026-11-24/`: no es de ningún producto: el nombre no trae un código del Excel ni describe una cama (tamaño, color o medidas).
-- `VELVEE-G3.jpg` → `descartado/2026-11-24/`: no es de ningún producto: el nombre no trae un código del Excel ni describe una cama (tamaño, color o medidas).
-- `VELVEE-G5.jpg` → `descartado/2026-11-24/`: no es de ningún producto: el nombre no trae un código del Excel ni describe una cama (tamaño, color o medidas).
+- `DANY-AW600-1.jpg` → `descartado/2026-11-24/`: no es de ningún producto: el nombre no trae un código del Excel ni describe una cama (tamaño, color o medidas).
+- `DANY-AW600-2-2.jpg` → `descartado/2026-11-24/`: no es de ningún producto: el nombre no trae un código del Excel ni describe una cama (tamaño, color o medidas).
+- `DANY-AW600-2.jpg` → `descartado/2026-11-24/`: no es de ningún producto: el nombre no trae un código del Excel ni describe una cama (tamaño, color o medidas).
+- `DANY-AW600-3.jpg` → `descartado/2026-11-24/`: no es de ningún producto: el nombre no trae un código del Excel ni describe una cama (tamaño, color o medidas).
+- `DANY-AW600-4.jpg` → `descartado/2026-11-24/`: no es de ningún producto: el nombre no trae un código del Excel ni describe una cama (tamaño, color o medidas).
+- `DANY-AW600-5.jpg` → `descartado/2026-11-24/`: no es de ningún producto: el nombre no trae un código del Excel ni describe una cama (tamaño, color o medidas).
+- `DANY-AW600-6.jpg` → `descartado/2026-11-24/`: no es de ningún producto: el nombre no trae un código del Excel ni describe una cama (tamaño, color o medidas).
+- `MOON-FUL1.jpg` → `descartado/2026-11-24/`: no es de ningún producto: el nombre no trae un código del Excel ni describe una cama (tamaño, color o medidas).
+- `MOON-FUL2.jpg` → `descartado/2026-11-24/`: no es de ningún producto: el nombre no trae un código del Excel ni describe una cama (tamaño, color o medidas).
+- `MOON-FUL3.jpg` → `descartado/2026-11-24/`: no es de ningún producto: el nombre no trae un código del Excel ni describe una cama (tamaño, color o medidas).
+- `MOON-FUL4.jpg` → `descartado/2026-11-24/`: no es de ningún producto: el nombre no trae un código del Excel ni describe una cama (tamaño, color o medidas).
+- `MOON-FUL5.jpg` → `descartado/2026-11-24/`: no es de ningún producto: el nombre no trae un código del Excel ni describe una cama (tamaño, color o medidas).
+- `MOON-FUL6.jpg` → `descartado/2026-11-24/`: no es de ningún producto: el nombre no trae un código del Excel ni describe una cama (tamaño, color o medidas).
 
 ## Cómo subir más
 
