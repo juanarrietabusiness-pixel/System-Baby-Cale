@@ -16,7 +16,7 @@ BLOQUES_LEGALES = [
 # Se escriben UNA vez (parámetro TEXTOS_PUESTOS) y solo en campos vacíos: lo que el administrador
 # cambie o borre después no se vuelve a pisar al actualizar el módulo. Revisarlos con un abogado.
 # Baby Caleb (2026-11-24): armados SOLO con lo que respondió el dueño (cambios: preguntas 5 y 10; defectos: 12;
-# pagos y delivery: 3, 4 y 8; factura fiscal: 9; sin ITBMS: 21), sin cifras nuevas; propuestos para su visto bueno.
+# pagos y delivery: 3, 4 y 8; factura fiscal: 9; sin ITBMS: 21), sin cifras nuevas. Aprobados por el dueño, tal cual.
 # Los de D'CASA (muebles, colchones, flete, «el ITBMS se suma») quedan en migrations/19.0.2.5.0, que los reemplaza
 # si nadie los cambió.
 TEXTOS_INICIALES = {

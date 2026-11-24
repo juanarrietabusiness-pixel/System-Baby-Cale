@@ -57,7 +57,7 @@ del puente. Ya en uso en la cuenta y **no se tocan**: `babycaleb-web`, `babycale
 | 2026-11-24 | «Comprobante de pago» | El papel de Odoo no es la factura fiscal de la DGI, así que **no dice «Factura»**: pagado, «Comprobante de pago»; sin ningún pago, «Comprobante de compra»; con saldo, «Abono». También el nombre del PDF, el asunto y el cuerpo del correo, Mi cuenta, la nota de entrega y el aviso del correo en el pago (`_dcasa_titulo_documento`). Issue para D'CASA: dcasapty/D_Casa_new_word#137 |
 | 2026-11-24 | Razón social | **Baby Caleb Panamá** (`res_company_data.xml`; las bases ya instaladas, por `dcasa_base` 19.0.1.12.0 si nadie lo cambió a mano). El RUC lo escribe el dueño en *Ajustes › Empresas*: el repositorio es público |
 | 2026-11-24 | Sin tienda física | Venta 100 % en línea: el pago no ofrece «Pago en la tienda» y la entrega «Retiro en tienda» queda archivada (apagados, no borrados). Interruptor `DCASA_TIENDA_FISICA=0` en staging y producción (`edge/wrangler.jsonc` → arranque → `website._dcasa_aplicar_sin_tienda_fisica`) |
-| 2026-11-24 | Textos del comprobante | Garantía, cambios y términos armados **solo con lo que respondió el dueño** (cambios, defectos, pagos, delivery, factura fiscal), sin cifras nuevas; reemplazan los de D'CASA (muebles, colchones, flete). **Propuestos: falta su visto bueno**; se cambian en *Ajustes › Empresas › Documentos* |
+| 2026-11-24 | Textos del comprobante | Garantía, cambios y términos armados **solo con lo que respondió el dueño** (cambios, defectos, pagos, delivery, factura fiscal), sin cifras nuevas; reemplazan los de D'CASA (muebles, colchones, flete). **Aprobados por el dueño el mismo día** («esto me gusta, digo que sí»); se cambian en *Ajustes › Empresas › Documentos* |
 | 2026-11-24 | Pagos en línea | Tilopay, Yappy directo y la comisión del sitio, traídos de D'CASA (#130 y #131). **Nacen apagados y sin credenciales**; staging fijado en modo de prueba. Cómo se encienden: `docs/TILOPAY.md` y `docs/YAPPY.md` |
 
 ## Estado
@@ -93,8 +93,8 @@ del puente. Ya en uso en la cuenta y **no se tocan**: `babycaleb-web`, `babycale
     sigue con el Gratuito (en el cambio se usan los dos hasta 90 días, Resolución 201-9775).
 
 - **Marca Baby Caleb (2026-11-19), lo que decide el dueño:**
-  - **Textos de garantía, cambios y términos del comprobante:** desde el 2026-11-24 son los de Baby Caleb (armados con
-    sus respuestas), pendientes de su visto bueno. Se cambian en *Ajustes › Empresas › Documentos*.
+  - **Textos de garantía, cambios y términos del comprobante:** desde el 2026-11-24 son los de Baby Caleb, armados con
+    sus respuestas y aprobados por él. Se cambian en *Ajustes › Empresas › Documentos*.
   - **La banda de Socios de la portada** dice «Suma puntos y gana invitando». Desde el 2026-11-24 **no sale** mientras
     las cifras de `puntos.json` estén en PENDIENTE (`website._dcasa_socios_con_cifras`); vuelve sola cuando las haya.
   - **Lo técnico que todavía dice «D'CASA»:** los nombres de los módulos en *Aplicaciones* y los de las plantillas. No
