@@ -192,7 +192,7 @@ class TestImportacion(TransactionCase):
         self.assertFalse(king.taxes_id.price_include)
         self.assertEqual(king.taxes_id, self.env['brian.herramientas']._b_itbms_venta())
         self.assertFalse(king.is_published)
-        self.assertTrue(king.allow_out_of_stock_order)
+        self.assertFalse(king.allow_out_of_stock_order, 'lo agotado no se pide en la web (Baby Caleb, 2026-11-24)')
         self.assertEqual(king.dcasa_medidas, 'L × A × Alto: 228 × 223 × 120 cm')
         # La categoría sale del nombre con las reglas del catálogo (Baby Caleb: pañales, toallitas, fulares): una cama
         # no es de ninguna, así que queda en la categoría por defecto de Odoo (en Odoo 19, ninguna).

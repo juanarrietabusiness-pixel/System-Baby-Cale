@@ -132,7 +132,8 @@ def categoria_web(env, clave):
 def valores_producto_nuevo(env, nombre, precio, impuesto, clave_categoria=None, tamano=None):
     """Lo que lleva un producto nuevo del catálogo (lo usan esta carga, el inventario anterior y la de Brian).
 
-    Inventariable, ``allow_out_of_stock_order`` (la web deja pedir aunque no haya: se confirma por WhatsApp),
+    Inventariable, sin ``allow_out_of_stock_order`` (lo agotado no se pide en la web: decisión del dueño de Baby Caleb,
+    2026-11-24),
     ``list_price`` = el precio que llega, con el ITBMS de venta que se suma, categoría interna y de la tienda según la
     clave de ``reglas.CATEGORIAS`` y, si es de un solo tamaño de cama, la línea de atributo «Tamaño» (para el filtro de
     la tienda y los combos). La publicación la decide quien llama.
@@ -141,7 +142,7 @@ def valores_producto_nuevo(env, nombre, precio, impuesto, clave_categoria=None, 
         'name': nombre,
         'type': 'consu',
         'is_storable': True,
-        'allow_out_of_stock_order': True,
+        'allow_out_of_stock_order': False,
         'list_price': precio,
         'taxes_id': [(6, 0, impuesto.ids)],
     }
@@ -309,7 +310,7 @@ def poner_fotos(env, catalogo=None):
             continue
         if item.get('foto') and not plantilla.image_1920:
             plantilla.image_1920 = foto_del_catalogo(item['foto'])
-            if not plantilla.is_published:
+            if not plantilla.is_published and item.get('publicar', True):
                 plantilla.is_published = True
                 publicados += 1
         variantes = plantilla.with_context(active_test=False).product_variant_ids
@@ -326,6 +327,36 @@ def poner_fotos(env, catalogo=None):
                                for orden, archivo in enumerate(datos['fotos_extra'], start=1)])
     _logger.info('Catálogo: fotos puestas; %s productos publicados.', publicados)
     return publicados
+
+
+def no_vender_agotados(env):
+    """Lo agotado no se pide en la web (decisión del dueño de Baby Caleb, 2026-11-24: «¿se deja que los pidan igual?
+    No»). El ajuste de Odoo «Continuar vendiendo sin existencias» queda apagado para los productos nuevos y se apaga en
+    los que ya están. Se puede repetir. Devuelve cuántos productos cambiaron."""
+    env['ir.default'].sudo().set('product.template', 'allow_out_of_stock_order', False)
+    productos = env['product.template'].sudo().with_context(active_test=False).search([
+        ('allow_out_of_stock_order', '=', True)])
+    productos.allow_out_of_stock_order = False
+    _logger.info('Catálogo: lo agotado ya no se pide en la web (%s productos).', len(productos))
+    return len(productos)
+
+
+def archivar_variantes(env, catalogo=None):
+    """Archiva las tallas marcadas ``"archivada": true`` en ``data/catalogo.json`` (hoy, la Nateen L de cierre).
+
+    La variante se archiva, no se borra: conserva su código, su precio y su presentación, y se reactiva desde
+    Inventario › Productos › Variantes (filtro «Archivado»). Archivada, no sale en la tienda, ni en la lista
+    «Presentación», ni en lo que busca Juan. Devuelve las que archivó.
+    """
+    catalogo = leer_catalogo() if catalogo is None else catalogo
+    codigos = [v['codigo'] for item in catalogo.get('productos') or [] for v in item['variantes']
+               if v.get('archivada')]
+    variantes = env['product.product'].sudo().search([('default_code', 'in', codigos)]) if codigos else \
+        env['product.product']
+    variantes.active = False
+    if variantes:
+        _logger.info('Catálogo: archivadas %s.', ', '.join(variantes.mapped('default_code')))
+    return variantes
 
 
 # --- Black Weekend ------------------------------------------------------------------------------

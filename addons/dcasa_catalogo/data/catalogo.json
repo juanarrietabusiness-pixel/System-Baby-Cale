@@ -18,7 +18,7 @@
     {"valor": "RN", "codigo": "NAT-RN", "precio": 50.00, "existencias": 4, "texto": "Pañal Nateen Talla RN de cierre — caja de 160 (4–11 lbs / 2–5 kg)", "foto": "producto-nateen-cierre-rn.jpg", "fotos_extra": ["producto-nateen-cierre-rn-2.png"]},
     {"valor": "S", "codigo": "NAT-S", "precio": 50.00, "existencias": 3, "texto": "Pañal Nateen Talla S de cierre — caja de 160 (6–13 lbs / 3–6 kg)", "foto": "producto-nateen-cierre-s.jpg", "fotos_extra": ["producto-nateen-cierre-s-2.png"]},
     {"valor": "M", "codigo": "NAT-M", "precio": 50.00, "existencias": 7, "texto": "Pañal Nateen Talla M de cierre — caja de 144 (8–19 lbs / 4–9 kg)", "foto": "producto-nateen-cierre-m.jpg", "fotos_extra": ["producto-nateen-cierre-m-2.jpg"]},
-    {"valor": "L", "codigo": "NAT-L", "precio": 45.00, "existencias": 0, "texto": "Caja L — 15 a 39 lb — 128 uds", "origen_texto": "Web de Baby Caleb (content.json › nateen-diapers › NAT-L: size, range, units); precio y existencias, decisión del dueño", "foto": "producto-nateen-cierre-l.jpg", "fotos_extra": ["producto-nateen-cierre-l-2.png"]},
+    {"valor": "L", "codigo": "NAT-L", "precio": 45.00, "existencias": 0, "texto": "Caja L — 15 a 39 lb — 128 uds", "origen_texto": "Web de Baby Caleb (content.json › nateen-diapers › NAT-L: size, range, units); precio y existencias, decisión del dueño", "foto": "producto-nateen-cierre-l.jpg", "fotos_extra": ["producto-nateen-cierre-l-2.png"], "archivada": true, "origen_archivada": "Decisión del dueño (2026-11-24): la Nateen L de cierre no se está comprando (llegaban malas); queda archivada para reactivarla si vuelve, y en su lugar se ofrece la Velvee G."},
     {"valor": "XL", "codigo": "NAT-XL", "precio": 45.00, "existencias": 0, "texto": "Pañal Nateen Talla XL de cierre — caja de 112 (26–55 lbs / 12–25 kg)", "foto": "producto-nateen-cierre-xl.jpg", "fotos_extra": ["producto-nateen-cierre-xl-2.jpg"]},
     {"valor": "XXL", "codigo": "NAT-XXL", "precio": 45.00, "existencias": 3, "texto": "Pañal Nateen Talla XXL de cierre — caja de 112 (+55 lbs / +25 kg)", "foto": "producto-nateen-cierre-xxl.jpg", "fotos_extra": ["producto-nateen-cierre-xxl-2.png"]}
    ]
@@ -47,6 +47,8 @@
    "descripcion": null,
    "origen_descripcion": "Velvee no está en la web de Baby Caleb: solo el texto del dueño (en cada talla).",
    "foto": "producto-velvee-m.jpg",
+   "publicar": false,
+   "origen_publicar": "Decisión del dueño (2026-11-24): Velvee va a la web, pero la activa él cuando quiera; el catálogo no la publica sola.",
    "origen_foto": "Fotos del dueño (subidas a «up media» el 2026-11-24), pasadas a JPEG de calidad 85. Se dejaron fuera las casi iguales a la principal.",
    "atributo": "Talla",
    "variantes": [

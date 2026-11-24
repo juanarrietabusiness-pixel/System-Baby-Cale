@@ -42,6 +42,8 @@ PRODUCTOS = {
     'danybaby-aquawipes': ('Water wipes Dany Baby', 'toallitas', [(None, 'DANY-AW600')]),
     'fular-moon': ('Fular Moon', 'fulares', [(None, 'MOON-FUL')]),
 }
+# Las tallas que el dueño archivó (2026-11-24): la Nateen L de cierre no se está comprando; se reactiva si vuelve.
+ARCHIVADAS = {'NAT-L'}
 # Una muestra de las referencias del catálogo de D'CASA que ya no se cargan (camas, colchones, combos, inventario).
 CODIGOS_DE_DCASA = ('888K', '908K-NEGRO', 'XHT022-T-W', 'Y0300300-LTSC07', 'HK-BF-022-N-K-1-W', 'N-F10018-F-BK-FULL',
                     'CSOK-10', 'IM-2001', 'YPN272102', 'ALMOHADA001', 'LXI100713')
@@ -81,7 +83,7 @@ class TestCatalogoBabyCaleb(TransactionCase):
         impuesto = self.company.account_sale_tax_id
         for codigo, (texto, precio, existencias) in LISTA_DEL_DUENO.items():
             variante = self.variante(codigo)
-            self.assertTrue(variante.active, codigo)
+            self.assertEqual(variante.active, codigo not in ARCHIVADAS, codigo)
             self.assertEqual(variante.lst_price, precio, f'{codigo}: el precio exacto de la lista')
             self.assertEqual(variante.with_context(location=self.ubicacion.id).qty_available, existencias, codigo)
             self.assertEqual(variante.dcasa_presentacion, texto, f'{codigo}: el texto del dueño, tal cual')
@@ -101,7 +103,8 @@ class TestCatalogoBabyCaleb(TransactionCase):
         for clave, (nombre, _categoria, variantes) in PRODUCTOS.items():
             producto = self.producto(clave)
             self.assertEqual(producto.name, nombre_en_mayusculas(nombre))
-            self.assertEqual(producto.product_variant_count, len(variantes), clave)
+            activas = [v for v in variantes if v[1] not in ARCHIVADAS]
+            self.assertEqual(producto.product_variant_count, len(activas), clave)
             if variantes[0][0] is None:
                 self.assertFalse(producto.attribute_line_ids, f'{clave}: producto simple')
                 self.assertEqual(producto.default_code, variantes[0][1])
@@ -159,7 +162,8 @@ class TestCatalogoBabyCaleb(TransactionCase):
                          [LISTA_DEL_DUENO[c][0] for c in ('NAT-P-L', 'NAT-P-XL', 'NAT-P-XXL')])
         # En el orden de las tallas, no en el del código (NAT-L, NAT-M, NAT-RN… y VELVEE-L, -M, -P).
         for clave in ('nateen-diapers', 'velvee-diapers'):
-            esperado = [LISTA_DEL_DUENO[codigo][0] for _talla, codigo in PRODUCTOS[clave][2]]
+            esperado = [LISTA_DEL_DUENO[codigo][0] for _talla, codigo in PRODUCTOS[clave][2]
+                        if codigo not in ARCHIVADAS]
             self.assertEqual([texto for _v, texto in self.producto(clave)._dcasa_presentaciones()], esperado, clave)
 
     def test_las_vistas_muestran_la_presentacion(self):
@@ -172,15 +176,18 @@ class TestCatalogoBabyCaleb(TransactionCase):
 
     def test_con_su_foto_se_publica(self):
         """Las fotos del catálogo (2026-11-24): las de la web de Baby Caleb para los Nateen y las que tomó el dueño para
-        Velvee, Dany Baby y Fular Moon. Todos los productos tienen su foto principal y salen en la web; cada talla, la
-        suya y las de más que dice data/catalogo.json."""
+        Velvee, Dany Baby y Fular Moon. Todos tienen su foto principal y salen en la web, menos Velvee, que activa el
+        dueño cuando quiera («publicar»: false); cada talla, la suya y las de más que dice data/catalogo.json."""
         extras = {v['codigo']: len(v.get('fotos_extra') or []) for item in leer_catalogo()['productos']
                   for v in item['variantes']}
         for clave in PRODUCTOS:
             producto = self.producto(clave)
-            self.assertTrue(producto.allow_out_of_stock_order)
+            self.assertFalse(producto.allow_out_of_stock_order, f'{clave}: lo agotado no se pide')
             self.assertTrue(producto.image_1920, clave)
-            self.assertTrue(producto.is_published, f'{clave}: con su foto sale en la web')
+            if clave == 'velvee-diapers':
+                self.assertFalse(producto.is_published, 'Velvee la publica el dueño')
+            else:
+                self.assertTrue(producto.is_published, f'{clave}: con su foto sale en la web')
             for variante in producto.product_variant_ids:
                 self.assertEqual(len(variante.product_variant_image_ids), extras[variante.default_code],
                                  f'{variante.default_code}: sus fotos de más')
@@ -188,11 +195,28 @@ class TestCatalogoBabyCaleb(TransactionCase):
                           extras['MOON-FUL']), (3, 4, 4, 6, 4), 'las del dueño, sin las casi iguales')
         for clave in ('nateen-diapers', 'nateen-pants', 'velvee-diapers'):
             variantes = self.producto(clave).product_variant_ids
-            self.assertEqual(len(variantes), len(PRODUCTOS[clave][2]))
+            self.assertEqual(len(variantes), len([v for v in PRODUCTOS[clave][2] if v[1] not in ARCHIVADAS]))
             for variante in variantes:
                 self.assertTrue(variante.image_variant_1920, f'{variante.default_code}: la foto de su talla')
             fotos = {v.image_variant_1920 for v in variantes}
             self.assertEqual(len(fotos), len(variantes), f'{clave}: cada talla con la suya')
+
+    def test_la_nateen_l_queda_archivada_y_se_puede_reactivar(self):
+        """Archivada, no borrada: conserva su código, su precio y su texto; no sale en la tienda ni en la ficha."""
+        nat_l = self.variante('NAT-L')
+        self.assertFalse(nat_l.active)
+        self.assertEqual((nat_l.lst_price, nat_l.dcasa_presentacion), LISTA_DEL_DUENO['NAT-L'][1::-1])
+        nateen = self.producto('nateen-diapers')
+        self.assertNotIn(nat_l, nateen.product_variant_ids)
+        self.assertNotIn(LISTA_DEL_DUENO['NAT-L'][0], [t for _v, t in nateen._dcasa_presentaciones()])
+        nat_l.active = True
+        self.assertIn(nat_l, nateen.product_variant_ids, 'se reactiva y vuelve con todo')
+
+    def test_lo_agotado_no_se_pide(self):
+        """«¿Se deja que los pidan igual? No» (2026-11-24): también un producto nuevo hecho a mano."""
+        nuevo = self.env['product.template'].create({'name': 'Producto nuevo de prueba', 'is_storable': True})
+        self.assertFalse(nuevo.allow_out_of_stock_order)
+        self.assertFalse(self.env['product.template'].search_count([('allow_out_of_stock_order', '=', True)]))
 
     def test_cada_foto_del_archivo_existe_y_ninguna_sobra(self):
         carpeta = os.path.join(get_module_path('dcasa_catalogo'), 'data', 'fotos')
@@ -357,6 +381,16 @@ class TestCargaDelArchivo(TransactionCase):
         self.assertEqual(C.poner_fotos(self.env, catalogo), 0)
         self.assertFalse(producto.is_published)
         self.assertEqual(len(self.variante('ZZ-F-CH').product_variant_image_ids), 2)
+
+    def test_publicar_false_pone_la_foto_pero_no_publica(self):
+        item = _item('zz-sin-publicar', [{'codigo': 'ZZ-NOPUB', 'precio': 9.0, 'existencias': 0}],
+                     foto='producto-wipes-caja.jpg', publicar=False)
+        catalogo = self.catalogo(item)
+        cargar_catalogo(self.env, catalogo)
+        self.assertEqual(C.poner_fotos(self.env, catalogo), 0)
+        producto = self.env.ref(f'dcasa_catalogo.{xmlid_de("zz-sin-publicar")}')
+        self.assertTrue(producto.image_1920)
+        self.assertFalse(producto.is_published, 'la activa el dueño')
 
     def test_un_precio_que_falta_no_se_inventa(self):
         item = _item('zz-sin-precio', [{'codigo': 'ZZ-SIN-PRECIO', 'precio': None, 'existencias': 3}])

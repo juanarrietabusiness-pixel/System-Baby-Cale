@@ -31,7 +31,7 @@ Carga el catálogo del negocio en Odoo: el mismo producto para el inventario, la
 * Idempotente: volver a correr la carga solo crea lo que falta; no pisa lo que se cambió en Odoo (precios, fotos,
   textos, existencias).
 """,
-    'version': '19.0.2.2.0',
+    'version': '19.0.2.3.0',
     'category': 'Sales',
     'author': "D'CASA Panamá",
     'website': 'https://dcasapty.com',
