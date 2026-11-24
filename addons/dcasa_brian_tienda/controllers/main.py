@@ -152,7 +152,7 @@ class DcasaBrianTiendaAPI(http.Controller):
         publicado, ninguna: la página usa las de fábrica."""
         website = request.website
         cuentas = [(website._dcasa_categoria_cantidad(clave), -orden, NOMBRE_SUGERENCIA.get(clave, nombre))
-                   for orden, (clave, nombre, _alt) in enumerate(CATEGORIAS_PORTADA)]
+                   for orden, (clave, nombre, *_resto) in enumerate(CATEGORIAS_PORTADA)]
         return [nombre for cantidad, _orden, nombre in sorted(cuentas, reverse=True) if cantidad][:2]
 
     # ------------------------------------------------------------------

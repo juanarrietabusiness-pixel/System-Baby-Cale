@@ -668,15 +668,17 @@ class TestSinRestosDeDcasa(HttpCase):
         self.env['website']._dcasa_sin_restos_de_dcasa()
         self.env['website']._dcasa_sin_restos_de_dcasa()   # se puede volver a correr
 
+        # El menú queda en el de babycaleb.com (MENU_PRINCIPAL, 19.0.1.20.0): «Socios D'CASA» no se renombra, se va del
+        # menú (Socios sigue en el pie).
+        self.assertFalse(socios.exists(), 'Socios ya no va en el menú')
         for idioma in idiomas:
             with self.subTest(idioma=idioma):
-                self.assertEqual(socios.with_context(lang=idioma).name, 'Socios Baby Caleb')
                 self.assertEqual(retiro.with_context(lang=idioma).name, 'Retiro en tienda')
                 self.assertIn('El pedido se entrega', str(cod.with_context(lang=idioma).pending_msg))
         self.assertEqual(Carrier.search_count([('name', 'ilike', 'Retiro en tienda')]), 1, 'sin duplicar la entrega')
         cabecera = re.search(r'<header id="top".*?</header>', self.url_open('/shop').text, re.S).group(0)
         self.assertNotRegex(cabecera, RESTOS_DE_DCASA)
-        self.assertIn('<span>Socios Baby Caleb</span>', cabecera)
+        self.assertIn('<span>Productos</span>', cabecera)
         # La migración llama justo a esto.
         with file_open('website_dcasa/migrations/19.0.1.19.0/post-migrate.py') as archivo:
             self.assertIn('_dcasa_sin_restos_de_dcasa()', archivo.read())
