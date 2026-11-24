@@ -1,0 +1,250 @@
+// Rotación: la misma piel de Marketing, con la marca de Baby Caleb (docs/MARCA_BABY_CALEB.md): superficie y crema, letra
+// navy, el naranja de relleno con letra navy y el verde para lo elegido. Aquí solo lo propio de esta pantalla: el resumen,
+// la escalera de barras, la simulación y las filas. (Viene de D'CASA, 2026-11-20; sus azules pasan a sus pares por papel.)
+
+.o_dcasa_mk.o_dcasa_ro {
+    .o_dcasa_ro_cuerpo { display: flex; flex-direction: column; gap: 16px; transition: opacity 150ms; }
+    .o_dcasa_ro_cuerpo.o_dcasa_mk_actualizando { opacity: .6; }
+
+    .o_dcasa_ro_excel {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+        &:hover { color: var(--dc-en-naranja); background: var(--dc-naranja-puntero); border-color: var(--dc-naranja-puntero); }
+    }
+
+    // --- Resumen -------------------------------------------------------------------------------------------------
+    .o_dcasa_ro_resumen {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+        gap: 12px;
+    }
+    .o_dcasa_ro_dato {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 2px;
+        padding: 14px 18px;
+        text-align: left;
+        background: var(--dc-blanco, #F2EFE5);
+        border: 1px solid var(--dc-linea, #DEDED9);
+        border-radius: 16px;
+        color: var(--dc-tinta, #1B3246);
+        min-width: 0;
+        &:is(button) { cursor: pointer; }
+        &:is(button):hover { border-color: var(--dc-azul-300, #C3783D); }
+        .o_dcasa_ro_dato_nombre {
+            font-family: var(--dc-letra);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            font-size: .75rem;
+            color: var(--dc-tinta-2, #475967);
+        }
+        .o_dcasa_ro_dato_cifra {
+            font-family: var(--dc-letra);
+            font-weight: 700;
+            font-size: 1.9rem;
+            line-height: 1.15;
+            letter-spacing: -.03em;
+            color: var(--dc-azul-800, #142635);
+        }
+        small { color: var(--dc-tinta-3, #5E6D78); overflow-wrap: anywhere; }
+    }
+    // La tarjeta que se abre al tocarla: naranja de relleno con letra navy (nunca blanca).
+    .o_dcasa_ro_dato_alerta {
+        background: var(--dc-naranja, #EE924A);
+        border-color: var(--dc-naranja, #EE924A);
+        .o_dcasa_ro_dato_nombre, small { color: var(--dc-en-naranja, #1B3246); }
+        .o_dcasa_ro_dato_cifra { color: var(--dc-en-naranja, #1B3246); }
+        &:hover { background: var(--dc-naranja-puntero, #F1A86E); border-color: var(--dc-naranja-puntero, #F1A86E); }
+    }
+    .o_dcasa_ro_dato_aviso {
+        background: #FDECEC;
+        border-color: #F2C4C4;
+        .o_dcasa_ro_dato_cifra { color: #8A1C1C; }
+    }
+
+    // --- La escalera por días sin vender -------------------------------------------------------------------------
+    .o_dcasa_ro_barras { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+    .o_dcasa_ro_barra {
+        width: 100%;
+        display: grid;
+        grid-template-columns: minmax(150px, 1.1fr) minmax(120px, 2fr) minmax(150px, 1fr);
+        align-items: center;
+        gap: 12px;
+        min-height: 56px;
+        padding: 8px 12px;
+        text-align: left;
+        color: inherit;
+        background: var(--dc-blanco, #F2EFE5);
+        border: 1px solid var(--dc-linea, #DEDED9);
+        border-radius: 14px;
+        &:hover { border-color: var(--dc-azul-300, #C3783D); }
+        // Lo elegido: el filo verde y el salvia claro de fondo (tokens.scss).
+        &[aria-pressed="true"] {
+            border-color: var(--dc-azul-200, #6A9376);
+            box-shadow: inset 0 0 0 1px var(--dc-azul-200, #6A9376);
+            background: var(--dc-azul-100, #E9EFE2);
+        }
+        .o_dcasa_ro_barra_nombre { display: flex; flex-direction: column; min-width: 0; strong { font-weight: 600; } }
+        small { color: var(--dc-tinta-3, #5E6D78); overflow-wrap: anywhere; }
+        .o_dcasa_ro_pista {
+            display: block;
+            height: 14px;
+            border-radius: 7px;
+            background: var(--dc-perla, #E9E7DF);
+            overflow: hidden;
+        }
+        .o_dcasa_ro_relleno { display: block; height: 100%; border-radius: 7px; background: var(--dc-naranja, #EE924A); }
+        .o_dcasa_ro_cifras { display: flex; flex-direction: column; align-items: flex-end; text-align: right; strong { font-weight: 600; } }
+        // De «se mueve» (verde salvia) a «lo más parado» (navy), pasando por el naranja; los nuevos y los de pedido
+        // abierto, en el gris de los controles. Son colores de la marca (brand.json y tokens.scss), sin inventar ninguno.
+        &.o_dcasa_ro_g_v30 .o_dcasa_ro_relleno { background: #91C9A2; }
+        &.o_dcasa_ro_g_v60 .o_dcasa_ro_relleno { background: #6A9376; }
+        &.o_dcasa_ro_g_v90 .o_dcasa_ro_relleno { background: #EE924A; }
+        &.o_dcasa_ro_g_v180 .o_dcasa_ro_relleno { background: #985D2F; }
+        &.o_dcasa_ro_g_mas180 .o_dcasa_ro_relleno,
+        &.o_dcasa_ro_g_nunca .o_dcasa_ro_relleno { background: #1B3246; }
+        &.o_dcasa_ro_g_nuevo .o_dcasa_ro_relleno,
+        &.o_dcasa_ro_g_abierto .o_dcasa_ro_relleno { background: #7F8A91; }
+    }
+
+    // --- Filtros y controles -------------------------------------------------------------------------------------
+    // Titulares como frase (nunca en caja alta) y los subtítulos como antetítulos de 12 px.
+    .o_dcasa_ro_titulo {
+        margin: 0;
+        font-family: var(--dc-letra);
+        font-weight: 700;
+        font-size: 1.1rem;
+        letter-spacing: -.01em;
+        color: var(--dc-azul-800, #142635);
+    }
+    .o_dcasa_ro_subtitulo {
+        margin: 6px 0 0;
+        font-family: var(--dc-letra);
+        font-weight: 700;
+        font-size: .75rem;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        color: var(--dc-tinta-2, #475967);
+    }
+    .o_dcasa_ro_ayuda_margen { margin: 0; font-weight: 600; }
+    .o_dcasa_ro_cortes { margin: 0; }
+    .o_dcasa_ro_controles { display: flex; flex-wrap: wrap; gap: 12px 16px; align-items: flex-end; }
+    .o_dcasa_ro_buscar { flex: 1 1 260px; margin: 0; }
+    .o_dcasa_ro_campo {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        margin: 0;
+        font-weight: 600;
+        color: var(--dc-tinta-2, #475967);
+        font-size: .85rem;
+        select,
+        input {
+            min-height: 48px;
+            border: 1px solid var(--dc-linea-fuerte, #7F8A91);
+            border-radius: 14px;
+            padding: 0 12px;
+            font-size: 1rem;
+            font-weight: 400;
+            background: var(--dc-blanco, #F2EFE5);
+            color: var(--dc-tinta, #1B3246);
+        }
+        .o_dcasa_ro_entrada { display: flex; align-items: center; gap: 6px; font-size: 1rem; }
+        .o_dcasa_ro_rebaja { width: 110px; }
+    }
+
+    // --- Simulación ----------------------------------------------------------------------------------------------
+    .o_dcasa_ro_simulacion {
+        background: var(--dc-blanco, #F2EFE5);
+        border: 1px solid var(--dc-azul-300, #C3783D);
+        border-radius: 16px;
+        padding: 14px 18px;
+        margin-top: 12px;
+        h3 { margin: 0 0 8px; font-family: var(--dc-letra); font-weight: 700; font-size: 1.05rem; letter-spacing: -.01em; color: var(--dc-azul-800, #142635); }
+        .o_dcasa_ro_simulacion_cifras { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+        .o_dcasa_ro_simulacion_cifras > div { display: flex; flex-direction: column; min-width: 0; }
+        span { color: var(--dc-tinta-2, #475967); font-size: .85rem; font-weight: 600; }
+        strong { font-family: var(--dc-letra); font-weight: 700; font-size: 1.5rem; letter-spacing: -.03em; color: var(--dc-azul-800, #142635); }
+        small { color: var(--dc-tinta-3, #5E6D78); }
+    }
+    .o_dcasa_ro_negativo, .o_dcasa_ro_simulacion strong.o_dcasa_ro_negativo { color: #8A1C1C; }
+
+    // --- La lista ------------------------------------------------------------------------------------------------
+    .o_dcasa_ro_conteo { margin: 12px 0 4px; }
+    .o_dcasa_ro_filas { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+    .o_dcasa_ro_fila {
+        display: grid;
+        grid-template-columns: 64px minmax(200px, 1.1fr) minmax(0, 2.4fr);
+        align-items: center;
+        gap: 6px 16px;
+        padding: 12px 16px;
+        background: var(--dc-blanco, #F2EFE5);
+        border: 1px solid var(--dc-linea, #DEDED9);
+        border-radius: 14px;
+    }
+    .o_dcasa_ro_foto { width: 64px; height: 64px; }
+    .o_dcasa_ro_producto { display: flex; flex-direction: column; gap: 6px; min-width: 0; align-items: flex-start; }
+    .o_dcasa_ro_etiquetas { display: flex; flex-wrap: wrap; gap: 6px; }
+    .o_dcasa_ro_etiqueta {
+        display: inline-block;
+        border-radius: 999px;
+        padding: 2px 10px;
+        font-size: .8rem;
+        font-weight: 600;
+        background: var(--dc-niebla, #F9F6ED);
+        color: var(--dc-tinta-2, #475967);
+        // La misma escalera que las barras: salvia claro, salvia y naranja con letra navy; lo más parado, navy con letra
+        // crema (lo único que va sobre el navy).
+        &.o_dcasa_ro_g_v30 { background: var(--dc-azul-100, #E9EFE2); color: var(--dc-azul-800, #142635); }
+        &.o_dcasa_ro_g_v60 { background: var(--dc-salvia, #91C9A2); color: var(--dc-en-salvia, #1B3246); }
+        &.o_dcasa_ro_g_v90 { background: var(--dc-naranja, #EE924A); color: var(--dc-en-naranja, #1B3246); }
+        &.o_dcasa_ro_g_v180, &.o_dcasa_ro_g_mas180, &.o_dcasa_ro_g_nunca { background: var(--dc-azul-600, #1B3246); color: var(--dc-crema, #F9F6ED); }
+        &.o_dcasa_ro_etiqueta_ancla { background: var(--dc-azul-100, #E9EFE2); color: var(--dc-tinta, #1B3246); box-shadow: inset 0 0 0 1px var(--dc-azul-200, #6A9376); }
+        &.o_dcasa_ro_etiqueta_alerta { background: #FDECEC; color: #8A1C1C; }
+        // Margen y rotación: verde las estrellas, salvia claro las de buen margen, ámbar las que venden mucho y dejan poco.
+        &.o_dcasa_ro_c_estrella { background: #DDF3E8; color: #0B5A39; }
+        &.o_dcasa_ro_c_trafico { background: #FFF1D6; color: #7A4F00; }
+        &.o_dcasa_ro_c_oportunidad { background: var(--dc-azul-100, #E9EFE2); color: var(--dc-azul-800, #142635); }
+        &.o_dcasa_ro_c_revisar { background: #FDECEC; color: #8A1C1C; }
+    }
+    .o_dcasa_ro_medidas {
+        margin: 0;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 6px 14px;
+        min-width: 0;
+        > div { min-width: 0; }
+        dt { font-size: .75rem; font-weight: 600; color: var(--dc-tinta-3, #5E6D78); text-transform: uppercase; letter-spacing: .02em; }
+        dd { margin: 0; font-weight: 600; color: var(--dc-tinta, #1B3246); overflow-wrap: anywhere; }
+    }
+
+    // --- Cómo se calcula -----------------------------------------------------------------------------------------
+    .o_dcasa_ro_como {
+        summary { cursor: pointer; font-weight: 600; color: var(--dc-naranja-fuerte, #985D2F); min-height: 32px; }
+        ul { margin: 8px 0 0; padding-left: 20px; color: var(--dc-tinta-2, #475967); }
+        li { margin-bottom: 4px; }
+    }
+
+    @media (max-width: 767.98px) {
+        .o_dcasa_ro_barra {
+            grid-template-columns: minmax(0, 1fr) auto;
+            grid-template-areas: "nombre cifras" "pista pista";
+            .o_dcasa_ro_barra_nombre { grid-area: nombre; }
+            .o_dcasa_ro_pista { grid-area: pista; }
+            .o_dcasa_ro_cifras { grid-area: cifras; }
+        }
+        .o_dcasa_ro_fila {
+            grid-template-columns: 56px minmax(0, 1fr);
+            .o_dcasa_ro_foto { width: 56px; height: 56px; }
+            .o_dcasa_ro_medidas { grid-column: 1 / -1; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+        .o_dcasa_ro_campo { flex: 1 1 100%; select, input { width: 100%; } }
+        .o_dcasa_ro_campo_rebaja .o_dcasa_ro_entrada { width: 100%; }
+        .o_dcasa_ro_campo_rebaja .o_dcasa_ro_rebaja { flex: 1; width: auto; }
+        .o_dcasa_ro_excel { width: 100%; justify-content: center; }
+    }
+}

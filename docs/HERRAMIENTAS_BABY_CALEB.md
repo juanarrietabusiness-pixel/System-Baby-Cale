@@ -44,7 +44,7 @@ el contenedor no tiene disco) · `dcasa_tienda_borde` (la caché de la tienda).
 |---|---|---|---|---|
 | [ ] | Consolidación (`dcasa_consolidacion`) | Estados financieros de varias empresas en uno | Memoria | Nada más. Baby Caleb es una sola empresa |
 | [ ] | Migración (`dcasa_migracion`) | Carga única desde el sistema viejo **de D'CASA** | Memoria | Nada más |
-| [ ] | Nómina (`dcasa_nomina`) | Planilla de Panamá, décimo, vacaciones, liquidación, adelantos y préstamos | Memoria, 1 tarea | Empleados de Odoo se queda (lo pide Contactos) |
+| [ ] | Nómina (`dcasa_nomina`) | Planilla de Panamá, décimo, vacaciones, liquidación, adelantos y préstamos | Memoria, 1 tarea | Empleados de Odoo se queda (lo pide Contactos). Hay que quitar también Comisión del sitio |
 | [ ] | Equipo (`dcasa_equipo`) | Ícono y quién ve el menú Empleados | Memoria (muy poca) | El menú Empleados queda como lo trae Odoo |
 | [ ] | Existencias (`dcasa_existencias`) | Mermas, daños, muestras y regalos; bitácora de bodega; alertas diarias por Telegram | Memoria, 1 tarea | Nada más |
 | [ ] | Guía (`dcasa_guia`) | «¿Qué necesitas hacer hoy?»: atajos en palabras sencillas | Memoria (muy poca) | Nada más |
@@ -59,8 +59,11 @@ el contenedor no tiene disco) · `dcasa_tienda_borde` (la caché de la tienda).
 | [ ] | Códigos de barras y Bodega (`dcasa_barras`) | Escáner, etiquetas y el panel de Bodega para despachar | Memoria | Hay que quitar también Marketing y Camila |
 | [ ] | Correo a clientes (`dcasa_correo`) | Factura, abono y bienvenida por correo (Resend) | Memoria, 2 tareas | Hay que quitar también Camila |
 | [ ] | Abonos (`dcasa_abonos`) | La hoja «Condiciones de abono» | Memoria, 1 tarea | Hay que quitar también Correo y Camila |
-| [ ] | Juan y Conversaciones (`dcasa_conversaciones`) | La bandeja de WhatsApp, el reparto, el CRM automático y la conexión con Juan | Memoria, **11 tareas**, **IA** (tope de fábrica de Juan 30 USD al mes) | Hay que quitar también Sofía, Camila, Correo, Brian de la tienda y Busca con una foto. El Worker `sistemabk-chatbot` deja de tener a quién preguntar |
+| [ ] | Juan y Conversaciones (`dcasa_conversaciones`) | La bandeja de WhatsApp, el reparto, el CRM automático y la conexión con Juan | Memoria, **11 tareas**, **IA** (tope de fábrica de Juan 30 USD al mes) | Hay que quitar también Sofía, Camila, Correo, Brian de la tienda, Busca con una foto y Comisión del sitio. El Worker `sistemabk-chatbot` deja de tener a quién preguntar |
 | [ ] | Envíos (`dcasa_envios`) | La calculadora de envíos, los lugares y la tarifa | Memoria | Hay que quitar también Juan y Conversaciones |
+| [ ] | Tilopay (`dcasa_pago_tilopay`, de D'CASA el 2026-11-24) | Cobrar con tarjeta en la página segura de Tilopay ([TILOPAY.md](TILOPAY.md)) | Memoria, 1 tarea | Nada más (viene apagado: sin claves en Cloudflare no aparece) |
+| [ ] | Yappy directo (`dcasa_pago_yappy`, de D'CASA el 2026-11-24) | El Botón de Pago de Yappy Comercial en la tienda ([YAPPY.md](YAPPY.md)) | Memoria, 1 tarea | Sigue el «Yappy» de siempre, el que se confirma a mano (viene apagado) |
+| [ ] | Comisión del sitio (`dcasa_comision_web`, de D'CASA el 2026-11-24) | Mide las ventas por internet como una sucursal y calcula, libra y liquida su comisión ([COMISION_WEB.md](COMISION_WEB.md)); sin porcentaje no paga nada | Memoria, 1 tarea | Nada más |
 
 ## Cuánta memoria gasta cada función (medido el 2026-11-19)
 

@@ -154,6 +154,20 @@
       "vars": {
         "CANONICAL_HOST": "sistemabk-staging.juanarrietabusiness.workers.dev",
         "DCASA_ENTORNO": "staging",
+        // Tilopay (docs/TILOPAY.md): staging SIEMPRE en prueba (su cuenta es la de pruebas de desarrollador). Va fijado aquí
+        // a propósito: lo que está en este archivo manda sobre el panel, así que ni un descuido deja a staging aceptando
+        // pagos reales. En producción NO se fija: el dueño lo cambia a "produccion" en el panel cuando llega el momento.
+        "TILOPAY_ENTORNO": "prueba",
+        // Yappy directo (docs/YAPPY.md): igual que Tilopay, staging SIEMPRE en prueba (el servidor de pruebas de Yappy, no
+        // el real). Fijado aquí para que ni un descuido deje a staging cobrando de verdad. En producción NO se fija: la
+        // dueño lo pone en "produccion" en el panel de Cloudflare cuando Yappy aprueba el botón.
+        "YAPPY_ENTORNO": "prueba",
+        // Yappy avisa de cada pago con un GET a esta dirección + /payment/yappy/ipn. Es la misma dirección workers.dev de
+        // CANONICAL_HOST y de TIENDA_AVISO_URL (más abajo): hoy repite lo que ya dice web.base.url, y se deja fijada (como
+        // en D'CASA) para que el aviso de Yappy no dependa de que staging cambie de dirección. Si algún día staging tiene
+        // un dominio propio que no apunte al Worker, esta línea sigue llevando el aviso al Worker. Producción NO la lleva
+        // (y Odoo la ignoraría).
+        "YAPPY_URL_BASE": "https://sistemabk-staging.juanarrietabusiness.workers.dev",
         // 10 unidades a cada producto sin existencias ni movimientos, para probar ventas
         // (addons/dcasa_catalogo: aplicar_stock_prueba; nunca pisa un conteo real).
         "DCASA_STOCK_PRUEBA": "10",

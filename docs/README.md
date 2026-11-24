@@ -32,6 +32,8 @@
 | Anunciar los productos en Facebook e Instagram: el catálogo que lee Meta y las campañas | [META_CATALOGO.md](META_CATALOGO.md) |
 | Medir los anuncios de Meta: el píxel, las ventas que se le reportan y el consentimiento del cliente | [META_EVENTOS.md](META_EVENTOS.md) |
 | Las fotos de los productos en grande y la app Marketing | [MARKETING.md](MARKETING.md) |
+| Qué productos no se mueven, cuánto capital hay parado y qué pasaría con una rebaja (Rotación) | [ROTACION.md](ROTACION.md) |
+| Qué productos más y menos se mueven, comparando dos periodos, para decidir qué anunciar (Movimiento) | [MOVIMIENTO.md](MOVIMIENTO.md) |
 | «Busca con una foto» en la tienda: cómo funciona, sus topes, privacidad y dónde se apaga | [CATALOGO.md › Busca con una foto](CATALOGO.md#busca-con-una-foto) |
 | Camila, la asistente del mail marketing: el permiso del cliente, la campaña de cada 15 días (Marketing › Camila) y cómo crear la clave de campañas de Resend | [CAMILA.md](CAMILA.md) |
 | Saber cuánto cuesta un envío (la calculadora), cargar los lugares y la tarifa, aprobarla, y cómo se encendería en la página web | [ENVIOS.md](ENVIOS.md) |
@@ -41,6 +43,7 @@
 | Saber qué ve y qué no ve cada rol (vendedora, Caja, Gerencia, Marketing, contador), los interruptores y dónde viven las políticas del sitio | [PERMISOS.md](PERMISOS.md) |
 | Las reglas contables que decidió la gerencia | [DECISIONES_CONTABLES.md](DECISIONES_CONTABLES.md) |
 | Copiar el sistema para otra empresa | [REPLICAR.md](REPLICAR.md) |
+| Diseñar o revisar pantallas con criterio (qué enseña Feuxui, cómo está D'CASA contra cada regla y qué decidir) | [REFERENCIA_FEUXUI.md](REFERENCIA_FEUXUI.md) |
 
 ## Por módulo (`addons/`)
 
@@ -61,7 +64,7 @@
 | `dcasa_consolidacion` | [CONSOLIDACION.md](CONSOLIDACION.md) |
 | `dcasa_nomina` | [NOMINA.md](NOMINA.md) |
 | `dcasa_guia` | [GUIA.md](GUIA.md) · «¿Qué necesitas hacer hoy?»: atajos en palabras sencillas para quien administra |
-| `dcasa_marketing` | [MARKETING.md](MARKETING.md) |
+| `dcasa_marketing` | [MARKETING.md](MARKETING.md) · [ROTACION.md](ROTACION.md) · [MOVIMIENTO.md](MOVIMIENTO.md) |
 | `dcasa_equipo` | [EQUIPO.md](EQUIPO.md) |
 | `dcasa_migracion` | [MIGRACION.md](MIGRACION.md) |
 | `dcasa_fe_pa` (factura electrónica, apagado y sin instalar) | [FACTURA_ELECTRONICA.md](FACTURA_ELECTRONICA.md) |
@@ -70,11 +73,14 @@
 | `dcasa_meta_catalogo` (catálogo para Meta por URL, apagado de fábrica) | [META_CATALOGO.md](META_CATALOGO.md) |
 | `dcasa_buscar_foto` («Busca con una foto» en la tienda, encendido de fábrica) | [CATALOGO.md › Busca con una foto](CATALOGO.md#busca-con-una-foto) |
 | `dcasa_meta_eventos` (píxel y Conversions API de Meta, apagados de fábrica) | [META_EVENTOS.md](META_EVENTOS.md) |
+| `dcasa_pago_tilopay` (pagos con tarjeta y Yappy por Tilopay, apagado de fábrica; incluye la investigación, las amenazas y qué poner en Cloudflare) | [TILOPAY.md](TILOPAY.md) |
+| `dcasa_pago_yappy` (pago directo con el Botón de Pago de Yappy Comercial, apagado de fábrica; qué hace el aviso firmado, qué compró cada persona, la lista para la dueña y lo que Yappy no documentó) | [YAPPY.md](YAPPY.md) |
 | `dcasa_conversaciones` y el Worker `juan/` | [JUAN.md](JUAN.md) (contrato y el Worker por dentro) · [JUAN_ODOO.md](JUAN_ODOO.md) (bandeja, reparto, CRM) · [JUAN_CANALES.md](JUAN_CANALES.md) (canales) |
 | `dcasa_brian_tienda` (el chat de la tienda, encendido) | [BRIAN_TIENDA.md](BRIAN_TIENDA.md) |
 | `dcasa_sofia` (Sofía, la asistente del CRM) | [SOFIA.md](SOFIA.md) |
 | `dcasa_envios` (calculadora de envíos; los datos los carga Gerencia, no están en el repositorio) | [ENVIOS.md](ENVIOS.md) |
 | `dcasa_camila` (Camila, la asistente del mail marketing; las campañas salen por Resend con su propia clave) | [CAMILA.md](CAMILA.md) |
+| `dcasa_comision_web` (comisión por las ventas del sitio web: mide el sitio como una sucursal, libro, liquidaciones; sin cifras de fábrica) | [COMISION_WEB.md](COMISION_WEB.md) · el diseño y las decisiones de Gerencia: [PLAN_COMISION_WEB.md](PLAN_COMISION_WEB.md) |
 | `puente-wa/` (WhatsApp por QR, nunca desplegado) | [JUAN_PUENTE.md](JUAN_PUENTE.md) · [JUAN_CANALES.md](JUAN_CANALES.md#4-el-puente-de-whatsapp-por-qr-no-se-usa-en-producción) |
 | `dcasa_seguridad`, `dcasa_sesiones` | [SEGURIDAD_ACCESO.md](SEGURIDAD_ACCESO.md) · [PUERTA_MASTER.md](PUERTA_MASTER.md) |
 | `dcasa_adjuntos_r2`, `dcasa_tienda_borde`, `edge/`, `docker/` | [ARQUITECTURA.md](ARQUITECTURA.md) · [DESPLIEGUE.md](DESPLIEGUE.md) · [`edge/CONTRATO_CONTENEDOR.md`](../edge/CONTRATO_CONTENEDOR.md) |

@@ -1,17 +1,56 @@
 # Prioridades vigentes
 
-Puesto al día el **2026-11-17** (el Black Friday está en producción desde el 16 —Desplegar 77 y Juan 28— y **la portada nueva desde el 17** —ejecución 377, squash `447d6efe`, PR #127—. En la rama de trabajo queda el resto de la segunda entrega —Andrés vendedor, notas de voz y micrófono—, que **no se sube** hasta arreglar lo de Socios y el envío gratis: ver abajo y [PLAN_ANDRES_VOZ_PORTADA.md](PLAN_ANDRES_VOZ_PORTADA.md)). Es el orden en que se trabaja: cada sesión lo lee al empezar y lo pone al día al
+Puesto al día el **2026-11-22** (Rotación; ver «Estado al 2026-11-22»). Antes, el **2026-11-20** (todo lo nuevo, Yappy directo incluido, está unido en la rama de trabajo, sin desplegar: ver «Estado al 2026-11-20»). Antes, el **2026-11-18** (**todo está en producción**: el Black Friday desde el 16 —Desplegar 77 y Juan 28—, la portada nueva desde el 17 —CI/CD 377, PR #127— y **la segunda entrega completa desde el 18** —CI/CD 380 y Desplegar Juan 29, squash `d2ba8caf`, PR #128—. Ya no queda nada esperando en la rama de trabajo). Es el orden en que se trabaja: cada sesión lo lee al empezar y lo pone al día al
 terminar (ver [LEEME_PRIMERO.md](LEEME_PRIMERO.md)). Aquí va **un solo estado**, el de hoy; lo que pasó cada día está en
 la bitácora de LEEME_PRIMERO (y lo más viejo en [historico/BITACORA_ANTERIOR.md](historico/BITACORA_ANTERIOR.md)).
 
 Cada cosa nueva pasa por capturas a la dueña, pruebas, staging y, si toca dinero, permisos o Socios, revisión adversarial.
 **Desde el 2026-11-13 la dueña no pide su visto bueno para pasar a producción** («Y no esperes mi aprobación para pasar
 la producción. Apruébalo y punto.»); la revisión adversarial no se salta (reglas en LEEME_PRIMERO §2).
+**Excepción desde el 2026-11-20: todo cambio de diseño se le muestra en capturas antes/después y espera su «sí»** («antes de cualquier cosa o
+cambio en el diseño me gustaría verlo antes»; ver LEEME_PRIMERO §2).
+
+## Estado al 2026-11-22
+
+- **Nuevo (pedido del jefe, 2026-11-22): «Rotación» del inventario.** Qué productos no se mueven (30, 60, 90, 180 días o más sin vender), cuánto capital hay parado,
+  ancla, cobertura, simulación de rebaja y Excel. **Programada y probada en la rama (`dcasa_marketing`), sin subir ni desplegar:** es una pantalla nueva, así que
+  **primero las capturas antes/después y el «sí» de la dueña** (LEEME §2); después, CI → staging → producción. Detalle en [ROTACION.md](ROTACION.md). Pendiente de respuesta: los
+  cortes (30, 60, 90, 180), el «llegó hace poco» (30 días, con pedidos que tardan 3 a 4 meses) y qué hacer con lo parado (rebaja, combo o dejarlo).
+- **Nuevo (2026-11-22, de la dueña): «Movimiento» (comparar periodos).** Lo que más y lo que menos se mueve, comparando dos periodos (7 a 90 días, este mes, el mes pasado o fechas; contra el de justo
+  antes, el año pasado o fechas): qué subió, bajó, se enfrió o está quieto, con unidades, pedidos, cuántos días alcanza lo que hay, gráfica, Excel y «Crear campaña con los primeros 8» (Camila),
+  para decidir qué anunciar en publicidad y redes. **Programada y probada en la rama (`dcasa_marketing`, `dcasa_camila`, `dcasa_guia`), sin subir ni desplegar:** es una pantalla nueva, así que
+  **primero las capturas antes/después y el «sí» de la dueña** (LEEME §2), junto con Rotación (van en el mismo lote). Detalle en [MOVIMIENTO.md](MOVIMIENTO.md). Para producción: `-u dcasa_marketing,dcasa_camila,dcasa_interfaz,dcasa_guia`.
+- **Nuevo (pedido del jefe, 2026-11-22): «Margen y rotación» dentro de Rotación.** Cuatro listas que cruzan lo que se vende con lo que deja cada venta (*Estrellas*, *Venden mucho, dejan poco*,
+  *Buen margen, se mueven poco*, *Ni se mueven ni dejan margen*); los cortes son la mediana de la propia tienda y la pantalla los escribe; solo Gerencia y administradores (usa el costo). **Programada y probada en
+  la rama, sin subir ni desplegar; va en el mismo lote** que Rotación y Movimiento (capturas y «sí» de la dueña primero). Detalle en [ROTACION.md](ROTACION.md) (punto 7).
+  **Falta del pedido del jefe:** mejorar las mediciones del Inicio (Dashboard): idea, «Lo más vendido» con su cambio contra los 30 días anteriores y una tarjeta de «parado 90 días o más» que abra Rotación.
+- **Lunes 2026-11-23 (de la dueña):** las claves de Tilopay y de Yappy Comercial en Cloudflare (nunca por el chat) y el «sí» para llevar los cierres R9 a producción. Luego, el informe
+  para los jefes de todo lo hecho (con «Forma de pago» y su Excel, y lo más movido y lo más quieto, ya con Rotación).
+- «Operación Sun Tzu» (estrategia frente al competidor, con el plan «Caballo de Troya» por diseñar): documento **privado en Claude Docs**, no va al repositorio.
+
+## Estado al 2026-11-21
+
+- **En producción desde el 2026-11-21 02:24 UTC: `f81d669d4ca4`** (PR #130, squash `d3349ed1`, CI/CD #383, Desplegar #78, digest
+  `sha256:706e7954…`): «Forma de pago» en facturas, ventas por día, carrusel configurable, Andrés ampliado, rediseño de la pasarela, legibilidad
+  y retoques, que la dueña aprobó. **Tilopay y Yappy directo están instalados y apagados; la comisión web no tiene versión de reglas (solo
+  mide).** Antes: `d2ba8caf` (2026-11-18).
+- **Falta, en este orden:** (1) **llevar a producción los cierres R9-1 a R9-5** (las dos puertas que halló RV8b en los permisos del pago en
+  línea: `default_transaction_ids` del pedido y la factura creada a mano con el cobro de otro; más `action_refund`/`capture`/`void` y los
+  caracteres invisibles de `cita`). **Ya están unidos a la rama de trabajo y los aprobó la revisión independiente RV8c** (sin hallazgos que
+  bloqueen; solo INFO, ver la bitácora): falta CI → staging → producción, **obligatorio antes de encender cualquier pago**. (2) Lo que depende de
+  otros: claves de Tilopay y Yappy en Cloudflare (nunca por el chat), el programa de pruebas de Yappy y la compra de ensayo, las respuestas de Yappy y
+  Cloudflare (YAPPY.md §15), la política de privacidad (§16), las decisiones **R7-4 (Nómina confirma cobros) y R7-7 (rastro del botón de Caja)**,
+  aceptar el límite R8-3 (un cobro suelto del mismo cliente manda el aviso a revisión humana), las cifras de la comisión web y su tratamiento contable.
+- **Para los jefes:** el informe de ChatGPT quedó contrastado con el código (CONTEXTO_AGENTICO); hay tablero y un audio/video de 38 minutos con
+  voz gratis; la voz profesional (≈ US$7.30) espera el «sí» de la dueña. **Por comprobar en vivo:** CRM automático y cotizaciones sin vincular,
+  111 frente a 93 cotizaciones, margen de octubre y los $44.96 de IA.
 
 ## Estado al 2026-11-17
 
-- **Lo último en producción: la portada nueva** (2026-11-17, CI/CD 377, `app_version` `447d6efe6c74`, PR #127);
-  antes, el Black Friday (2026-11-16, Desplegar 77 y Juan 28).
+- **Lo último en producción: la segunda entrega completa** (2026-11-18, CI/CD 380 y Desplegar Juan 29,
+  `app_version` `d2ba8caff071`, PR #128): Andrés mejor vendedor, notas de voz, micrófono del chat, «Armar
+  combo» con los precios de verdad y la regla «un premio nunca sale más caro». Antes, la portada nueva
+  (2026-11-17, CI/CD 377, PR #127) y el Black Friday (2026-11-16, Desplegar 77 y Juan 28).
 - **Producción funciona desde el 2026-10-13** y **`dcasapty.com` (y `www`) apunta al sistema nuevo desde el
   2026-10-27** (Desplegar 31). Odoo y el borde: **Desplegar 76** (15 nov, PR #122: bandas en azul noche, pie claro, menú sin «Escríbenos», sección de contacto y el carrito en el chat de la tienda; antes, Desplegar 75 (15 nov, PR #121: la portada v3, con secciones compactas, el carrito como ícono, la paleta nueva y la barra del chat de vidrio; antes, Desplegar 74 (15 nov, PR #120: Brian siempre activo de noche, con dos interruptores); antes, Desplegar 73 (14 nov, PR #119: la burbuja de Brian cambia de robot con el scroll); antes,
   Desplegar 72, PR #118: Brian de la tienda, el chat de ventas en la web, y el
@@ -40,6 +79,31 @@ la producción. Apruébalo y punto.»); la revisión adversarial no se salta (re
 
 ## Lo que sigue, en orden
 
+**0. SUBIR LA RAMA UNIDA (2026-11-20).** Facturas con «Forma de pago» y Exportar, ventas por día, carrusel y Andrés ampliado, Tilopay y
+la comisión web están en `claude/merge-rama-to-main-ty3koz` con sus revisiones independientes hechas (la de la comisión, segunda
+vuelta en curso). Subir con la receta de LEEME_PRIMERO §3: Tilopay **apagado** y la comisión **sin versión de reglas**.
+Después, y solo con lo que va aquí:
+- **Tilopay a staging** con las claves de la cuenta de pruebas de Tilopay (`tilopay.com/developers/registro`), cargadas por la
+  dueña en Cloudflare (nunca por el chat) con `TILOPAY_ENTORNO=prueba`; una compra de ensayo; pedirle a Soporte de Tilopay que
+  registre `https://dcasapty.com/payment/tilopay/webhook`, la vigencia de la página de pago y los datos de `docs/TILOPAY.md` §8.
+  **No cobrar de verdad** hasta cerrar la lista de `docs/TILOPAY.md` §9.1.
+- **Yappy directo** (cuando la dueña diga que sí a las capturas y pase la revisión): cargar en Cloudflare, en staging, `YAPPY_ID_COMERCIO`,
+  `YAPPY_CLAVE_SECRETA` (se ve **una sola vez** en Yappy Comercial; se pega directo, nunca por el chat) y `YAPPY_DOMINIO` (letra por
+  letra como se escribió en Yappy Comercial); pedir a `botondepagoyappy@bgeneral.com` el acceso al programa de pruebas y las
+  preguntas de `docs/YAPPY.md` §8 (validez del token, `Bearer`, `paymentDate`, reintentos del aviso y su código de respuesta,
+  IPs de origen, campo del código de error); una compra de ensayo; conciliar a diario contra el reporte de Yappy Comercial.
+  **No cobrar de verdad** hasta cerrar la lista de `docs/YAPPY.md` §7 y §12. La contadora decide el tratamiento de la comisión de
+  Yappy (no está modelada). Revisar a Juan cuando se encienda (`docs/YAPPY.md` §11).
+- **Comisión web:** Gerencia define porcentaje, tarifa fija, quiénes reciben y las fechas de pago desde Ajustes; la contadora
+  documenta el tratamiento (no es salario, sin descuentos de planilla). Decisiones abiertas: limitar el pago por código VEN a vendedores
+  externos, y afinar el «caso gris» de Andrés (la vendedora que solo confirma). Ver `docs/COMISION_WEB.md`.
+- **Confirmar** que el parámetro `web.json.enabled` no está puesto en producción (la ruta `/json/1/…` del núcleo pide el permiso de
+  exportar pero no el límite por modelo).
+- **La contadora** revisa el diario bancario «Tilopay» (código `TLP`) y su cuenta, que se crean al desplegar aunque el proveedor siga
+  apagado, y decide si un cobro conciliado con el extracto debe contar con el diario del banco en «Forma de pago»
+  (`docs/CONTABILIDAD.md`).
+- **Plan futuro:** factura de emergencia sin conexión, un solo archivo HTML (issue #129).
+
 **LA PORTADA NUEVA YA ESTÁ EN PRODUCCIÓN** (2026-11-17, ejecución 377 de CI/CD a mano desde `main`, squash
 `447d6efe`, PR #127). El hero es un fondo en movimiento: las fotos del catálogo a pantalla completa, en orden al azar,
 con fundido y zoom lento, sin mandos ni nombres, y el contraste resuelto en azul de marca (la dueña eligió la opción 5
@@ -65,10 +129,8 @@ dos cifras y no se canjea; si el premio descuenta más de lo que perdería, se d
 (eso lo decidí yo y se le dijo). Cubre el carrito web y el mostrador, y al quitar un premio la promoción del envío se
 vuelve a ofrecer.
 
-**Después, la segunda entrega** en `claude/merge-rama-to-main-ty3koz` (Andrés vendedor, notas de voz, micrófono y
-portada). **Está probada y lista: 3547 pruebas de Odoo y 1924 del Worker, 0 fallas** (2026-11-17, instalando también
-`dcasa_nomina`, con lo que las tres pruebas de la Guía que «fallaban en local» también pasan). **No se sube hasta
-arreglar lo de arriba.** Lo demás que dejó esa revisión:
+**La segunda entrega YA ESTÁ EN PRODUCCIÓN** (2026-11-18, CI/CD 380 y Desplegar Juan 29). Lo que dejaron sus
+revisiones y sigue abierto, sin bloquear nada:
 
 - *Menores que siguen abiertos:* `/carrito/envio` acepta cualquier `lugar_id` sin que Andrés lo haya cotizado; dos
   `GET` escriben en la base; el mismo canje puede quedar en dos ventas abiertas; y el carrito sigue ofreciéndole al
