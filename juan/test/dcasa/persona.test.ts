@@ -129,11 +129,11 @@ describe("«persona» siempre pasa a una vendedora", () => {
     expect(m.odoo.de("pasar_a_vendedora")).toHaveLength(1);
   });
 
-  it("también cuando es el primer mensaje: el saludo de Juan va primero", async () => {
+  it("también cuando es el primer mensaje: el saludo de la tienda va primero", async () => {
     const m = crearMundo();
     m.guion([{ texto: "x" }]);
     await m.conversar("persona");
-    expect(m.canal.textos[0]).toBe("Hola, soy Juan de Baby Caleb.");
+    expect(m.canal.textos[0]).toBe("Buenas, un gusto atenderle. Somos Baby Caleb.");
     expect(m.canal.textos.join("\n")).toContain("ya avisé a una vendedora");
   });
 
@@ -149,13 +149,14 @@ describe("«persona» siempre pasa a una vendedora", () => {
   });
 });
 
-describe("se presenta como Juan, de la empresa de Ajustes de Juan", () => {
+describe("se presenta en nombre de la empresa de Ajustes de Juan, sin nombre propio (el dueño de Baby Caleb, 2026-11-24)", () => {
   it("la primera burbuja es el saludo con el nombre público; no dice asistente, bot ni automático, ni ofrece escribir «persona»", async () => {
     const m = crearMundo();
     m.guion([{ texto: "Dime qué buscas." }]);
     await m.conversar("hola");
     const primera = m.canal.textos[0];
-    expect(primera).toBe("Hola, soy Juan de Baby Caleb.");
+    expect(primera).toBe("Buenas, un gusto atenderle. Somos Baby Caleb.");
+    expect(m.canal.textos.join("\n")).not.toMatch(/\bJuan\b|Andrés/);
     expect(m.canal.textos.join("\n")).not.toMatch(/asistente|autom[aá]tico|\bbot\b|\*persona\*/i);
   });
 

@@ -1011,7 +1011,7 @@ export function notaDeCorreccion(graves: readonly Problema[]): string {
     fuga: "información interna",
     secreto: "un dato que el cliente dio en confianza (como su PIN): jamás se repite",
     manda_a_leer: "mandar al cliente a leer políticas, términos o avisos (respóndele tú con lo que dice la herramienta)",
-    se_hace_pasar_por_persona: "decir que eres una persona o que no eres un bot (eres Juan, el asistente virtual de la tienda: si preguntan de verdad, dilo con naturalidad)",
+    se_hace_pasar_por_persona: "decir que eres una persona o que no eres un bot (eres el asistente virtual de la tienda, sin nombre propio: si preguntan de verdad, dilo con naturalidad)",
     palabra_prohibida: "una palabra que la marca no usa",
     niega_producto:
       "decir que no manejamos algo que SÍ trabajamos (la herramienta dijo que hay productos así, solo que no están publicados en la tienda en línea: " +

@@ -57,7 +57,7 @@ describe("una pregunta en un comentario: corto en público y lo demás por priva
 
     // UNA respuesta privada (con la presentación, por ser la primera vez) y nada por el envío normal.
     expect(m.canal.privadas).toHaveLength(1);
-    expect(m.canal.privadas[0].texto).toBe(`Hola, soy Juan de Baby Caleb.\n\n${RESPUESTA_SOFA}`);
+    expect(m.canal.privadas[0].texto).toBe(`Buenas, un gusto atenderle. Somos Baby Caleb.\n\n${RESPUESTA_SOFA}`);
     expect(m.canal.salidas).toHaveLength(0);
     // La pública, sin nombre: en Instagram nunca va el @usuario (Meta ya la pone debajo del comentario).
     expect(m.canal.publicas.map((p) => p.texto)).toEqual(["¡Hola! Te escribimos por mensaje directo con los detalles."]);
@@ -111,7 +111,7 @@ describe("una pregunta en un comentario: corto en público y lo demás por priva
     m.guion([PREGUNTA, { texto: "¿Cuál te interesa?" }, PREGUNTA, { texto: "¿En qué medida la buscas?" }]);
     await comentar(m, comentario(m, "¿Tienen camas?"));
     await comentar(m, comentario(m, "¿Y colchones?"));
-    expect(m.canal.privadas.map((p) => p.texto)).toEqual(["Hola, soy Juan de Baby Caleb.\n\n¿Cuál te interesa?", "¿En qué medida la buscas?"]);
+    expect(m.canal.privadas.map((p) => p.texto)).toEqual(["Buenas, un gusto atenderle. Somos Baby Caleb.\n\n¿Cuál te interesa?", "¿En qué medida la buscas?"]);
   });
 
   it("si la persona contesta el mensaje privado, sigue como un chat normal (con el comentario en la memoria)", async () => {
@@ -361,6 +361,6 @@ describe("el mensaje privado es UNO solo", () => {
     expect(new TextEncoder().encode(m.canal.privadas[0].texto).length).toBeLessThanOrEqual(1000);
     // Manda la respuesta: la presentación no cabía y se quitó (sale en el próximo mensaje).
     expect(m.canal.privadas[0].texto.startsWith("Párrafo 1:")).toBe(true);
-    expect(m.canal.privadas[0].texto).not.toContain("soy Juan");
+    expect(m.canal.privadas[0].texto).not.toContain("Somos Baby Caleb");
   });
 });

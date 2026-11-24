@@ -115,7 +115,7 @@ describe("de usted y presentación", () => {
     m.guion([{ texto: "¿Qué estás buscando?" }]);
     await m.conversar("hola");
     const primera = m.canal.textos[0];
-    expect(primera).toBe("Hola, soy Juan de Baby Caleb.");
+    expect(primera).toBe("Buenas, un gusto atenderle. Somos Baby Caleb.");
     expect(primera).not.toMatch(EMOJI);
     expect(primera).not.toMatch(TUTEO);
   });
@@ -127,34 +127,34 @@ describe("de usted y presentación", () => {
     const antes = m.canal.textos.length;
     await m.conversar("busco pañales");
     const nuevos = m.canal.textos.slice(antes);
-    expect(nuevos.join(" ")).not.toMatch(/soy Juan de Baby Caleb/i);
+    expect(nuevos.join(" ")).not.toMatch(/Somos Baby Caleb/i);
   });
 
   it("la bienvenida de Odoo manda; si afirma ser una persona real, se usa la nuestra", async () => {
-    const propia = crearMundo({ config: { mensaje_bienvenida: "Hola, soy Juan de Baby Caleb. ¿Qué buscas?" } });
+    const propia = crearMundo({ config: { mensaje_bienvenida: "Buenas, un gusto atenderle. Somos Baby Caleb Panamá 👼🏻 ¿Qué busca para su bebé?" } });
     propia.guion([{ texto: "Dime la medida." }]);
     await propia.conversar("hola");
-    expect(propia.canal.textos[0]).toBe("Hola, soy Juan de Baby Caleb. ¿Qué buscas?");
+    expect(propia.canal.textos[0]).toBe("Buenas, un gusto atenderle. Somos Baby Caleb Panamá 👼🏻 ¿Qué busca para su bebé?");
 
     const enganosa = crearMundo({ config: { mensaje_bienvenida: "Hola, soy una persona real, no un robot." } });
     enganosa.guion([{ texto: "Dime la medida." }]);
     await enganosa.conversar("hola");
-    expect(enganosa.canal.textos[0]).toBe("Hola, soy Juan de Baby Caleb.");
+    expect(enganosa.canal.textos[0]).toBe("Buenas, un gusto atenderle. Somos Baby Caleb.");
   });
 });
 
 describe("el nombre del negocio", () => {
-  it("«el equipo de …» (la forma del nombre público) se lee bien en «Juan de ...»", () => {
+  it("«el equipo de …» (la forma del nombre público) se lee bien en «Somos ...»", () => {
     expect(marcaDe("el equipo de Baby Caleb")).toBe("Baby Caleb");
     expect(marcaDe("  El equipo de Baby Caleb Panamá ")).toBe("Baby Caleb Panamá");
     expect(marcaDe("Casa y Más")).toBe("Casa y Más");
     expect(marcaDe("el equipo de")).toBe("el equipo de"); // nada que quitar sin dejarlo vacío
-    expect(presentacionPorDefecto("el equipo de Baby Caleb")).toBe("Hola, soy Juan de Baby Caleb.");
+    expect(presentacionPorDefecto("el equipo de Baby Caleb")).toBe("Buenas, un gusto atenderle. Somos Baby Caleb.");
     expect(presentacionPorDefecto("el equipo de Baby Caleb")).not.toContain("equipo");
   });
 
   it("sin Odoo, el nombre de respaldo es neutro: ninguna empresa escrita a mano", () => {
-    expect(presentacionPorDefecto(CONFIG_POR_DEFECTO.nombre_publico)).toBe("Hola, soy Juan de la tienda.");
+    expect(presentacionPorDefecto(CONFIG_POR_DEFECTO.nombre_publico)).toBe("Buenas, un gusto atenderle. Somos la tienda.");
     expect(CONFIG_POR_DEFECTO.nombre_publico).not.toMatch(/D'CASA|Baby Caleb/i);
   });
 
@@ -170,7 +170,7 @@ describe("el nombre del negocio", () => {
     const g = m.guion([{ texto: "Dime qué buscas." }]);
     await m.conversar("hola");
     expect(g.prompts()[0]).toContain("Baby Caleb Panamá");
-    expect(m.canal.textos[0]).toBe("Hola, soy Juan de Baby Caleb Panamá.");
+    expect(m.canal.textos[0]).toBe("Buenas, un gusto atenderle. Somos Baby Caleb Panamá.");
     expect(g.prompts()[0]).not.toContain("D'CASA");
   });
 });

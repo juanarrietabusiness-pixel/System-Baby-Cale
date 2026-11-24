@@ -8,7 +8,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { CONFIG_POR_DEFECTO, normalizarConfig } from "../src/config";
-import { promptEstable, promptSeguimiento } from "../src/dcasa/prompt";
+import { presentacionPorDefecto, promptEstable, promptSeguimiento } from "../src/dcasa/prompt";
 import { notaDeCorreccion } from "../src/dcasa/salvaguardas";
 import { RegistroDelTurno, procesarResultado } from "../src/motor/herramientas";
 import { promptDelBorrador, validarPeticion, type PeticionSugerir } from "../src/odoo-panel-sugerir";
@@ -57,6 +57,26 @@ describe("la voz de Baby Caleb en todos los prompts", () => {
     for (const nombre of ["Juan (mensajería)", "Andrés (chat de la web)", "Sugerencias del panel"]) {
       expect(PROMPTS[nombre], nombre).toContain("copia el campo precio_texto tal cual: si trae «+ ITBMS», va con eso; si no, sin nada.");
     }
+  });
+
+  // El dueño, 2026-11-24: con la clienta el asistente no tiene nombre propio; habla en nombre de la tienda («Somos Baby Caleb
+  // Panamá»). «Juan» y «Andrés» quedan como nombres internos del código y del panel.
+  it.each(Object.entries(PROMPTS))("%s: no le da al asistente un nombre propio («Soy Juan», «Soy Andrés»)", (_nombre, p) => {
+    expect(p).not.toMatch(/\bsoy (?:Juan|Andrés|Brian)\b/i);
+    expect(p).not.toMatch(/\beres (?:Juan|Andrés|Brian)\b/i);
+    expect(p).not.toMatch(/te presentas como (?:Juan|Andrés)/i);
+  });
+
+  it("si preguntan si es un bot: «Soy el asistente virtual de …» (el nombre de Ajustes) y ofrece una persona del equipo", () => {
+    expect(PROMPTS["Juan (mensajería)"]).toContain("Tú: Soy el asistente virtual de Baby Caleb. Si prefiere, le paso con una persona del equipo.");
+    expect(PROMPTS["Andrés (chat de la web)"]).toContain("Tú (whatsapp=true): Soy el asistente virtual de Baby Caleb. Si prefiere, una persona del equipo le atiende por WhatsApp.");
+    for (const nombre of ["Juan (mensajería)", "Andrés (chat de la web)"]) expect(PROMPTS[nombre], nombre).toMatch(/no tienes nombre propio/);
+    expect(PROMPTS["Juan (seguimiento 1)"]).toMatch(/sin nombre propio \(«somos Baby Caleb»\)/);
+  });
+
+  it("el saludo de respaldo (sin Odoo) tiene la forma del CRM: «Buenas, un gusto atenderle. Somos …»", () => {
+    expect(presentacionPorDefecto("Baby Caleb Panamá")).toBe("Buenas, un gusto atenderle. Somos Baby Caleb Panamá.");
+    expect(presentacionPorDefecto("el equipo de Baby Caleb")).toBe("Buenas, un gusto atenderle. Somos Baby Caleb.");
   });
 
   it("con el nombre de fábrica tampoco queda nada de lo de D'CASA", () => {

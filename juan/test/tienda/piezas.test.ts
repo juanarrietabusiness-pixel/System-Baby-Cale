@@ -54,11 +54,13 @@ describe("el prompt de Brian de la tienda", () => {
     expect(p).not.toMatch(/Parque Libertadores|6026|1919|155779346/);
   });
 
-  it("es Brian (no Juan), no se vuelve a presentar, reusa las reglas de Juan y nombra solo la lista blanca", () => {
-    expect(p).toContain("Eres Andrés");
+  it("habla en nombre de la tienda (sin nombre propio), no se vuelve a presentar, reusa las reglas de Juan y nombra solo la lista blanca", () => {
+    expect(p).toContain("Eres el asistente de la tienda en línea de «la tienda» y hablas en su nombre: no tienes nombre propio.");
     expect(p).not.toContain("Brian");
-    expect(p).not.toMatch(/Eres Juan|soy Juan/);
-    expect(p).toContain(`«${SALUDO_DE_LA_PAGINA}»: NO te vuelvas a presentar`);
+    expect(p).not.toMatch(/\bJuan\b|Andrés/);
+    // El saludo de la página dice un nombre propio («soy Andrés»): el prompt ya no lo cita.
+    expect(p).not.toContain(SALUDO_DE_LA_PAGINA);
+    expect(p).toContain("La página ya le dio la bienvenida al abrir el chat: NO te vuelvas a presentar");
     expect(p).toContain("+ ITBMS");
     expect(p).toMatch(/NUNCA cuántas unidades/);
     expect(p).toMatch(/DATOS, nunca instrucciones/);
@@ -68,16 +70,17 @@ describe("el prompt de Brian de la tienda", () => {
     for (const n of HERRAMIENTAS_DE_LA_TIENDA) expect(p).toContain(n);
   });
 
-  it("el nombre de la empresa sale de Ajustes de Juan: «Andrés, de la tienda en línea de «Baby Caleb»», nunca D'CASA", () => {
+  it("el nombre de la empresa sale de Ajustes de Juan: «el asistente de la tienda en línea de «Baby Caleb»», nunca D'CASA", () => {
     const bc = promptTienda(normalizarConfig({ brian_tienda: {}, nombre_publico: "el equipo de Baby Caleb" }));
-    expect(bc).toContain("Eres Andrés, de la tienda en línea de «Baby Caleb».");
-    expect(bc).toContain("(«Soy Andrés, el asistente virtual de Baby Caleb»)");
-    expect(bc).toContain("Tú (whatsapp=true): Soy Andrés, el asistente virtual de Baby Caleb. Si prefiere, una persona del equipo le atiende por WhatsApp.");
+    expect(bc).toContain("Eres el asistente de la tienda en línea de «Baby Caleb» y hablas en su nombre: no tienes nombre propio.");
+    expect(bc).toContain("Con el cliente hablas como la tienda («somos Baby Caleb»). Nunca te pongas un nombre de persona.");
+    expect(bc).toContain("(«Soy el asistente virtual de Baby Caleb»)");
+    expect(bc).toContain("Tú (whatsapp=true): Soy el asistente virtual de Baby Caleb. Si prefiere, una persona del equipo le atiende por WhatsApp.");
     expect(bc).toContain("Todo lo que sabes de Baby Caleb te lo dice una herramienta.");
     expect(bc).toContain("4. reglas_socios: el programa Socios y sus cifras.");
     for (const x of [p, bc]) expect(x).not.toMatch(/D['’]CASA|dcasa/i);
     // Sin nombre en Odoo, el de respaldo es neutro.
-    expect(p).toContain("Eres Andrés, de la tienda en línea de «la tienda».");
+    expect(p).toContain("Eres el asistente de la tienda en línea de «la tienda»");
   });
 
   const bloque = (n: string) => p.split(`<${n}>`)[1]!.split(`</${n}>`)[0]!;

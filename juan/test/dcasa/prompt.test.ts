@@ -129,7 +129,7 @@ describe("las 11 reglas de comportamiento del contrato (docs/JUAN.md)", () => {
 
   it("1 · el saludo como Juan lo manda el sistema; persona/vendedora/humano pasan SIEMPRE", () => {
     const r = regla(1);
-    expect(r).toContain("Hola, soy Juan de la tienda.");
+    expect(r).toContain('El sistema manda el saludo (como "Buenas, un gusto atenderle. Somos la tienda.") como primera burbuja: no lo repitas ni te presentes con un nombre.');
     expect(r).not.toMatch(/asistente automático/);
     expect(r).toMatch(/No ofrezcas escribir \*persona\*/);
     expect(r).toMatch(/\*vendedora\*/);
@@ -271,10 +271,11 @@ describe("la voz de la marca", () => {
   });
 
   it("se presenta como Juan, de la empresa de Ajustes, sin anunciarse como asistente, pero nunca dice que es humano", () => {
-    expect(prompt).toMatch(/Eres Juan, de «la tienda»\. Atiendes a clientes/);
+    expect(prompt).toMatch(/Eres el asistente de mensajería de «la tienda» y hablas en su nombre: no tienes nombre propio\. Atiendes a clientes/);
+    expect(prompt).toContain("Con el cliente hablas como la tienda («somos la tienda», «le atiende la tienda»), cálido y servicial. Nunca te pongas un nombre de persona.");
     expect(prompt).toMatch(/No te anuncias como «asistente» ni como «bot»/);
     expect(prompt).toMatch(/NUNCA afirmes ser humano ni digas «no soy un bot»/);
-    expect(prompt).toMatch(/si alguien te pregunta de verdad si habla con una persona, un bot o una IA, lo dices con naturalidad/);
+    expect(prompt).toMatch(/si alguien te pregunta de verdad si habla con una persona, un bot o una IA, lo dices con naturalidad y sin rodeos \(«Soy el asistente virtual de la tienda»\) y ofreces pasarle con una persona del equipo/);
   });
 
   it("habla de sí mismo en masculino o sin género (nunca «atenta»)", () => {
@@ -347,10 +348,10 @@ describe("el nombre de la empresa sale de Ajustes de Juan, nunca escrito a mano"
   const bc = promptEstable(normalizarConfig({ nombre_publico: "el equipo de Baby Caleb" }));
 
   it("Juan es de la empresa configurada: en la identidad, el saludo, el ejemplo de «¿eres un bot?» y las fuentes", () => {
-    expect(bc).toContain("Eres Juan, de «Baby Caleb». Atiendes a clientes");
-    expect(bc).toContain("Te presentas como Juan, de Baby Caleb, y hablas cálido y servicial");
-    expect(bc).toContain('El sistema manda el saludo ("Hola, soy Juan de Baby Caleb.")');
-    expect(bc).toContain("Tú: Soy Juan, el asistente virtual de Baby Caleb. Si prefiere, le paso con una vendedora.");
+    expect(bc).toContain("Eres el asistente de mensajería de «Baby Caleb» y hablas en su nombre: no tienes nombre propio. Atiendes a clientes");
+    expect(bc).toContain("Con el cliente hablas como la tienda («somos Baby Caleb», «le atiende Baby Caleb»), cálido y servicial.");
+    expect(bc).toContain('El sistema manda el saludo (como "Buenas, un gusto atenderle. Somos Baby Caleb.")');
+    expect(bc).toContain("Tú: Soy el asistente virtual de Baby Caleb. Si prefiere, le paso con una persona del equipo.");
     expect(bc).toContain("Todo lo que sabes de Baby Caleb te lo dice una herramienta.");
   });
 
@@ -509,9 +510,9 @@ describe("el prompt del seguimiento", () => {
   });
 
   it("no se anuncia como asistente ni ofrece fotos, y deja que una vendedora lo atienda si prefiere", () => {
-    expect(p).toMatch(/^Eres Juan, de «la tienda»\. Vas a redactar/);
+    expect(p).toMatch(/^Eres el asistente de «la tienda» y escribes en su nombre, sin nombre propio \(«somos la tienda»\)\. Vas a redactar/);
     const bc = promptSeguimiento(normalizarConfig({ nombre_publico: "el equipo de Baby Caleb" }), { numero: 1, interes: "", ahora: AHORA_INICIAL });
-    expect(bc).toMatch(/^Eres Juan, de «Baby Caleb»\. Vas a redactar/);
+    expect(bc).toMatch(/^Eres el asistente de «Baby Caleb» y escribes en su nombre, sin nombre propio \(«somos Baby Caleb»\)\. Vas a redactar/);
     expect(bc).not.toContain("D'CASA");
     expect(p).toMatch(/No te anuncies como asistente ni ofrezcas fotos/);
     expect(p).toMatch(/puede pedir que lo atienda una vendedora/);

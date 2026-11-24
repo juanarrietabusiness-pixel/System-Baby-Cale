@@ -458,9 +458,10 @@ describe("lo que se vende sin estar publicado no se niega (incidente del 2026-11
 });
 
 describe("la nota para que el modelo reescriba", () => {
-  it("no nombra a D'CASA: Juan es «el asistente virtual de la tienda» y lo abonado es de la tienda", () => {
+  it("no nombra a D'CASA: es «el asistente virtual de la tienda», sin nombre propio, y lo abonado es de la tienda", () => {
     const n = notaDeCorreccion([{ tipo: "se_hace_pasar_por_persona", detalle: "soy una persona" }]);
-    expect(n).toContain("eres Juan, el asistente virtual de la tienda");
+    expect(n).toContain("eres el asistente virtual de la tienda, sin nombre propio");
+    expect(n).not.toMatch(/\bJuan\b|Andrés/);
     expect(n).toContain("lo que la tienda abona o regala, solo como ahorro");
     expect(n).not.toMatch(/D['’]CASA/);
   });
