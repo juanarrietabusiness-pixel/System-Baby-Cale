@@ -221,7 +221,7 @@ describe("citas de punta a punta", () => {
     await e.pasar(16_000);
     expect(e.odoo.mensajes().find((m) => m.id_mensaje === "wamid.ESTE").cita).toEqual({ id_canal: citado });
     const ultima = JSON.stringify(llamadasIA.at(-1));
-    expect(ultima).toContain(`[El cliente responde a este mensaje de D'CASA: «${RESPUESTA_IA}»]`);
+    expect(ultima).toContain(`[El cliente responde a este mensaje de la tienda: «${RESPUESTA_IA}»]`);
     expect(e.eventosEnOdoo().at(-1)!.cuerpo.eventos[0]).toMatchObject({ estado: "leido", id_mensaje: citado });
   });
 });

@@ -75,7 +75,7 @@ describe("una pregunta en un comentario: corto en público y lo demás por priva
     m.guion([PREGUNTA, { texto: "Te escribo por tu comentario: ¿cuál de los sofás de la publicación te interesa?" }]);
     await comentar(m, comentario(m, "precio porfa"));
     const prompt = m.modelo.prompts()[1];
-    expect(prompt).toContain("dejó este comentario en una publicación de Instagram de D'CASA que dice «Sofá Roma de 3 puestos, tela gris. Pregunta por el tuyo.»");
+    expect(prompt).toContain("dejó este comentario en una publicación de Instagram de la tienda que dice «Sofá Roma de 3 puestos, tela gris. Pregunta por el tuyo.»");
     expect(prompt).toContain("MENSAJE PRIVADO");
     expect(herramientasDe(m, 1)).toContain("buscar_productos");
     for (const nombre of ["enviar_foto_producto", "cotizar", "agregar_envio"]) expect(herramientasDe(m, 1)).not.toContain(nombre);

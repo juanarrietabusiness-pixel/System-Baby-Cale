@@ -10,7 +10,7 @@ import { readFileSync } from "node:fs";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CONFIG_POR_DEFECTO, normalizarConfig } from "../src/config";
 import type { Env } from "../src/env";
-import { MODELO_VISION_POR_DEFECTO } from "../src/motor/vision";
+import { MODELO_VISION_POR_DEFECTO, normalizarLectura } from "../src/motor/vision";
 import {
   buscarFoto,
   firmaCoincide,
@@ -20,6 +20,7 @@ import {
   PLAZO_BUSCAR_FOTO_MS,
   TOPE_MES_FOTO_USD,
   USO_ESTIMADO,
+  registroCerrado,
   validarPeticion,
 } from "../src/odoo-panel-buscar-foto";
 import { manejar, type DepsRutas } from "../src/rutas";
@@ -34,7 +35,10 @@ const FOTO_B64 = aBase64(JPEG);
 const PNG = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 13, 1, 2, 3]);
 const WEBP = new Uint8Array([0x52, 0x49, 0x46, 0x46, 1, 0, 0, 0, 0x57, 0x45, 0x42, 0x50, 0x56, 0x50, 0x38]);
 
-const LECTURA = { tipo: "producto", codigos: ["XHT022-T-W"], categoria: "cama", medida: "twin", parece_pago: false, parece_identidad: false };
+/** Lo que devuelve el modelo de visión: una caja de pañales en talla M. */
+const LECTURA = { tipo: "producto", codigos: ["XHT022-T-W"], categoria: "panal", talla: "m", parece_pago: false, parece_identidad: false };
+/** Lo que le llega a Odoo: los seis campos de siempre; la talla viaja en `medida` (el campo que lee addons/dcasa_buscar_foto). */
+const PARA_ODOO = { tipo: "producto", codigos: ["XHT022-T-W"], categoria: "panal", medida: "m", parece_pago: false, parece_identidad: false };
 
 interface Montaje {
   env: Env;
@@ -137,7 +141,7 @@ describe("la llave de Odoo", () => {
     const res = await m.pedir({ mime: "image/jpeg", base64: FOTO_B64 });
     expect(res.status).toBe(200);
     expect(res.headers.get("cache-control")).toBe("no-store");
-    expect(await res.json()).toEqual({ ok: true, lectura: LECTURA });
+    expect(await res.json()).toEqual({ ok: true, lectura: PARA_ODOO });
     const [modelo, entrada] = m.ai.run.mock.calls[0] as [string, any];
     expect(modelo).toBe(MODELO_VISION_POR_DEFECTO);
     expect(entrada.tools).toBeUndefined();
@@ -225,6 +229,19 @@ describe("solo el registro cerrado", () => {
     ]) {
       const m = montar({ respuesta: { response: lectura } });
       expect((await (await m.pedir({ mime: "image/jpeg", base64: FOTO_B64 })).json<any>()).lectura).toMatchObject({ tipo: lectura.tipo });
+    }
+  });
+
+  it("cada talla de pañal (RN a XXL) llega a Odoo en `medida`; toallitas o un fular, sin talla, llegan con `medida: null`", async () => {
+    for (const talla of ["rn", "p", "s", "m", "l", "g", "xl", "xxl"]) {
+      const m = montar({ respuesta: { response: { ...LECTURA, talla: talla.toUpperCase() } } });
+      const lectura = (await (await m.pedir({ mime: "image/jpeg", base64: FOTO_B64 })).json<any>()).lectura;
+      expect(lectura, talla).toEqual({ ...PARA_ODOO, medida: talla });
+      expect(lectura).not.toHaveProperty("talla");
+    }
+    for (const categoria of ["toallitas", "fular"]) {
+      const m = montar({ respuesta: { response: { ...LECTURA, categoria, talla: "ninguna" } } });
+      expect((await (await m.pedir({ mime: "image/jpeg", base64: FOTO_B64 })).json<any>()).lectura).toEqual({ ...PARA_ODOO, categoria, medida: null });
     }
   });
 
@@ -346,6 +363,15 @@ describe("cuando la lectura no se puede hacer", () => {
     });
     expect(r).toEqual({ status: 504, cuerpo: { ok: false, causa: "tardo", error: "La lectura de la foto tardó demasiado." } });
     expect(gastos).toHaveLength(1);
+  });
+
+  it("la forma del contrato no cambió: los seis campos que manda el Worker son los que lee `normalizar_lectura` de dcasa_buscar_foto", () => {
+    const python = readFileSync(new URL("../../addons/dcasa_buscar_foto/models/buscar_foto.py", import.meta.url), "utf8");
+    const funcion = /^def normalizar_lectura\([\s\S]*?^def /m.exec(python)?.[0] ?? "";
+    expect(funcion, "buscar_foto.py define normalizar_lectura").not.toBe("");
+    const leidos = new Set([...funcion.matchAll(/crudo\.get\('([a-z_]+)'\)/g)].map((x) => x[1]));
+    expect([...leidos].sort()).toEqual(Object.keys(PARA_ODOO).sort());
+    expect(Object.keys(registroCerrado(normalizarLectura(LECTURA))!).sort()).toEqual([...leidos].sort());
   });
 
   it("el plazo del Worker cabe, con margen, en lo que Odoo espera (TIMEOUT_BUSCAR_FOTO de dcasa_buscar_foto)", () => {

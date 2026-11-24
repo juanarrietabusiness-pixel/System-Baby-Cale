@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import type { LecturaImagen } from "../../src/motor/vision";
 import { crearMundo } from "../helpers/mundo";
 
-const PUBLICACION: LecturaImagen = { tipo: "publicacion", codigos: ["822F"], categoria: "cama", medida: "full", parece_pago: false, parece_identidad: false };
+const PUBLICACION: LecturaImagen = { tipo: "publicacion", codigos: ["822F"], categoria: "panal", talla: "m", parece_pago: false, parece_identidad: false };
 const deOdoo = (m: ReturnType<typeof crearMundo>) => m.odoo.mensajes.filter((x) => x.autor === "cliente").at(-1)!.adjuntos!;
 
 describe("REVISIÓN 3: una foto de Messenger o Instagram (solo URL) no es un «fallo» del lector", () => {

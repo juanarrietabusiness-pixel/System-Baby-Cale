@@ -1,9 +1,14 @@
 // `POST /odoo/buscar-foto`: «Busca con una foto» de la tienda web (addons/dcasa_buscar_foto, docs/CATALOGO.md).
 //
-// Un visitante de la tienda sube la foto de un mueble; Odoo la valida y la manda aquí UNA vez. Este Worker la lee con EL MISMO
-// lector de imágenes que usa Juan en las conversaciones (motor/vision.ts: solo se importa, no se cambia) y devuelve SOLO el
-// registro cerrado: tipo, códigos, categoría, medida, ¿parece pago?, ¿parece identidad? Ningún texto libre de la imagen sale de
-// aquí, y Odoo decide con eso qué productos publicados se parecen.
+// Un visitante de la tienda sube la foto de un producto (una caja de pañales, unas toallitas, un fular); Odoo la valida y la manda
+// aquí UNA vez. Este Worker la lee con EL MISMO lector de imágenes que usa Juan en las conversaciones (motor/vision.ts: solo se
+// importa) y devuelve SOLO el registro cerrado: tipo, códigos, categoría, talla, ¿parece pago?, ¿parece identidad? Ningún texto
+// libre de la imagen sale de aquí, y Odoo decide con eso qué productos publicados se parecen.
+//
+//   · EL CONTRATO CON ODOO NO CAMBIA DE FORMA (addons/dcasa_buscar_foto/models/buscar_foto.py, `normalizar_lectura`): los mismos
+//     seis campos con los mismos nombres. La talla del pañal viaja en `medida` («rn» … «xxl»), que es el campo que Odoo lee.
+//     Odoo vuelve a pasar `categoria` y `medida` por SUS listas cerradas: mientras sigan siendo las de muebles, descarta las de
+//     bebé (quedan en null) y la búsqueda por foto solo encuentra por código. Hay que sumarlas allá (CATEGORIAS y MEDIDAS).
 //
 //   · La foto NO se guarda: ni en un Durable Object, ni en R2, ni en un registro (log). Se lee y se olvida. Lo único que se anota
 //     es el gasto (tokens y dólares) en el Durable Object `Global`, como `cloudflare:lector-de-fotos`: lo cobra Cloudflare, así
@@ -16,7 +21,7 @@
 //     addons/dcasa_buscar_foto/models/buscar_foto.py; una prueba lo exige).
 //
 // Entrada:  { mime: "image/jpeg" | "image/png" | "image/webp", base64, tope_mes_usd? }    (la foto ya achicada, hasta 1,5 MB)
-// Salida:   { ok: true, lectura: { tipo, codigos, categoria, medida, parece_pago, parece_identidad } | null }
+// Salida:   { ok: true, lectura: { tipo, codigos, categoria, medida, parece_pago, parece_identidad } | null }   (`medida` = la talla)
 //           { ok: false, causa: "tope_foto" | "reserva" | "no_disponible" | "tardo", error }   (null = no pudo leerla)
 
 import { mesDelNegocio, type Config } from "./config";
@@ -93,14 +98,27 @@ export function validarPeticion(c: Record<string, unknown>): PeticionBuscarFoto 
   return { mime: mime as MimeDeFoto, bytes, topeMesUsd };
 }
 
+/**
+ * Lo que Odoo lee (`normalizar_lectura` de addons/dcasa_buscar_foto): los seis campos de siempre, con sus nombres de siempre. La talla
+ * del pañal va en `medida` («rn», «p», «s», «m», «l», «g», «xl» o «xxl»), porque ese es el campo que Odoo espera.
+ */
+export interface RegistroParaOdoo {
+  tipo: LecturaImagen["tipo"];
+  codigos: string[];
+  categoria: LecturaImagen["categoria"];
+  medida: LecturaImagen["talla"];
+  parece_pago: boolean;
+  parece_identidad: boolean;
+}
+
 /** SOLO los seis campos del registro cerrado, copiados uno por uno (aunque el lector algún día devolviera más). */
-export function registroCerrado(l: LecturaImagen | null): LecturaImagen | null {
+export function registroCerrado(l: LecturaImagen | null): RegistroParaOdoo | null {
   if (!l) return null;
   return {
     tipo: l.tipo,
     codigos: [...l.codigos],
     categoria: l.categoria,
-    medida: l.medida,
+    medida: l.talla,
     parece_pago: l.parece_pago === true,
     parece_identidad: l.parece_identidad === true,
   };
