@@ -459,9 +459,11 @@ describe("wrangler.jsonc (producción y staging)", () => {
   const config = leerWrangler();
   const contenedor = (c: Record<string, any>) => c.containers[0];
 
-  it("producción: standard-1 (decisión de la dueña), singleton, cerca de Panamá, política default", () => {
+  it("producción: caja personalizada de 1 vCPU y 3 GiB (el dueño, 2026-11-24), singleton, cerca de Panamá, política default", () => {
     const c = contenedor(config);
-    expect(c.instance_type).toBe("standard-1");
+    // 3 GiB por vCPU es el mínimo de Cloudflare para una caja personalizada con la política «default».
+    expect(c.instance_type).toEqual({ vcpu: 1, memory_mib: 3072, disk_mb: 8000 });
+    expect(c.instance_type.memory_mib / c.instance_type.vcpu).toBeGreaterThanOrEqual(3072);
     expect(c.max_instances).toBe(1);
     expect(c.constraints.regions).toEqual(["ENAM"]);
     expect(c.scheduling_policy).toBe("default");

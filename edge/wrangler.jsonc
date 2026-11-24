@@ -19,10 +19,14 @@
       // que admite snapshots, pero rechaza instance_type, max_instances y constraints, y
       // no sirve con la clase Container. Ver CONTRATO_CONTENEDOR.md → «Política».
       "scheduling_policy": "default",
-      // standard-1 = 1/2 vCPU, 4 GiB, 8 GB de disco (decisión de la dueña, 2026-10-02: ≈ $31/mes
-      // encendido 24/7; la memoria se cobra reservada, la CPU por uso). Odoo + PostgreSQL en
-      // basic (1 GiB) iban justos y 1/4 vCPU hacía lento el panel. Staging sigue en basic.
-      "instance_type": "standard-1",
+      // Baby Caleb (el dueño, 2026-11-24): caja PERSONALIZADA de 1 vCPU, 3 GiB y 8 GB de disco
+      // (≈ $21/mes encendida 24/7; la memoria se cobra reservada, la CPU por uso). D'CASA usa
+      // standard-1 (1/2 vCPU, 4 GiB, ≈ $28-31): esta tiene 3/4 de la memoria y el doble de
+      // procesador. 3 GiB por vCPU es el mínimo que Cloudflare acepta en una caja personalizada
+      // con la política «default»; basic (1/4 vCPU, 1 GiB) resultó demasiado lenta en staging.
+      // Si se queda corta, se vuelve a "standard-1" (una línea y un despliegue). Los límites de
+      // memoria de Odoo (entrypoint.sh: soft 1,5 GiB, hard 2 GiB) caben con PostgreSQL.
+      "instance_type": { "vcpu": 1, "memory_mib": 3072, "disk_mb": 8000 },
       // Singleton: nunca dos PostgreSQL escribiendo al mismo repositorio de R2.
       "max_instances": 1,
       // Este de Norteamérica: lo más cercano a Panamá (y al bucket de R2, que debe crearse

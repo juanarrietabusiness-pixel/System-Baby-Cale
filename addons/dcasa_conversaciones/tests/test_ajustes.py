@@ -43,7 +43,8 @@ class TestAjustesPorDefecto(JuanCase):
             'presupuesto_ia_mensual_usd', 'proveedor_ia', 'proveedor_respaldo_ia', 'modelo_rapido',
             'modelo_inteligente', 'modelos_por_defecto', 'precios', 'precios_ia', 'lecciones', 'mensaje_bienvenida',
             'texto_privacidad_corto', 'palabras_prohibidas', 'pausa_por_defecto_minutos', 'guardar_foto_perfil',
-            'telegram_chats', 'telegram_abierto', 'comentarios'})
+            'telegram_chats', 'telegram_abierto', 'comentarios',
+            'cobra_itbms'})   # Baby Caleb (2026-11-24): si el negocio cobra ITBMS (interruptor DCASA_COBRA_ITBMS)
         # El horario de Baby Caleb (2026-11-18): lunes a sábado de 9:00 a 18:00.
         self.assertEqual(datos['horario'], {'inicio': '09:00', 'fin': '18:00', 'dias': [1, 2, 3, 4, 5, 6],
                                             'zona': 'America/Panama'})

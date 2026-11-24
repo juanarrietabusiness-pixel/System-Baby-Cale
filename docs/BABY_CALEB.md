@@ -59,6 +59,7 @@ del puente. Ya en uso en la cuenta y **no se tocan**: `babycaleb-web`, `babycale
 | 2026-11-24 | Sin tienda física | Venta 100 % en línea: el pago no ofrece «Pago en la tienda» y la entrega «Retiro en tienda» queda archivada (apagados, no borrados). Interruptor `DCASA_TIENDA_FISICA=0` en staging y producción (`edge/wrangler.jsonc` → arranque → `website._dcasa_aplicar_sin_tienda_fisica`) |
 | 2026-11-24 | Textos del comprobante | Garantía, cambios y términos armados **solo con lo que respondió el dueño** (cambios, defectos, pagos, delivery, factura fiscal), sin cifras nuevas; reemplazan los de D'CASA (muebles, colchones, flete). **Aprobados por el dueño el mismo día** («esto me gusta, digo que sí»); se cambian en *Ajustes › Empresas › Documentos* |
 | 2026-11-24 | Pagos en línea | Tilopay, Yappy directo y la comisión del sitio, traídos de D'CASA (#130 y #131). **Nacen apagados y sin credenciales**; staging fijado en modo de prueba. Cómo se encienden: `docs/TILOPAY.md` y `docs/YAPPY.md` |
+| 2026-11-24 | Caja de producción | **Personalizada: 1 vCPU, 3 GiB y 8 GB de disco** (≈ $21 al mes, 24/7), en `edge/wrangler.jsonc`. `basic` (la de staging) le pareció demasiado lenta al dueño; D'CASA usa `standard-1` (½ vCPU, 4 GiB, ≈ $28-31). Si su jefe la ve lenta, se vuelve a `standard-1` con una línea y un despliegue. Recomendado además: la tienda rápida (`TIENDA_FEED_TOKEN` en los secretos de producción) |
 
 ## Estado
 

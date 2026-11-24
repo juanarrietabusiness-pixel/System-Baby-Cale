@@ -378,7 +378,8 @@ class TestEstadoYConfig(ApiCase):
             'presupuesto_ia_mensual_usd', 'proveedor_ia', 'proveedor_respaldo_ia', 'modelo_rapido',
             'modelo_inteligente', 'modelos_por_defecto', 'precios', 'precios_ia', 'lecciones', 'mensaje_bienvenida',
             'texto_privacidad_corto', 'palabras_prohibidas', 'pausa_por_defecto_minutos', 'guardar_foto_perfil',
-            'telegram_chats', 'telegram_abierto', 'comentarios'})
+            'telegram_chats', 'telegram_abierto', 'comentarios',
+            'cobra_itbms'})   # Baby Caleb (2026-11-24): si el negocio cobra ITBMS (interruptor DCASA_COBRA_ITBMS)
         # Lo que dice la base (que puede tenerlo encendido); que venga apagado de fábrica lo prueba test_comentarios.
         ajustes = self.env['dcasa.juan.ajustes'].obtener()
         self.assertEqual(cuerpo['comentarios']['activo'], bool(ajustes.comentarios_activo))
