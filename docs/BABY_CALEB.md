@@ -71,8 +71,8 @@ del puente. Ya en uso en la cuenta y **no se tocan**: `babycaleb-web`, `babycale
     dueño.
   - **El checkout ofrece «Retiro en tienda» y «Pago en la tienda»**, y Baby Caleb no tiene tienda física. Solo se
     cambiaron los textos. Quitarlos cambia la lógica, porque toca los apartados.
-  - **La banda de Socios de la portada** dice «Suma puntos y gana invitando», pero todas las cifras de `puntos.json`
-    están en PENDIENTE.
+  - **La banda de Socios de la portada** dice «Suma puntos y gana invitando». Desde el 2026-11-24 **no sale** mientras
+    las cifras de `puntos.json` estén en PENDIENTE (`website._dcasa_socios_con_cifras`); vuelve sola cuando las haya.
   - **Lo técnico que todavía dice «D'CASA»:** los nombres de los módulos en *Aplicaciones* y los de las plantillas. No
     se ven en la tienda ni en las pantallas de trabajo.
 - **Decisiones de diseño tomadas el 2026-11-19 al llevar la marca** (las revisa el dueño en staging):
@@ -82,6 +82,10 @@ del puente. Ya en uso en la cuenta y **no se tocan**: `babycaleb-web`, `babycale
   - Los testimonios van de dos en dos.
   - En la ficha del producto, WhatsApp sigue siendo el botón principal y «Agregar al carrito» va de contorno.
   - En los PDF el papel queda blanco, porque se imprimen.
+- **La tienda de staging está vacía** (2026-11-24): los productos están sin publicar porque no tienen foto. Mientras
+  tanto no salen ni «Lo más buscado» ni la tarjetita del hero («Desde talla RN · Pañal Nateen · Desde $…»), que toma
+  el precio más bajo de los Nateen publicados. Para verla completa hay que subir las fotos (las de `public/img/` del
+  repo `Baby-caleb` sirven) y publicar: lo hace el dueño desde el panel, o se hace con su sí.
 - Datos de la empresa: razón social, RUC y DV, dirección, teléfono, correo, web, lema de los documentos.
 - Promoción de Dany Baby (DANY-AW600): «2 cajas (1,200 toallitas) por $35.00». Anotada, no programada.
 - **Cifras de Socios y del programa de vendedores de Baby Caleb**: `addons/dcasa_socios/data/puntos.json` (versión 6)
