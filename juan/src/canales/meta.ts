@@ -50,7 +50,7 @@ const PUERTA_DE_LA_PAGINA: PuertaMeta = {
   pdfEnInstagram: false,
 };
 
-/** La página de D'CASA y su cuenta de Instagram (lo que dice `GET /me` con META_PAGE_TOKEN). */
+/** La página del negocio y su cuenta de Instagram (lo que dice `GET /me` con META_PAGE_TOKEN). */
 interface CuentasDeLaPagina {
   pagina: string;
   instagram?: { id: string; usuario?: string };
@@ -83,7 +83,7 @@ export function crearMeta(op: OpcionesMeta = {}): AdaptadorCanal {
       const sinPermisoInstagram = !id;
       if (!id) ({ r, j, id } = await preguntar("id"));
       if (!id) {
-        console.warn(`[juan] /webhooks/meta: Meta no dijo cuál es la página de D'CASA (HTTP ${r.status})`);
+        console.warn(`[juan] /webhooks/meta: Meta no dijo cuál es la página del negocio (HTTP ${r.status})`);
         return null;
       }
       const ig = j?.instagram_business_account;
@@ -91,13 +91,13 @@ export function crearMeta(op: OpcionesMeta = {}): AdaptadorCanal {
       const usuario = typeof ig?.username === "string" && /^[A-Za-z0-9._]{1,30}$/.test(ig.username) ? ig.username : undefined;
       return { valor: { pagina: id, ...(igId ? { instagram: { id: igId, ...(usuario ? { usuario } : {}) } } : {}) }, sinPermisoInstagram };
     } catch (e) {
-      console.warn("[juan] /webhooks/meta: no se pudo preguntar cuál es la página de D'CASA:", String(e).slice(0, 120));
+      console.warn("[juan] /webhooks/meta: no se pudo preguntar cuál es la página del negocio:", String(e).slice(0, 120));
       return null;
     }
   }
 
   /**
-   * Quién es D'CASA en /webhooks/meta (revisión del 2026-11-13): la página del META_PAGE_TOKEN y su Instagram. Solo se atienden los
+   * Quién es el negocio en /webhooks/meta (revisión del 2026-11-13): la página del META_PAGE_TOKEN y su Instagram. Solo se atienden los
    * comentarios de esas cuentas (otra página suscrita a la misma app no entra) y los suyos no se contestan. Con plazo (si Meta se
    * cuelga, el webhook no se queda esperando); si no se puede saber, el respaldo META_PAGE_ID (y INSTAGRAM_ACCOUNT_ID) o null.
    */
@@ -116,7 +116,7 @@ export function crearMeta(op: OpcionesMeta = {}): AdaptadorCanal {
     if (!respaldo) return null;
     const igRespaldo = env.INSTAGRAM_ACCOUNT_ID && ID_DE_CUENTA.test(env.INSTAGRAM_ACCOUNT_ID) ? env.INSTAGRAM_ACCOUNT_ID : "";
     const valor: CuentasDeLaPagina = { pagina: respaldo, ...(igRespaldo ? { instagram: { id: igRespaldo } } : {}) };
-    console.warn("[juan] /webhooks/meta: se usa META_PAGE_ID para saber cuál es la página de D'CASA");
+    console.warn("[juan] /webhooks/meta: se usa META_PAGE_ID para saber cuál es la página del negocio");
     cuentas = { valor, hasta: ahora() + VIDA_DEL_RESPALDO_MS, llave, sinPermisoInstagram: false };
     return valor;
   }
@@ -182,7 +182,7 @@ export function crearMeta(op: OpcionesMeta = {}): AdaptadorCanal {
         if (!yo) {
           // Sin saber cuál es la página no se puede filtrar: los mensajes del aviso se guardan igual y se contesta 500 para que Meta
           // reintente el lote (lo ya guardado no se repite: se reconoce por su id). Ningún comentario legítimo se pierde.
-          console.warn("[juan] /webhooks/meta: no se sabe cuál es la página de D'CASA: los comentarios de este aviso esperan el reintento de Meta");
+          console.warn("[juan] /webhooks/meta: no se sabe cuál es la página del negocio: los comentarios de este aviso esperan el reintento de Meta");
           return { respuesta: new Response("no se pudo saber cuál es la página: reintenta", { status: 500 }), entrantes: mensajes, guardarAntes: true };
         }
         const propias = new Set([yo.pagina, ...(yo.instagram ? [yo.instagram.id] : [])]);

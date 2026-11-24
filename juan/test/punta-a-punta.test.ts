@@ -396,6 +396,9 @@ describe("el cron de salud avisa UNA vez por problema", () => {
     await e.cron();
     expect(avisos()).toHaveLength(1);
     expect(avisos()[0]).toMatch(/JUAN_WORKER_TOKEN/);
+    // De qué asistente es: el nombre de Ajustes de Juan (este Odoo no manda ninguno: el de respaldo), nunca «D'CASA».
+    expect(avisos()[0]).toMatch(/^Aviso del asistente de la tienda: /);
+    expect(avisos()[0]).not.toContain("D'CASA");
     for (const secreto of [TOKEN_ODOO, BOT]) expect(avisos()[0]).not.toContain(secreto);
 
     await vi.advanceTimersByTimeAsync(3600_000);

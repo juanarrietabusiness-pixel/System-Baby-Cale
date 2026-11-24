@@ -2,7 +2,7 @@
 //
 // Lo que protege contra la clonación de voces (docs/JUAN.md › «Notas de voz de Andrés y de Brian del panel»):
 //   · El audio NUNCA se guarda: ni en R2, ni en un Durable Object, ni en la conversación, ni en un registro (log). Se lee, se pasa a
-//     Whisper de Workers AI (dentro de la cuenta de Cloudflare de D'CASA) y sus bytes se borran de la memoria (`fill(0)`) al terminar.
+//     Whisper de Workers AI (dentro de la cuenta de Cloudflare del negocio) y sus bytes se borran de la memoria (`fill(0)`) al terminar.
 //   · No se devuelve, no se reenvía y no se usa para generar voz: de aquí solo sale el texto (ni los segmentos, ni las palabras con sus
 //     tiempos, ni el VTT). En este Worker no existe ningún modelo que genere voz; el único modelo que recibe el audio es MODELO_WHISPER.
 //   · Notas cortas, medidas de verdad: la duración es la que el decodificador va a sacar, contada paquete por paquete SIN decodificar

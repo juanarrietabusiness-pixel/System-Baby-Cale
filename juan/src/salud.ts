@@ -379,13 +379,17 @@ export interface EstadoDeAvisos {
   avisados: string[];
 }
 
-/** Compara los problemas de ahora con los ya avisados: qué avisar nuevo y qué se arregló. */
-export function decidirAvisos(problemas: string[], previo: EstadoDeAvisos): { mensajes: string[]; nuevo: EstadoDeAvisos } {
+/**
+ * Compara los problemas de ahora con los ya avisados: qué avisar nuevo y qué se arregló. `marca`: el nombre de la empresa de Ajustes de
+ * Juan (`marcaDe(nombre_publico)`), para que el aviso diga de qué asistente es; sin él, «Aviso del asistente: …».
+ */
+export function decidirAvisos(problemas: string[], previo: EstadoDeAvisos, marca = ""): { mensajes: string[]; nuevo: EstadoDeAvisos } {
   const nuevos = problemas.filter((p) => !previo.avisados.includes(p));
   const arreglados = previo.avisados.filter((p) => !problemas.includes(p));
+  const deQuien = marca.trim() ? ` de ${marca.trim()}` : "";
   const mensajes = [
-    ...nuevos.map((p) => `Aviso del asistente de D'CASA: ${p}.`),
-    ...arreglados.map((p) => `Resuelto en el asistente de D'CASA: ${p}.`),
+    ...nuevos.map((p) => `Aviso del asistente${deQuien}: ${p}.`),
+    ...arreglados.map((p) => `Resuelto en el asistente${deQuien}: ${p}.`),
   ];
   return { mensajes, nuevo: { avisados: problemas } };
 }

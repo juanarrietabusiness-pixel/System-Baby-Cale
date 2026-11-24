@@ -1,4 +1,4 @@
-// Los COMENTARIOS de las publicaciones de D'CASA en Facebook e Instagram (2026-11-12). Llegan por los mismos webhooks que los mensajes,
+// Los COMENTARIOS de las publicaciones de la tienda en Facebook e Instagram (2026-11-12). Llegan por los mismos webhooks que los mensajes,
 // pero en `entry[].changes[]` (no en `messaging[]`):
 //
 //   · Facebook (la página, webhook `/webhooks/meta`, objeto `page`): campo `feed` con `item: "comment"` y `verb: "add"`; trae
@@ -30,7 +30,7 @@ const MAX_TEXTO = 2000;
 /** Por qué se dejó de lado un comentario del aviso (para el registro del Worker; nunca con datos de la persona). */
 export interface IgnoradosDeComentarios {
   propios: number;
-  /** En publicaciones de OTRA página o cuenta suscrita a la app (no de D'CASA). */
+  /** En publicaciones de OTRA página o cuenta suscrita a la app (no del negocio). */
   ajenos: number;
   viejos: number;
   /** Editados, borrados, ocultos, sin texto, en vivo o con ids raros. */
@@ -43,11 +43,11 @@ export interface OpcionesDeComentarios {
   /** Los ids de la propia página o cuenta (además del `entry.id` de cada entrada). */
   propios?: ReadonlySet<string>;
   /**
-   * Las cuentas de D'CASA (la página y su Instagram): solo se atienden los avisos cuyo `entry.id` sea una de ellas (otra página suscrita
+   * Las cuentas del negocio (la página y su Instagram): solo se atienden los avisos cuyo `entry.id` sea una de ellas (otra página suscrita
    * a la misma app no entra). Sin esto se atiende cualquiera (la segunda puerta ya filtra antes con `soloDeLaCuenta`).
    */
   cuentas?: ReadonlySet<string>;
-  /** El usuario de Instagram de D'CASA (sin @), si se sabe: sus comentarios no se contestan. */
+  /** El usuario de Instagram del negocio (sin @), si se sabe: sus comentarios no se contestan. */
   usuarioPropio?: string;
 }
 

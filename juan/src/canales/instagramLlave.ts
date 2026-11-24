@@ -73,7 +73,7 @@ export interface EstadoLlave {
   rechazada?: Rechazo;
 }
 
-/** La cuenta de Instagram de D'CASA según `GET /me`. */
+/** La cuenta de Instagram del negocio según `GET /me`. */
 export interface CuentaInstagram {
   /** `user_id` (el id que traen los webhooks, según Meta) y el `id` de la app: se aceptan los dos. */
   ids: string[];
@@ -293,7 +293,7 @@ export async function cuentaGuardada(env: Env, llavero: Llavero): Promise<Cuenta
 }
 
 /**
- * La cuenta de D'CASA según Meta: la guardada si es de esta misma llave; si no, se pregunta (`GET /me?fields=user_id,username`, con
+ * La cuenta del negocio según Meta: la guardada si es de esta misma llave; si no, se pregunta (`GET /me?fields=user_id,username`, con
  * la llave en la cabecera y un plazo) y se guarda. `fallo` = se preguntó y Meta no dijo cuál (se devuelve la guardada vieja, si hay).
  */
 export async function descubrirCuenta(env: Env, d: DepsLlave & { llave(env: Env): Promise<string | undefined> }, plazoMs: number): Promise<{ cuenta: CuentaInstagram | null; fallo: boolean }> {

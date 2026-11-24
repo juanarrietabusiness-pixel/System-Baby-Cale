@@ -1,6 +1,6 @@
 // Notas de voz → texto con Whisper de Workers AI. Se enciende con TRANSCRIBIR_AUDIO=1 Y el binding `ai` de wrangler.jsonc
 // (docs/JUAN.md §12). Si falta cualquiera de los dos, no hay transcriptor y el bot le pide al cliente que escriba,
-// o le dice que una vendedora la escucha. El audio no sale de la cuenta de Cloudflare de D'CASA.
+// o le dice que una vendedora la escucha. El audio no sale de la cuenta de Cloudflare del negocio.
 //
 // Lo usan las notas de voz de WhatsApp (`transcriptorDe`) y las de Andrés y Brian del panel (motor/voz.ts, con `whisperDe`, que
 // además dice cuánto duró el audio para cobrarlo y para no devolver el texto de un audio más largo que el tope).

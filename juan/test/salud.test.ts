@@ -156,17 +156,17 @@ describe("informeDeSalud", () => {
 
 describe("decidirAvisos (el cron)", () => {
   it("la primera vez avisa todo; la segunda no repite", () => {
-    const a = decidirAvisos(["falta X", "canal Y caído"], { avisados: [] });
+    const a = decidirAvisos(["falta X", "canal Y caído"], { avisados: [] }, "Baby Caleb");
     expect(a.mensajes).toHaveLength(2);
-    expect(a.mensajes[0]).toBe("Aviso del asistente de D'CASA: falta X.");
+    expect(a.mensajes[0]).toBe("Aviso del asistente de Baby Caleb: falta X.");
     const b = decidirAvisos(["falta X", "canal Y caído"], a.nuevo);
     expect(b.mensajes).toEqual([]);
   });
 
   it("avisa lo nuevo y avisa «resuelto» lo que se arregló", () => {
     const previo = { avisados: ["falta X", "canal Y caído"] };
-    const r = decidirAvisos(["canal Y caído", "falta Z"], previo);
-    expect(r.mensajes).toEqual(["Aviso del asistente de D'CASA: falta Z.", "Resuelto en el asistente de D'CASA: falta X."]);
+    const r = decidirAvisos(["canal Y caído", "falta Z"], previo, "Baby Caleb");
+    expect(r.mensajes).toEqual(["Aviso del asistente de Baby Caleb: falta Z.", "Resuelto en el asistente de Baby Caleb: falta X."]);
     expect(r.nuevo.avisados).toEqual(["canal Y caído", "falta Z"]);
   });
 
@@ -178,6 +178,13 @@ describe("decidirAvisos (el cron)", () => {
     const uno = decidirAvisos(["caído"], { avisados: [] });
     const resuelto = decidirAvisos([], uno.nuevo);
     const otraVez = decidirAvisos(["caído"], resuelto.nuevo);
-    expect(otraVez.mensajes).toEqual(["Aviso del asistente de D'CASA: caído."]);
+    expect(otraVez.mensajes).toEqual(["Aviso del asistente: caído."]);
+  });
+
+  it("el aviso dice el nombre de Ajustes de Juan, nunca uno escrito a mano; sin nombre, «del asistente» a secas", () => {
+    expect(decidirAvisos(["falta X"], { avisados: [] }).mensajes).toEqual(["Aviso del asistente: falta X."]);
+    expect(decidirAvisos(["falta X"], { avisados: [] }, "  ").mensajes).toEqual(["Aviso del asistente: falta X."]);
+    expect(decidirAvisos(["falta X"], { avisados: [] }, "la tienda").mensajes).toEqual(["Aviso del asistente de la tienda: falta X."]);
+    expect(JSON.stringify(decidirAvisos(["falta X"], { avisados: ["falta Y"] }))).not.toContain("D'CASA");
   });
 });

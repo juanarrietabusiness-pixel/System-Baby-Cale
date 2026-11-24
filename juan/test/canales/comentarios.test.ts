@@ -173,7 +173,7 @@ function graphFalso(respuesta: (c: Llamada) => Response | undefined = () => unde
     if (propia) return propia;
     const u = new URL(c.url);
     if (u.pathname.endsWith("/me") && u.searchParams.get("fields") === "user_id,username") return Response.json({ user_id: CUENTA_IG, username: "dcasapty", id: "26000000000000001" });
-    // La página (META_PAGE_TOKEN): su id y su Instagram (para atender solo los comentarios de D'CASA en /webhooks/meta).
+    // La página (META_PAGE_TOKEN): su id y su Instagram (para atender solo los comentarios del negocio en /webhooks/meta).
     if (u.pathname.endsWith("/me") && u.searchParams.get("fields") === "id,instagram_business_account{id,username}") return Response.json({ id: PAGINA, instagram_business_account: { id: CUENTA_IG, username: "dcasapty" } });
     if (u.pathname.endsWith("/me/messages")) return Response.json({ recipient_id: IGSID, message_id: "m.privada.1" });
     if (u.pathname.endsWith("/comments") || u.pathname.endsWith("/replies")) return Response.json({ id: "respuesta.publica.1" });
@@ -314,7 +314,7 @@ describe("la publicación comentada (una consulta barata, sin IA)", () => {
 
 // ── Revisión adversarial del 2026-11-13 ──────────────────────────────────
 
-describe("solo los comentarios de D'CASA (revisión del 2026-11-13)", () => {
+describe("solo los comentarios del negocio (revisión del 2026-11-13)", () => {
   it("el enlace se mira como lo mira el navegador: «\\», usuario antes del anfitrión, puerto o espacios no pasan", () => {
     for (const malo of ["https://evil.example\\@www.facebook.com/x", "https://evil.example\\.facebook.com/x", "https://evil.example@www.facebook.com/x", "https://www.facebook.com:8443/x", "https://www.face book.com/x", "https://www.facebook.com/x\n"]) {
       expect(enlaceDeMeta(malo), malo).toBeUndefined();
@@ -333,7 +333,7 @@ describe("solo los comentarios de D'CASA (revisión del 2026-11-13)", () => {
     expect((await adaptador.recibir(await firmado(igDeOtra, SECRETO_FB, "/webhooks/meta"), envPagina)).entrantes).toEqual([]);
   });
 
-  it("/webhooks/meta: lo que comenta la cuenta de Instagram de D'CASA (por su id o su usuario) no se contesta, aunque from.id ≠ entry.id", async () => {
+  it("/webhooks/meta: lo que comenta la cuenta de Instagram del negocio (por su id o su usuario) no se contesta, aunque from.id ≠ entry.id", async () => {
     const { adaptador } = graphFalso();
     const ahora = Math.floor(Date.now() / 1000);
     const conHora = (c: MetaCuerpo) => ({ ...c, entry: c.entry!.map((e) => ({ ...e, time: ahora })) });

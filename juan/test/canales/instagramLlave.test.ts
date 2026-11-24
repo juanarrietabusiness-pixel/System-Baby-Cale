@@ -237,7 +237,7 @@ describe("/salud (lo local de Instagram): puerta, vencimiento y avisos, sin la l
     const m = metaFalso((url) => (url.pathname.endsWith("/me") ? Response.json({ error: { message: "x", code: 2 } }, { status: 500 }) : undefined));
     await m.adaptador.mantener!(env);
     const s = await m.adaptador.saludLocal!("instagram", env);
-    expect(s.problemas?.join(" ")).toMatch(/todavía no sé cuál es la cuenta de Instagram de D'CASA.*INSTAGRAM_ACCOUNT_ID/);
+    expect(s.problemas?.join(" ")).toMatch(/todavía no sé cuál es la cuenta de Instagram del negocio.*INSTAGRAM_ACCOUNT_ID/);
     expect(s.cuenta).toBeUndefined();
     // Con la variable, no hace falta preguntar.
     expect((await m.adaptador.saludLocal!("instagram", { ...env, INSTAGRAM_ACCOUNT_ID: "17841400000000001" } as Env)).problemas).toBeUndefined();
