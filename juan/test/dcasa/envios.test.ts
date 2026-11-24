@@ -491,7 +491,7 @@ describe("el prompt: la regla de envíos", () => {
     expect(como).toContain("cotizar_envio");
     expect(como).toMatch(/Si devuelve varios lugares, pregúntale cuál es/);
     expect(como).toMatch(/frase_para_el_cliente tal cual/);
-    expect(como).toContain("«¿Quieres que te lo sume a la cotización?»");
+    expect(como).toContain("«¿Desea que se lo sume a la cotización?»");
     expect(como).toMatch(/solo si dice que sí, llama a agregar_envio/);
     expect(como).toMatch(/La promoción de envío NUNCA la calculas tú/);
     expect(como).toMatch(/La fecha de entrega la confirma siempre una vendedora/);

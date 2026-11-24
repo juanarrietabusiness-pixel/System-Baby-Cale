@@ -1,11 +1,14 @@
 /**
  * Regla 11 y voz de la marca, vistas desde el CLIENTE: sea lo que sea que diga el modelo, lo que llega por el canal es alguien
- * de la tienda que conoce bien los productos: tuteo, sin emojis, sin gritos, sin «remate», burbujas cortas.
+ * de la tienda que conoce bien los productos: de usted (el dueño de Baby Caleb, 2026-11-24, con la voz de su CRM), uno o dos
+ * emojis como mucho, sin gritos, sin «remate», burbujas cortas.
  * (Reescritura de las pruebas de «trato» del CRM de Baby Caleb.)
  */
 import { describe, expect, it } from "vitest";
 import { CONFIG_POR_DEFECTO } from "../../src/config";
 import { marcaDe, presentacionPorDefecto } from "../../src/dcasa/prompt";
+import { TEXTO_FUGA, TEXTO_SIN_DATO } from "../../src/dcasa/salvaguardas";
+import { TEXTO_ARCHIVO_RECIBIDO, TEXTO_FALLO_TECNICO, TEXTO_TOPE_DIARIO, textoPasoAVendedora } from "../../src/dcasa/textos";
 import { crearMundo } from "../helpers/mundo";
 
 const EMOJI = /\p{Extended_Pictographic}/u;
@@ -91,15 +94,30 @@ describe("burbujas cortas (2 a 4 líneas)", () => {
   });
 });
 
-describe("tuteo y presentación", () => {
-  it("el saludo va primero, sin emojis ni «usted»", async () => {
+/** Lo que delata el tuteo en un texto dirigido al cliente. */
+const TUTEO = /\b(?:te|tu|tus|ti|tú|contigo|quieres|prefieres|buscas|puedes|tienes|dime|cuéntame|escríbeme|mira)\b/i;
+
+describe("de usted y presentación", () => {
+  it("los textos fijos del sistema le hablan de usted al cliente", () => {
+    const fijos = [TEXTO_TOPE_DIARIO, TEXTO_FALLO_TECNICO, TEXTO_ARCHIVO_RECIBIDO, TEXTO_FUGA, TEXTO_SIN_DATO, textoPasoAVendedora(true, CONFIG_POR_DEFECTO.horario), textoPasoAVendedora(false, CONFIG_POR_DEFECTO.horario)];
+    for (const t of fijos) {
+      expect(t, t).not.toMatch(TUTEO);
+      expect(t, t).toMatch(/\b(?:le|su|se lo|prefiere|desea|indíqueme|escríbame|busca)\b/i);
+      expect(t, t).not.toMatch(EMOJI);
+    }
+    expect(textoPasoAVendedora(true, CONFIG_POR_DEFECTO.horario)).toBe("Listo, ya le pasé su consulta a una vendedora. Le escribe por aquí en un momento.");
+    expect(textoPasoAVendedora(false, CONFIG_POR_DEFECTO.horario)).toBe("Listo, dejé su consulta para una vendedora. Le escribe por aquí cuando abramos, a partir de las 8:00 a. m.");
+    expect(TEXTO_ARCHIVO_RECIBIDO).toBe("Recibí su archivo. Una vendedora lo revisa y le confirma por aquí.");
+  });
+
+  it("el saludo va primero, sin emojis ni tuteo", async () => {
     const m = crearMundo();
     m.guion([{ texto: "¿Qué estás buscando?" }]);
     await m.conversar("hola");
     const primera = m.canal.textos[0];
     expect(primera).toBe("Hola, soy Juan de Baby Caleb.");
     expect(primera).not.toMatch(EMOJI);
-    expect(primera).not.toMatch(/\busted\b/i);
+    expect(primera).not.toMatch(TUTEO);
   });
 
   it("solo se presenta una vez: el segundo mensaje no repite la presentación", async () => {

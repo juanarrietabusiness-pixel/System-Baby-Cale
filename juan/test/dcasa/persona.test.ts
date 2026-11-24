@@ -122,7 +122,7 @@ describe("«persona» siempre pasa a una vendedora", () => {
     await m.escribir("persona");
     m.odoo.caido = true;
     await m.pasar(3_000);
-    expect(m.canal.textos.join("\n")).toMatch(/pasé tu consulta a una vendedora|dejé tu consulta/);
+    expect(m.canal.textos.join("\n")).toMatch(/pasé su consulta a una vendedora|dejé su consulta/);
     expect(m.odoo.de("pasar_a_vendedora")).toHaveLength(0);
     m.odoo.caido = false;
     await m.pasar(10 * 60_000);

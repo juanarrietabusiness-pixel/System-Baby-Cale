@@ -366,12 +366,12 @@ describe("si el proveedor elegido falla o no tiene clave, contesta el respaldo",
     expect(m.odoo.de("pasar_a_vendedora")).toHaveLength(1);
   });
 
-  it("ningún proveedor con clave: «una vendedora te atiende», aviso a la vendedora y /salud lo dice", async () => {
+  it("ningún proveedor con clave: «una vendedora le atiende», aviso a la vendedora y /salud lo dice", async () => {
     const { m } = mundoMeta(() => ({ texto: "no debería llamarse" }));
     m.proveedores = [];
     await m.conversar("hola");
     expect(m.canal.textos).toContain(TEXTO_FALLO_TECNICO);
-    expect(TEXTO_FALLO_TECNICO).toMatch(/vendedora te atiende/);
+    expect(TEXTO_FALLO_TECNICO).toMatch(/vendedora le atiende/);
     await m.pasar(60_000);
     expect(m.odoo.de("pasar_a_vendedora")).toHaveLength(1);
     const informe = await informeDeSalud({ env: { JUAN_ODOO_TOKEN: "x", JUAN_WORKER_TOKEN: "y" } as Env, adaptadores: crearAdaptadores(), config: () => m.config(), gastoMes: async () => 0, ahora: m.ahora, consultarConexiones: false });

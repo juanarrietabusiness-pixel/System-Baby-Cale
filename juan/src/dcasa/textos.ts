@@ -1,15 +1,15 @@
-// Los pocos textos que el SISTEMA (no el modelo) le dice al cliente. Voz de la marca: tuteo, breve,
-// sin emojis. Si Odoo manda su propio texto (p. ej. el de `pasar_a_vendedora`), ese gana.
+// Los pocos textos que el SISTEMA (no el modelo) le dice al cliente. Voz de la marca (Baby Caleb, 2026-11-24): de usted,
+// siempre, breve y sin emojis (son avisos fijos). Si Odoo manda su propio texto (p. ej. el de `pasar_a_vendedora`), ese gana.
 
 import type { Horario } from "../config";
 
 export const TEXTO_TOPE_DIARIO =
-  "Gracias por escribirnos tanto. Por hoy ya te acompañé un buen rato; mañana seguimos con gusto. " +
-  "Si prefieres, escríbeme *persona* y te atiende una vendedora.";
+  "Gracias por escribirnos tanto. Por hoy ya le acompañé un buen rato; mañana seguimos con gusto. " +
+  "Si prefiere, escríbame *persona* y le atiende una vendedora.";
 
-export const TEXTO_FALLO_TECNICO = "Ahorita no puedo responderte yo, pero ya avisé: una vendedora te atiende por aquí en cuanto pueda.";
+export const TEXTO_FALLO_TECNICO = "Ahorita no puedo responderle yo, pero ya avisé: una vendedora le atiende por aquí en cuanto pueda.";
 
-export const TEXTO_ARCHIVO_RECIBIDO = "Recibí tu archivo. Una vendedora lo revisa y te confirma por aquí.";
+export const TEXTO_ARCHIVO_RECIBIDO = "Recibí su archivo. Una vendedora lo revisa y le confirma por aquí.";
 
 /** «08:00» → «8:00 a. m.»; «17:00» → «5:00 p. m.» */
 export function horaLegible(hhmm: string): string {
@@ -22,6 +22,6 @@ export function horaLegible(hhmm: string): string {
 /** Solo si `pasar_a_vendedora` no trajo texto (o Odoo no contestó). */
 export function textoPasoAVendedora(dentroDeHorario: boolean, horario: Horario): string {
   return dentroDeHorario
-    ? "Listo, ya le pasé tu consulta a una vendedora. Te escribe por aquí en un momento."
-    : `Listo, dejé tu consulta para una vendedora. Te escribe por aquí cuando abramos, a partir de las ${horaLegible(horario.inicio).replace(/\.$/, "")}.`;
+    ? "Listo, ya le pasé su consulta a una vendedora. Le escribe por aquí en un momento."
+    : `Listo, dejé su consulta para una vendedora. Le escribe por aquí cuando abramos, a partir de las ${horaLegible(horario.inicio).replace(/\.$/, "")}.`;
 }

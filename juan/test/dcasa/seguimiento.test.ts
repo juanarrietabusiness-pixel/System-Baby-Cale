@@ -46,7 +46,7 @@ describe("el seguimiento se redacta con el motor y se envía", () => {
     expect(m.idsDeModelo).toEqual(["claude-haiku-4-5"]);
   });
 
-  it("el modelo recibe el interés como dato, la regla de no presionar y el tuteo", async () => {
+  it("el modelo recibe el interés como dato, la regla de no presionar y el trato de usted", async () => {
     const m = crearMundo();
     const ultimo = await conversacionInteresada(m);
     await m.pasar(5 * 3600_000);
@@ -55,7 +55,8 @@ describe("el seguimiento se redacta con el motor y se envía", () => {
     const visto = g.prompts()[0];
     expect(visto).toContain("cama queen CAMA-Q-001");
     expect(visto).toMatch(/Sin presión/);
-    expect(visto).toMatch(/Tuteo/);
+    expect(visto).toMatch(/De usted, siempre/);
+    expect(visto).not.toMatch(/tuteo/i);
     expect(visto).toMatch(/NO menciones precios/);
   });
 
