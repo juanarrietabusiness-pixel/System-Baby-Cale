@@ -13,7 +13,7 @@
 import { APICallError, generateText, hasToolCall, jsonSchema, LoadAPIKeyError, stepCountIs, tool, type LanguageModel, type ModelMessage, type ToolSet } from "ai";
 import { dentroDeHorario, diaDelNegocio, mesDelNegocio, type Config } from "../config";
 import { pideUnaPersona } from "../dcasa/intencion";
-import { HERRAMIENTAS_DEL_CONTRATO, NOMBRES_DE_HERRAMIENTAS_LOCALES } from "../dcasa/prompt";
+import { HERRAMIENTAS_DEL_CONTRATO, marcaDe, NOMBRES_DE_HERRAMIENTAS_LOCALES } from "../dcasa/prompt";
 import { analizar, quitarGraves, type ContextoRevision, type TipoProblema } from "../dcasa/salvaguardas";
 import { CORCHETES, CORCHETES_QUE_CIERRAN, enmascararSensibles, textoParaElModelo } from "../dcasa/sensibles";
 import { normalizar, oraciones } from "../dcasa/texto";
@@ -439,7 +439,7 @@ const QUE_ESTUVO_MAL: Record<TipoProblema, string> = {
   fuga: "información interna",
   secreto: "un dato que el cliente dio en confianza",
   manda_a_leer: "mandar al cliente a leer políticas o términos",
-  se_hace_pasar_por_persona: "decir que eres una persona o que no eres un bot (eres Andrés, el asistente virtual de D'CASA)",
+  se_hace_pasar_por_persona: "decir que eres una persona o que no eres un bot (eres Andrés, el asistente virtual de la tienda)",
   palabra_prohibida: "una palabra que la marca no usa",
   niega_producto: "decir que no manejamos algo que sí se trabaja aunque no esté en la tienda en línea (di que sí y ofrece WhatsApp)",
 };
@@ -1038,6 +1038,7 @@ export class MotorTienda {
       textoDelPrompt: fugas,
       envio: registro.envio,
       haySinPublicar: registro.haySinPublicar,
+      marca: marcaDe(cfg.nombre_publico),
     });
 
     let respuesta = salida.respuesta ?? leerRespuestaDelModelo({ texto: salida.texto });

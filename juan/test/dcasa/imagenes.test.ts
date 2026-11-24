@@ -10,19 +10,20 @@ import { crearMundo } from "../helpers/mundo";
 const BYTES = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 1, 2, 3, 4, 5, 6, 7, 8]);
 const imagen = (nombre = "captura.jpg") => ({ adjuntos: [{ tipo: "imagen" as const, mime: "image/jpeg", nombre, bytes: BYTES }] });
 
-const PUBLICACION: LecturaImagen = { tipo: "publicacion", codigos: ["822F"], categoria: "cama", medida: "full", parece_pago: false, parece_identidad: false };
-const COMPROBANTE: LecturaImagen = { tipo: "comprobante", codigos: [], categoria: null, medida: null, parece_pago: true, parece_identidad: false };
+const PUBLICACION: LecturaImagen = { tipo: "publicacion", codigos: ["822F"], categoria: "panal", talla: "m", parece_pago: false, parece_identidad: false };
+const COMPROBANTE: LecturaImagen = { tipo: "comprobante", codigos: [], categoria: null, talla: null, parece_pago: true, parece_identidad: false };
 
 describe("captura de un producto o de una publicación", () => {
-  it("el modelo recibe lo que se leyó (código, tipo, medida), no la imagen, y no se le avisa de «NO lo ves»", async () => {
+  it("el modelo recibe lo que se leyó (código, tipo, talla), no la imagen, y no se le avisa de «NO lo ves»", async () => {
     const m = crearMundo({ mirarImagen: async () => PUBLICACION });
-    const g = m.guion([{ texto: "Sí, la cama 822F está disponible." }]);
+    const g = m.guion([{ texto: "Sí, los pañales 822F están disponibles." }]);
     await m.conversar("¿esta la tienen?", imagen());
     const visto = g.prompts()[0];
     expect(visto).toContain("Un lector aparte la miró");
     expect(visto).toContain("código: «822F»");
-    expect(visto).toContain("tipo: cama");
-    expect(visto).toContain("medida: full");
+    expect(visto).toContain("tipo: pañales");
+    expect(visto).toContain("talla: M");
+    expect(visto).not.toMatch(/mueble|medida/);
     expect(visto).toContain("no le pidas al cliente el código otra vez");
     expect(visto).toContain("NO lo repitas ni lo confirmes");
     expect(visto).not.toContain("NO lo ves y no puedes describirlo");
@@ -33,7 +34,7 @@ describe("captura de un producto o de una publicación", () => {
 
   it("no se le deja una nota a la vendedora (el bot la atiende), pero la imagen queda en la conversación de Odoo sin datos de la lectura", async () => {
     const m = crearMundo({ mirarImagen: async () => PUBLICACION });
-    m.guion([{ texto: "Sí, la cama 822F está disponible." }]);
+    m.guion([{ texto: "Sí, los pañales 822F están disponibles." }]);
     await m.conversar("¿esta la tienen?", imagen());
     expect(m.odoo.de("anotar_conversacion")).toHaveLength(0);
     const delCliente = m.odoo.mensajes.find((x) => x.autor === "cliente")!;
@@ -43,11 +44,38 @@ describe("captura de un producto o de una publicación", () => {
     expect(JSON.stringify(delCliente)).not.toContain("822F");
   });
 
-  it("una foto de un mueble sin código, pero con tipo y medida, también se busca en el catálogo", async () => {
+  it("una foto de una caja de pañales sin código, pero con tipo y talla, también se busca en el catálogo", async () => {
     const m = crearMundo({ mirarImagen: async () => ({ ...PUBLICACION, tipo: "producto", codigos: [] }) });
-    const g = m.guion([{ texto: "Tenemos camas full; ¿te muestro?" }]);
+    const g = m.guion([{ texto: "Tenemos pañales en talla M; ¿te muestro?" }]);
     await m.conversar("", imagen("foto.jpg"));
-    expect(g.prompts()[0]).toContain("Búscalo con buscar_productos usando el tipo y la medida");
+    const visto = g.prompts()[0];
+    expect(visto).toContain("El cliente mandó una foto de un producto.");
+    expect(visto).toContain("Búscalo con buscar_productos usando el tipo y la talla");
+    expect(visto).toContain("nombre, talla, lo que trae la caja o el paquete, combo y precio con «+ ITBMS» solo si salen de la herramienta");
+    expect(visto).toContain("(«¿son los pañales X en talla M?»)");
+  });
+
+  it("toallitas o un fular sin talla: se busca por el tipo, sin pedir una talla que no hay", async () => {
+    for (const [categoria, nombre] of [["toallitas", "toallitas húmedas"], ["fular", "fular portabebé"]] as const) {
+      const m = crearMundo({ mirarImagen: async () => ({ ...PUBLICACION, tipo: "producto", codigos: [], categoria, talla: null }) });
+      const g = m.guion([{ texto: "Sí, las tenemos." }]);
+      await m.conversar("", imagen("foto.jpg"));
+      const visto = g.prompts()[0];
+      expect(visto, categoria).toContain(`tipo: ${nombre}`);
+      expect(visto, categoria).toContain("Búscalo con buscar_productos usando el tipo. ");
+      expect(visto, categoria).not.toContain("talla: ");
+    }
+  });
+
+  it("una lectura guardada antes del cambio (con «medida» y una categoría de muebles) no rompe nada: se dice lo que hay", async () => {
+    const vieja = { tipo: "producto", codigos: ["822F"], categoria: "cama", medida: "queen", parece_pago: false, parece_identidad: false } as unknown as LecturaImagen;
+    const m = crearMundo({ mirarImagen: async () => vieja });
+    const g = m.guion([{ texto: "Déjame buscarlo." }]);
+    await m.conversar("", imagen("foto.jpg"));
+    const visto = g.prompts()[0];
+    expect(visto).toContain("código: «822F»; tipo: cama.");
+    expect(visto).not.toContain("talla:");
+    expect(visto).not.toContain("undefined");
   });
 });
 
@@ -86,14 +114,14 @@ describe("comprobantes y documentos: siguen el camino de siempre", () => {
   });
 
   it("una imagen «otra» con señal de pago sí se etiqueta «Comprobante recibido»", async () => {
-    const m = crearMundo({ mirarImagen: async () => ({ tipo: "otra", codigos: [], categoria: null, medida: null, parece_pago: true, parece_identidad: false }) });
+    const m = crearMundo({ mirarImagen: async () => ({ tipo: "otra", codigos: [], categoria: null, talla: null, parece_pago: true, parece_identidad: false }) });
     m.guion([{ texto: "Recibí tu archivo. Una vendedora lo revisa." }]);
     await m.conversar("listo", imagen("captura.jpg"));
     expect(m.odoo.de("etiquetar_conversacion").map((c) => c.args.etiqueta)).toEqual(["Comprobante recibido"]);
   });
 
   it("una cédula no se etiqueta como comprobante ni se lee: solo se anota", async () => {
-    const m = crearMundo({ mirarImagen: async () => ({ tipo: "identidad", codigos: [], categoria: null, medida: null, parece_pago: false, parece_identidad: true }) });
+    const m = crearMundo({ mirarImagen: async () => ({ tipo: "identidad", codigos: [], categoria: null, talla: null, parece_pago: false, parece_identidad: true }) });
     const g = m.guion([{ texto: "Recibí tu archivo." }]);
     await m.conversar("mi cédula", imagen("cedula.jpg"));
     expect(g.prompts()[0]).toContain("NO lo ves y no puedes describirlo");
@@ -138,7 +166,7 @@ describe("lo que Odoo recibe del archivo (para avisar a la dueña en paralelo)",
   });
 
   it("«otra» con señal de pago llega como comprobante, sensible", async () => {
-    const m = crearMundo({ mirarImagen: async () => ({ tipo: "otra", codigos: [], categoria: null, medida: null, parece_pago: true, parece_identidad: false }) });
+    const m = crearMundo({ mirarImagen: async () => ({ tipo: "otra", codigos: [], categoria: null, talla: null, parece_pago: true, parece_identidad: false }) });
     m.guion([{ texto: "Recibí tu archivo." }]);
     await m.conversar("listo", imagen("captura.jpg"));
     expect(adjuntoEnOdoo(m)).toMatchObject({ clase: "comprobante", sensible: true });

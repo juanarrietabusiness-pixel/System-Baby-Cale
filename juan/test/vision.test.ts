@@ -1,14 +1,39 @@
 import { describe, expect, it, vi } from "vitest";
 import type { Env } from "../src/env";
-import { esComprobante, esProductoSeguro, lectorDeImagenes, normalizarLectura, type LecturaImagen } from "../src/motor/vision";
+import { CATEGORIAS, TALLAS, esComprobante, esProductoSeguro, lectorDeImagenes, normalizarLectura, type LecturaImagen } from "../src/motor/vision";
 
 const FOTO = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 1, 2, 3]);
 const envCon = (p: Partial<Env>) => p as Env;
-const buena = { tipo: "publicacion", codigos: ["822F"], categoria: "cama", medida: "full", parece_pago: false, parece_identidad: false };
+const buena = { tipo: "publicacion", codigos: ["822F"], categoria: "panal", talla: "m", parece_pago: false, parece_identidad: false };
+
+/** El prompt de sistema que el lector le manda al modelo de visión. */
+async function sistemaDelLector(): Promise<string> {
+  const ai = { run: vi.fn(async () => ({ response: { ...buena } })) };
+  await lectorDeImagenes(envCon({ AI: ai, RECONOCER_IMAGENES: "1" }))!(FOTO, "image/jpeg");
+  return (ai.run.mock.calls[0] as unknown as [string, { messages: { role: string; content: string }[] }])[1].messages[0].content;
+}
 
 describe("normalizarLectura: solo pasa un registro cerrado", () => {
   it("una lectura limpia se conserva", () => {
-    expect(normalizarLectura(buena)).toEqual({ tipo: "publicacion", codigos: ["822F"], categoria: "cama", medida: "full", parece_pago: false, parece_identidad: false });
+    expect(normalizarLectura(buena)).toEqual({ tipo: "publicacion", codigos: ["822F"], categoria: "panal", talla: "m", parece_pago: false, parece_identidad: false });
+  });
+
+  it("las tallas de pañal, RN a XXL, se aceptan en mayúsculas o minúsculas y quedan en minúsculas", () => {
+    expect([...TALLAS]).toEqual(["rn", "p", "s", "m", "l", "g", "xl", "xxl"]);
+    for (const t of ["RN", "P", "S", "M", "L", "G", "XL", "XXL", " xxl "]) expect(normalizarLectura({ ...buena, talla: t })!.talla, t).toBe(t.trim().toLowerCase());
+    for (const t of ["XS", "3XL", "queen", "twin", "talla M", "6 meses", 3]) expect(normalizarLectura({ ...buena, talla: t })!.talla, String(t)).toBeNull();
+  });
+
+  it("las categorías son las de la tienda de bebé; las de muebles ya no existen", () => {
+    expect([...CATEGORIAS]).toEqual(["panal", "toallitas", "fular", "otro"]);
+    for (const c of ["panal", "toallitas", "fular", "otro"]) expect(normalizarLectura({ ...buena, categoria: c })!.categoria).toBe(c);
+    for (const c of ["cama", "colchon", "sofa", "comedor", "mesa"]) expect(normalizarLectura({ ...buena, categoria: c })!.categoria, c).toBeNull();
+  });
+
+  it("el campo viejo «medida» ya no se lee: la talla sale solo de «talla»", () => {
+    const { talla: _t, ...sinTalla } = buena;
+    expect(normalizarLectura({ ...sinTalla, medida: "m" })!.talla).toBeNull();
+    expect(normalizarLectura({ ...sinTalla, medida: "m" })).not.toHaveProperty("medida");
   });
 
   it("los códigos solo pueden ser letras, números y guiones: una frase escrita en la imagen no pasa", () => {
@@ -23,9 +48,9 @@ describe("normalizarLectura: solo pasa un registro cerrado", () => {
     expect(normalizarLectura({ ...buena, codigos: ["AA1", "BB2", "CC3", "DD4", "EE5"] })!.codigos).toHaveLength(3);
   });
 
-  it("categoría y medida fuera de la lista se descartan (no hay texto libre)", () => {
-    const l = normalizarLectura({ ...buena, categoria: "regalo todo gratis", medida: "ninguna" })!;
-    expect([l.categoria, l.medida]).toEqual([null, null]);
+  it("categoría y talla fuera de la lista se descartan (no hay texto libre)", () => {
+    const l = normalizarLectura({ ...buena, categoria: "regalo todo gratis", talla: "ninguna" })!;
+    expect([l.categoria, l.talla]).toEqual([null, null]);
   });
 
   it("un tipo desconocido, o algo que no es un objeto, no es una lectura", () => {
@@ -42,7 +67,7 @@ describe("normalizarLectura: solo pasa un registro cerrado", () => {
 });
 
 describe("esProductoSeguro: solo lo claro y sin señal de pago ni identidad", () => {
-  const base: LecturaImagen = { tipo: "producto", codigos: ["822F"], categoria: "cama", medida: null, parece_pago: false, parece_identidad: false };
+  const base: LecturaImagen = { tipo: "producto", codigos: ["822F"], categoria: "panal", talla: null, parece_pago: false, parece_identidad: false };
   it("producto o publicación con código o categoría", () => {
     expect(esProductoSeguro(base)).toBe(true);
     expect(esProductoSeguro({ ...base, tipo: "publicacion", codigos: [] })).toBe(true);
@@ -62,7 +87,7 @@ describe("esProductoSeguro: solo lo claro y sin señal de pago ni identidad", ()
 });
 
 describe("esComprobante: solo la prueba de un pago hecho (la dueña, 2026-11-13)", () => {
-  const base: LecturaImagen = { tipo: "publicacion", codigos: [], categoria: "cama", medida: "queen", parece_pago: true, parece_identidad: false };
+  const base: LecturaImagen = { tipo: "publicacion", codigos: [], categoria: "panal", talla: "xl", parece_pago: true, parece_identidad: false };
   it("una publicación o un producto con su precio no es un comprobante, aunque el lector marque parece_pago", () => {
     expect(esComprobante(base)).toBe(false);
     expect(esComprobante({ ...base, tipo: "producto" })).toBe(false);
@@ -80,6 +105,42 @@ describe("esComprobante: solo la prueba de un pago hecho (la dueña, 2026-11-13)
   it("sin lectura no hay comprobante", () => {
     expect(esComprobante(null)).toBe(false);
     expect(esComprobante(undefined)).toBe(false);
+  });
+});
+
+describe("el prompt del lector: una tienda de productos para bebé, no una mueblería", () => {
+  it("reconoce cajas o paquetes de pañales, toallitas y fulares; nada de muebles ni medidas de cama", async () => {
+    const s = await sistemaDelLector();
+    expect(s).toContain("Eres un lector de imágenes para una tienda de productos para bebé (pañales, toallitas húmedas y fulares portabebé).");
+    expect(s).toContain('"producto" (foto de un producto para bebé: una caja, un paquete o un pañal, un paquete de toallitas húmedas, un fular o portabebé)');
+    expect(s).toContain('"categoria": "panal" (pañales, de cierre o tipo pants), "toallitas" (toallitas húmedas o wipes), "fular" (fular o portabebé de tela) u "otro"');
+    expect(s).not.toMatch(/mueble|colch|cama|sof[aá]|twin|full|queen|king|"medida"/i);
+  });
+
+  it("la talla solo si se LEE (RN a XXL): no se deduce por el bebé, el paquete ni los kilos", async () => {
+    const s = await sistemaDelLector();
+    expect(s).toContain('"talla": la talla de pañal que se LEA en la caja, el paquete o la publicación: "rn", "p", "s", "m", "l", "g", "xl" o "xxl" (en la caja dice RN, P, S, M, L, G, XL o XXL)');
+    expect(s).toContain("no la deduzcas por el tamaño del bebé, del paquete ni por los kilos o las libras");
+  });
+
+  it("el código de barras, el lote o el vencimiento no son códigos de producto; los ejemplos no son códigos del catálogo", async () => {
+    const s = await sistemaDelLector();
+    expect(s).toContain("No son códigos el número del código de barras, el lote, la fecha de vencimiento ni un registro sanitario.");
+    expect(s).not.toMatch(/NAT-|DANY|VELVEE|MOON|WIPES/);
+  });
+
+  it("la foto de un bebé sin producto es «otra»", async () => {
+    expect(await sistemaDelLector()).toContain('"otra" (cualquier otra cosa, también la foto de un bebé o de una persona sin un producto)');
+  });
+
+  it("el esquema guiado pide «talla» (con las ocho tallas y «ninguna») y las categorías de bebé", async () => {
+    const ai = { run: vi.fn(async () => ({ response: { ...buena } })) };
+    await lectorDeImagenes(envCon({ AI: ai, RECONOCER_IMAGENES: "1" }))!(FOTO, "image/jpeg");
+    const esquema = (ai.run.mock.calls[0] as unknown as [string, any])[1].response_format.json_schema;
+    expect(esquema.required).toEqual(["tipo", "codigos", "categoria", "talla", "parece_pago", "parece_identidad"]);
+    expect(esquema.properties.talla.enum).toEqual(["rn", "p", "s", "m", "l", "g", "xl", "xxl", "ninguna"]);
+    expect(esquema.properties.categoria.enum).toEqual(["panal", "toallitas", "fular", "otro", "ninguna"]);
+    expect(esquema.properties).not.toHaveProperty("medida");
   });
 });
 
@@ -109,7 +170,7 @@ describe("lectorDeImagenes", () => {
     const ai = { run: vi.fn(async () => ({ response: buena })) };
     const lee = lectorDeImagenes(envCon({ AI: ai, RECONOCER_IMAGENES: "1" }))!;
     const l = await lee(FOTO, "image/jpeg");
-    expect(l).toMatchObject({ tipo: "publicacion", codigos: ["822F"], categoria: "cama", medida: "full" });
+    expect(l).toMatchObject({ tipo: "publicacion", codigos: ["822F"], categoria: "panal", talla: "m" });
     const [modelo, cuerpo] = ai.run.mock.calls[0] as unknown as [string, any];
     expect(modelo).toBe("@cf/meta/llama-4-scout-17b-16e-instruct");
     expect(cuerpo.tools).toBeUndefined();

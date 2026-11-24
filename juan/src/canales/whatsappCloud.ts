@@ -367,7 +367,7 @@ export function crearWhatsappCloud(op: OpcionesWhatsappCloud = {}): AdaptadorCan
       const r = await f(`${URL_CONTROL_DEL_CHAT}/${encodeURIComponent(numero)}/thread_control`, {
         method: "POST",
         headers: { "content-type": "application/json", authorization: `Bearer ${token}`, "x-api-version": "1.0.0" },
-        body: JSON.stringify({ messaging_product: "whatsapp", action: "take", to: para, metadata: "D'CASA Juan: el envío dio 131070" }),
+        body: JSON.stringify({ messaging_product: "whatsapp", action: "take", to: para, metadata: "Juan: el envío dio 131070" }),
         signal: AbortSignal.timeout(PLAZO_CONTROL_MS),
       });
       const j = (await r.json().catch(() => ({}))) as { error?: unknown };

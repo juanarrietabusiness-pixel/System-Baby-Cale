@@ -1,9 +1,11 @@
-// Worker `sistemabk-chatbot`: el motor del bot de atención a clientes de D'CASA (docs/JUAN.md).
+// Worker `sistemabk-chatbot`: el motor del bot de atención a clientes de la tienda (docs/JUAN.md). El nombre de la empresa sale de
+// Ajustes de Juan en Odoo (`nombre_publico`).
 // Aquí solo se conecta Cloudflare con las rutas y el cron; la lógica está en rutas.ts, salud.ts y motor/.
 
 import { ADAPTADORES } from "./canales";
 import type { AdaptadorCanal } from "./canales/tipos";
 import { mesDelNegocio } from "./config";
+import { marcaDe } from "./dcasa/prompt";
 import type { Env } from "./env";
 import { Conversacion } from "./motor/do";
 import { Global } from "./motor/global";
@@ -98,7 +100,7 @@ async function informarSalud(env: Env): Promise<void> {
   const previo: EstadoDeAvisos = guardado ? (JSON.parse(guardado.json) as EstadoDeAvisos) : { avisados: [] };
   // El aviso del tope vale por mes: el mes siguiente vuelve a avisar.
   const filtrado: EstadoDeAvisos = { avisados: previo.avisados.filter((p) => !p.startsWith("se alcanzó el tope") || p.includes(mes)) };
-  const { mensajes, nuevo } = decidirAvisos(problemas, filtrado);
+  const { mensajes, nuevo } = decidirAvisos(problemas, filtrado, marcaDe(cfg.nombre_publico));
   await global.guardarSalud("avisos", JSON.stringify(nuevo));
   await global.guardarSalud("ultimo_informe", JSON.stringify(informe));
 

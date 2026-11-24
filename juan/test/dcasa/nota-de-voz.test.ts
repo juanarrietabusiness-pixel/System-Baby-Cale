@@ -91,7 +91,7 @@ describe("transcribir y leer imágenes, después del anti-spam y del tope diario
     const m = crearMundo({
       mirarImagen: async (): Promise<LecturaImagen> => {
         lecturas++;
-        return { tipo: "producto", codigos: [], categoria: "cama", medida: null, parece_pago: false, parece_identidad: false };
+        return { tipo: "producto", codigos: [], categoria: "panal", talla: null, parece_pago: false, parece_identidad: false };
       },
     });
     m.guion([{ texto: "Hola." }]);
@@ -118,7 +118,7 @@ describe("transcribir y leer imágenes, después del anti-spam y del tope diario
       },
       mirarImagen: async (): Promise<LecturaImagen> => {
         lecturas++;
-        return { tipo: "otra", codigos: [], categoria: null, medida: null, parece_pago: false, parece_identidad: false };
+        return { tipo: "otra", codigos: [], categoria: null, talla: null, parece_pago: false, parece_identidad: false };
       },
     });
     m.guion([{ texto: "Hola." }]);

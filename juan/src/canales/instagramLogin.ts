@@ -2,12 +2,12 @@
 //
 // Por qué existe (2026-11-12): por la página (Messenger Platform, meta.ts) Meta solo manda los avisos de cuentas con papel en la app
 // mientras la app no tenga el acceso avanzado; a los clientes de verdad no les llegaba nada. Con esta puerta la app atiende SOLO la
-// cuenta propia de D'CASA (@dcasapty), y Meta dice que para eso basta el acceso estándar (docs/JUAN_CANALES.md §3).
+// cuenta propia del negocio, y Meta dice que para eso basta el acceso estándar (docs/JUAN_CANALES.md §3).
 //
 //   · GET  /webhooks/instagram → verificación con el MISMO META_VERIFY_TOKEN (solo con la puerta lista: INSTAGRAM_APP_SECRET puesto).
 //   · POST /webhooks/instagram → firma `X-Hub-Signature-256` con INSTAGRAM_APP_SECRET (la clave secreta de la app de Instagram,
 //     distinta de la de Facebook). El aviso tiene el mismo formato que por la página (`entry[].messaging[]`, `is_echo`).
-//   · Solo se atienden los mensajes a la cuenta de D'CASA (los ids que da `GET /me` y, si está, INSTAGRAM_ACCOUNT_ID). Si todavía no
+//   · Solo se atienden los mensajes a la cuenta del negocio (los ids que da `GET /me` y, si está, INSTAGRAM_ACCOUNT_ID). Si todavía no
 //     se sabe cuál es, se atiende lo que Meta firma para la cuenta que manda el aviso (`entry.id` igual al lado de la tienda) y /salud
 //     lo dice: nunca se contesta con error por eso (Meta desuscribe una app que falla mucho).
 //   · El envío es la misma maquinaria que por la página (metaComun.ts) hablando con `graph.instagram.com/<v>/me/messages` y la llave
@@ -156,7 +156,7 @@ export function crearPuertaInstagram(op: OpcionesMeta = {}): PuertaInstagram {
 
   const deps: DepsLlave & { llave(env: Env): Promise<string | undefined> } = { fetch: f, llavero, ahora, llave };
 
-  /** Los ids de la cuenta de D'CASA (los de `/me` y, si está bien escrita, INSTAGRAM_ACCOUNT_ID). Vacío = todavía no se sabe. */
+  /** Los ids de la cuenta del negocio (los de `/me` y, si está bien escrita, INSTAGRAM_ACCOUNT_ID). Vacío = todavía no se sabe. */
   async function idsDeLaTienda(env: Env, plazoMe: number): Promise<string[]> {
     const pegada = env.INSTAGRAM_TOKEN?.trim() ?? "";
     const fija = cuentaFija(env).id;
@@ -210,7 +210,7 @@ export function crearPuertaInstagram(op: OpcionesMeta = {}): PuertaInstagram {
 
       // La firma se calcula sobre el cuerpo CRUDO, con la clave secreta de la app de INSTAGRAM. Meta escribe solo «la clave secreta
       // de tu app» (developers.facebook.com/documentation/instagram-platform/webhooks/setup): mientras no haya llegado ninguno firmado
-      // con la de Instagram, si no cuadra y la de Facebook de D'CASA (META_APP_SECRET) sí, se acepta y queda anotado.
+      // con la de Instagram, si no cuadra y la de Facebook del negocio (META_APP_SECRET) sí, se acepta y queda anotado.
       const crudo = await req.text();
       const firma = req.headers.get("x-hub-signature-256");
       if (await firmaMetaValida(crudo, firma, secretoIg)) {
@@ -231,10 +231,10 @@ export function crearPuertaInstagram(op: OpcionesMeta = {}): PuertaInstagram {
       if (eventosDeMeta(cuerpo, Date.now()).length === 0 && !traeComentarios(cuerpo)) return nada(json({ ok: true }));
 
       const ids = await conPlazo(idsDeLaTienda(env, PLAZO_ME_WEBHOOK_MS), PLAZO_CUENTA_MS, [] as string[]);
-      if (ids.length === 0) console.warn("[juan] instagram: todavía no sé cuál es la cuenta de D'CASA; atiendo lo que Meta firma para la cuenta que manda el aviso");
+      if (ids.length === 0) console.warn("[juan] instagram: todavía no sé cuál es la cuenta del negocio; atiendo lo que Meta firma para la cuenta que manda el aviso");
       const { cuerpo: deLaCuenta, ignorados, ajena } = soloDeLaCuenta(cuerpo, ids.length ? new Set(ids) : null);
       if (ignorados > 0) {
-        console.warn(`[juan] instagram: ${ignorados} aviso(s) que no son de la cuenta de D'CASA se ignoran${ajena ? ` (cuenta …${ajena.slice(-4)})` : ""}`);
+        console.warn(`[juan] instagram: ${ignorados} aviso(s) que no son de la cuenta del negocio se ignoran${ajena ? ` (cuenta …${ajena.slice(-4)})` : ""}`);
         await conPlazo(anotarAjenos(env, deps, ignorados, ajena ?? ""), PLAZO_AJENOS_MS, undefined);
       }
       // Los comentarios de las publicaciones de la cuenta: los de la propia cuenta (sus respuestas) se ignoran.
@@ -284,7 +284,7 @@ export function crearPuertaInstagram(op: OpcionesMeta = {}): PuertaInstagram {
         if (c?.usuario) local.cuenta = `@${c.usuario}`;
         if (!c && !cuentaFija(env).id && env.INSTAGRAM_APP_SECRET?.trim()) {
           problemas.push(
-            "todavía no sé cuál es la cuenta de Instagram de D'CASA (Meta no contestó a /me con INSTAGRAM_TOKEN): mientras tanto atiendo lo que Meta firma para la cuenta que manda cada aviso; revisa la llave o pon la variable INSTAGRAM_ACCOUNT_ID",
+            "todavía no sé cuál es la cuenta de Instagram del negocio (Meta no contestó a /me con INSTAGRAM_TOKEN): mientras tanto atiendo lo que Meta firma para la cuenta que manda cada aviso; revisa la llave o pon la variable INSTAGRAM_ACCOUNT_ID",
           );
         }
         const s = await leerGuardado<Suscripcion>(env, llavero, CLAVE_SUSCRIPCION);
@@ -296,7 +296,7 @@ export function crearPuertaInstagram(op: OpcionesMeta = {}): PuertaInstagram {
       const a = await leerGuardado<Ajenos>(env, llavero, CLAVE_AJENOS);
       if (a && t - a.ultimo < VENTANA_AJENOS_MS) {
         local.ignorados = { cantidad: a.cantidad, ultimo: fechaPanama(a.ultimo), cuenta: a.cuenta };
-        problemas.push(`desde el ${fechaPanama(a.desde)} se ignoran avisos de Instagram de otra cuenta (${a.cuenta}), no de la de D'CASA: si esa es la de D'CASA, revisa o borra INSTAGRAM_ACCOUNT_ID`);
+        problemas.push(`desde el ${fechaPanama(a.desde)} se ignoran avisos de Instagram de otra cuenta (${a.cuenta}), no de la del negocio: si esa es la del negocio, revisa o borra INSTAGRAM_ACCOUNT_ID`);
       }
       if (problemas.length) local.problemas = problemas;
       if (avisos.length) local.avisos = avisos;

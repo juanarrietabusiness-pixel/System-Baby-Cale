@@ -67,6 +67,37 @@ describe("el prompt de Brian de la tienda", () => {
     for (const n of HERRAMIENTAS_DE_LA_TIENDA) expect(p).toContain(n);
   });
 
+  it("el nombre de la empresa sale de Ajustes de Juan: «Andrés, de la tienda en línea de «Baby Caleb»», nunca D'CASA", () => {
+    const bc = promptTienda(normalizarConfig({ brian_tienda: {}, nombre_publico: "el equipo de Baby Caleb" }));
+    expect(bc).toContain("Eres Andrés, de la tienda en línea de «Baby Caleb».");
+    expect(bc).toContain("(«Soy Andrés, el asistente virtual de Baby Caleb»)");
+    expect(bc).toContain("Tú (whatsapp=true): Soy Andrés, el asistente virtual de Baby Caleb. Si prefieres");
+    expect(bc).toContain("Todo lo que sabes de Baby Caleb te lo dice una herramienta.");
+    expect(bc).toContain("4. reglas_socios: el programa Socios y sus cifras.");
+    for (const x of [p, bc]) expect(x).not.toMatch(/D['’]CASA|dcasa/i);
+    // Sin nombre en Odoo, el de respaldo es neutro.
+    expect(p).toContain("Eres Andrés, de la tienda en línea de «la tienda».");
+  });
+
+  it("la voz: alguien de la tienda que conoce bien los productos (ya no «el pana que sabe de casas»)", () => {
+    expect(p).toContain("- Hablas como alguien de la tienda que conoce bien los productos: cercano, claro y con criterio. Español de Panamá;");
+    expect(p).not.toMatch(/\bpana\b|sabe de casas/);
+  });
+
+  it("productos para bebé: tallas y lo que trae cada caja salen de las herramientas; nada de muebles ni medidas de cama", () => {
+    expect(p).toContain("productos (nombre, código, tallas, lo que trae cada caja o paquete, combo, precio, disponibilidad)");
+    expect(p).toMatch(/Antes de nombrar un producto, decir un precio, una talla \(o para qué peso es\), lo que trae una caja o un paquete[^\n]*LLAMA a la herramienta/);
+    expect(p).toContain("Lo que trae cada caja o paquete (cuántos pañales o toallitas) no es disponibilidad: eso sí lo dices, tal cual lo da la herramienta.");
+    expect(p).toContain("Si el producto tiene que elegirse en su ficha (talla, color o combo), invítalo a abrir la ficha.");
+    expect(p).not.toMatch(/mueble|colch[oó]n|sof[aá]|twin|queen|armado/i);
+  });
+
+  it("la página de Socios se nombra sin marca pegada", () => {
+    const c = contextoTienda(cfg, { ahora: AHORA, pagina: { tipo: "socios", producto_id: null, categoria: "" }, carrito: [], envioPorUbicacion: null });
+    expect(c).toContain("El cliente está en la página del programa Socios.");
+    expect(c).not.toContain("D'CASA");
+  });
+
   it("lo que la guardia compara para encontrar fugas deja fuera la voz y los ejemplos (frases que Brian sí puede decir)", () => {
     const fugas = promptTiendaParaFugas(cfg);
     expect(fugas).not.toContain("<voz>");
@@ -128,8 +159,8 @@ describe("lo que se decide sin la IA", () => {
     expect(sinPresentacion("Hola, soy Andrés. ¿Qué buscas hoy?")).toBe("¿Qué buscas hoy?");
     expect(sinPresentacion("Hola, soy Andres. Te ayudo.")).toBe("Te ayudo.");
     expect(sinPresentacion("Hola, soy Brian. ¿Qué buscas hoy?")).toBe("¿Qué buscas hoy?");
-    expect(sinPresentacion("¡Hola! Soy Andrés, de D'CASA. Te ayudo.")).toBe("Te ayudo.");
-    expect(sinPresentacion("Soy Andrés, el asistente virtual de D'CASA.")).toBe("Soy Andrés, el asistente virtual de D'CASA.");
+    expect(sinPresentacion("¡Hola! Soy Andrés, de Baby Caleb. Te ayudo.")).toBe("Te ayudo.");
+    expect(sinPresentacion("Soy Andrés, el asistente virtual de Baby Caleb.")).toBe("Soy Andrés, el asistente virtual de Baby Caleb.");
   });
 
   it("el mensaje de WhatsApp: lo del carrito (o lo último que vio), sin enlaces ni etiquetas", () => {
@@ -151,6 +182,11 @@ describe("lo que se decide sin la IA", () => {
     expect(elegirPose({ ...base, bloques: [{ tipo: "whatsapp", texto: "", mensaje: "" }], noche: true })).toBe("durmiendo");
     expect(elegirPose({ ...base, bloques: [{ tipo: "texto", texto: "x" }], herramientas: ["reglas_socios"] })).toBe("fidelidad");
     expect(elegirPose({ ...base, bloques: [{ tipo: "texto", texto: "x" }], delModelo: "corazon" })).toBe("corazon");
+    // Preguntar por la talla es como preguntar por la medida: la cinta métrica.
+    expect(elegirPose({ ...base, bloques: [{ tipo: "texto", texto: "x" }], textoDelVisitante: "¿Qué talla le queda a un bebé de 7 kilos?" })).toBe("cinta_metrica");
+    // Unos pañales en tarjetas no sacan la pose de la cama.
+    const panales = [{ producto_id: 1, codigo: "NAT-M", nombre: "Pañales Nateen de cierre", categorias: ["Pañales"] }];
+    expect(elegirPose({ ...base, bloques: [{ tipo: "productos", productos: [] }], productos: panales as never })).toBe("con_laptop");
   });
 
   it("los argumentos de las herramientas: tapados y sin coordenadas; las respuestas de Odoo sin coordenadas", () => {

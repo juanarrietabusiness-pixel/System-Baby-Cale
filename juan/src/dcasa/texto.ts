@@ -1,4 +1,4 @@
-// Utilidades de texto compartidas por las reglas de D'CASA.
+// Utilidades de texto compartidas por las reglas de Juan (y de Andrés).
 
 /** Minúsculas y sin acentos (la ñ se conserva: «año» no es «ano»). */
 export function sinAcentos(t: string): string {

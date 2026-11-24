@@ -18,8 +18,10 @@ import { promptDelBorrador } from "../../src/odoo-panel-sugerir";
 import { promptTienda } from "../../src/tienda/prompt";
 import { AHORA_INICIAL } from "../helpers/mundo";
 
-/** Hechos de D'CASA que un modelo no puede «saber» por su prompt: el giro, la ciudad, el dominio y su catálogo. */
+/** Hechos de D'CASA que un modelo no puede «saber» por su prompt: el nombre, la voz, el giro, la ciudad, el dominio y su catálogo. */
 const HECHOS_DE_DCASA: RegExp[] = [
+  /D['’]CASA|dcasa/i, // el nombre sale de Ajustes de Juan (`nombre_publico`), nunca escrito a mano
+  /\bpana\b|sabe de casas/i, // la voz de D'CASA
   /mueble/i, // «muebles», «mueblería»
   /La Chorrera|Chorrera/i,
   /Panamá Oeste/i,
@@ -66,6 +68,20 @@ describe("ningún prompt trae lo que el negocio es: eso lo dicen las herramienta
     const base = { conversacion_id: 1, canal: "whatsapp_qr" as const, mensajes: [{ autor: "cliente" as const, texto: "hola" }], nombre: "", etiquetas: [] };
     sinHechosDeDcasa("promptDelBorrador", promptDelBorrador(cfg, { ...base, interes: "" }));
     sinHechosDeDcasa("promptDelResumen", promptDelResumen(cfg, base));
+    // Con el nombre de Ajustes, la vendedora es de esa empresa; sin «(D'CASA Panamá)» pegado.
+    const bc = normalizarConfig({ nombre_publico: "el equipo de Baby Caleb" });
+    expect(promptDelBorrador(bc, { ...base, interes: "" })).toContain("una VENDEDORA de «Baby Caleb» le enviará a un cliente por WhatsApp.");
+    expect(promptDelResumen(bc, base)).toContain("Resumes para una VENDEDORA de «Baby Caleb» lo que pasó en una conversación");
+    expect(promptDelBorrador(bc, { ...base, interes: "" })).toContain("- Como alguien de la tienda que conoce bien los productos: cercano, claro y directo.");
+    expect(promptDelBorrador(bc, { ...base, interes: "" })).toContain("- Productos, tallas, lo que trae cada caja o paquete, combos, precios y disponibilidad: buscar_productos y ver_producto.");
+    expect(promptDelResumen(bc, base)).toContain("• Qué busca el cliente (producto, talla, código, presupuesto, fechas, para qué).");
+  });
+
+  it("los comentarios de una publicación son «de la tienda» y preguntan por tallas", () => {
+    expect(PROMPT_DE_CLASIFICACION).toContain("Clasificas UN comentario que alguien dejó en una publicación de la tienda en Instagram o en Facebook.");
+    expect(PROMPT_DE_CLASIFICACION).toContain("(precio, tallas, colores, si hay o queda,");
+    expect(PROMPT_DE_CLASIFICACION).toContain("una molestia con la tienda");
+    expect(notaDelTurnoDeComentario("instagram")).toContain("comentó en una publicación de Instagram de la tienda");
   });
 
   it("los comentarios de Instagram y Facebook", () => {

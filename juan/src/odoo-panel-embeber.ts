@@ -1,9 +1,9 @@
-// `POST /odoo/embeber`: la «huella de significado» de unos textos, para que la búsqueda en el conocimiento encuentre «¿instalan los
-// muebles?» aunque la entrada diga «armado a domicilio» (docs/JUAN_ODOO.md → Búsqueda por significado).
+// `POST /odoo/embeber`: la «huella de significado» de unos textos, para que la búsqueda en el conocimiento encuentre «¿me lo
+// llevan a la casa?» aunque la entrada diga «entrega a domicilio» (docs/JUAN_ODOO.md → Búsqueda por significado).
 //
 // Odoo manda textos (títulos y contenido de las entradas del equipo, o la pregunta de un cliente) y este Worker devuelve un vector
 // por texto. NO ENVÍA NADA, no consulta herramientas, no escribe en Odoo: es una lectura. Corre en Workers AI (`@cf/baai/bge-m3`,
-// multilingüe, 1024 dimensiones) dentro de la cuenta de Cloudflare de D'CASA: los textos no salen de ahí.
+// multilingüe, 1024 dimensiones) dentro de la cuenta de Cloudflare del negocio: los textos no salen de ahí.
 //
 //   · Es opcional: sin el binding `AI` contesta 503 con el NOMBRE que falta y Odoo sigue con la búsqueda por palabras.
 //   · El costo es de centavos al mes (se cobra por token de entrada); no pasa por el tope de gasto de IA porque no es un modelo de texto.

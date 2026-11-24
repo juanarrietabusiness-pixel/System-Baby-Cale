@@ -57,6 +57,11 @@ export interface ContextoRevision {
   envio?: RespaldoDeEnvio;
   /** Una herramienta dijo EN ESTE TURNO que hay productos así que se venden sin estar publicados en la tienda en línea: no se niegan. */
   haySinPublicar?: boolean;
+  /**
+   * El nombre de la empresa (Ajustes de Juan: `marcaDe(nombre_publico)`). Las reglas del envío lo leen como a la tienda: «en Baby Caleb»
+   * no es un lugar sin cotizar y «el envío lo paga Baby Caleb» es decir que es gratis. Sin él, solo cuentan «la tienda» y «D'CASA».
+   */
+  marca?: string;
 }
 
 /**
@@ -70,7 +75,7 @@ export interface LugarDeEnvio {
   normal: number | null;
   /** Lo que paga con la promoción (sin compra todavía: lo que quedaría). */
   final: number | null;
-  /** Lo que D'CASA regala o abona: solo se dice como ahorro, abono o descuento, nunca como lo que cuesta. */
+  /** Lo que la tienda regala o abona: solo se dice como ahorro, abono o descuento, nunca como lo que cuesta. */
   ahorro: number | null;
   /** La frase de la herramienta dice «gratis» (este envío queda o quedaría gratis). */
   gratis: boolean;
@@ -202,14 +207,22 @@ export function cifrasDePolitica(texto: string): { valor: number; texto: string 
 
 const NUM_PALABRA = "(?:una?|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|once|doce|trece|catorce|quince|veinte)";
 const SOLO = "(?:solo\\s+|solamente\\s+|apenas\\s+|unicamente\\s+)?";
+/**
+ * Lo que TRAE una caja o un paquete («la caja de 128 unidades», «trae 80 unidades», «el paquete con 100 uds») no es cuánto hay: es el
+ * producto (Baby Caleb: pañales y toallitas por caja). Solo esa construcción se salva; «tenemos 5 unidades» sigue siendo existencias.
+ */
+const CONTENIDO_DEL_EMPAQUE = "(?<!\\b(?:caja|cajas|cajita|paquete|paquetes|paquetico|bolsa|bolsas|pack|packs|fardo|fardos|empaque|presentacion)\\s+(?:de|con)\\s+)(?<!\\b(?:trae|traen|contiene|contienen|incluye|incluyen|viene con|vienen con)\\s+)";
 const EXISTENCIAS: RegExp[] = [
-  /\b\d+\s*(?:unidad(?:es)?|und|uds?|pieza(?:s)?|pza(?:s)?|en stock|en existencias?|en inventario|en bodega|disponibles?|de inventario|de existencias?)\b/,
+  new RegExp(`${CONTENIDO_DEL_EMPAQUE}\\b\\d+\\s*(?:unidad(?:es)?|und|uds?|pieza(?:s)?|pza(?:s)?|en stock|en existencias?|en inventario|en bodega|disponibles?|de inventario|de existencias?)\\b`),
   new RegExp(`\\b${NUM_PALABRA}\\s+(?:unidad(?:es)?|pieza(?:s)?|en stock|en existencias?|en bodega)\\b`),
   new RegExp(`\\b(?:quedan|queda|restan|nos quedan|me quedan|tenemos|hay)\\s+${SOLO}(?:\\d+|${NUM_PALABRA})\\s+(?:unidad|pieza|disponible|en stock|en existencia|en bodega|en inventario|de\\s+(?:este|esta|ese|esa|estos|estas))`),
   new RegExp(`\\b(?:quedan|queda|restan|nos quedan|me quedan)\\s+${SOLO}(?:\\d+|${NUM_PALABRA})\\b`),
   /\b(?:solo|solamente|apenas)\s+(?:\d+|una?|dos|tres)\s+(?:mas|disponibles?|quedan|en)\b/,
-  /\bultim[ao]s?\s+(?:unidad(?:es)?|pieza(?:s)?)\b/,
+  /\bultim[ao]s?\s+(?:unidad(?:es)?|pieza(?:s)?|cajas?|paquetes?)\b/,
   /\bstock\s*(?:de|:|=)?\s*\d+/,
+  // En una tienda de pañales y toallitas lo que se cuenta son cajas y paquetes: «hay 3 cajas disponibles», «tenemos 4 paquetes».
+  new RegExp(`\\b(?:\\d+|${NUM_PALABRA})\\s+(?:cajas?|paquetes?|packs?|fardos?|bolsas?)\\s+(?:disponibles?|en stock|en existencias?|en inventario|en bodega|de inventario)\\b`),
+  new RegExp(`\\b(?:tenemos|hay|nos quedan|me quedan|quedan|queda|restan)\\s+${SOLO}(?:\\d+|${NUM_PALABRA})\\s+(?:cajas?|paquetes?|packs?|fardos?|bolsas?)\\b`),
 ];
 
 export function detectarExistencias(texto: string): string[] {
@@ -273,8 +286,14 @@ function promesasSinEnvio(texto: string, conocidas: ReadonlySet<number>): string
   return que;
 }
 
-export function detectarPromesas(texto: string, conocidas: ReadonlySet<number> = new Set(), envio?: RespaldoDeEnvio, preciosProducto: ReadonlySet<number> = new Set()): string[] {
-  return [...promesasSinEnvio(texto, conocidas), ...revisarEnvio(texto, envio, preciosProducto)];
+export function detectarPromesas(
+  texto: string,
+  conocidas: ReadonlySet<number> = new Set(),
+  envio?: RespaldoDeEnvio,
+  preciosProducto: ReadonlySet<number> = new Set(),
+  marca?: string,
+): string[] {
+  return [...promesasSinEnvio(texto, conocidas), ...revisarEnvio(texto, envio, preciosProducto, marca)];
 }
 
 // ── El envío: cada cifra con su papel y su lugar (revisión adversarial del 2026-11-12, primera y segunda vuelta) ─────────
@@ -303,7 +322,7 @@ const SUJETO_PROPIO = /^(?:la|el|los|las|tu|tus|su|sus|mi|mis|este|esta|estos|es
 const SUJETO_DEL_ENVIO = /^(?:promocion|promo|abono|descuento|rebaja|ahorro|envio|flete|entrega|delivery|shipping|traslado)/;
 const CORTES = /\s*;\s*|\s+(?:y|e|pero|o|u|aunque|mientras que|mientras|and|but|or|while)\s+|,\s+(?=(?:la|el|los|las|tu|tus|su|sus|mi|mis|este|esta|estos|estas|ese|esa|the|your|my|this|that)\s)/g;
 const GRATIS_DICHO =
-  /\b(?:gratis|gratuit[oa]s?|sin costo|sin cargo|no pagas|no te cuesta|no cuesta nada|no tiene costo|por nuestra cuenta|corre por nuestra cuenta|va por cuenta de|por cuenta de d'?casa|lo paga d'?casa|lo pagamos(?: nosotros)?|lo asumimos|lo cubrimos|te lo regala(?:mos)?|te regala(?:mos)? el envio|en cero|cero dolares|free|on us|no charge|at no (?:extra )?cost|won'?t pay|will not pay|don'?t pay|complimentary)\b/;
+  /\b(?:gratis|gratuit[oa]s?|sin costo|sin cargo|no pagas|no te cuesta|no cuesta nada|no tiene costo|por nuestra cuenta|corre por nuestra cuenta|va por cuenta de|por cuenta de (?:d'?casa|la tienda|latienda)|lo paga (?:d'?casa|la tienda|latienda)|lo pagamos(?: nosotros)?|lo asumimos|lo cubrimos|te lo regala(?:mos)?|te regala(?:mos)? el envio|en cero|cero dolares|free|on us|no charge|at no (?:extra )?cost|won'?t pay|will not pay|don'?t pay|complimentary)\b/;
 /** «Flete incluido», «el envío va incluido», «incluye la entrega»: es decir que es gratis (salvo que hable del total: «el total, con el envío incluido»). */
 const ENVIO_INCLUIDO = /\b(?:envio|flete|entrega|delivery|shipping|despacho|transporte)\b[^.;]{0,30}?\b(?:incluid[oa]|included)\b|\bincluyen?\s+(?:el|la)\s+(?:envio|entrega|flete|delivery|traslado)\b/;
 const HABLA_DEL_TOTAL = /\b(?:total|cotizacion|precio)\b/;
@@ -340,11 +359,14 @@ const NEUTRALES = new Set([
   ...["figure", "service", "trip", "mismo", "misma", "resto", "momento", "dia", "mes", "ano", "año", "final", "vez", "caso", "lugar", "zona"],
   ...["barrio", "tema", "punto", "normal", "neto", "doble", "otro", "otra"],
 ]);
-/** Un producto con nombre («la cama», «el sofá», «the bed»): la cifra que va con él es del producto. Otro sustantivo cualquiera solo se
- * lleva la cifra si es el precio de un producto conocido del turno. */
+/** Un producto con nombre («los pañales», «la caja», «la talla», «la cama», «the bed»): la cifra que va con él es del producto. Otro
+ * sustantivo cualquiera solo se lleva la cifra si es el precio de un producto conocido del turno. Las de muebles se quedan (no estorban). */
 const PRODUCTO = new RegExp(
   "^(?:" +
     [
+      // Baby Caleb: pañales (de cierre o pants), toallitas húmedas y fulares; por caja, paquete y talla. La «ñ» llega tal cual (`bajar`).
+      "pañal(?:es)?|panal(?:es)?|pants|toallitas?|wipes|fular(?:es)?|portabebes?|cargadores?|tallas?|cajas?|cajitas?|paquetes?|paqueticos?",
+      "packs?|fardos?|diapers?|nappies|wraps?|carriers?|box(?:es)?|sizes?",
       "camas?|sofas?|sofacamas?|muebles?|mesas?|mesitas?|sillas?|sillon(?:es)?|butacas?|combos?|colchon(?:es)?|comedor(?:es)?|juegos?|salas?",
       "seccional(?:es)?|futon(?:es)?|literas?|closets?|roperos?|armarios?|escritorios?|comodas?|peinadoras?|gaveteros?|bancos?|banquetas?",
       "taburetes?|reclinables?|cabeceras?|cunas?|espejos?|lamparas?|alfombras?|repisas?|libreros?|modular(?:es)?|zapateras?|vitrinas?",
@@ -565,6 +587,8 @@ const NO_ES_LUGAR = new Set([
   ...["diez", "once", "doce", "trece", "catorce", "quince", "veinte", "treinta", "cuarenta", "cincuenta", "sesenta", "setenta", "ochenta"],
   ...["noventa", "cien", "ciento", "doscientos", "trescientos", "cuatrocientos", "quinientos", "mil", "todos", "todas", "cualquier"],
   ...["gusto", "mano", "medida", "plazos", "you", "your", "home", "us", "me", "store", "queen", "king", "full", "twin", "llevar", "pagar"],
+  // Las tallas de los pañales («en XL», «a la M») y el nombre de la empresa tal como lo ven estas reglas (`conLaMarcaComoTienda`).
+  ...["rn", "p", "s", "m", "l", "g", "xl", "xxl", "latienda"],
 ]);
 const HACIA = /(?<![\p{L}\p{N}'’])(a|hasta|para|en|to)\s+/gu;
 const DETERMINANTE = /^(?:la|el|los|las|un|una|unos|unas|este|esta|ese|esa|otro|otra|cada|todo|toda|nuestro|nuestra|the|an?)\s+/;
@@ -640,9 +664,20 @@ function cifraDelLugar(l: LugarDeEnvio, valor: number, antes: string, despues: s
   }
 }
 
+/**
+ * El nombre de la empresa de Ajustes, para las reglas del envío, se lee como «latienda» (una sola palabra, sin artículo: no parte
+ * cláusulas ni se toma por un producto): «en Baby Caleb» no es un lugar sin cotizar y «lo paga Baby Caleb» es un «gratis», como lo eran
+ * «D'CASA» y «la tienda». Si el nombre trae puntos («S.A.»), no se toca: cambiaría cómo se parte en oraciones.
+ */
+function conLaMarcaComoTienda(texto: string, marca?: string): string {
+  const m = (marca ?? "").normalize("NFC").trim();
+  if (m.length < 3 || /[.!?…\n]/.test(m)) return texto;
+  return texto.replace(new RegExp(`(?<![\\p{L}\\p{N}])${escaparRegex(m)}(?![\\p{L}\\p{N}])`, "giu"), "latienda");
+}
+
 /** Lo que tiene de malo, sobre el envío, cada oración del texto (en el orden de `oraciones()`). */
-export function revisarEnvioPorOracion(textoOriginal: string, envio?: RespaldoDeEnvio, preciosProducto: ReadonlySet<number> = new Set()): string[][] {
-  const p = partirEnClausulas(textoOriginal.normalize("NFC"));
+export function revisarEnvioPorOracion(textoOriginal: string, envio?: RespaldoDeEnvio, preciosProducto: ReadonlySet<number> = new Set(), marca?: string): string[][] {
+  const p = partirEnClausulas(conLaMarcaComoTienda(textoOriginal.normalize("NFC"), marca));
   const salida: string[][] = p.oraciones.map(() => []);
   const conLugares = Array.isArray(envio?.lugares) && envio.lugares.length > 0;
   for (const c of p.clausulas) {
@@ -694,8 +729,8 @@ export function revisarEnvioPorOracion(textoOriginal: string, envio?: RespaldoDe
 }
 
 /** Lo que tiene de malo el texto sobre el envío (cifras o «gratis» que la herramienta de envíos de este turno no respalda). */
-export function revisarEnvio(texto: string, envio?: RespaldoDeEnvio, preciosProducto: ReadonlySet<number> = new Set()): string[] {
-  return [...new Set(revisarEnvioPorOracion(texto, envio, preciosProducto).flat())];
+export function revisarEnvio(texto: string, envio?: RespaldoDeEnvio, preciosProducto: ReadonlySet<number> = new Set(), marca?: string): string[] {
+  return [...new Set(revisarEnvioPorOracion(texto, envio, preciosProducto, marca).flat())];
 }
 
 // ── Mandar a leer políticas ─────────────────────────────────────────────────
@@ -897,7 +932,7 @@ export function analizar(borrador: string, ctx: ContextoRevision): Analisis {
   }
   for (const c of cifrasDePolitica(limpio)) if (!respaldada(ctx, c.valor)) graves.push({ tipo: "cifra_inventada", detalle: c.texto });
   for (const h of detectarExistencias(limpio)) graves.push({ tipo: "existencias", detalle: h });
-  for (const p of detectarPromesas(limpio, ctx.cifrasConocidas, ctx.envio, ctx.preciosProducto)) graves.push({ tipo: "promesa", detalle: p });
+  for (const p of detectarPromesas(limpio, ctx.cifrasConocidas, ctx.envio, ctx.preciosProducto, ctx.marca)) graves.push({ tipo: "promesa", detalle: p });
   for (const p of detectarMandaALeer(limpio).slice(0, 1)) graves.push({ tipo: "manda_a_leer", detalle: p });
   for (const p of ctx.escribePersona ? [] : detectarSerHumano(limpio).slice(0, 1)) graves.push({ tipo: "se_hace_pasar_por_persona", detalle: p });
   const prohibida = palabraProhibida(limpio, [...PALABRAS_PROHIBIDAS_DE_MARCA, ...(ctx.palabrasProhibidas ?? [])]);
@@ -910,7 +945,7 @@ export function analizar(borrador: string, ctx: ContextoRevision): Analisis {
 /** Quita las oraciones que contienen algo grave. Devuelve "" si no queda nada que decir. */
 export function quitarGraves(limpio: string, ctx: ContextoRevision): string {
   // El envío se revisa con el texto entero (una oración sigue el tema de la anterior) y se reparte por oración.
-  const delEnvio = revisarEnvioPorOracion(limpio, ctx.envio, ctx.preciosProducto);
+  const delEnvio = revisarEnvioPorOracion(limpio, ctx.envio, ctx.preciosProducto, ctx.marca);
   const buenas = oraciones(limpio).filter((o, i) => {
     const { graves } = analizarOracion(o, ctx);
     return graves.length === 0 && (delEnvio[i] ?? []).length === 0;
@@ -948,7 +983,7 @@ export function notaDeCorreccion(graves: readonly Problema[]): string {
     fuga: "información interna",
     secreto: "un dato que el cliente dio en confianza (como su PIN): jamás se repite",
     manda_a_leer: "mandar al cliente a leer políticas, términos o avisos (respóndele tú con lo que dice la herramienta)",
-    se_hace_pasar_por_persona: "decir que eres una persona o que no eres un bot (eres Juan, el asistente virtual de D'CASA: si preguntan de verdad, dilo con naturalidad)",
+    se_hace_pasar_por_persona: "decir que eres una persona o que no eres un bot (eres Juan, el asistente virtual de la tienda: si preguntan de verdad, dilo con naturalidad)",
     palabra_prohibida: "una palabra que la marca no usa",
     niega_producto:
       "decir que no manejamos algo que SÍ trabajamos (la herramienta dijo que hay productos así, solo que no están publicados en la tienda en línea: " +
@@ -958,7 +993,7 @@ export function notaDeCorreccion(graves: readonly Problema[]): string {
   return (
     `Tu borrador anterior NO se envió porque tenía ${lista}. Reescribe la respuesta sin eso: ` +
     "usa solo cifras que devolvieron las herramientas (con «+ ITBMS»), nunca digas cuántas unidades hay, " +
-    "el costo del envío solo tal cual lo dio cotizar_envio (o agregar_envio) en esta respuesta (lo que D'CASA abona o regala, solo como ahorro; " +
+    "el costo del envío solo tal cual lo dio cotizar_envio (o agregar_envio) en esta respuesta (lo que la tienda abona o regala, solo como ahorro; " +
     "si la promoción depende de la compra, con su condición en la misma oración), " +
     "y lo demás de entregas (la fecha), flete, financiamiento, apartados y descuentos queda en «te lo confirma una vendedora». " +
     "Mantén el tuteo, sin emojis, en 2 a 4 líneas."

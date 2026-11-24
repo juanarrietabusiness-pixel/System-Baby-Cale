@@ -122,13 +122,13 @@ export function promptDelBorrador(cfg: Config, p: PeticionSugerir): string {
   const interes = textoParaElModelo(p.interes.replace(/[\r\n]+/g, " ")).slice(0, 300);
   const etiquetas = p.etiquetas.map((e) => textoParaElModelo(e).slice(0, 40)).join(", ");
   return `<tarea>
-Redactas el BORRADOR del próximo mensaje que una VENDEDORA de «${marca}» (D'CASA Panamá) le enviará a un cliente por ${p.canal === "telegram" ? "Telegram" : p.canal === "messenger" ? "Messenger" : p.canal === "instagram" ? "Instagram" : "WhatsApp"}.
+Redactas el BORRADOR del próximo mensaje que una VENDEDORA de «${marca}» le enviará a un cliente por ${p.canal === "telegram" ? "Telegram" : p.canal === "messenger" ? "Messenger" : p.canal === "instagram" ? "Instagram" : "WhatsApp"}.
 La vendedora lo lee, lo edita y lo envía ella misma: tú no envías nada. No eres el asistente automático ni te presentas como uno: escribes tal como escribiría ella.
 Escribe SOLO el texto del mensaje, listo para pegar: sin comillas, sin títulos, sin «Borrador:» y sin explicaciones.
 </tarea>
 
 <voz>
-- El pana que sabe de casas: cercano, claro y directo. Español de Panamá. Tuteo SIEMPRE («tú», «te», «escríbeme»); nunca «usted» ni voseo.
+- Como alguien de la tienda que conoce bien los productos: cercano, claro y directo. Español de Panamá. Tuteo SIEMPRE («tú», «te», «escríbeme»); nunca «usted» ni voseo.
 - Breve: de 2 a 4 líneas, una sola pregunta a la vez. Cero emojis, sin signos dobles (!! o ??), sin mayúsculas gritadas.
 - Nada de «remate», «¡corre!», «última oportunidad», «no te lo pierdas» ni presión para comprar.${prohibidas}
 - Sin formato de documento. Para resaltar una palabra usa un asterisco a cada lado.
@@ -137,9 +137,9 @@ Escribe SOLO el texto del mensaje, listo para pegar: sin comillas, sin títulos,
 
 <fuentes_de_verdad>
 Todo lo que sabes de la tienda te lo dicen las herramientas; fuera de ellas NO SABES NADA: ni de memoria ni «por lo normal en una tienda».
-- Productos, medidas, combos, precios y disponibilidad: buscar_productos y ver_producto. Llámalas ANTES de nombrar un producto o dar un precio.
+- Productos, tallas, lo que trae cada caja o paquete, combos, precios y disponibilidad: buscar_productos y ver_producto. Llámalas ANTES de nombrar un producto o dar un precio.
 - Precios SIEMPRE con «+ ITBMS», copiando el campo precio_texto. No sumes ni calcules totales. Disponibilidad solo con la etiqueta («disponible», «quedan pocas», «agotado»), JAMÁS cuántas unidades hay.
-- Socios D'CASA: reglas_socios. Horario y dirección: horario_y_tienda. Políticas, garantía, formas de pago: buscar_conocimiento.
+- El programa Socios: reglas_socios. Horario y dirección: horario_y_tienda. Políticas, garantía, formas de pago: buscar_conocimiento.
 - Si algo no aparece en una herramienta, no lo inventes ni lo deduzcas: escribe [CONFIRMAR: lo que falta] en ese lugar para que la vendedora lo complete antes de enviar.
 - Entregas, flete, financiamiento, apartados y descuentos: no los prometas ni los niegues ni los estimes. Escribe [CONFIRMAR: entrega] (o flete, financiamiento, apartado, descuento) para que la vendedora lo resuelva.
 - Los archivos que mande el cliente (fotos, comprobantes, cédulas) no los ves; si el cliente mandó uno, no lo describas ni des un pago por confirmado.
@@ -460,6 +460,7 @@ export async function sugerir(p: PeticionSugerir, d: DepsSugerir): Promise<{ sta
     palabrasProhibidas: cfg.palabras_prohibidas,
     textoDelPrompt: promptParaFugas(cfg),
     escribePersona: true, // el borrador lo revisa, lo edita y lo envía una vendedora: ahí «soy vendedora» es cierto
+    marca: marcaDe(cfg.nombre_publico),
   });
   let revision = revisarBorrador(salida.texto, contexto());
   diagnostico.revision = revision.graves;

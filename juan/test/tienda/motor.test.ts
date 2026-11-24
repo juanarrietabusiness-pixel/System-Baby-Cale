@@ -571,7 +571,7 @@ describe("la guardia de Juan en cada bloque de texto", () => {
   });
 
   it("no se vuelve a presentar: «Hola, soy Andrés…» del modelo se quita", async () => {
-    const m = montar({ pasos: [responder({ texto: "¡Hola! Soy Andrés, de D'CASA. Claro, te ayudo con eso." })] });
+    const m = montar({ pasos: [responder({ texto: "¡Hola! Soy Andrés, de Baby Caleb. Claro, te ayudo con eso." })] });
     const r = ok(await m.pedir({ texto: "hola" }));
     expect(textos(r)).toEqual(["Claro, te ayudo con eso."]);
   });

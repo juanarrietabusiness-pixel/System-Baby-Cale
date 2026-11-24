@@ -478,7 +478,7 @@ describe("el prompt: la regla de envíos", () => {
     expect(como).toMatch(/La fecha de entrega la confirma siempre una vendedora/);
     // Revisión adversarial: la condición junto al beneficio, lo abonado como ahorro y, con varias cotizaciones, preguntar a cuál.
     expect(como).toContain("el mínimo va en la misma oración que el beneficio");
-    expect(como).toContain("lo que D'CASA abona o regala dilo siempre como ahorro");
+    expect(como).toContain("lo que la tienda abona o regala dilo siempre como ahorro");
     expect(como).toMatch(/más de una cotización abierta, pregúntale a cuál \(número y total\) y pásala en cotizacion/);
   });
 
@@ -603,6 +603,74 @@ describe("segunda vuelta: falsos negativos que ahora no pasan (I-5, I-6, M-5)", 
     expect(graves("El envío a Villa Lucre es gratis aunque tu compra no pase de $200.", respaldo([VILLA_LUCRE]))).not.toEqual([]);
     expect(graves("El envío a Villa Lucre es gratis sin importar si tu compra pasa de $200.", respaldo([VILLA_LUCRE]))).not.toEqual([]);
     expect(graves("El envío a Villa Lucre es gratis si tu compra pasa de $200 sin ITBMS.", respaldo([VILLA_LUCRE]))).toEqual([]);
+  });
+});
+
+describe("Baby Caleb: los productos de bebé y el nombre de Ajustes en las reglas del envío", () => {
+  const SANTA = respaldo([SIN_PROMOCION]);
+  const conMarca = (envio?: RespaldoDeEnvio, extra: Partial<ContextoRevision> = {}): ContextoRevision => ({ ...ctx(envio), marca: "Baby Caleb", ...extra });
+  const gravesCon = (texto: string, c: ContextoRevision) => analizar(texto, c).graves.map((g) => g.detalle);
+
+  it("«lo paga Baby Caleb» o «por cuenta de Baby Caleb» es decir gratis: sin respaldo no pasa (con el nombre de Ajustes)", () => {
+    for (const frase of ["El envío a Colón lo paga Baby Caleb.", "El envío va por cuenta de Baby Caleb.", "El envío a Colón corre por cuenta de baby caleb."]) {
+      expect(gravesCon(frase, conMarca()), frase).toContain("entrega o flete gratis");
+    }
+    // «la tienda» vale sin el nombre (es como lo dice el prompt ahora).
+    for (const frase of ["El envío a Colón lo paga la tienda.", "El envío va por cuenta de la tienda."]) {
+      expect(graves(frase), frase).toContain("entrega o flete gratis");
+    }
+  });
+
+  it("con la promoción que da la herramienta, lo que abona Baby Caleb dicho como ahorro pasa; dicho como costo, no", () => {
+    expect(gravesCon("Con la promoción, Baby Caleb te abona $20 del envío a Colón.", conMarca(respaldo([COLON_APLICA])))).toEqual([]);
+    expect(gravesCon("El envío normalmente cuesta $90; con la promoción, Baby Caleb pone $20 y tú pagas $70.", conMarca(respaldo([COLON_APLICA])))).toEqual([]);
+    expect(gravesCon("El envío normalmente cuesta $90; con la promoción, Baby Caleb pone $70 y tú pagas $20.", conMarca(respaldo([COLON_APLICA])))).toContain("costo de entrega");
+  });
+
+  it("«en Baby Caleb» no es un lugar sin cotizar", () => {
+    expect(gravesCon("En Baby Caleb el envío a Santa Prueba te sale en $45.", conMarca(SANTA))).toEqual([]);
+    expect(gravesCon("Te lo mandamos desde Baby Caleb: el envío a Santa Prueba es de $45.", conMarca(SANTA))).toEqual([]);
+    // Un lugar de verdad que la herramienta no cotizó sigue sin tomar el precio de otro.
+    expect(gravesCon("El envío a David te sale en $45.", conMarca(SANTA))).toContain("costo de entrega");
+  });
+
+  it("una talla («en XL», «en M») no es un lugar sin cotizar", () => {
+    for (const frase of ["El envío de los pañales en XL a Santa Prueba te sale en $45.", "El envío de la caja en M a Santa Prueba es de $45."]) {
+      expect(graves(frase, SANTA), frase).toEqual([]);
+    }
+  });
+
+  it("los pañales, las toallitas, la talla o la caja con su precio son del producto, no del envío", () => {
+    const c = (envio: RespaldoDeEnvio): ContextoRevision => ({ preciosProducto: new Set(), cifrasConocidas: new Set([45, 55]), envio });
+    // En la MISMA cláusula del envío: la cifra que va con el producto nombrado es del producto (antes solo valía con muebles).
+    for (const frase of [
+      "El envío a Santa Prueba con los pañales de $55 te sale en $45.",
+      "El envío a Santa Prueba con las toallitas de $55 te sale en $45.",
+      "El envío a Santa Prueba con la talla XXL de $55 te sale en $45.",
+      "El envío a Santa Prueba con la caja de $55 te sale en $45.",
+      "El envío a Santa Prueba con el fular de $55 te sale en $45.",
+      "Shipping to Santa Prueba with the diapers at $55 is $45.",
+    ]) {
+      expect(analizar(frase, c(SANTA)).graves.map((g) => g.detalle), frase).toEqual([]);
+    }
+    // Lo que no es un producto con nombre sigue llevándose la cifra al envío.
+    expect(analizar("El envío a Santa Prueba con el recargo de $55 te sale en $45.", c(SANTA)).graves.map((g) => g.detalle)).toContain("costo de entrega");
+  });
+
+  it("de punta a punta: Juan revisa con el nombre de Ajustes; «el envío lo paga Baby Caleb» sin cotizar_envio no llega al cliente", async () => {
+    const m = crearMundo(); // el Odoo falso se llama «el equipo de Baby Caleb»
+    const g = m.guion([{ texto: "El envío a Colón lo paga Baby Caleb." }, { texto: "El costo del envío a Colón te lo confirma una vendedora." }]);
+    await m.conversar("¿el envío a Colón es gratis?");
+    const texto = m.canal.textos.join("\n");
+    expect(texto).not.toContain("lo paga Baby Caleb");
+    expect(texto).toContain("El costo del envío a Colón te lo confirma una vendedora.");
+    expect(g.prompts()[1]).toMatch(/promesa de entrega/);
+  });
+
+  it("un nombre con puntos («Baby Caleb S.A.») no se toca: no cambia cómo se parten las oraciones", () => {
+    const c = conMarca(SANTA, { marca: "Baby Caleb S.A." });
+    expect(gravesCon("El envío a Santa Prueba es de $45. Lo paga Baby Caleb S.A. con gusto.", c)).toEqual([]);
+    expect(quitarGraves("El envío a Santa Prueba es de $45. El envío a David te sale en $45.", c)).toBe("El envío a Santa Prueba es de $45.");
   });
 });
 

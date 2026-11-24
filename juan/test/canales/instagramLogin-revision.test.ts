@@ -40,7 +40,7 @@ const callar = () => {
   vi.spyOn(console, "error").mockImplementation(() => {});
   vi.spyOn(console, "log").mockImplementation(() => {});
 };
-/** /me de Meta: la cuenta de D'CASA (user_id) y el id de la app. */
+/** /me de Meta: la cuenta del negocio (user_id) y el id de la app. */
 const meBien = () => Response.json({ user_id: CUENTA, username: "dcasapty", id: ID_APP });
 const rechazo190 = () => Response.json({ error: { message: "Error validating access token: The session has been invalidated", code: 190 } }, { status: 400 });
 
@@ -135,7 +135,7 @@ describe("I3 · INSTAGRAM_ACCOUNT_ID equivocada: no tira mensajes en silencio", 
     for (let i = 0; i < 3; i++) expect((await a.recibir(await firmado(aviso()), env)).entrantes).toEqual([]);
     const local = await a.saludLocal!("instagram", env);
     expect(local.ignorados).toEqual({ cantidad: 3, ultimo: "2026-11-12", cuenta: "…0001" });
-    expect(local.problemas).toContain("desde el 2026-11-12 se ignoran avisos de Instagram de otra cuenta (…0001), no de la de D'CASA: si esa es la de D'CASA, revisa o borra INSTAGRAM_ACCOUNT_ID");
+    expect(local.problemas).toContain("desde el 2026-11-12 se ignoran avisos de Instagram de otra cuenta (…0001), no de la del negocio: si esa es la del negocio, revisa o borra INSTAGRAM_ACCOUNT_ID");
     expect(JSON.stringify(local)).not.toContain(CLIENTE);
     vi.restoreAllMocks();
   });

@@ -7,7 +7,7 @@ import type { LecturaImagen } from "../../src/motor/vision";
 import { crearMundo } from "../helpers/mundo";
 
 const BYTES = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 1, 2, 3, 4, 5, 6, 7, 8]);
-const PUBLICACION: LecturaImagen = { tipo: "publicacion", codigos: ["822F"], categoria: "cama", medida: "full", parece_pago: false, parece_identidad: false };
+const PUBLICACION: LecturaImagen = { tipo: "publicacion", codigos: ["822F"], categoria: "panal", talla: "m", parece_pago: false, parece_identidad: false };
 const deOdoo = (m: ReturnType<typeof crearMundo>) => m.odoo.mensajes.filter((x) => x.autor === "cliente").at(-1)!.adjuntos!;
 
 describe("REVISIÓN 2: imágenes sin leer con el lector FUNCIONANDO (Odoo decide con el porqué si avisa «puede ser un comprobante»)", () => {

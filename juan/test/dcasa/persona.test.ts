@@ -133,7 +133,7 @@ describe("«persona» siempre pasa a una vendedora", () => {
     const m = crearMundo();
     m.guion([{ texto: "x" }]);
     await m.conversar("persona");
-    expect(m.canal.textos[0]).toBe("Hola, soy Juan de D'CASA.");
+    expect(m.canal.textos[0]).toBe("Hola, soy Juan de Baby Caleb.");
     expect(m.canal.textos.join("\n")).toContain("ya avisé a una vendedora");
   });
 
@@ -149,13 +149,13 @@ describe("«persona» siempre pasa a una vendedora", () => {
   });
 });
 
-describe("se presenta como Juan, de D'CASA", () => {
+describe("se presenta como Juan, de la empresa de Ajustes de Juan", () => {
   it("la primera burbuja es el saludo con el nombre público; no dice asistente, bot ni automático, ni ofrece escribir «persona»", async () => {
     const m = crearMundo();
     m.guion([{ texto: "Dime qué buscas." }]);
     await m.conversar("hola");
     const primera = m.canal.textos[0];
-    expect(primera).toBe("Hola, soy Juan de D'CASA.");
+    expect(primera).toBe("Hola, soy Juan de Baby Caleb.");
     expect(m.canal.textos.join("\n")).not.toMatch(/asistente|autom[aá]tico|\bbot\b|\*persona\*/i);
   });
 

@@ -1,6 +1,6 @@
 /**
  * Instagram por «inicio de sesión de Instagram» (la segunda puerta, graph.instagram.com): webhook propio (/webhooks/instagram) con
- * la clave secreta de la app de Instagram, solo la cuenta de D'CASA, envío con la llave de Instagram (la renovada si la hay), nombre
+ * la clave secreta de la app de Instagram, solo la cuenta del negocio, envío con la llave de Instagram (la renovada si la hay), nombre
  * y foto del cliente, y que SIN sus secretos todo queda como antes (Instagram por la página).
  * Mismo patrón que test/canales/meta.test.ts.
  */
@@ -20,7 +20,7 @@ const VERIFICACION = "verificacion-de-prueba-0123456789";
 const TOKEN_PAGINA = "token-de-la-pagina-0123456789";
 const TOKEN_IG = "IGAAtoken-de-instagram-pegado-0123456789";
 const TOKEN_IG_RENOVADO = "IGAAtoken-de-instagram-renovado-9876543210";
-const CUENTA = "17841400000000001"; // el id de la cuenta de D'CASA en los webhooks
+const CUENTA = "17841400000000001"; // el id de la cuenta del negocio en los webhooks
 const AJENA = "17841499999999999";
 const CLIENTE = "1234567890123456"; // el IGSID de quien escribe
 const AHORA = Date.UTC(2026, 10, 12, 15, 0);
@@ -138,7 +138,7 @@ describe("el webhook de Instagram por inicio de sesión de Instagram (/webhooks/
     expect((await adaptador.recibir(await firmado(mensaje()), envPagina)).respuesta.status).toBe(401); // sin los secretos nuevos
   });
 
-  it("Meta solo dice «la clave secreta de tu app»: si viene firmado con la de Facebook de D'CASA (META_APP_SECRET) se acepta y queda anotado", async () => {
+  it("Meta solo dice «la clave secreta de tu app»: si viene firmado con la de Facebook del negocio (META_APP_SECRET) se acepta y queda anotado", async () => {
     const aviso = vi.spyOn(console, "warn").mockImplementation(() => {});
     const { adaptador } = igFalso();
     const r = await adaptador.recibir(await firmado(mensaje(), SECRETO_FB), envIg);
@@ -205,7 +205,7 @@ describe("el webhook de Instagram por inicio de sesión de Instagram (/webhooks/
     expect(g.llamadas).toEqual([]);
   });
 
-  it("solo la cuenta de D'CASA: lo de otra cuenta, o dirigido a otra, se ignora (200, nada entra)", async () => {
+  it("solo la cuenta del negocio: lo de otra cuenta, o dirigido a otra, se ignora (200, nada entra)", async () => {
     const aviso = vi.spyOn(console, "warn").mockImplementation(() => {});
     const { adaptador } = igFalso();
     const deOtra = await adaptador.recibir(await firmado(mensaje({}, AJENA)), envIg);
@@ -214,10 +214,10 @@ describe("el webhook de Instagram por inicio de sesión de Instagram (/webhooks/
     expect((await adaptador.recibir(await firmado(aOtra), envIg)).entrantes).toEqual([]);
     const ecoDeOtra = mensaje({ sender: { id: AJENA }, recipient: { id: CLIENTE }, message: { mid: "e", text: "x", is_echo: true } });
     expect((await adaptador.recibir(await firmado(ecoDeOtra), envIg)).entrantes).toEqual([]);
-    // Un lote mixto: entra solo lo de D'CASA.
+    // Un lote mixto: entra solo lo del negocio.
     const mixto = { object: "instagram", entry: [...mensaje({}, AJENA).entry, ...mensaje().entry] };
     expect((await adaptador.recibir(await firmado(mixto), envIg)).entrantes.map((e) => e.id_externo)).toEqual([CLIENTE]);
-    expect(aviso.mock.calls.flat().join(" ")).toMatch(/no son de la cuenta de D'CASA/);
+    expect(aviso.mock.calls.flat().join(" ")).toMatch(/no son de la cuenta del negocio/);
     aviso.mockRestore();
   });
 

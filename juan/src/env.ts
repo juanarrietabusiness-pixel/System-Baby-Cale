@@ -46,12 +46,12 @@ export interface Env {
   /** Versión de la Graph API de Meta (vNN.N). Vacío = la del código. */
   GRAPH_API_VERSION?: string;
   /**
-   * Instagram por inicio de sesión de Instagram (opcional): el id de la cuenta de D'CASA (el `id` de los webhooks). Vacío = Juan lo
+   * Instagram por inicio de sesión de Instagram (opcional): el id de la cuenta del negocio (el `id` de los webhooks). Vacío = Juan lo
    * averigua con `GET /me` y lo recuerda. Solo se atienden los mensajes a esa cuenta.
    */
   INSTAGRAM_ACCOUNT_ID?: string;
   /**
-   * Opcional: el id de la página de Facebook de D'CASA. Respaldo si Meta no contesta quién es la página (`GET /me` con META_PAGE_TOKEN):
+   * Opcional: el id de la página de Facebook del negocio. Respaldo si Meta no contesta quién es la página (`GET /me` con META_PAGE_TOKEN):
    * con él, los comentarios de /webhooks/meta se atienden igual. Vacío = Juan lo averigua.
    */
   META_PAGE_ID?: string;

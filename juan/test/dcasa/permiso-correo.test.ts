@@ -16,7 +16,11 @@ const prompt = (m: ReturnType<typeof crearMundo>) => JSON.stringify(m.modelo.doG
 describe("permiso_correo", () => {
   it("con «activo», si el cliente dice que no (aunque sea con dudas) Juan lo honra con la herramienta", () => {
     const c = contextoDelChat(CONFIG_POR_DEFECTO, { ...base, permisoDeCorreo: "activo" });
-    expect(c).toMatch(/recibe las novedades de D'CASA en su correo/);
+    expect(c).toMatch(/recibe las novedades de la tienda en su correo/);
+    // Con el nombre que pone la dueña en Ajustes de Juan, las novedades son de esa empresa (nunca escrita a mano).
+    const conNombre = contextoDelChat({ ...CONFIG_POR_DEFECTO, nombre_publico: "el equipo de Baby Caleb" }, { ...base, permisoDeCorreo: "activo" });
+    expect(conNombre).toMatch(/recibe las novedades de Baby Caleb en su correo/);
+    expect(conNombre).not.toContain("D'CASA");
     expect(c).toMatch(/no_quiere_novedades/);
     expect(c).toMatch(/claro o con dudas/);
     expect(c).toMatch(/siempre se respeta un no/i);

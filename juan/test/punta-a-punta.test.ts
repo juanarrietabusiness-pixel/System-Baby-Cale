@@ -193,12 +193,12 @@ describe("una conversación completa por Telegram", () => {
     // Contestó por Telegram, al chat correcto: primero el saludo de Juan, luego lo que dijo la IA.
     const envios = salidas.filter((s) => s.api === "telegram" && s.metodo === "sendMessage");
     expect(envios.every((x) => x.cuerpo.chat_id === "555" && x.url.includes(BOT))).toBe(true);
-    expect(envios[0].cuerpo.text).toBe("Hola, soy Juan de D'CASA.");
+    expect(envios[0].cuerpo.text).toBe("Hola, soy Juan de la tienda.");
     expect(envios[envios.length - 1].cuerpo.text).toBe("Claro, ¿qué medida de cama buscas?");
-    expect(envios.filter((x) => /soy Juan de D'CASA/i.test(x.cuerpo.text))).toHaveLength(1);
+    expect(envios.filter((x) => /soy Juan de la tienda/i.test(x.cuerpo.text))).toHaveLength(1);
     expect(envios.some((x) => /asistente|autom[aá]tico|\bbot\b/i.test(x.cuerpo.text))).toBe(false);
 
-    // A Claude le llegó la clave, el prompt de D'CASA y el mensaje del cliente.
+    // A Claude le llegó la clave, el prompt de Juan y el mensaje del cliente.
     const alModelo = e.alIA()[0];
     expect(JSON.stringify(alModelo.cuerpo)).toContain("fuentes_de_verdad");
     expect(JSON.stringify(alModelo.cuerpo.messages)).toContain("busco una cama queen");
@@ -396,6 +396,9 @@ describe("el cron de salud avisa UNA vez por problema", () => {
     await e.cron();
     expect(avisos()).toHaveLength(1);
     expect(avisos()[0]).toMatch(/JUAN_WORKER_TOKEN/);
+    // De qué asistente es: el nombre de Ajustes de Juan (este Odoo no manda ninguno: el de respaldo), nunca «D'CASA».
+    expect(avisos()[0]).toMatch(/^Aviso del asistente de la tienda: /);
+    expect(avisos()[0]).not.toContain("D'CASA");
     for (const secreto of [TOKEN_ODOO, BOT]) expect(avisos()[0]).not.toContain(secreto);
 
     await vi.advanceTimersByTimeAsync(3600_000);

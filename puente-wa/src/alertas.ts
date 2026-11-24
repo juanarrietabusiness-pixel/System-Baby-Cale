@@ -51,7 +51,7 @@ export function evaluarAlerta(
     const min = Math.max(1, Math.round((ahora - (d.sinConexionDesde ?? antes)) / 60_000));
     return {
       tipo: "recuperado",
-      texto: `WhatsApp (el puente de D'CASA) volvió a conectarse. Estuvo sin conexión unos ${min} min. Ya no hay que hacer nada.`,
+      texto: `WhatsApp (el puente por QR) volvió a conectarse. Estuvo sin conexión unos ${min} min. Ya no hay que hacer nada.`,
     };
   }
 
@@ -65,14 +65,14 @@ export function evaluarAlerta(
     return {
       tipo: "necesita_qr",
       texto:
-        `${sigue}WhatsApp (el puente de D'CASA) quedó desvinculado hace ${min} min: hay que escanear un código QR nuevo ` +
+        `${sigue}WhatsApp (el puente por QR) quedó desvinculado hace ${min} min: hay que escanear un código QR nuevo ` +
         "desde el teléfono del negocio. Mientras tanto el asistente no contesta por WhatsApp. Pasos en docs/JUAN_PUENTE.md.",
     };
   }
   return {
     tipo: "caida",
     texto:
-      `${sigue}WhatsApp (el puente de D'CASA) lleva ${min} min sin conexión y el asistente no está contestando por ahí. ` +
+      `${sigue}WhatsApp (el puente por QR) lleva ${min} min sin conexión y el asistente no está contestando por ahí. ` +
       "El sistema intenta reconectar solo; si no se arregla, revisa docs/JUAN_PUENTE.md («Si WhatsApp lo desconecta»).",
   };
 }

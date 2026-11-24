@@ -138,6 +138,43 @@ describe("regla 2 · nunca un número de existencias", () => {
   });
 });
 
+describe("Baby Caleb · las existencias de pañales se cuentan en cajas; lo que trae una caja no es existencia", () => {
+  const dicen = [
+    "Hay 3 cajas disponibles.",
+    "Tenemos 4 paquetes en stock.",
+    "Tenemos dos cajas de la talla M.",
+    "Nos quedan solo 2 cajas.",
+    "Quedan 5 paquetes.",
+    "Es la última caja.",
+    "Tenemos 5 unidades de la caja de talla M.",
+  ];
+  it.each(dicen)("detecta: %s", (frase) => {
+    expect(detectarExistencias(frase).length, frase).toBeGreaterThan(0);
+  });
+
+  // Textos como los del catálogo de Baby Caleb («Caja L — 15 a 39 lb — 128 uds», «caja de 960 toallitas (12 paquetes de 80)»).
+  const noDicen = [
+    "La caja de 128 unidades cuesta $45 + ITBMS.",
+    "La caja de la talla M trae 144 unidades.",
+    "El paquete con 80 uds es el de viaje.",
+    "Cada caja contiene 12 paquetes de 80 unidades.",
+    "Viene en presentación de 960 unidades.",
+    "La caja trae 160 pañales.",
+    "Es una caja de 600 toallitas (6 paquetes de 100).",
+    "Hay pañales en 3 tallas.",
+    "Está disponible en talla XXL.",
+  ];
+  it.each(noDicen)("no confunde: %s", (frase) => {
+    expect(detectarExistencias(frase), frase).toEqual([]);
+  });
+
+  it("decir cuántos pañales trae la caja no se borra de la respuesta", () => {
+    const c = ctx({ preciosProducto: new Set([50]), cifrasConocidas: new Set([50]) });
+    expect(analizar("La caja de la talla M trae 144 unidades y cuesta $50 + ITBMS.", c).graves).toEqual([]);
+    expect(analizar("Tenemos 3 cajas de la talla M a $50 + ITBMS.", c).graves.map((g) => g.tipo)).toContain("existencias");
+  });
+});
+
 describe("regla 3 · entregas, flete, financiamiento, apartados y descuentos: no se prometen", () => {
   const prometen = [
     "Te lo entregamos mañana.",
@@ -345,6 +382,13 @@ describe("lo que se vende sin estar publicado no se niega (incidente del 2026-11
 });
 
 describe("la nota para que el modelo reescriba", () => {
+  it("no nombra a D'CASA: Juan es «el asistente virtual de la tienda» y lo abonado es de la tienda", () => {
+    const n = notaDeCorreccion([{ tipo: "se_hace_pasar_por_persona", detalle: "soy una persona" }]);
+    expect(n).toContain("eres Juan, el asistente virtual de la tienda");
+    expect(n).toContain("lo que la tienda abona o regala, solo como ahorro");
+    expect(n).not.toMatch(/D['’]CASA/);
+  });
+
   it("dice qué estuvo mal sin soltar el texto malo como orden", () => {
     const n = notaDeCorreccion([{ tipo: "existencias", detalle: "3 unidades" }, { tipo: "promesa", detalle: "plazo de entrega" }]);
     expect(n).toMatch(/NO se envió/);
@@ -375,7 +419,7 @@ describe("Juan nunca dice que es una persona ni que «no es un bot»", () => {
     "No soy una persona, soy el asistente virtual de D'CASA.",
     "Si prefieres hablar con una persona, te paso con una vendedora.",
     "Una vendedora te escribe mañana a las 8:00 a. m.",
-    "Soy Juan de D'CASA.",
+    "Soy Juan de Baby Caleb.",
   ])("«%s» está bien", (frase) => {
     expect(detectarSerHumano(frase)).toEqual([]);
     expect(analizar(frase, ctx()).graves.map((g) => g.tipo)).not.toContain("se_hace_pasar_por_persona");
