@@ -66,18 +66,18 @@ QUE_HACER_SIN_PUBLICAR = (
     'que una vendedora le confirma los modelos y los precios (p. ej. «Sí, trabajamos [lo que busca]. Los modelos y los '
     'precios te los confirma una vendedora.») y llama a pasar_a_vendedora con motivo_para_la_vendedora como motivo.')
 NOTA_HAY_SIN_PUBLICAR = (
-    'Esto SÍ lo trabajamos: hay productos así en el sistema de D\'CASA, pero no están publicados en la tienda en línea '
+    'Esto SÍ lo trabajamos: hay productos así en el sistema, pero no están publicados en la tienda en línea '
     'y sus modelos, precios y disponibilidad no están revisados para clientes. ' + QUE_HACER_SIN_PUBLICAR)
 NOTA_CODIGO_SIN_PUBLICAR = (
     'Ese código SÍ es de un producto que trabajamos, pero no está publicado en la tienda en línea y su modelo, precio '
     'y disponibilidad no están revisados para clientes. ' + QUE_HACER_SIN_PUBLICAR)
 NOTA_TAMBIEN_SIN_PUBLICAR = (
-    'Además hay productos así en el sistema de D\'CASA que no están publicados en la tienda en línea (sin modelos ni '
+    'Además hay productos así en el sistema que no están publicados en la tienda en línea (sin modelos ni '
     'precios para dar). Ofrece primero los de arriba; si lo que pide el cliente no está entre ellos, no digas que no '
     'lo manejamos: dile que otros modelos se los confirma una vendedora y, si los quiere, llama a pasar_a_vendedora '
     'con motivo_para_la_vendedora como motivo.')
 NOTA_NO_LO_MANEJAMOS = (
-    'Nada coincide con esa búsqueda en todo el sistema de D\'CASA, ni en la tienda en línea ni fuera de ella: aquí sí '
+    'Nada coincide con esa búsqueda en todo el sistema, ni en la tienda en línea ni fuera de ella: aquí sí '
     'puedes decirle que eso no lo manejamos y ofrecerle lo que sí hay (listar_categorias).')
 NO_NIEGUES = ('Por esta búsqueda no le digas al cliente que no lo manejamos: si no das con lo que pide, dile que una '
               'vendedora se lo confirma.')
@@ -382,7 +382,7 @@ class BrianHerramientasJuan(models.AbstractModel):
                     'nota': NOTA_HAY_SIN_PUBLICAR}
         if parece_codigo(consulta):   # un código mal copiado no es «no lo manejamos»
             return {**vacio, 'estado': 'busca_de_nuevo',
-                    'nota': f'No encuentro el código «{consulta}» en el sistema de D\'CASA (puede estar mal escrito): '
+                    'nota': f'No encuentro el código «{consulta}» en el sistema (puede estar mal escrito): '
                             f'pídele al cliente el nombre o una foto del producto y búscalo así. {NO_NIEGUES}'}
         palabras = self._j_palabras_que_aparecen(consulta, candidatos + candidatos_sin_publicar)
         if palabras:
@@ -423,7 +423,7 @@ class BrianHerramientasJuan(models.AbstractModel):
             if sin_publicar:
                 return {'estado': 'hay_sin_publicar', **self._j_sin_publicar(f'el código «{codigo}»', sin_publicar),
                         'nota': NOTA_CODIGO_SIN_PUBLICAR}
-            raise BrianError(f'No encuentro el código «{codigo}» en el sistema de D\'CASA (puede estar mal escrito). '
+            raise BrianError(f'No encuentro el código «{codigo}» en el sistema (puede estar mal escrito). '
                              f'Búscalo por nombre con buscar_productos y sigue lo que diga. {NO_NIEGUES}')
         return self._j_ficha_completa(plantilla)
 
@@ -463,7 +463,7 @@ class BrianHerramientasJuan(models.AbstractModel):
     @herramienta(
         nombre=PREFIJO + 'listar_categorias',
         descripcion='Las categorías de la tienda con cuántos productos publicados tiene cada una y su enlace, y el '
-                    'enlace del catálogo completo en la página de D\'CASA (catalogo_completo).',
+                    'enlace del catálogo completo en la página de la tienda (catalogo_completo).',
         nivel='lectura', categoria='catalogo', grupos=GRUPOS,
         ejemplos=['«¿qué venden?» → listar_categorias',
                   '«¿me pasas el catálogo?» o «quiero ver todo lo que tienen» → listar_categorias y das el enlace '
@@ -595,7 +595,7 @@ class BrianHerramientasJuan(models.AbstractModel):
 
     @herramienta(
         nombre=PREFIJO + 'buscar_conocimiento',
-        descripcion='Busca en lo que el equipo de D\'CASA escribió para ti (horario, dirección, garantía, Socios, '
+        descripcion='Busca en lo que el equipo de la tienda escribió para ti (horario, dirección, garantía, Socios, '
                     'cómo comprar…). Devuelve las 3 mejores coincidencias con su texto. Contesta SOLO con eso: '
                     'si no hay nada, no inventes.',
         parametros={'consulta': {'type': 'string', 'description': 'La pregunta del cliente o sus palabras clave, '

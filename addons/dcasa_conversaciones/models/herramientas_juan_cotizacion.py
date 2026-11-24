@@ -113,7 +113,7 @@ class BrianHerramientasJuanCotizacion(models.AbstractModel):
                         f'el código «{codigo}»', sin_publicar)['motivo_para_la_vendedora'])
             return None, _no_creada(
                 'producto_no_encontrado',
-                f'No encuentro el código «{codigo}» en el sistema de D\'CASA: no lo cotices. Búscalo con '
+                f'No encuentro el código «{codigo}» en el sistema: no lo cotices. Búscalo con '
                 f'buscar_productos y cotiza con el código que devuelva. {NO_NIEGUES}')
         if plantilla.type == 'combo':
             return None, _no_cotizable_combo(plantilla)
