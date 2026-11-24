@@ -1447,7 +1447,7 @@
    },
    "palabras": [
     "articulo",
-    "mueble",
+    "pañal",
     "agregar producto",
     "alta de producto"
    ]
@@ -1573,7 +1573,7 @@
    "categoria": "productos",
    "grupo": "Productos",
    "titulo": "Poner en MAYÚSCULAS los nombres de los productos",
-   "logras": "Ves cómo quedarán los nombres que todavía no están en mayúsculas y los cambias todos con un botón. Los productos nuevos ya se guardan en mayúsculas solos. El cliente los sigue leyendo con mayúscula solo al inicio de cada palabra (Cama Queen Tapizada) en la tienda, Juan, los correos y los papeles.",
+   "logras": "Ves cómo quedarán los nombres que todavía no están en mayúsculas y los cambias todos con un botón. Los productos nuevos ya se guardan en mayúsculas solos. El cliente los sigue leyendo con mayúscula solo al inicio de cada palabra (Pañales Nateen de Cierre) en la tienda, Juan, los correos y los papeles.",
    "destino": {
     "menu": "dcasa_catalogo.menu_dcasa_producto_mayusculas"
    },
@@ -1929,7 +1929,7 @@
    ],
    "grupo": "Inventario",
    "titulo": "Ver cuánto vale el inventario (al costo y a precio de venta)",
-   "logras": "Cuánto vale la mercancía que hay hoy: al costo (con el costo de cada producto), a precio de venta sin ITBMS y la ganancia esperada, con las unidades. Debajo, por tipo de mueble, los productos con más dinero y lo que falta cargar (productos sin costo, sin precio o en negativo); tocas cualquiera y ves sus productos. Solo Gerencia.",
+   "logras": "Cuánto vale la mercancía que hay hoy: al costo (con el costo de cada producto), a precio de venta sin ITBMS y la ganancia esperada, con las unidades. Debajo, por categoría, los productos con más dinero y lo que falta cargar (productos sin costo, sin precio o en negativo); tocas cualquiera y ves sus productos. Solo Gerencia.",
    "destino": {
     "menu": "dcasa_interfaz.menu_dcasa_valor_inventario"
    },
@@ -2801,7 +2801,7 @@
     "foto de la portada",
     "fotos de arriba",
     "banner",
-    "camas de la portada",
+    "productos de la portada",
     "productos destacados"
    ]
   },
@@ -2810,7 +2810,7 @@
    "categoria": "tienda",
    "grupo": "Tienda en línea",
    "titulo": "Encender o apagar «Busca con una foto» en la tienda",
-   "logras": "En la tienda web sale un botón de cámara dentro de la caja de búsqueda: el cliente sube la foto de un mueble (o una captura de Instagram) y le salen los productos publicados que se le parecen. Aquí lo enciendes o lo apagas, cambias cuántas fotos puede buscar cada persona, cuánto puede gastar de IA en el mes y ves cuántas búsquedas hubo.",
+   "logras": "En la tienda web sale un botón de cámara dentro de la caja de búsqueda: el cliente sube la foto de un producto (o una captura de Instagram) y le salen los productos publicados que se le parecen. Aquí lo enciendes o lo apagas, cambias cuántas fotos puede buscar cada persona, cuánto puede gastar de IA en el mes y ves cuántas búsquedas hubo.",
    "destino": {
     "menu": "dcasa_buscar_foto.menu_dcasa_buscar_foto"
    },
@@ -2847,7 +2847,7 @@
    "categoria": "tienda",
    "grupo": "Tienda en línea",
    "titulo": "Encender o apagar a Andrés, el chat de la tienda",
-   "logras": "En la tienda web sale la burbuja de Andrés (en lugar de la de WhatsApp): busca muebles, calcula el envío y deja el carrito listo. Aquí lo enciendes o lo apagas, decides si fuera del horario avisa que la tienda está cerrada y si el robot de la burbuja duerme de noche, cambias el presupuesto del mes y los topes de mensajes, y ves cuánto va gastando y cómo lo califican los clientes.",
+   "logras": "En la tienda web sale la burbuja de Andrés (en lugar de la de WhatsApp): busca productos, calcula el envío y deja el carrito listo. Aquí lo enciendes o lo apagas, decides si fuera del horario avisa que la tienda está cerrada y si el robot de la burbuja duerme de noche, cambias el presupuesto del mes y los topes de mensajes, y ves cuánto va gastando y cómo lo califican los clientes.",
    "destino": {
     "menu": "dcasa_brian_tienda.menu_dcasa_brian_tienda"
    },
@@ -3920,7 +3920,7 @@
    "categoria": "productos",
    "grupo": "Catálogo",
    "titulo": "Encontrar un producto por el código que le dio el cliente",
-   "logras": "El cliente ve un código como DC-K7M4PX en la ficha de la tienda y en su mensaje de WhatsApp. Escríbelo en el buscador de Productos (o en el campo Producto de una cotización) y aparece el mueble. Es distinto de la referencia del proveedor, que el cliente no ve.",
+   "logras": "El cliente ve un código como DC-K7M4PX en la ficha de la tienda y en su mensaje de WhatsApp. Escríbelo en el buscador de Productos (o en el campo Producto de una cotización) y aparece el producto. Es distinto de la referencia del proveedor, que el cliente no ve.",
    "destino": {
     "menu": "sale.menu_product_template_action"
    },
@@ -4124,7 +4124,7 @@
    "categoria": "reportes",
    "grupo": "Ventas",
    "titulo": "Ver las estadísticas de ventas en gráficas",
-   "logras": "Gráficas simples de un periodo (esta semana, este mes, el mes pasado, los últimos 3 meses, este año o las fechas que elijas): lo vendido cada día, por tipo de mueble, por vendedora, lo cobrado por forma de pago y los productos que más se venden, cada número con una frase que dice qué es. Tocas una barra y ves ese día. Solo Gerencia.",
+   "logras": "Gráficas simples de un periodo (esta semana, este mes, el mes pasado, los últimos 3 meses, este año o las fechas que elijas): lo vendido cada día, por categoría, por vendedora, lo cobrado por forma de pago y los productos que más se venden, cada número con una frase que dice qué es. Tocas una barra y ves ese día. Solo Gerencia.",
    "destino": {
     "menu": "dcasa_interfaz.menu_estadisticas_resumen"
    },
