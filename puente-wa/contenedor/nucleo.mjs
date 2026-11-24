@@ -38,6 +38,8 @@ export const VIGILANTE_MS = 30_000;
  * mensaje que culpa a la red del dueño cuando el problema está de este lado—.
  */
 export const QR_VENCE_MS = 45_000;
+/** Cómo aparece el puente en «Dispositivos vinculados» del teléfono del negocio (Baby Caleb, 2026-11-24). */
+export const NAVEGADOR_POR_DEFECTO = ["Baby Caleb Panama", "Chrome", "1.0.0"];
 
 /** Códigos de cierre de WhatsApp que importan (DisconnectReason de Baileys). */
 const CIERRE = { loggedOut: 401, connectionReplaced: 440, restartRequired: 515 };
@@ -69,7 +71,7 @@ export function crearNucleo(deps) {
   const { baileys, puente, qr: generadorQr, logger, descargar } = deps;
   const ritmo = deps.config?.ritmo ?? RITMO_POR_DEFECTO;
   const hostsPermitidos = deps.config?.hostsPermitidos ?? [];
-  const navegador = deps.config?.navegador ?? ["DCASA Panama", "Chrome", "1.0.0"];
+  const navegador = deps.config?.navegador ?? NAVEGADOR_POR_DEFECTO;
   const vigilanteMs = deps.config?.vigilanteMs ?? VIGILANTE_MS;
   const dormir = deps.dormir ?? ((/** @type {number} */ ms) => new Promise((r) => setTimeout(r, ms)));
   const azar = deps.azar ?? Math.random;

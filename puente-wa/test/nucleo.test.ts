@@ -81,7 +81,9 @@ describe("arranque", () => {
     const cfg = m.sock.config;
     expect(cfg.syncFullHistory).toBe(false);
     expect(cfg.markOnlineOnConnect).toBe(false); // el teléfono de la dueña sigue sonando
-    expect(cfg.browser[0]).toContain("DCASA");
+    // En «Dispositivos vinculados» del teléfono se ve el nombre del negocio, no el de la plantilla (D'CASA).
+    expect(cfg.browser[0]).toBe("Baby Caleb Panama");
+    expect(cfg.browser[0]).not.toContain("DCASA");
     expect(cfg.version).toEqual([2, 3000, 1]);
     expect(typeof cfg.getMessage).toBe("function");
     expect(m.nucleo.estado.conexion).toBe("arrancando");
