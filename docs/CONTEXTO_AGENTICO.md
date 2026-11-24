@@ -39,6 +39,12 @@ Armado el 2026-10-16 a partir de `docs/`, los commits y los registros de GitHub 
    55 (`TIMEOUT_SUGERIR`); `juan/test/odoo-panel-sugerir.test.ts` lee la línea de Python y exige el margen.
 11. **Un fallo que la persona necesita ver no va en una notificación que se va sola**: queda en la pantalla, dice la
    causa en corto y ofrece «Reintentar». La dueña no pudo decir qué salía en pantalla porque el aviso duraba segundos.
+12. **Un vigilante no mata lo que avanza.** «Lento» no es «muerto»: antes de reiniciar algo, mirar si hay PROGRESO (algo
+   que se escribe, mensajes que entran), dar minutos de gracia tras cada arranque, no cortar un intento de conexión en
+   curso y espaciar cada reinicio seguido (el doble que el anterior). El 24-nov-2026 el puente QR del CRM de Baby Caleb
+   pasó 14 h en bucle porque su vigilante lo daba por muerto a los 4 s y lo destruía a los 2,5 min mientras procesaba lo
+   atrasado; cada vuelta encontraba más pendiente. Y **medir por dentro** (memoria, CPU) lo que la plataforma no muestra:
+   sin eso no se supo si el código 137 fue por memoria o por el vigilante. Ver «WhatsApp por QR» abajo.
 
 ---
 
@@ -2076,6 +2082,35 @@ Lo que quedó escrito para no repetirlo:
   herramientas (`sinTexto`) recibe lo consultado como texto (`consultasComoTexto`); la de corrección, con herramientas, recibe
   la ronda tal cual (`rondasDeHerramientas`, sin el borrador rechazado). `test/motor/sdk-anthropic.test.ts` vigila cómo
   queda la petición.
+
+### WhatsApp por QR (Baileys, `puente-wa/`)
+
+Lecciones de la caída del CRM de Baby Caleb (24-nov-2026, informe completo resumido en
+[JUAN_PUENTE.md](JUAN_PUENTE.md) § F). Este puente salió de ese CRM y **nunca se ha desplegado**; los arreglos quedaron
+hechos y probados con un WhatsApp de mentira (`test/carga.test.ts`), sin desplegar nada.
+
+- **La firma del bucle se ve en lo que escribe la sesión, sin abrir el contenedor**: si solo se escriben pre-keys de 5 en
+  5 (Baileys reponiendo llaves al conectar, `MIN_PREKEY_COUNT = 5`) y nada más, está dando vueltas; si se escriben
+  sesiones, identidades, LID o se BORRAN pre-keys (una clienta nueva cuyo mensaje se descifró), trabaja. El Durable
+  Object cuenta eso minuto a minuto (`wa_actividad`, solo cuentas) y es su medida de progreso y la de la alarma.
+- **En Baileys 7, `append` = lo que WhatsApp guardó mientras el socket estaba caído** (`node.attrs.offline`), no
+  historial (el historial va por `messaging-history.set`). Tirar todo `append` como «historial» dejaba sin respuesta a
+  quien escribía durante cualquier corte, aunque fuera de segundos. Ahora lo de ≤ 15 min se atiende y el resto se avisa.
+- **`syncFullHistory: false` no apaga el historial**: el `shouldSyncHistoryMessage` por defecto baja todo menos FULL
+  (RECENT incluido, lo pesado). Apagarlo TODO tampoco: Baileys avisa que se queda sin los mapas iniciales de LID. Se
+  dejan INITIAL_BOOTSTRAP, PUSH_NAME y NON_BLOCKING_DATA (`contenedor/lib/historial.mjs`).
+- **Las pre-keys solo crecen**: Baileys 7 marca como «subidas» las que genera ANTES de subirlas, y en un bucle cada
+  vuelta suma 5 que nadie usa (15.934 en el CRM; lo sano ≈ 800). Podar es seguro si se conservan las ~1.000 de
+  **número** más alto (no por fecha: las 812 del vínculo tienen la misma hora), con respaldo y sin tocar `creds`; si
+  alguna faltara, Baileys pide el reenvío con una pre-key nueva. Destrabó el CRM a los 8 min, pero el mecanismo exacto
+  no está demostrado: por eso la poda automática es semanal o de emergencia (`src/poda.ts`), no a cada rato.
+- **Baileys junta lo que llega al conectar** (`ev.buffer()` hasta el aviso `CB:ib,,offline` o 30 s) y lo entrega en un
+  solo evento de cientos de mensajes: se atiende en tandas cediendo el turno, para que el proceso siga contestando.
+- **`@cloudflare/containers` 0.3.7 no soporta `scheduling_policy: "durable_object"`** (no pasa `image`/`instance` a
+  `ctx.container.start()`); `default` está obsoleta desde noviembre de 2026 y la política es inmutable. Como el puente
+  nunca se desplegó, el cambio cuesta $0 si se hace antes del primer despliegue real (JUAN_PUENTE.md, apartado G).
+- **Con QR, lo que crece con el volumen es justo lo que lo tumba** (llaves, avalancha al volver, un solo proceso por
+  número, riesgo de bloqueo). Canal principal: la API oficial de Meta; el QR, de respaldo.
 
 ### WhatsApp oficial (Meta)
 
