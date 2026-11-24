@@ -522,6 +522,8 @@ export const VARIABLES_DEL_CONTENEDOR = [
   "DCASA_HUMO",
   // Existencias de prueba (solo staging; en producción el entrypoint fuerza 0)
   "DCASA_STOCK_PRUEBA",
+  // «0» = el negocio no cobra ITBMS (Baby Caleb): docker/entrypoint.sh › aplicar_sin_itbms
+  "DCASA_COBRA_ITBMS",
   // Black Weekend: "1" = visible sin mirar fechas (staging); ventana AAAA-MM-DD en hora de Panamá
   "DCASA_BLACK_WEEKEND",
   "DCASA_BLACK_WEEKEND_INICIO",

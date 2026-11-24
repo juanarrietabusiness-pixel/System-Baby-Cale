@@ -82,13 +82,47 @@ def _configurar_ventas_panama(env):
     if venta:
         _nombrar(venta, IMPUESTO_VENTA)
         venta.invoice_label = 'ITBMS 7%'
-        company.account_sale_tax_id = venta
+        if not sin_itbms(env):
+            company.account_sale_tax_id = venta
 
     Journal = env['account.journal'].with_context(active_test=False)
     for codigo, nombre, tipo in DIARIOS_COBRO:
         if not Journal.search_count([('company_id', '=', company.id), ('code', '=', codigo)]):
             Journal.create({'name': nombre, 'code': codigo, 'type': tipo, 'company_id': company.id})
     crear_diarios_financiamiento(env)
+
+
+PARAMETRO_SIN_ITBMS = 'dcasa_base.sin_itbms'
+
+
+def sin_itbms(env):
+    """¿Este negocio NO cobra ITBMS? Lo fija el arranque con ``DCASA_COBRA_ITBMS=0`` (Baby Caleb, 2026-11-24)."""
+    return env['ir.config_parameter'].sudo().get_param(PARAMETRO_SIN_ITBMS) == '1'
+
+
+def aplicar_sin_itbms(env):
+    """Para un negocio que no cobra ITBMS: la empresa sin impuesto de venta por defecto y los productos sin ITBMS.
+
+    Decisión del dueño de Baby Caleb (2026-11-24): «¿Cobran ITBMS? No». Los precios de la lista son los finales: la
+    tienda, el carrito, las cotizaciones, Juan y las facturas dejan de sumar el 7 % y de decir «+ ITBMS» (todos lo
+    muestran solo si el producto lleva el impuesto). Un producto nuevo nace sin impuesto, también los que carga Brian.
+
+    Solo quita impuestos de VENTA con tasa (el ITBMS); los de compra y uno de venta en 0 % se quedan. Las facturas ya
+    publicadas no cambian. Se puede repetir: lo corre el arranque una vez por versión. Devuelve cuántos productos
+    perdieron el impuesto.
+    """
+    env['ir.config_parameter'].sudo().set_param(PARAMETRO_SIN_ITBMS, '1')
+    company = env.ref('base.main_company')
+    company.account_sale_tax_id = False
+    Plantilla = env['product.template'].sudo().with_context(active_test=False)
+    cambiados = 0
+    for plantilla in Plantilla.search([('taxes_id', '!=', False)]):
+        quedan = plantilla.taxes_id.filtered(lambda t: t.type_tax_use != 'sale' or not t.amount)
+        if quedan != plantilla.taxes_id:
+            plantilla.taxes_id = [(6, 0, quedan.ids)]
+            cambiados += 1
+    _logger.info('Sin ITBMS: la empresa sin impuesto de venta por defecto y %s productos sin ITBMS.', cambiados)
+    return cambiados
 
 
 def crear_diarios_financiamiento(env):

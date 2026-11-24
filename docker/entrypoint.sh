@@ -50,6 +50,7 @@
 #   ODOO_LIMIT_MEMORY_SOFT / ODOO_LIMIT_MEMORY_HARD  bytes de memoria VIRTUAL (ver odoo.conf).
 #   DB_REINTENTOS         intentos de conexión a PostgreSQL al arrancar (por defecto 20, cada 3 s).
 #   ODOO_DESINSTALAR_SOBRANTES  0 para no desinstalar los módulos sobrantes.
+#   DCASA_COBRA_ITBMS     «0» = el negocio no cobra ITBMS (Baby Caleb): empresa y productos sin el 7 %
 #   DCASA_STOCK_PRUEBA    unidades de prueba por producto sin existencias ni movimientos
 #                         (solo con DCASA_ENTORNO=staging; por defecto 10). En producción
 #                         siempre 0: ver «2c. Existencias de prueba».
@@ -461,6 +462,27 @@ PY
     set_param dcasa_catalogo.stock_prueba_version "$APP_VERSION"
   else
     echo "⚠ No se pudieron poner las existencias de prueba: Odoo arranca igual y se reintenta." >&2
+  fi
+fi
+
+# --- 2c'. Sin ITBMS (negocios que no lo cobran, p. ej. Baby Caleb) -------------
+# DCASA_COBRA_ITBMS=0 (staging y producción de Baby Caleb, edge/wrangler.jsonc): la empresa sin impuesto de venta por
+# defecto y los productos sin ITBMS (addons/dcasa_base: aplicar_sin_itbms). Sin la variable (o "1") no se toca nada:
+# así se comporta D'CASA y así corren las pruebas. Una vez por versión, como las existencias de prueba. Volver a
+# cobrarlo no es automático: se ponen los impuestos a mano (docs/BABY_CALEB.md).
+if [[ "${DCASA_COBRA_ITBMS:-1}" == "0" ]] && [[ "${NO_BAJAR:-0}" != "1" ]] \
+  && [[ "$(sql "SELECT state FROM ir_module_module WHERE name = 'dcasa_base'")" == "installed" ]] \
+  && [[ "$(sql "SELECT value FROM ir_config_parameter WHERE key = 'dcasa_base.sin_itbms_version'")" != "$APP_VERSION" ]]; then
+  echo "▶ Sin ITBMS: la empresa y los productos dejan de sumar el 7 %"
+  if odoo_shell DCASA_ITBMS_OK <<'PY'; then
+from odoo.addons.dcasa_base import aplicar_sin_itbms
+print(f'· {aplicar_sin_itbms(env)} productos sin ITBMS')
+env.cr.commit()
+print('DCASA_ITBMS_OK')
+PY
+    set_param dcasa_base.sin_itbms_version "$APP_VERSION"
+  else
+    echo "⚠ No se pudo quitar el ITBMS: Odoo arranca igual y se reintenta en el próximo arranque." >&2
   fi
 fi
 

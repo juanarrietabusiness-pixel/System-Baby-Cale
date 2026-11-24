@@ -61,6 +61,8 @@
     "DCASA_ENTORNO": "produccion",
     // Existencias de prueba: en producción SIEMPRE 0 (el entrypoint lo fuerza igual).
     "DCASA_STOCK_PRUEBA": "0",
+    // Baby Caleb no cobra ITBMS (decisión del dueño, 2026-11-24): precios finales, sin el 7 %.
+    "DCASA_COBRA_ITBMS": "0",
     // Black Weekend (addons/website_dcasa/models/black_weekend.py): en producción solo dentro de la
     // ventana que fijó la dueña (lunes 5 a domingo 11 de octubre de 2026, hora de Panamá,
     // inclusive); pasada la fecha se apaga sola. "1" la mostraría sin mirar fechas.
@@ -153,6 +155,8 @@
         // 10 unidades a cada producto sin existencias ni movimientos, para probar ventas
         // (addons/dcasa_catalogo: aplicar_stock_prueba; nunca pisa un conteo real).
         "DCASA_STOCK_PRUEBA": "10",
+        // Baby Caleb no cobra ITBMS (decisión del dueño, 2026-11-24), igual que producción.
+        "DCASA_COBRA_ITBMS": "0",
         // Black Weekend apagado: es una campaña de D'CASA; Baby Caleb no tiene campaña cargada.
         "DCASA_BLACK_WEEKEND": "0",
         "DCASA_BLACK_WEEKEND_INICIO": "2026-10-02",
