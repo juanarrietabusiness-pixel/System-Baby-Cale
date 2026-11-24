@@ -375,7 +375,7 @@ describe("Juan nunca dice que es una persona ni que «no es un bot»", () => {
     "No soy una persona, soy el asistente virtual de D'CASA.",
     "Si prefieres hablar con una persona, te paso con una vendedora.",
     "Una vendedora te escribe mañana a las 8:00 a. m.",
-    "Soy Juan de D'CASA.",
+    "Soy Juan de Baby Caleb.",
   ])("«%s» está bien", (frase) => {
     expect(detectarSerHumano(frase)).toEqual([]);
     expect(analizar(frase, ctx()).graves.map((g) => g.tipo)).not.toContain("se_hace_pasar_por_persona");

@@ -41,7 +41,7 @@ describe("la presentación y el registro en Odoo", () => {
     m.guion([{ texto: "Claro, te cuento." }]);
     await m.conversar("hola");
     const textos = m.canal.textos.join("\n");
-    expect(m.canal.textos[0]).toBe("Hola, soy Juan de D'CASA.");
+    expect(m.canal.textos[0]).toBe("Hola, soy Juan de Baby Caleb.");
     expect(textos).not.toMatch(/asistente|autom[aá]tico|\bbot\b/i);
     expect(textos).toContain("Claro, te cuento.");
   });
@@ -51,12 +51,12 @@ describe("la presentación y el registro en Odoo", () => {
     m.guion([{ texto: "Uno." }, { texto: "Dos." }]);
     await m.conversar("hola");
     await m.conversar("gracias");
-    const presentaciones = m.canal.textos.filter((t) => /soy Juan de D'CASA/i.test(t));
+    const presentaciones = m.canal.textos.filter((t) => /soy Juan de Baby Caleb/i.test(t));
     expect(presentaciones.length).toBe(1);
   });
 
   it("usa la bienvenida que la dueña dejó en Odoo", async () => {
-    const m = crearMundo({ config: { mensaje_bienvenida: "Hola, soy Juan de D'CASA. ¿Qué buscas?", texto_privacidad_corto: "Guardamos esta conversación para atenderte." } });
+    const m = crearMundo({ config: { mensaje_bienvenida: "Hola, soy Juan de Baby Caleb. ¿Qué buscas?", texto_privacidad_corto: "Guardamos esta conversación para atenderte." } });
     m.guion([{ texto: "Dime." }]);
     await m.conversar("hola");
     const primera = m.canal.textos[0];
@@ -70,11 +70,11 @@ describe("la presentación y el registro en Odoo", () => {
     await buena.conversar("hola");
     expect(buena.canal.textos[0]).toBe("Bienvenido a la tienda.");
 
-    for (const mala of ["Hola, soy una persona real de la tienda.", "Tranquilo, no soy un bot.", "Soy vendedora de D'CASA."]) {
+    for (const mala of ["Hola, soy una persona real de la tienda.", "Tranquilo, no soy un bot.", "Soy vendedora de Baby Caleb."]) {
       const m = crearMundo({ config: { mensaje_bienvenida: mala } });
       m.guion([{ texto: "Dime." }]);
       await m.conversar("hola");
-      expect(m.canal.textos[0], mala).toBe("Hola, soy Juan de D'CASA.");
+      expect(m.canal.textos[0], mala).toBe("Hola, soy Juan de Baby Caleb.");
     }
   });
 
@@ -82,7 +82,7 @@ describe("la presentación y el registro en Odoo", () => {
     const m = crearMundo({ config: { mensaje_bienvenida: "   " } });
     m.guion([{ texto: "Dime." }]);
     await m.conversar("hola");
-    expect(m.canal.textos[0]).toBe("Hola, soy Juan de D'CASA.");
+    expect(m.canal.textos[0]).toBe("Hola, soy Juan de Baby Caleb.");
   });
 
   it("registra en Odoo el mensaje del cliente y la respuesta del bot, con el celular como llave", async () => {
@@ -245,7 +245,7 @@ describe("«borrar mis datos»: la copia de trabajo se olvida de verdad", () => 
     // Si la persona vuelve a escribir, es una conversación nueva: se vuelve a presentar y no recuerda lo anterior.
     await m.conversar("hola otra vez");
     const textos = m.canal.textos.slice(-3).join("\n");
-    expect(textos).toMatch(/soy Juan de D'CASA/i);
+    expect(textos).toMatch(/soy Juan de Baby Caleb/i);
   });
 
   it("olvidar una conversación que no tiene nada no falla", async () => {

@@ -180,7 +180,8 @@ export const PRIVADAS_POR_HORA_POR_DEFECTO = 60;
 const MAX_TEXTO_PUBLICO = 300;
 
 export const CONFIG_POR_DEFECTO: Config = {
-  nombre_publico: "el equipo de D'CASA",
+  // Sin Odoo, un nombre neutro («Hola, soy Juan de la tienda.»): el de la empresa lo pone la dueña en Ajustes de Juan.
+  nombre_publico: "el equipo de la tienda",
   bot_activo_global: true,
   canales_activos: {},
   horario: { inicio: "08:00", fin: "17:00", dias: [0, 1, 2, 3, 4, 5, 6], zona: "America/Panama" },

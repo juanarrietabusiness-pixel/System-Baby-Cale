@@ -233,7 +233,8 @@ export class OdooFalso implements OdooApi {
   cotizacionesArmadas = 0;
   /** Lo que `agregar_envio` sumó a una cotización. */
   enviosSumados: Record<string, unknown>[] = [];
-  rawConfig: unknown = { nombre_publico: "el equipo de D'CASA" };
+  /** Lo que la dueña de Baby Caleb pone en Ajustes de Juan: el saludo y los prompts salen de aquí, nunca escritos a mano. */
+  rawConfig: unknown = { nombre_publico: "el equipo de Baby Caleb" };
   defs: DefHerramienta[] = HERRAMIENTAS_DE_PRUEBA;
   manejadores: Record<string, Manejador> = { ...MANEJADORES };
   /** Cuántas veces se pidió config (para probar la caché). */

@@ -279,7 +279,7 @@ describe("G. la respuesta privada de quien solo comentó", () => {
   });
 
   it("si la presentación + la respuesta no caben, sale la respuesta sin la presentación (nunca la presentación sola)", async () => {
-    const m = mundoComentarios({ config: { mensaje_bienvenida: "Hola, soy Juan de D'CASA. " + "Te cuento rápido cómo trabajamos. ".repeat(12) } });
+    const m = mundoComentarios({ config: { mensaje_bienvenida: "Hola, soy Juan de Baby Caleb. " + "Te cuento rápido cómo trabajamos. ".repeat(12) } });
     m.canal.cap = { ...m.canal.cap, maxTexto: 600, maxBytesTexto: 600 };
     m.guion([PREGUNTA, { texto: `El Sofá Roma lo tenemos en gris y en beige. ${"Detalle. ".repeat(20)}` }]);
     await comentar(m, comentario(m, "¿Precio?"));

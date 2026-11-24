@@ -478,7 +478,7 @@ describe("el prompt: la regla de envíos", () => {
     expect(como).toMatch(/La fecha de entrega la confirma siempre una vendedora/);
     // Revisión adversarial: la condición junto al beneficio, lo abonado como ahorro y, con varias cotizaciones, preguntar a cuál.
     expect(como).toContain("el mínimo va en la misma oración que el beneficio");
-    expect(como).toContain("lo que D'CASA abona o regala dilo siempre como ahorro");
+    expect(como).toContain("lo que la tienda abona o regala dilo siempre como ahorro");
     expect(como).toMatch(/más de una cotización abierta, pregúntale a cuál \(número y total\) y pásala en cotizacion/);
   });
 
