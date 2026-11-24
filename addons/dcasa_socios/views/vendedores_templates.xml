@@ -4,7 +4,7 @@
     <template id="socios_cuenta_vendedor" name="Socios: acceso al panel de vendedor" inherit_id="dcasa_socios.socios_cuenta">
         <xpath expr="//div[hasclass('o_dcasa_socios_saldo')]" position="after">
             <div t-if="socio.dcasa_vendedor_codigo" class="o_dcasa_socios_card mt-4">
-                <h2 class="h5">Eres vendedor D’CASA</h2>
+                <h2 class="h5">Eres vendedor Baby Caleb</h2>
                 <p class="mb-2">Tu código de vendedor: <strong class="o_dcasa_socios_codigo" t-out="socio.dcasa_vendedor_codigo"/></p>
                 <a href="/socios/vendedor" class="btn btn-primary w-100 o_dcasa_socios_btn_toque">Mi panel de vendedor</a>
             </div>
@@ -170,7 +170,7 @@
                 <p t-if="not v.get('programaActivo')" class="alert alert-info">El programa de vendedores todavía no
                     está encendido. Estas son las reglas con las que va a funcionar.</p>
                 <h2>Qué es</h2>
-                <p>Eres vendedor D’CASA cuando Gerencia o la caja te afilian. No cuesta nada afiliarte ni te obliga
+                <p>Eres vendedor Baby Caleb cuando Gerencia o la caja te afilian. No cuesta nada afiliarte ni te obliga
                     a comprar mercancía: ganas únicamente cuando una venta <strong>real</strong> con tu código queda
                     <strong>pagada</strong>.</p>
                 <h2>Qué ganas</h2>
@@ -224,7 +224,7 @@
                     del cliente, los tuyos y los de tu patrocinador nunca se pasa del
                     <t t-out="tec['totalPorVentaPorcentajeDelNeto']"/>% de la venta neta. Si se pasara, se recortan.</p>
                 <p t-if="tec.get('frenoGlobalPorcentajeDeLaVentaNeta')">Además, el programa completo tiene un freno:
-                    los puntos que D’CASA entrega a todos los vendedores en 30 días no pasan del
+                    los puntos que Baby Caleb entrega a todos los vendedores en 30 días no pasan del
                     <t t-out="'%g' % tec['frenoGlobalPorcentajeDeLaVentaNeta']"/>% de lo vendido en la tienda en esos
                     mismos 30 días. Si se llegara a ese límite, las comisiones nuevas se recortan hasta que baje.</p>
                 <p t-if="tec.get('porVendedorAlMesPuntos')">Hay un tope de
@@ -237,9 +237,9 @@
                     te sale un código y lo recoges en la tienda<t t-if="can.get('vigenciaDelCodigoHoras')"> en
                     <t t-out="can['vigenciaDelCodigoHoras']"/> horas</t>; si no, vence y te devolvemos los puntos.</p>
                 <h2>Tus responsabilidades</h2>
-                <p>Vendes por tu cuenta y no eres empleado de D’CASA por ser vendedor del programa (si ya lo eres, tu
+                <p>Vendes por tu cuenta y no eres empleado de Baby Caleb por ser vendedor del programa (si ya lo eres, tu
                     relación laboral sigue siendo la misma). Eres responsable de lo que digas a tus clientes: no
-                    prometas precios, plazos ni garantías que D’CASA no haya dado. Si usas el programa para engañar
+                    prometas precios, plazos ni garantías que Baby Caleb no haya dado. Si usas el programa para engañar
                     (compras falsas, cuentas duplicadas, devoluciones para quedarte con puntos), te suspendemos y
                     anulamos los puntos.</p>
                 <h2>Tus datos</h2>

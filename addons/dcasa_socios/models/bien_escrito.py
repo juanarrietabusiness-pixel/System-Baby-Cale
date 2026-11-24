@@ -311,7 +311,7 @@ def mensaje_del_correo(env, valor, codigo, sugerencia=None, vuelve_a=None):
                       'lo escrito y marca «Cliente no tiene correo electrónico».', correo=valor)
         return texto + ' ' + env._('Después vuelve a %s.', vuelve_a) if vuelve_a else texto
     if codigo == 'equipo':
-        texto = env._("Ese correo es de D'CASA o de alguien del equipo: escribe el del cliente.")
+        texto = env._('Ese correo es de %s o de alguien del equipo: escribe el del cliente.', env.company.name)
     else:
         texto = env._('%(correo)s no es un correo completo. Debe verse así: nombre@gmail.com (una sola @, sin espacios '
                       'ni comas).', correo=valor)

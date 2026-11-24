@@ -17,3 +17,4 @@ from . import test_borrar_borrador
 from . import test_solo_lo_suyo
 from . import test_registro_correo
 from . import test_pendiente
+from . import test_marca

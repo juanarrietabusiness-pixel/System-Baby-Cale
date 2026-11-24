@@ -30,14 +30,14 @@ def fecha_ordenable(texto):
 
 TITULO_RESULTADOS = 'Esto se parece a tu foto'
 MENSAJES = {
-    'documento': 'Esa foto parece un documento; para buscar, sube la foto de un mueble.',
+    'documento': 'Esa foto parece un documento; para buscar, sube la foto de un producto.',
     'no_ahora': 'Ahora no podemos buscar por foto; búscalo por nombre o escríbenos por WhatsApp.',
     'formato': 'Esa foto no la pudimos abrir. Prueba con otra en JPG, PNG o WebP de menos de 1,5 MB.',
-    'otra': 'No reconocimos un mueble en tu foto. Prueba con otra donde se vea el mueble completo.',
+    'otra': 'No reconocimos un producto en tu foto. Prueba con otra donde se vea el producto completo.',
     'nada': 'No encontramos algo parecido en la tienda en línea. Mándanos la foto por WhatsApp y te decimos si lo '
             'tenemos.',
 }
-WHATSAPP = ("Hola D'CASA, busqué un mueble con una foto en la tienda y quiero que me ayuden a encontrarlo. "
+WHATSAPP = ("Hola, busqué un producto con una foto en la tienda y quiero que me ayuden a encontrarlo. "
             'Les mando la foto por aquí.')
 
 

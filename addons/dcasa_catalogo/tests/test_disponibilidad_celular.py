@@ -11,6 +11,13 @@ from odoo.addons.website_dcasa.tests.chrome_movil import ChromeMovilCase
 from odoo.tests import tagged
 
 # Ancho × alto de pantalla (CSS): Android común, iPhone 12-15 y iPhone Pro Max.
+# Las insignias de la marca Baby Caleb: [fondo, letra, punto]. «Disponible», salvia claro con letra navy y el punto
+# verde de texto; «Quedan pocas», el naranja de relleno con letra navy (5.56); «Agotado», navy con letra crema.
+COLORES = {
+    'disponible': ['rgba(145, 201, 162, 0.3)', 'rgb(27, 50, 70)', 'rgb(83, 115, 92)'],
+    'pocas': ['rgb(238, 146, 74)', 'rgb(27, 50, 70)', 'rgb(27, 50, 70)'],
+    'agotado': ['rgb(27, 50, 70)', 'rgb(249, 246, 237)', 'rgb(249, 246, 237)'],
+}
 TELEFONOS = ((360, 800), (390, 844), (430, 932))
 
 MEDIR = """
@@ -19,12 +26,16 @@ MEDIR = """
         for (let i = 0; i < 200 && document.body.getAttribute('is-ready') !== 'true'; i++) { await esperar(50); }
         await esperar(300);
         window.scrollTo(0, 0);
-        const e = document.querySelector('.o_dcasa_disponibilidad').getBoundingClientRect();
+        const insignia = document.querySelector('.o_dcasa_disponibilidad');
+        const e = insignia.getBoundingClientRect();
+        const ei = getComputedStyle(insignia);
+        const colores = [ei.backgroundColor, ei.color,
+                         getComputedStyle(insignia.querySelector('.o_dcasa_disponibilidad_punto')).backgroundColor];
         const precio = document.querySelector('.product_price').getBoundingClientRect();
         const cta = document.querySelector('#o_wsale_cta_wrapper');
         const fija = getComputedStyle(cta).position === 'fixed';
         return {
-            pantalla: [innerWidth, innerHeight], pagina: document.documentElement.scrollWidth,
+            pantalla: [innerWidth, innerHeight], pagina: document.documentElement.scrollWidth, colores,
             etiqueta: [e.top, e.bottom, e.left, e.right], precio: [precio.top, precio.bottom, precio.right],
             barra: fija ? cta.getBoundingClientRect().top : innerHeight, barraAlto: cta.getBoundingClientRect().height,
         };
@@ -74,3 +85,6 @@ class TestDisponibilidadALaVistaEnElCelular(ChromeMovilCase):
                     centro_etiqueta, centro_precio = (arriba + abajo) / 2, (m['precio'][0] + m['precio'][1]) / 2
                     self.assertAlmostEqual(centro_etiqueta, centro_precio, delta=12, msg='en la línea del precio')
                     self.assertGreater(izquierda, m['precio'][2], 'a la derecha del precio y de «+ ITBMS»')
+                    # Las insignias de Baby Caleb (fondo, letra, punto); nada del amarillo de D'CASA.
+                    self.assertEqual(m['colores'], COLORES[estado], estado)
+                    self.assertNotIn('rgb(254, 208, 15)', m['colores'])

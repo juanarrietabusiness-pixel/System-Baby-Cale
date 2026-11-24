@@ -96,7 +96,7 @@
                         <setting id="dcasa_vend_recompra" string="Recompra de su cliente: paga este % de la comisión" help="Cuando un cliente ligado a un vendedor vuelve a comprar sin decir el código, el vendedor gana esta parte de la comisión. 100 % es la comisión completa.">
                             <div class="d-flex align-items-center gap-2"><field name="dcasa_vend_recompra" class="o_dcasa_vend_cifra" options="{'hide_trailing_zeros': true}"/><span>%</span></div>
                         </setting>
-                        <setting id="dcasa_vend_existente" string="Cliente que ya compraba: paga este % de la comisión" help="Cuando alguien que ya había comprado en D’CASA compra con un código, el vendedor gana esta parte de la comisión. 100 % es la comisión completa.">
+                        <setting id="dcasa_vend_existente" string="Cliente que ya compraba: paga este % de la comisión" help="Cuando alguien que ya había comprado en Baby Caleb compra con un código, el vendedor gana esta parte de la comisión. 100 % es la comisión completa.">
                             <div class="d-flex align-items-center gap-2"><field name="dcasa_vend_existente" class="o_dcasa_vend_cifra" options="{'hide_trailing_zeros': true}"/><span>%</span></div>
                         </setting>
                         <setting id="dcasa_vend_vinculo_meses" string="Meses que el cliente queda ligado a su vendedor" help="Sus compras de ese tiempo cuentan para el vendedor aunque no diga el código. 0 = el cliente no se liga. Un cambio vale para los clientes que se liguen desde que lo guardas; los que ya estaban ligados conservan el plazo con que se ligaron.">
@@ -277,7 +277,7 @@
                         <setting id="dcasa_vend_recompra" string="Recompra de su cliente: paga este % de la comisión" help="Cuando un cliente ligado a un vendedor vuelve a comprar sin decir el código, el vendedor gana esta parte de la comisión. 100 % es la comisión completa.">
                             <div class="d-flex align-items-center gap-2"><field name="dcasa_vend_recompra" class="o_dcasa_vend_cifra" options="{'hide_trailing_zeros': true}"/><span>%</span></div>
                         </setting>
-                        <setting id="dcasa_vend_existente" string="Cliente que ya compraba: paga este % de la comisión" help="Cuando alguien que ya había comprado en D’CASA compra con un código, el vendedor gana esta parte de la comisión. 100 % es la comisión completa.">
+                        <setting id="dcasa_vend_existente" string="Cliente que ya compraba: paga este % de la comisión" help="Cuando alguien que ya había comprado en Baby Caleb compra con un código, el vendedor gana esta parte de la comisión. 100 % es la comisión completa.">
                             <div class="d-flex align-items-center gap-2"><field name="dcasa_vend_existente" class="o_dcasa_vend_cifra" options="{'hide_trailing_zeros': true}"/><span>%</span></div>
                         </setting>
                         <setting id="dcasa_vend_vinculo_meses" string="Meses que el cliente queda ligado a su vendedor" help="Sus compras de ese tiempo cuentan para el vendedor aunque no diga el código. 0 = el cliente no se liga. Un cambio vale para los clientes que se liguen desde que lo guardas; los que ya estaban ligados conservan el plazo con que se ligaron.">

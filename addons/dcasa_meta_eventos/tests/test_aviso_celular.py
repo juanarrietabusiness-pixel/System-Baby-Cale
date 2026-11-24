@@ -18,7 +18,12 @@ MEDIR_AVISO = """
         const ancho = document.documentElement.clientWidth, alto = innerHeight;
         const caja = (sel) => { const el = document.querySelector(sel); if (!visible(el)) { return null; }
             const r = el.getBoundingClientRect(); return [r.left, r.top, r.right, r.bottom]; };
+        const color = (sel) => { const e = getComputedStyle(document.querySelector(sel));
+            return [e.backgroundColor, e.color, e.borderTopColor, e.borderTopLeftRadius, e.fontFamily.split(',')[0]]; };
+        const tarjeta = document.querySelector('#website_cookies_bar .modal-content');
         return { ancho, alto, desplazable: document.documentElement.scrollWidth,
+                 marca: { aceptar: color('#cookies-consent-all'), necesarias: color('#cookies-consent-essential'),
+                          tarjeta: getComputedStyle(tarjeta).backgroundColor },
                  texto: caja('#website_cookies_bar p'),
                  politica: caja('#website_cookies_bar .o_cookies_bar_text_policy'),
                  necesarias: caja('#cookies-consent-essential'), aceptar: caja('#cookies-consent-all') };
@@ -48,3 +53,13 @@ class TestAvisoDeCookiesEnElCelular(SitioMetaCase, ChromeMovilCase):
                     self.assertLessEqual(abajo, ALTO + 0.5, f'{parte}: queda debajo de la pantalla')
                 for boton in ('necesarias', 'aceptar'):
                     self.assertGreaterEqual(medida[boton][3] - medida[boton][1], 44 - 0.5, f'{boton}: muy chico')
+                # La marca Baby Caleb (su aviso de Meta): la tarjeta crema, «Aceptar» naranja con letra navy y «Solo las
+                # necesarias» de contorno, en pastilla, y los dos del mismo alto (rechazar, igual de fácil).
+                marca = medida['marca']
+                self.assertEqual(marca['tarjeta'], 'rgb(242, 239, 229)')
+                self.assertEqual(marca['aceptar'][:2], ['rgb(238, 146, 74)', 'rgb(27, 50, 70)'])
+                self.assertEqual(marca['necesarias'][:3], ['rgba(0, 0, 0, 0)', 'rgb(152, 93, 47)', 'rgb(195, 120, 61)'])
+                self.assertEqual({marca['aceptar'][3], marca['necesarias'][3]}, {'999px'})
+                self.assertEqual({marca['aceptar'][4], marca['necesarias'][4]}, {'Montserrat'})
+                self.assertAlmostEqual(medida['necesarias'][3] - medida['necesarias'][1],
+                                       medida['aceptar'][3] - medida['aceptar'][1], delta=1)

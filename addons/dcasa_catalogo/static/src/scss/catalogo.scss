@@ -1,27 +1,74 @@
-// Ficha de producto: medidas y precio en combo, con etiqueta propia (no compiten con el precio).
+// Ficha de producto con la marca Baby Caleb (docs/MARCA_BABY_CALEB.md). Los colores van escritos aquí mismo, sin
+// variables de website_dcasa; Montserrat (la @font-face la declara website_dcasa).
+$cat-surface: #F2EFE5;
+$cat-bg: #F9F6ED;
+$cat-fg: #1B3246;
+$cat-line: rgba(27, 50, 70, .12);   // filos que separan
+$cat-accent: #EE924A;           // relleno: nunca texto ni borde
+$cat-accent-strong: #985D2F;    // texto en naranja (4.60 sobre surface)
+$cat-accent-edge: #C3783D;      // borde naranja (3.01 sobre surface)
+$cat-sage: #91C9A2;             // relleno verde: nunca texto ni borde
+$cat-sage-strong: #53735C;
+$cat-fuente: 'Montserrat', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+// Ficha de producto: medidas, presentación de cada talla y precio en combo, con etiqueta propia (no compiten con el
+// precio). Una tarjeta de la marca (`surface`, filo `line`, radio 16) con cada grupo apilado a todo el ancho: la
+// etiqueta es el antetítulo de la marca (12 px, 700, caja alta, en el naranja de texto) y debajo sus líneas, una por
+// renglón, separadas por el filo. Nada de columnas: con varias presentaciones, la rejilla de dos columnas de antes
+// repartía las líneas entre las dos (una angostísima) y en el celular la ficha se salía de lado (607 px a 390).
 .o_dcasa_ficha_datos {
-    display: grid;
-    grid-template-columns: max-content 1fr;
-    gap: .35rem 1rem;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    // El mismo ancho que las secciones de la ficha de Odoo de al lado (el precio, las tallas, el botón).
+    max-width: var(--o-wsale-product-details-content-section-max-width, 520px);
     margin: 0;
-    padding: .85rem 1rem;
-    border-left: 3px solid #1340B1;
-    background: rgba(19, 64, 177, .05);
+    padding: 1rem 1.25rem;
+    border: 1px solid $cat-line;
+    border-radius: 16px;
+    background: $cat-surface;
+    box-shadow: 0 4px 20px -2px rgba(27, 50, 70, .05);
+    color: $cat-fg;
+    font-family: $cat-fuente;
+
     dt {
-        font-family: 'Oswald', sans-serif;
-        font-weight: 500;
+        margin: 1rem 0 .35rem;
+        font-family: $cat-fuente;
+        font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: .04em;
-        font-size: .8rem;
-        color: #1340B1;
-        align-self: center;
+        letter-spacing: .14em;
+        font-size: .75rem;
+        line-height: 1.3;
+        color: $cat-accent-strong;
+
+        &:first-child {
+            margin-top: 0;
+        }
     }
-    dd { margin: 0; }
+
+    dd {
+        margin: 0;
+        min-width: 0;
+        font-size: 1rem;
+        line-height: 1.5;
+        overflow-wrap: anywhere;
+    }
+
+    // Las presentaciones: una por renglón, con el filo entre una y otra.
+    .o_dcasa_presentacion {
+        padding: .5rem 0;
+
+        & + .o_dcasa_presentacion {
+            border-top: 1px solid $cat-line;
+        }
+    }
 }
 
 // Ficha: «Disponible», «Quedan pocas» o «Agotado» (models/product.py), en la misma línea del precio, a la derecha de
-// «+ ITBMS»; si no cabe, baja justo debajo. Así se ve al abrir la ficha en el celular, sin bajar. Plano, con los
-// colores de la marca: el amarillo solo va sobre navy (regla del ADN: el amarillo nunca toca el blanco).
+// «+ ITBMS»; si no cabe, baja justo debajo. Así se ve al abrir la ficha en el celular, sin bajar. Las insignias de Baby
+// Caleb: pastilla de 12 px, 700, en caja alta. «Disponible» en verde salvia claro con letra navy; «Quedan pocas»
+// empuja en el naranja de relleno con letra navy (5.56); «Agotado» cierra en navy con letra crema (12.21), como en su
+// tienda. El estado también va en palabras: el color nunca es la única señal.
 .o_wsale_product_details_content_section_price:has(.o_dcasa_disponibilidad) {
     display: flex;
     flex-wrap: wrap;
@@ -38,34 +85,38 @@
     margin: 0;
     padding: .3rem .85rem;
     border-radius: 999px;
-    font-family: 'Oswald', sans-serif;
-    font-weight: 500;
-    font-size: .85rem;
-    letter-spacing: .05em;
+    font-family: $cat-fuente;
+    font-weight: 700;
+    font-size: .75rem;
+    letter-spacing: .08em;
     text-transform: uppercase;
     line-height: 1.4;
-    color: #1340B1;
-    background: rgba(19, 64, 177, .08);
+    color: $cat-fg;
+    background: rgba($cat-sage, .3);
 
     .o_dcasa_disponibilidad_punto {
         flex: none;
         width: .55rem;
         height: .55rem;
         border-radius: 50%;
-        background: currentColor;
+        background: $cat-sage-strong;
     }
 
     &[data-estado="pocas"] {
-        color: #FFFFFF;
-        background: #0E2A6B;
+        color: $cat-fg;
+        background: $cat-accent;
 
         .o_dcasa_disponibilidad_punto {
-            background: #FED00F;
+            background: $cat-fg;
         }
     }
 
     &[data-estado="agotado"] {
-        color: #4A5163;
-        background: #EAE5DA;
+        color: $cat-bg;
+        background: $cat-fg;
+
+        .o_dcasa_disponibilidad_punto {
+            background: $cat-bg;
+        }
     }
 }

@@ -54,6 +54,8 @@ class TestAppSocio(ConReglasDePrueba, HttpCase):
         self.assertIn('Ana P.', respuesta.text, 'Del padrino solo sale el nombre y la inicial')
         cuenta = self.registrar(padrino=self.padrino.dcasa_socio_codigo)
         self.assertIn('Ya eres socio', cuenta.text)
+        self.assertIn(f"Ya eres socio de {self.env.ref('website.default_website').company_id.name}", cuenta.text,
+                      'con el nombre de la empresa, no el de la plantilla de origen')
         socio = self.Partner.search([('dcasa_celular', '=', '61234567')])
         self.assertTrue(socio.dcasa_socio_codigo.startswith('DCA'))
         self.assertEqual(socio.dcasa_referido_por_id, self.padrino)

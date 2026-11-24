@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Mi cuenta D'CASA (/mi-cuenta). Móvil primero: se usa de pie en el mostrador. Letra de 17 px, botones de
+    <!-- Mi cuenta (/mi-cuenta), con la marca Baby Caleb (docs/MARCA_BABY_CALEB.md). Móvil primero: se usa de pie en el mostrador. Letra de 17 px, botones de
          48 px, un solo h1 (el de la cabecera) y fechas «16 oct 2026». Las cifras de pago vienen de
          models/mi_cuenta.py, que solo lee _dcasa_estado_abono() de cada factura. -->
 
@@ -15,9 +15,7 @@
                 <t t-call="website_dcasa.cabecera_pagina">
                     <t t-set="cabecera_kicker" t-value="kicker or 'Mi cuenta Baby Caleb'"/>
                     <t t-set="cabecera_titulo" t-value="titulo"/>
-                    <t t-set="cabecera_imagen" t-value="'/website_dcasa/static/src/img/split-hoy.webp'"/>
-                    <t t-set="cabecera_ancho" t-value="793"/>
-                    <t t-set="cabecera_alto" t-value="595"/>
+                    <!-- Sin foto: la de antes era un sofá (marca de D'CASA). La cabecera la pinta website_dcasa. -->
                 </t>
                 <div t-attf-class="o_dcasa_container o_dcasa_mc_cuerpo #{'o_dcasa_mc_con_nav' if ficha else ''}">
                     <nav t-if="ficha" class="o_dcasa_mc_nav" aria-label="Secciones de tu cuenta">
@@ -77,8 +75,8 @@
         </p>
     </template>
 
-    <!-- Foto del mueble (si está publicado en la tienda) o un icono. -->
-    <template id="foto" name="Mi cuenta: foto del mueble">
+    <!-- Foto del artículo (si está publicado en la tienda) o un icono. -->
+    <template id="foto" name="Mi cuenta: foto del artículo">
         <span class="o_dcasa_mc_foto">
             <img t-if="compra['foto']" t-att-src="compra['foto']" alt="" width="256" height="256" loading="lazy"/>
             <i t-else="" class="fa fa-cube" aria-hidden="true"/>
@@ -577,7 +575,7 @@
                 <p class="o_dcasa_mc_nota">Cuéntanos qué tal lo que compraste. La leemos antes de publicarla y en la
                     ficha del producto sale tu primer nombre y la inicial de tu apellido.</p>
                 <p t-if="not por_opinar" class="o_dcasa_mc_vacio">Cuando una compra tuya quede pagada por completo,
-                    aquí puedes contarnos qué tal te fue con cada mueble.</p>
+                    aquí puedes contarnos qué tal te fue con cada producto.</p>
                 <form t-foreach="por_opinar" t-as="item" method="post" action="/mi-cuenta/opiniones"
                       class="o_dcasa_mc_opinar" t-attf-aria-labelledby="mc_opinar_#{item['id']}">
                     <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>

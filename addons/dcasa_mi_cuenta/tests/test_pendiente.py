@@ -34,7 +34,7 @@ class TestMiCuentaConTodoPendiente(MiCuentaComun, HttpCase):
         self.assertIn('Te falta', texto, 'lo que falta pagar sigue igual')
         self.assertIn(monto(self.factura._dcasa_estado_abono()['saldo']), texto)
         self.assertIn(R.NO_DISPONIBLE, texto)
-        for promesa in ("Socios D'CASA · tus puntos", 'Ver premios', 'Invitar a un amigo', 'Activar mis puntos',
+        for promesa in ("Socios Baby Caleb · tus puntos", 'Ver premios', 'Invitar a un amigo', 'Activar mis puntos',
                         'Cada compra suma'):
             self.assertNotIn(promesa, texto)
         self.assertFalse(CIFRAS.findall(texto), texto)

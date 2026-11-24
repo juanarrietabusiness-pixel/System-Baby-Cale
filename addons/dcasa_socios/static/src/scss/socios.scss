@@ -1,26 +1,283 @@
-// App del socio. Sistema plano D'CASA: placa blanca, azul arriba, amarillo abajo.
-$dcasa-azul: #1340B1;
-$dcasa-amarillo: #FED00F;
+// La app del socio (/socios y sus páginas), el paso «Usar mis puntos» del carrito y la tarjeta de /my, con la marca
+// Baby Caleb (docs/MARCA_BABY_CALEB.md): fondo crema, tarjetas `surface` con filo `line` y radio de 16 px, texto
+// navy, botón principal en pastilla naranja con letra navy y el verde salvia de relleno para las placas de puntos
+// (con todo en navy encima: 6.96). El naranja y el verde son RELLENO: nunca texto ni borde. Montserrat para todo (la
+// @font-face la declara website_dcasa). La cabecera de /socios la pinta website_dcasa: aquí solo el contenido.
+//
+// Los colores van escritos aquí mismo, sin variables de website_dcasa.
+
+$so-bg: #F9F6ED;
+$so-surface: #F2EFE5;
+$so-fg: #1B3246;
+$so-muted: rgba(27, 50, 70, .7);
+$so-line: rgba(27, 50, 70, .12);
+$so-control: rgba(27, 50, 70, .55);
+$so-accent: #EE924A;
+$so-accent-fg: #1B3246;
+$so-accent-strong: #985D2F;
+$so-accent-edge: #C3783D;
+$so-sage: #91C9A2;
+$so-sage-strong: #53735C;
+$so-verde: #1E7B34;   // «sumó»: 4.93 sobre bg · 4.64 sobre surface
+$so-rojo: #B42318;    // «restó»: 6.08 sobre bg · 5.71 sobre surface
+$so-fuente: 'Montserrat', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+$so-sombra: 0 4px 20px -2px rgba(27, 50, 70, .05);
+
+@mixin so-foco {
+    outline: 2px solid $so-fg;
+    outline-offset: 2px;
+    box-shadow: none;
+}
+
+@mixin so-antetitulo {
+    font-family: $so-fuente;
+    font-size: .75rem;
+    font-weight: 700;
+    letter-spacing: .14em;
+    line-height: 1.3;
+    text-transform: uppercase;
+}
+
+@mixin so-btn-principal {
+    --bs-btn-color: #{$so-accent-fg};
+    --bs-btn-bg: #{$so-accent};
+    --bs-btn-border-color: transparent;
+    --bs-btn-hover-color: #{$so-accent-fg};
+    --bs-btn-hover-bg: #{mix($so-accent, $so-bg, 90%)};
+    --bs-btn-hover-border-color: transparent;
+    --bs-btn-active-color: #{$so-accent-fg};
+    --bs-btn-active-bg: #{$so-accent};
+    --bs-btn-active-border-color: transparent;
+    --bs-btn-disabled-color: #{$so-accent-fg};
+    --bs-btn-disabled-bg: #{$so-accent};
+    --bs-btn-disabled-border-color: transparent;
+    color: $so-accent-fg;
+    background-color: $so-accent;
+    border: 1px solid transparent;   // el naranja es relleno: nunca borde
+    border-radius: 999px;
+    font-family: $so-fuente;
+    font-weight: 700;
+    text-transform: none;
+    letter-spacing: 0;
+    box-shadow: 0 8px 24px -10px rgba($so-accent, .7);   // el resplandor suave del naranja, pegado al botón
+
+    &:hover,
+    &:focus-visible,
+    &:active {
+        color: $so-accent-fg;
+        background-color: mix($so-accent, $so-bg, 90%);
+        border-color: transparent;
+    }
+}
+
+@mixin so-btn-contorno {
+    --bs-btn-color: #{$so-accent-strong};
+    --bs-btn-bg: transparent;
+    --bs-btn-border-color: #{$so-accent-edge};
+    --bs-btn-hover-color: #{$so-accent-fg};
+    --bs-btn-hover-bg: #{$so-accent};
+    --bs-btn-hover-border-color: #{$so-accent-edge};
+    --bs-btn-active-color: #{$so-accent-fg};
+    --bs-btn-active-bg: #{$so-accent};
+    --bs-btn-active-border-color: #{$so-accent-edge};
+    color: $so-accent-strong;
+    background-color: transparent;
+    border: 1px solid $so-accent-edge;
+    border-radius: 999px;
+    font-family: $so-fuente;
+    font-weight: 700;
+    text-transform: none;
+    letter-spacing: 0;
+
+    &:hover,
+    &:focus-visible,
+    &:active {
+        color: $so-accent-fg;
+        background-color: $so-accent;
+        border-color: $so-accent-edge;
+    }
+}
+
+// Lo de Bootstrap que la app del socio usa, con los colores de la marca (en todas sus piezas).
+@mixin so-piezas {
+    font-family: $so-fuente;
+    color: $so-fg;
+
+    h2,
+    h3,
+    .h4,
+    .h5 {
+        font-family: $so-fuente;
+        font-weight: 700;
+        letter-spacing: -.02em;
+        line-height: 1.2;
+        text-transform: none;
+        color: $so-fg;
+    }
+
+    .btn {
+        font-family: $so-fuente;
+        text-transform: none;
+        letter-spacing: 0;
+    }
+
+    .btn-primary {
+        @include so-btn-principal;
+    }
+
+    .btn-outline-primary {
+        @include so-btn-contorno;
+    }
+
+    .btn-link {
+        --bs-btn-color: #{$so-accent-strong};
+        --bs-btn-hover-color: #{$so-fg};
+        color: $so-accent-strong;
+        font-weight: 700;
+    }
+
+    a:focus-visible,
+    button:focus-visible,
+    .btn:focus-visible,
+    summary:focus-visible {
+        @include so-foco;
+    }
+
+    .text-muted {
+        color: $so-muted !important;
+    }
+
+    .text-success {
+        color: $so-verde !important;
+    }
+
+    .text-danger {
+        color: $so-rojo !important;
+    }
+
+    // Insignias: pastilla de 12 px, 700, en caja alta, verde salvia claro con letra navy (como las de Baby Caleb).
+    .badge {
+        padding: .3rem .7rem;
+        border-radius: 999px;
+        font-family: $so-fuente;
+        font-size: .75rem;
+        font-weight: 700;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+    }
+
+    .text-bg-success {
+        background-color: rgba($so-sage, .35) !important;
+        color: $so-fg !important;
+    }
+
+    .text-bg-light {
+        background-color: rgba($so-fg, .07) !important;
+        color: $so-fg !important;
+    }
+
+    .alert {
+        --bs-alert-color: #{$so-fg};
+        --bs-alert-bg: #{$so-surface};
+        --bs-alert-border-color: #{$so-line};
+        color: $so-fg;
+        background-color: $so-surface;
+        border: 1px solid $so-line;
+        border-radius: 14px;
+    }
+
+    .alert-success {
+        background-color: rgba($so-sage, .25);
+        border-color: $so-sage-strong;
+    }
+
+    .alert-warning {
+        background-color: rgba($so-accent, .18);
+        border-color: $so-accent-edge;
+    }
+
+    .alert-danger {
+        color: $so-rojo;
+        background-color: $so-bg;
+        border-color: $so-rojo;
+    }
+
+    // Campos: 16 px o más (el iPhone no hace zoom), 44 px de alto, radio de 14 px y el borde `control`.
+    .form-control,
+    .form-select {
+        font-family: $so-fuente;
+        font-size: 1rem;   // 16 px
+        color: $so-fg;
+        background-color: $so-bg;
+        border: 1px solid $so-control;
+        border-radius: 14px;
+        min-height: 44px;
+
+        &::placeholder {
+            color: $so-muted;
+        }
+
+        &:focus {
+            border-color: $so-fg;
+            @include so-foco;
+        }
+    }
+
+    .form-check-input:checked {
+        background-color: $so-fg;
+        border-color: $so-fg;
+    }
+}
 
 .o_dcasa_socios {
+    @include so-piezas;
+    background: $so-bg;
+    line-height: 1.6;
+
     .o_dcasa_socios_body {
         max-width: 72rem;
         padding-block: clamp(2.5rem, 6vw, 5rem) !important;
     }
 
-    // Enlaces dentro del texto: subrayados (el azul solo no basta, WCAG 1.4.1).
+    // Enlaces dentro del texto: subrayados (el color solo no basta, WCAG 1.4.1), en el naranja de texto.
     p a:not(.btn),
     li a:not(.btn),
-    label a:not(.btn) {
+    label a:not(.btn),
+    .d-flex > a:not(.btn) {
+        color: $so-accent-strong;
         text-decoration: underline;
         text-underline-offset: .15em;
+
+        &:hover {
+            color: $so-fg;
+        }
+    }
+
+    // El antetítulo dentro del contenido (el de la cabecera lo pinta website_dcasa).
+    .o_dcasa_socios_body .o_dcasa_kicker {
+        @include so-antetitulo;
+        color: $so-accent-strong;
+    }
+
+    // «Así funciona»: los pasos con su número en un círculo naranja de relleno y la cifra navy (5.56).
+    .o_dcasa_steps li {
+        border-bottom-color: $so-line;
+
+        &::before {
+            border-radius: 50%;
+            background: $so-accent;
+            color: $so-accent-fg;
+            font-family: $so-fuente;
+            font-weight: 700;
+        }
     }
 }
 
 .o_dcasa_socios_card {
-    background: #FFFFFF;
-    border: 2px solid rgba($dcasa-azul, .12);
-    border-radius: 1rem;
+    background: $so-surface;
+    border: 1px solid $so-line;
+    border-radius: 16px;
+    box-shadow: $so-sombra;
     padding: 1.5rem;
 }
 
@@ -34,42 +291,46 @@ $dcasa-amarillo: #FED00F;
     .form-control,
     .form-select {
         min-height: 3rem;
-        font-size: 1.1rem;
+        font-size: 1.0625rem;
     }
 }
 
-// El saldo: amarillo sobre azul, dentro de su placa (nunca amarillo sobre blanco).
+// El saldo: la placa verde salvia con todo en navy (6.96).
 .o_dcasa_socios_saldo {
-    background: $dcasa-azul;
-    color: #FFFFFF;
-    border-radius: 1rem;
+    background: $so-sage;
+    color: $so-fg;
+    border-radius: 24px;
     padding: 1.75rem;
-    // Sin franja amarilla abajo: tocaba el fondo blanco (regla de marca).
 
-    .o_dcasa_kicker {
-        color: rgba(255, 255, 255, .88);  // «Tus puntos» legible sobre el azul (contraste AA)
+    .o_dcasa_kicker,
+    .o_dcasa_socios_body & .o_dcasa_kicker {
+        @include so-antetitulo;
+        color: $so-fg;   // el naranja de texto no llega a AA sobre el verde (2.81)
     }
 
     .o_dcasa_socios_saldo_n {
-        font-family: 'Anton', 'Oswald', sans-serif;
+        font-family: $so-fuente;
+        font-weight: 700;
         font-size: clamp(3rem, 12vw, 4.5rem);
+        letter-spacing: -.03em;
         line-height: 1;
-        color: $dcasa-amarillo;
+        color: $so-fg;
         margin: .25rem 0 .5rem;
     }
 }
 
 .o_dcasa_socios_codigo {
-    font-family: 'Oswald', sans-serif;
+    font-family: $so-fuente;
+    font-weight: 700;
     font-variant-numeric: tabular-nums;
     letter-spacing: .12em;
-    color: $dcasa-azul;
+    color: $so-fg;
 }
 
 .o_dcasa_socios_premio,
 .o_dcasa_socios_canje {
-    border: 1px solid rgba($dcasa-azul, .15);
-    border-radius: .75rem;
+    border: 1px solid $so-line;
+    border-radius: 14px;
     padding: 1rem;
 }
 
@@ -86,66 +347,85 @@ $dcasa-amarillo: #FED00F;
 
 .o_dcasa_socios_lista li {
     padding: .6rem 0;
-    border-bottom: 1px solid rgba($dcasa-azul, .1);
+    border-bottom: 1px solid $so-line;
 }
 
 .o_dcasa_socios_terminos h2 {
-    font-size: 1.2rem;
-    color: $dcasa-azul;
+    font-size: 1.25rem;
+    color: $so-fg;
     margin-top: 1.5rem;
-    text-transform: uppercase;
+    text-transform: none;
 }
 
 // Botones de la app del socio: al menos 44 px para el dedo.
 .o_dcasa_socios_btn_toque {
     min-height: 44px;
     min-width: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 // ---------------------------------------------------------------------------
-// Socios en la web (ronda 7): nav de la app, catálogo de premios, carrito y /my.
-// Mismo sistema plano: placa azul con cifras amarillas; el amarillo solo sobre azul.
+// Socios en la web: nav de la app, catálogo de premios, carrito y /my.
 // ---------------------------------------------------------------------------
 
-$dcasa-navy: #0B2A6F;
-
+// La nav de la app: pastillas de contorno con letra navy; la que se toca, con el filo naranja.
 .o_dcasa_socios_nav {
     display: flex;
     flex-wrap: wrap;
-    gap: .25rem 1.25rem;
-    font-family: 'Oswald', sans-serif;
-    text-transform: uppercase;
-    letter-spacing: .06em;
-    font-size: .95rem;
+    gap: .5rem;
+    font-family: $so-fuente;
+    font-size: .9375rem;
+    font-weight: 600;
 
     a {
-        color: $dcasa-azul;  // sobre el fondo blanco del cuerpo: azul, nunca amarillo
-        text-decoration: underline;
-        text-underline-offset: .2em;
+        color: $so-fg;
+        text-decoration: none;
         min-height: 44px;
         display: inline-flex;
         align-items: center;
+        padding: 0 1.1rem;
+        border: 1px solid $so-control;
+        border-radius: 999px;
+        background: transparent;
+
+        &:hover {
+            color: $so-fg;
+            border-color: $so-accent-edge;
+            background: rgba($so-accent, .12);
+        }
+
+        &:focus-visible {
+            @include so-foco;
+        }
     }
 }
 
-// Catálogo de premios: tarjeta con foto cuadrada (la que sube Gerencia) o placa azul con el valor.
+// Catálogo de premios: tarjeta con foto cuadrada (la que sube Gerencia) o la placa verde con el valor.
 .o_dcasa_premio {
-    background: #FFFFFF;
-    border: 2px solid rgba($dcasa-azul, .12);
-    border-radius: 1rem;
+    background: $so-surface;
+    border: 1px solid $so-line;
+    border-radius: 16px;
+    box-shadow: $so-sombra;
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    transition: border-color .3s ease;
+
+    &:hover {
+        border-color: $so-accent-edge;
+    }
 }
 
 .o_dcasa_premio_foto {
     aspect-ratio: 1;
-    background: $dcasa-azul;
+    background: $so-bg;
 
     img {
         width: 100%;
         height: 100%;
-        object-fit: cover;
+        object-fit: contain;
         display: block;
     }
 }
@@ -155,12 +435,16 @@ $dcasa-navy: #0B2A6F;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-family: 'Anton', 'Oswald', sans-serif;
+    font-family: $so-fuente;
+    font-weight: 700;
+    letter-spacing: -.03em;
     font-size: clamp(2rem, 7vw, 3rem);
-    color: $dcasa-amarillo;
+    background: rgba($so-sage, .35);
+    color: $so-fg;
 
     .fa {
         font-size: 3rem;
+        color: $so-sage-strong;
     }
 }
 
@@ -171,7 +455,8 @@ $dcasa-navy: #0B2A6F;
     flex-grow: 1;
 
     .o_dcasa_kicker {
-        font-size: .7rem;
+        @include so-antetitulo;
+        color: $so-sage-strong;
     }
 
     form,
@@ -181,29 +466,64 @@ $dcasa-navy: #0B2A6F;
 }
 
 .o_dcasa_premio_puntos {
-    font-family: 'Oswald', sans-serif;
-    font-size: 1.15rem;
-    color: $dcasa-azul;
+    font-family: $so-fuente;
+    font-weight: 700;
+    font-size: 1.125rem;
+    color: $so-accent-strong;
 }
 
-// Carrito: el paso «Usar mis puntos» va dentro de una placa azul; los premios son botones amarillos.
+// Carrito: el paso «Usar mis puntos» va dentro de la placa verde; los premios son botones naranjas con letra navy.
+.o_dcasa_carrito_puntos {
+    @include so-piezas;
+}
+
 .o_dcasa_carrito_puntos_placa {
-    background: $dcasa-azul;
-    color: #FFFFFF;
-    border-radius: 1rem;
+    background: $so-sage;
+    color: $so-fg;
+    border-radius: 24px;
     padding: 1.5rem;
 
     .o_dcasa_kicker {
-        color: rgba(255, 255, 255, .88);
+        @include so-antetitulo;
+        color: $so-fg;
     }
 
     a {
-        color: #FFFFFF;
+        color: $so-fg;
+        text-decoration: underline;
+        text-underline-offset: .15em;
     }
 
     .form-control {
         min-height: 3rem;
     }
+}
+
+// «Aplicar» y «Quitar el premio»: contorno navy sobre la placa verde (6.96); al pasar, crema translúcido.
+.o_dcasa_carrito_btn_placa {
+    background: transparent;
+    color: $so-fg;
+    border: 1px solid $so-fg;
+    border-radius: 999px;
+    font-family: $so-fuente;
+    font-weight: 700;
+    padding-inline: 1.25rem;
+
+    &:hover,
+    &:focus-visible,
+    &:active {
+        background: rgba($so-bg, .55);
+        color: $so-fg;
+        border-color: $so-fg;
+    }
+}
+
+.o_dcasa_carrito_puntos_placa .input-group > .o_dcasa_carrito_btn_placa {
+    border-radius: 0 999px 999px 0;
+}
+
+.o_dcasa_carrito_puntos_placa .input-group > .form-control {
+    border-radius: 14px 0 0 14px;
 }
 
 .o_dcasa_carrito_puntos_saldo {
@@ -214,10 +534,12 @@ $dcasa-navy: #0B2A6F;
 }
 
 .o_dcasa_carrito_puntos_n {
-    font-family: 'Anton', 'Oswald', sans-serif;
+    font-family: $so-fuente;
+    font-weight: 700;
+    letter-spacing: -.03em;
     font-size: 2.25rem;
     line-height: 1;
-    color: $dcasa-amarillo;
+    color: $so-fg;
 }
 
 .o_dcasa_carrito_premios {
@@ -238,48 +560,57 @@ $dcasa-navy: #0B2A6F;
     gap: .15rem;
     padding: .75rem 1rem;
     border: 0;
-    border-radius: .75rem;
-    background: $dcasa-amarillo;  // amarillo sobre azul: la única combinación permitida
-    color: $dcasa-navy;
+    border-radius: 16px;
+    background: $so-accent;
+    color: $so-accent-fg;
+    font-family: $so-fuente;
     text-align: left;
     font-weight: 600;
 
-    &:hover,
-    &:focus-visible {
-        background: #FFFFFF;
-        color: $dcasa-azul;
-        outline: 3px solid #FFFFFF;
+    &:hover {
+        background: mix($so-accent, $so-bg, 90%);
+        color: $so-accent-fg;
     }
 
+    &:focus-visible {
+        @include so-foco;
+    }
+
+    // El que todavía no alcanza: crema translúcido sobre el verde, letra navy (no se apaga con opacidad).
     &.o_dcasa_carrito_premio_lejos,
     &:disabled {
-        background: rgba(255, 255, 255, .12);
-        color: rgba(255, 255, 255, .8);
+        background: rgba($so-bg, .55);
+        color: $so-fg;
     }
 }
 
 .o_dcasa_carrito_premio_valor {
-    font-family: 'Oswald', sans-serif;
+    font-family: $so-fuente;
+    font-weight: 700;
+    letter-spacing: -.02em;
     font-size: 1.2rem;
-    text-transform: uppercase;
+    text-transform: none;
 }
 
 .o_dcasa_carrito_puntos_nota {
-    border: 2px solid rgba($dcasa-azul, .12);
-    border-radius: 1rem;
+    background: $so-surface;
+    border: 1px solid $so-line;
+    border-radius: 16px;
     padding: 1rem 1.25rem;
 
     a {
+        color: $so-accent-strong;
         text-decoration: underline;
         text-underline-offset: .15em;
     }
 }
 
-// /my: la tarjeta del programa, azul, delante de las de Odoo.
+// /my: la tarjeta del programa, en la placa verde, delante de las de Odoo.
 .o_dcasa_portal_socio {
-    background: $dcasa-azul;
-    color: #FFFFFF;
-    border-radius: 1rem;
+    @include so-piezas;
+    background: $so-sage;
+    color: $so-fg;
+    border-radius: 24px;
     padding: 1.5rem;
     display: flex;
     justify-content: space-between;
@@ -288,37 +619,36 @@ $dcasa-navy: #0B2A6F;
     flex-wrap: wrap;
 
     .o_dcasa_kicker {
-        color: rgba(255, 255, 255, .88);
+        @include so-antetitulo;
+        color: $so-fg;
     }
+
 }
 
 .o_dcasa_portal_socio_saldo {
-    font-family: 'Anton', 'Oswald', sans-serif;
+    font-family: $so-fuente;
+    font-weight: 700;
+    letter-spacing: -.03em;
     font-size: clamp(2.25rem, 8vw, 3rem);
     line-height: 1;
-    color: $dcasa-amarillo;
+    color: $so-fg;
     margin: .25rem 0 .5rem;
 
     small {
-        font-family: 'Oswald', sans-serif;
+        font-family: $so-fuente;
+        font-weight: 600;
+        letter-spacing: 0;
         font-size: 1rem;
-        color: #FFFFFF;
+        color: $so-fg;
     }
 }
 
 .o_dcasa_portal_socio_btn {
-    background: $dcasa-amarillo;
-    color: $dcasa-navy;
-    font-family: 'Oswald', sans-serif;
-    text-transform: uppercase;
-    letter-spacing: .04em;
-    min-height: 44px;
-    padding-inline: 1.25rem;
+    @include so-btn-principal;
+    box-shadow: none;
     border: 0;
-
-    &:hover,
-    &:focus-visible {
-        background: #FFFFFF;
-        color: $dcasa-azul;
-    }
+    min-height: 44px;
+    padding-inline: 1.5rem;
+    display: inline-flex;
+    align-items: center;
 }

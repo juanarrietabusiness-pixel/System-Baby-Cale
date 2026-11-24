@@ -1,18 +1,27 @@
-// «Armar combo cama + colchón»: panel encima de la cotización. Plano (sin degradados ni sombras dramáticas), azul de
-// la marca y el amarillo solo sobre azul (la etiqueta «Ahorra»). Pensado primero para el celular: sin scroll de lado.
+// «Armar combo cama + colchón»: panel encima de la cotización, con la marca Baby Caleb del panel
+// (docs/MARCA_BABY_CALEB.md): el naranja de RELLENO con letra navy (la etiqueta «Ahorra», la medida elegida), el naranja
+// de texto para lo que se toca, el verde salvia claro de fondo para lo elegido, radio de 14 px y Montserrat. Pensado
+// primero para el celular: sin scroll de lado.
+//
+// Los colores salen de los tokens del panel (dcasa_interfaz: así siguen a Ajustes › Marca del panel y al modo oscuro) y,
+// si un token no está, del valor de Baby Caleb escrito aquí.
 .o_dcasa_armar_combo {
-    --dcc-azul: var(--dc-azul-600, #1340B1);
-    --dcc-azul-oscuro: var(--dc-azul-700, #0F3591);
-    --dcc-azul-claro: var(--dc-azul-50, #F2F6FE);
-    --dcc-amarillo: var(--dc-amarillo, #FED00F);
-    --dcc-linea: var(--dc-linea, #E2E7F0);
-    --dcc-tinta: var(--dc-tinta, #0E1A33);
-    --dcc-tinta-2: var(--dc-tinta-2, #44506A);
-    --dcc-tinta-3: var(--dc-tinta-3, #6B7690);
-    --dcc-niebla: var(--dc-niebla, #F4F6FA);
+    --dcc-acento: var(--dc-naranja, #EE924A);              // relleno: nunca letra ni borde
+    --dcc-en-acento: var(--dc-en-naranja, #1B3246);        // la letra sobre el naranja (5.56)
+    --dcc-acento-fuerte: var(--dc-naranja-fuerte, #985D2F); // letra naranja sobre crema (4.90)
+    --dcc-acento-filo: var(--dc-naranja-filo, #C3783D);    // bordes naranja (3.20)
+    --dcc-salvia-claro: var(--dc-salvia-claro, #E9EFE2);   // fondo de lo elegido y de las píldoras (navy 11.3)
+    --dcc-linea: var(--dc-linea, rgba(27, 50, 70, .12));
+    --dcc-control: var(--dc-linea-fuerte, rgba(27, 50, 70, .55));
+    --dcc-tinta: var(--dc-tinta, #1B3246);
+    --dcc-tinta-2: var(--dc-tinta-2, #475967);
+    --dcc-tinta-3: var(--dc-tinta-3, #5E6D78);
+    --dcc-superficie: var(--dc-blanco, #F2EFE5);
+    --dcc-niebla: var(--dc-niebla, #F9F6ED);
+    --dcc-radio: var(--dc-r-md, 14px);
     padding: 16px;
     color: var(--dcc-tinta);
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'Montserrat', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
     min-width: 0;
     overflow-x: hidden;
 
@@ -24,57 +33,58 @@
         gap: 8px;
         margin-bottom: 12px;
     }
+    // El antetítulo de la marca: 12 px, 700, caja alta y .14em, en el naranja de texto.
     .o_dcasa_combo_eyebrow {
-        font-family: 'Oswald', sans-serif;
         text-transform: uppercase;
-        letter-spacing: .04em;
-        font-size: .8rem;
-        color: var(--dcc-azul);
+        letter-spacing: .14em;
+        font-size: .75rem;
+        font-weight: 700;
+        color: var(--dcc-acento-fuerte);
     }
     .o_dcasa_combo_cliente { color: var(--dcc-tinta-2); font-size: .85rem; }
     .o_dcasa_combo_titulo {
-        font-family: 'Oswald', sans-serif;
         font-size: 1.15rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: .02em;
-        color: var(--dcc-azul-oscuro);
+        font-weight: 700;
+        letter-spacing: -.02em;
+        line-height: 1.2;
+        text-transform: none;
+        color: var(--dcc-tinta);
         margin: 8px 0 12px;
     }
     .o_dcasa_combo_vacio { color: var(--dcc-tinta-2); }
     .o_dcasa_combo_nota { display: block; color: var(--dcc-tinta-3); font-size: .8rem; }
-    .o_dcasa_combo_volver { padding-left: 0; font-weight: 600; color: var(--dcc-azul); }
+    .o_dcasa_combo_volver { padding-left: 0; font-weight: 700; color: var(--dcc-acento-fuerte); }
 
-    // La etiqueta del ahorro: amarillo sobre azul (el amarillo nunca toca el blanco).
+    // La etiqueta del ahorro: la pastilla naranja de relleno con letra navy (5.56).
     .o_dcasa_combo_ahorro {
         display: inline-block;
         align-self: flex-start;
         padding: 2px 10px;
         border-radius: 999px;
-        background: var(--dcc-azul);
-        color: var(--dcc-amarillo);
-        font-family: 'Oswald', sans-serif;
+        background: var(--dcc-acento);
+        color: var(--dcc-en-acento);
         text-transform: uppercase;
-        letter-spacing: .03em;
-        font-size: .8rem;
-        font-weight: 600;
+        letter-spacing: .06em;
+        font-size: .75rem;
+        font-weight: 700;
         white-space: nowrap;
     }
+    // La medida: píldora de la marca, salvia claro con letra navy, 12 px y 700 en caja alta.
     .o_dcasa_combo_medida {
         display: inline-block;
         margin-right: 6px;
         padding: 0 8px;
         border-radius: 999px;
-        background: var(--dcc-azul-claro);
-        color: var(--dcc-azul-oscuro);
-        font-family: 'Oswald', sans-serif;
+        background: var(--dcc-salvia-claro);
+        color: var(--dcc-tinta);
         text-transform: uppercase;
+        letter-spacing: .06em;
         font-size: .75rem;
-        font-weight: 600;
+        font-weight: 700;
     }
     .o_dcasa_combo_falta { color: #B42318; font-size: .8rem; font-weight: 600; margin-right: 6px; }
     .o_dcasa_combo_antes { color: var(--dcc-tinta-3); margin-right: 4px; }
-    .o_dcasa_combo_precio_combo, .o_dcasa_combo_precio { color: var(--dcc-azul-oscuro); white-space: nowrap; }
+    .o_dcasa_combo_precio_combo, .o_dcasa_combo_precio { color: var(--dcc-tinta); white-space: nowrap; }
 
     .o_dcasa_combo_foto {
         flex: 0 0 auto;
@@ -82,7 +92,7 @@
         align-items: center;
         justify-content: center;
         background: var(--dcc-niebla);
-        border-radius: 8px;
+        border-radius: 10px;
         overflow: hidden;
         img { width: 100%; height: 100%; object-fit: contain; }
         .fa { font-size: 1.6rem; color: var(--dcc-tinta-3); }
@@ -91,8 +101,8 @@
     // Combos ya agregados.
     .o_dcasa_combo_card {
         border: 1px solid var(--dcc-linea);
-        border-radius: 12px;
-        background: #FFFFFF;
+        border-radius: var(--dcc-radio);
+        background: var(--dcc-superficie);
         padding: 12px;
         margin-bottom: 12px;
         &.o_dcasa_combo_suelta { background: var(--dcc-niebla); }
@@ -120,7 +130,7 @@
         border-top: 1px solid var(--dcc-linea);
         .o_dcasa_combo_quitar { margin-left: auto; padding-right: 0; }
     }
-    .o_dcasa_combo_total strong { font-size: 1.05rem; color: var(--dcc-azul-oscuro); }
+    .o_dcasa_combo_total strong { font-size: 1.05rem; font-weight: 700; color: var(--dcc-acento-fuerte); }
 
     .o_dcasa_combo_acciones {
         display: flex;
@@ -138,14 +148,19 @@
         gap: 8px;
         margin-bottom: 12px;
     }
-    .o_dcasa_combo_chip {
-        border: 1px solid var(--dcc-linea);
+    // Las medidas: pastillas de contorno (`control`); la elegida, llena de naranja con letra navy. Son `.btn`: con
+    // `.btn` en el selector le gana a `.o_web_client .btn` del panel, que les ponía el radio de 8 px.
+    .btn.o_dcasa_combo_chip {
+        border: 1px solid var(--dcc-control);
         border-radius: 999px;
-        background: #FFFFFF;
-        color: var(--dcc-tinta-2);
+        background: transparent;
+        color: var(--dcc-tinta);
+        font-weight: 600;
         padding: 4px 14px;
-        min-height: 36px;
-        &.o_activa { background: var(--dcc-azul); border-color: var(--dcc-azul); color: #FFFFFF; }
+        min-height: 44px;
+        &:hover { border-color: var(--dcc-acento-filo); }
+        &:focus-visible { outline: 2px solid var(--dcc-tinta); outline-offset: 2px; }
+        &.o_activa { background: var(--dcc-acento); border-color: transparent; color: var(--dcc-en-acento); font-weight: 700; }
     }
     .o_dcasa_combo_rejilla {
         display: grid;
@@ -161,15 +176,15 @@
         padding: 10px;
         text-align: left;
         color: inherit;
-        background: #FFFFFF;
+        background: var(--dcc-superficie);
         border: 1px solid var(--dcc-linea);
-        border-radius: 12px;
+        border-radius: var(--dcc-radio);
         cursor: pointer;
         .o_dcasa_combo_foto { width: 100%; aspect-ratio: 1.333; }
-        &:hover:not(:disabled), &:focus-visible { border-color: var(--dcc-azul); outline: none; }
-        &:focus-visible { box-shadow: 0 0 0 3px var(--dc-azul-200, #C3D2F6); }
+        &:hover:not(:disabled) { border-color: var(--dcc-acento-filo); }
+        &:focus-visible { border-color: var(--dcc-acento-filo); outline: 2px solid var(--dcc-tinta); outline-offset: 2px; }
         &:disabled { cursor: default; opacity: .7; }
-        &.o_actual { border-color: var(--dcc-azul); opacity: 1; }
+        &.o_actual { border-color: var(--dcc-acento-filo); background: var(--dcc-salvia-claro); opacity: 1; }
     }
     .o_dcasa_combo_caracteristicas { color: var(--dcc-tinta-2); font-size: .8rem; overflow-wrap: anywhere; }
     .o_dcasa_combo_precios { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 6px; }
@@ -183,10 +198,10 @@
         align-items: center;
         gap: 12px;
         padding: 12px;
-        border-radius: 12px;
-        background: var(--dcc-azul-claro);
+        border-radius: var(--dcc-radio);
+        background: var(--dcc-salvia-claro);
         margin-bottom: 8px;
-        .o_dcasa_combo_foto { width: 72px; height: 72px; background: #FFFFFF; }
+        .o_dcasa_combo_foto { width: 72px; height: 72px; background: var(--dcc-superficie); }
         .o_dcasa_combo_info { flex: 1 1 160px; min-width: 0; }
     }
     .o_dcasa_combo_cantidad {
@@ -206,6 +221,6 @@
 }
 
 // El botón de la cotización: que se vea entre «Agregar un producto» y «Catálogo».
-.o_dcasa_btn_armar_combo.btn-link { color: var(--dc-azul-600, #1340B1); }
+.o_dcasa_btn_armar_combo.btn-link { color: var(--dc-naranja-fuerte, #985D2F); font-weight: 700; }
 // En el celular, los botones de arriba de las líneas bajan a otra fila en vez de salirse de la pantalla.
 .o_x2m_control_panel .o_cp_buttons:has(.o_dcasa_btn_armar_combo) { flex-wrap: wrap; }

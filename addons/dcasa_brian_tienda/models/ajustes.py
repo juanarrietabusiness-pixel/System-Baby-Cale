@@ -12,7 +12,7 @@ from odoo.addons.dcasa_conversaciones.models import publico as P
 from odoo.exceptions import AccessError, UserError
 
 from .juan import tienda_de_costos
-from .pase import MAXIMOS, PARAM_ACTIVO, PARAM_AVISAR_CERRADO, PARAM_DORMIR_DE_NOCHE, PARAMS
+from .pase import MAXIMOS, PARAM_ACTIVO, PARAM_AVISAR_CERRADO, PARAMS
 
 GRUPOS = ('dcasa_base.group_gerencia', 'base.group_system')
 CAMPOS = ('presupuesto_mes_usd', 'tope_sesion_hora', 'tope_red_hora', 'tope_dia', 'tope_pases_red_hora')
@@ -37,11 +37,6 @@ class DcasaBrianTiendaAjustes(models.TransientModel):
         default=lambda self: self.env['dcasa.brian.tienda']._avisar_cerrado(),
         help='Encendido: de noche, Andrés saluda diciendo que la tienda está cerrada y que una vendedora responde por '
              'WhatsApp en cuanto abran. Apagado (de fábrica): Andrés siempre saluda como de día y ayuda igual.')
-    dormir_de_noche = fields.Boolean(
-        'De noche, el robot de la burbuja duerme',
-        default=lambda self: self.env['dcasa.brian.tienda']._dormir_de_noche(),
-        help='Encendido (de fábrica): fuera del horario el robot de la burbuja duerme. Apagado: de noche la burbuja se '
-             'porta como de día (cambia con la página y al bajar).')
     presupuesto_mes_usd = fields.Integer('Presupuesto del mes (USD)', default=_de_fabrica('presupuesto_mes_usd'))
     tope_sesion_hora = fields.Integer('Mensajes por visitante, en una hora', default=_de_fabrica('tope_sesion_hora'))
     tope_red_hora = fields.Integer('Mensajes por conexión a internet, en una hora',
@@ -91,12 +86,10 @@ class DcasaBrianTiendaAjustes(models.TransientModel):
                                            maximo=MAXIMOS[campo]))
         Parametro = self.env['ir.config_parameter'].sudo()
         Tienda = self.env['dcasa.brian.tienda']
-        # La burbuja y si el robot duerme van en el HTML de todas las páginas: si cambian, el borde las rehace.
-        cambia_la_pagina = (bool(self.activo) != Tienda._activo()
-                            or bool(self.dormir_de_noche) != Tienda._dormir_de_noche())
+        # La burbuja va en el HTML de todas las páginas: si se enciende o se apaga, el borde las rehace.
+        cambia_la_pagina = bool(self.activo) != Tienda._activo()
         Parametro.set_param(PARAM_ACTIVO, 'True' if self.activo else 'False')
         Parametro.set_param(PARAM_AVISAR_CERRADO, 'True' if self.avisar_cerrado else 'False')
-        Parametro.set_param(PARAM_DORMIR_DE_NOCHE, 'True' if self.dormir_de_noche else 'False')
         for campo in CAMPOS:
             Parametro.set_param(PARAMS[campo], str(self[campo]))
         if cambia_la_pagina and 'dcasa.tienda.pendiente' in self.env:

@@ -3,7 +3,7 @@
     <data noupdate="1">
         <!-- Línea de descuento con la que se cobra un premio dentro de una venta. -->
         <record id="product_premio_canje" model="product.product">
-            <field name="name">Premio del programa Socios D'CASA</field>
+            <field name="name">Premio del programa Socios Baby Caleb</field>
             <field name="type">service</field>
             <field name="invoice_policy">order</field>
             <field name="sale_ok" eval="True"/>

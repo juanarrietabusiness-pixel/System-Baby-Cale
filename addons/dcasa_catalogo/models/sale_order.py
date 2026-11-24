@@ -22,8 +22,8 @@ class SaleOrder(models.Model):
                 self.partner_id.display_name))
         tipo = self.env._('cotización') if self.state in ('draft', 'sent') else self.env._('orden')
         texto = self.env._(
-            "Hola %(nombre)s, te comparto tu %(tipo)s %(numero)s de D'CASA por %(total)s: %(enlace)s",
-            nombre=self.partner_id.name.split()[0], tipo=tipo, numero=self.name,
+            'Hola %(nombre)s, te comparto tu %(tipo)s %(numero)s de %(empresa)s por %(total)s: %(enlace)s',
+            nombre=self.partner_id.name.split()[0], tipo=tipo, numero=self.name, empresa=self.company_id.name,
             total=formatLang(self.env, self.amount_total, currency_obj=self.currency_id),
             enlace=self.get_base_url() + self.get_portal_url())
         if self.state == 'draft':

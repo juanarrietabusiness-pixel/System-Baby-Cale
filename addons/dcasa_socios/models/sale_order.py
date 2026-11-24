@@ -405,7 +405,7 @@ class SaleOrderLine(models.Model):
     def _dcasa_etiqueta(self):
         """La línea con que se cobró un premio se imprime identificada como tal."""
         if self.dcasa_canje_id:
-            return "Premio Socios D'CASA"
+            return self.env._('Premio Socios %s', (self.order_id.company_id or self.env.company).name)
         return super()._dcasa_etiqueta()
 
     def _dcasa_va_aparte(self):

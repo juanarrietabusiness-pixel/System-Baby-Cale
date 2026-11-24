@@ -84,7 +84,7 @@ CAMPOS = (
           'de la comisión. 100 % es la comisión completa.', maximo=100, obligatorio=False),
     Campo('existente', ('comision', 'factorClienteExistente'), 'fraccion',
           'Cliente que ya compraba: paga este % de la comisión',
-          'Cuando alguien que ya había comprado en D’CASA compra con un código, el vendedor gana esta parte de la '
+          'Cuando alguien que ya había comprado en la tienda compra con un código, el vendedor gana esta parte de la '
           'comisión. 100 % es la comisión completa.', maximo=100, obligatorio=False),
     Campo('dias_escalon', ('comision', 'diasParaEscalon'), 'entero', 'Días que se miran para el escalón',
           'La escalera mira lo que el vendedor vendió en estos últimos días para decidir en qué escalón está.',

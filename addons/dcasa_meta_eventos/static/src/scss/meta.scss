@@ -1,47 +1,155 @@
-// Aviso de cookies con la marca (CLAUDE.md, reglas de marca): azul y navy sobre blanco, sistema plano (sin sombras
-// dramáticas) y nunca amarillo sobre blanco. Solo se ve con el aviso encendido (lo enciende el píxel de Meta).
-$dcasa-meta-azul: #1340B1;
-$dcasa-meta-navy: #0E2A6B;
+// El aviso de cookies con la marca Baby Caleb (docs/MARCA_BABY_CALEB.md), como su aviso de Meta
+// (Baby-caleb/src/components/BannerConsentimiento.tsx): una tarjeta crema (`surface`, filo `line`) abajo y al centro,
+// «Aceptar» en la pastilla naranja con letra navy (5.56) y «Solo las necesarias» en la pastilla de contorno, las dos
+// del MISMO tamaño (rechazar tiene que ser igual de fácil que aceptar), y la política como enlace subrayado. Solo se ve
+// con el aviso encendido (lo enciende el píxel de Meta). Montserrat (la @font-face la declara website_dcasa). Los
+// colores van escritos aquí mismo, sin variables de website_dcasa.
+$meta-surface: #F2EFE5;
+$meta-fg: #1B3246;
+$meta-muted: rgba(27, 50, 70, .7);   // 4.80 sobre surface
+$meta-line: rgba(27, 50, 70, .12);
+$meta-accent: #EE924A;               // relleno: nunca texto ni borde
+$meta-accent-hover: #EF9C5A;
+$meta-accent-fg: #1B3246;
+$meta-accent-strong: #985D2F;        // texto en naranja (4.60 sobre surface)
+$meta-accent-edge: #C3783D;          // borde naranja (3.01 sobre surface)
+$meta-fuente: 'Montserrat', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 
 #website_cookies_bar.o_dcasa_aviso_cookies {
+    // El aire alrededor de la tarjeta va en su margen: Odoo deja el relleno del diálogo en 0.
+    .modal-dialog {
+        max-width: 48rem;
+        margin-inline: auto;
+    }
+
     .modal-content {
-        background-color: #FFFFFF;
-        color: $dcasa-meta-navy;
-        border-top: 2px solid $dcasa-meta-azul;
-        border-radius: 0;
-        box-shadow: none;
+        margin: 0 1rem 1rem;
+        background-color: $meta-surface;
+        color: $meta-fg;
+        border: 1px solid $meta-line;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px -2px rgba(27, 50, 70, .08);
+        font-family: $meta-fuente;
+        overflow: hidden;
+    }
+
+    // La combinación de colores del tema (o_cc1) no manda aquí: la tarjeta es crema y el texto navy.
+    section.o_cc {
+        background: transparent !important;
+        color: $meta-fg;
+    }
+
+    p {
+        color: $meta-muted;
+        font-size: .9375rem;
+        line-height: 1.6;
     }
 
     .o_cookies_bar_text_policy {
-        color: $dcasa-meta-azul;
+        color: $meta-muted;
+        font-family: $meta-fuente;
+        font-weight: 500;
         text-decoration: underline;
+        text-underline-offset: 4px;
+
+        &:hover {
+            color: $meta-fg;
+        }
+    }
+
+    .btn {
+        min-height: 44px;
+        padding-inline: 1.5rem;
+        border-radius: 999px;
+        font-family: $meta-fuente;
+        font-size: .9375rem;
+        font-weight: 700;
+        letter-spacing: 0;
+        text-transform: none;
+
+        &:focus-visible {
+            outline: 2px solid $meta-fg;
+            outline-offset: 2px;
+            box-shadow: none;
+        }
     }
 
     .btn-primary {
-        background-color: $dcasa-meta-azul;
-        border-color: $dcasa-meta-azul;
-        color: #FFFFFF;
+        --bs-btn-color: #{$meta-accent-fg};
+        --bs-btn-bg: #{$meta-accent};
+        --bs-btn-border-color: transparent;
+        --bs-btn-hover-color: #{$meta-accent-fg};
+        --bs-btn-hover-bg: #{$meta-accent-hover};
+        --bs-btn-hover-border-color: transparent;
+        --bs-btn-active-color: #{$meta-accent-fg};
+        --bs-btn-active-bg: #{$meta-accent};
+        --bs-btn-active-border-color: transparent;
+        background-color: $meta-accent;
+        border: 1px solid transparent;   // el naranja es relleno: nunca borde
+        color: $meta-accent-fg;
+        box-shadow: 0 8px 24px -10px rgba($meta-accent, .7);
     }
 
     .btn-outline-primary {
-        background-color: #FFFFFF;
-        border-color: $dcasa-meta-azul;
-        color: $dcasa-meta-azul;
+        --bs-btn-color: #{$meta-accent-strong};
+        --bs-btn-bg: transparent;
+        --bs-btn-border-color: #{$meta-accent-edge};
+        --bs-btn-hover-color: #{$meta-accent-fg};
+        --bs-btn-hover-bg: #{$meta-accent};
+        --bs-btn-hover-border-color: #{$meta-accent-edge};
+        --bs-btn-active-color: #{$meta-accent-fg};
+        --bs-btn-active-bg: #{$meta-accent};
+        --bs-btn-active-border-color: #{$meta-accent-edge};
+        background-color: transparent;
+        border: 1px solid $meta-accent-edge;
+        color: $meta-accent-strong;
+    }
+
+    .js_close_popup {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    // Como en Baby Caleb: el texto arriba y los dos botones en fila debajo, a la izquierda (las columnas 8/4 de Odoo
+    // apilaban los botones en una columna angosta dentro de la tarjeta).
+    .row > .col-lg-8,
+    .row > .col-lg-4 {
+        flex: 0 0 100%;
+        max-width: 100%;
+        text-align: left !important;
+    }
+
+    .row > .col-lg-4 {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .75rem;
+        padding-top: 0 !important;
+
+        .js_close_popup {
+            margin: 0 !important;
+        }
     }
 }
 
 .o_dcasa_meta_casilla a {
-    color: $dcasa-meta-azul;
+    color: $meta-accent-strong;
+    text-decoration: underline;
+    text-underline-offset: .15em;
 }
 
-// En el celular los dos botones del aviso se tocan con el dedo: al menos 44 px de alto (la medida de Apple y Google),
-// sin cambiar sus colores. La prueba test_aviso_celular mide que el aviso entero (texto, política y botones) quepa en la
+// En el celular los dos botones van uno debajo del otro, a lo ancho y del mismo tamaño (como en Baby Caleb), con 44 px
+// de alto para el dedo. La prueba test_aviso_celular mide que el aviso entero (texto, política y botones) quepa en la
 // pantalla a 360 y 390 px sin salirse de lado.
 @media (max-width: 575.98px) {
-    #website_cookies_bar.o_dcasa_aviso_cookies .js_close_popup {
-        min-height: 44px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
+    #website_cookies_bar.o_dcasa_aviso_cookies {
+        .modal-content {
+            margin: 0 .75rem .75rem;
+        }
+
+        .js_close_popup {
+            width: 100%;
+            margin-inline: 0 !important;
+        }
     }
 }

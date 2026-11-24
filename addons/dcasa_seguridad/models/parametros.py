@@ -128,7 +128,7 @@ def texto_robots_ia(politica):
         bloqueados += IA_ENTRENAMIENTO
     if politica == 'cerrada':
         bloqueados += IA_BUSQUEDA
-    lineas = ['', f'# D’CASA: politica para rastreadores de IA ({politica})', '']
+    lineas = ['', f'# Politica para rastreadores de IA ({politica})', '']
     for agente in bloqueados:
         lineas += [f'User-agent: {agente}', 'Disallow: /', '']
     lineas += ['User-agent: *', f'Content-Signal: {SENALES[politica]}', '']

@@ -7,3 +7,4 @@ from . import test_pixel_navegador
 from . import test_contrato_id
 from . import test_revision_union
 from . import test_aviso_celular
+from . import test_marca

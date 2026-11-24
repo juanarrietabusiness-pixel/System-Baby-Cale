@@ -1,9 +1,9 @@
 {
-    'name': "D'CASA Panamá — Mi cuenta (panel del cliente)",
+    'name': "Baby Caleb — Mi cuenta (panel del cliente)",
     'summary': "El panel del cliente en /mi-cuenta: compras, abonos (cuánto le falta), entregas, puntos y datos, "
                "con celular + PIN o con la cuenta de la tienda",
     'description': """
-Mi cuenta D'CASA
+Mi cuenta
 ================
 
 Un solo lugar para el cliente, sencillo y pensado para el celular (se usa de pie en el mostrador):

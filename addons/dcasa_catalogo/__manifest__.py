@@ -1,5 +1,5 @@
 {
-    'name': "D'CASA Panamá — Catálogo",
+    'name': "Baby Caleb — Catálogo",
     'summary': "Productos del catálogo (Baby Caleb: pañales, toallitas y fulares) en inventario y tienda web",
     'description': """
 Carga el catálogo del negocio en Odoo: el mismo producto para el inventario, las ventas y la tienda web.

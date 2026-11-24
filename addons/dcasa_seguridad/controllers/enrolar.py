@@ -63,6 +63,8 @@ class DcasaEnrolar2FA(http.Controller):
             secreto = base64.b32encode(os.urandom(TOTP_SECRET_SIZE // 8)).decode()
             request.session[CLAVE_SESION] = secreto
 
+        # El nombre con que la cuenta sale en la app de códigos: el de la empresa (en esta copia, «Baby Caleb»).
+        emisor = usuario.env['res.users']._dcasa_marca(usuario)
         error = None
         if request.httprequest.method == 'POST' and codigo:
             try:
@@ -71,8 +73,8 @@ class DcasaEnrolar2FA(http.Controller):
                     coincide = TOTP(base64.b32decode(secreto)).match(int(re.sub(r'\s', '', codigo)))
                     if coincide is None:
                         raise AccessDenied(request.env._(
-                            'Ese código no coincide. Revisa que sea el de «D’CASA» en tu app y que la hora '
-                            'del teléfono esté en automático.'))
+                            'Ese código no coincide. Revisa que sea el de «%(emisor)s» en tu app y que la hora '
+                            'del teléfono esté en automático.', emisor=emisor))
             except AccessDenied as excepcion:
                 error = str(excepcion)
                 request.env['dcasa.seguridad.acceso']._registrar({
@@ -96,12 +98,11 @@ class DcasaEnrolar2FA(http.Controller):
                 })
                 _logger.info('Seguridad: %r activó el doble factor al entrar', usuario.login)
                 usuario.env['res.users']._dcasa_avisar_admins(usuario, (
-                    f'\U0001F510 D’CASA: «{usuario.name}» activó el doble factor (app de códigos) '
+                    f'\U0001F510 {emisor}: «{usuario.name}» activó el doble factor (app de códigos) '
                     f'desde la IP {_ip()}, {usuario.env["res.users"]._dcasa_hora()}. Si no fue esa persona, '
                     f'desactívalo en Ajustes › Usuarios y cambia su clave.'))
                 return request.redirect(_get_login_redirect_url(request.session.uid, redirect=redirect))
 
-        emisor = "D'CASA"
         url = werkzeug.urls.url_unparse((
             'otpauth', 'totp',
             werkzeug.urls.url_quote(f'{emisor}:{usuario.login}', safe=':'),

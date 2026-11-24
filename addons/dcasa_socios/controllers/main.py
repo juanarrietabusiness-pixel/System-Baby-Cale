@@ -199,7 +199,7 @@ class SociosDcasa(http.Controller):
             return self._render('dcasa_socios.socios_registro', valores)
         request.session.pop(SESSION_PADRINO, None)
         self._iniciar_sesion(socio)
-        self._avisar('¡Listo! Ya eres socio de D’CASA.', 'success')
+        self._avisar(f'¡Listo! Ya eres socio de {request.website.company_id.name}.', 'success')
         return request.redirect('/socios/cuenta')
 
     def _registrar(self, datos, padrino):
@@ -344,7 +344,8 @@ class SociosDcasa(http.Controller):
         except R.FaltaConfigurar:
             valores['error'] = 'El programa aún no está listo. Escríbenos por WhatsApp.'
             return self._render('dcasa_socios.socios_activar', valores)
-        self._avisar('¡Listo! Ya eres socio de D’CASA. Tus compras en la tienda suman puntos aquí.', 'success')
+        self._avisar(f'¡Listo! Ya eres socio de {request.website.company_id.name}. Tus compras en la tienda suman '
+                     'puntos aquí.', 'success')
         return request.redirect('/socios/cuenta')
 
     # ------------------------------------------------------------------------

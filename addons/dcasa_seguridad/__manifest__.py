@@ -1,9 +1,9 @@
 {
-    'name': "D'CASA Panamá — Seguridad de acceso",
+    'name': "Baby Caleb — Seguridad de acceso",
     'summary': "Doble factor (app de códigos y llaves de acceso), bloqueo progresivo, registro y avisos "
                "de inicios de sesión, sesiones de administrador con vencimiento, Turnstile y robots.txt para IA",
     'description': """
-Seguridad del acceso al panel de D'CASA (docs/SEGURIDAD_ACCESO.md).
+Seguridad del acceso al panel (docs/SEGURIDAD_ACCESO.md).
 
 * Doble factor con una app de códigos (Google Authenticator, Microsoft Authenticator…):
   ``auth_totp`` de Odoo, en español. Llaves de acceso (passkeys): ``auth_passkey``.

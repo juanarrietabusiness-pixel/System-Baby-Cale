@@ -166,7 +166,8 @@ parcial con «Pagar».
 - La cabecera del sitio dice «Mi cuenta» (antes «Inicia sesión») y lleva a `/mi-cuenta` para todos: el borde guarda
   las páginas anónimas, así que el enlace no depende de la sesión. El pie también.
 - Las páginas de Odoo que siguen en `/my` (detalle del pedido y de la factura) ya no dicen «Con la tecnología de
-  Odoo» y sus botones «secundarios» (que el tema pinta amarillos sobre blanco) son azules.
+  Odoo» y sus botones «secundarios» son la pastilla de contorno de la marca Baby Caleb (filo naranja, letra en el
+  naranja de texto; `dcasa_mi_cuenta/static/src/scss/mi_cuenta.scss`, 2026-11-19).
 
 **Gerencia:**
 - Hace ajustes con motivo.

@@ -1,37 +1,37 @@
-// «Brian de la tienda» (static/src/js/brian_tienda.js): la burbuja con el robot y el chat, tal como el prototipo v2
-// que aprobó la dueña (scratchpad/brian_tienda/prototipo.html). Sistema plano de la marca: azul #1340B1, navy para el
-// texto; el amarillo solo sobre azul (el punto de «en línea» de la cabecera). Todo cuelga de `.o_dcbt`: nada de aquí
-// toca el resto del sitio. Clases con el prefijo `o_dcbt_` (las del prototipo, `.btn`, `.panel`, `.toast`, chocarían
-// con Bootstrap).
+// «Brian de la tienda» (static/src/js/brian_tienda.js): la burbuja y el chat con la marca Baby Caleb
+// (docs/MARCA_BABY_CALEB.md), como el chat de su web (Baby-caleb/src/components/Chatbot.tsx): la burbuja naranja con el
+// globo de chat en navy, la cabecera naranja con el corazón en un círculo crema, el panel crema y los mensajes con las
+// formas de la marca (los de Andrés en `surface` con su filo; los del cliente, en el naranja con letra navy). El naranja
+// y el verde son RELLENO: nunca texto ni borde (para texto, `accent-strong`; para bordes e íconos, `accent-edge` o
+// `control`). Montserrat para todo (la @font-face la declara website_dcasa). Todo cuelga de `.o_dcbt`: nada de aquí toca
+// el resto del sitio. Clases con el prefijo `o_dcbt_` (las del prototipo, `.btn`, `.panel`, `.toast`, chocarían con
+// Bootstrap). Los colores van escritos aquí mismo, sin variables de website_dcasa.
 
 .o_dcbt {
-    --o-dcbt-azul: #1340B1;
-    --o-dcbt-azul-osc: #0F3591;
-    --o-dcbt-navy: #0E2A6B;
-    --o-dcbt-amarillo: #FED00F;
-    --o-dcbt-blanco: #FFFFFF;
-    --o-dcbt-tinta: #1B2233;
-    --o-dcbt-gris: #4A5163;
-    --o-dcbt-gris-claro: #6B7690;
-    --o-dcbt-linea: #E2E7F0;
-    --o-dcbt-linea-fuerte: #CBD3E1;
-    --o-dcbt-niebla: #F4F6FA;
-    --o-dcbt-azul-50: #EEF3FD;
-    --o-dcbt-azul-200: #C3D2F6;
-    --o-dcbt-ok: #17663A;
-    --o-dcbt-ok-fondo: #E4F3E9;
-    --o-dcbt-pocas: #8A3B05;
-    --o-dcbt-pocas-fondo: #FCEDE1;
-    --o-dcbt-agotado-fondo: #ECEEF2;
-    --o-dcbt-error: #A1260D;
-    --o-dcbt-f-titulo: "Anton", "Oswald", Impact, "Arial Narrow", sans-serif;
-    --o-dcbt-f-sub: "Oswald", "Arial Narrow", sans-serif;
-    --o-dcbt-f-texto: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --o-dcbt-bg: #F9F6ED;                       // crema: el fondo
+    --o-dcbt-surface: #F2EFE5;                  // tarjetas, globos de Andrés y campos sobre crema
+    --o-dcbt-fg: #1B3246;                       // navy: texto, íconos y aro de foco (12.21 · 11.47)
+    --o-dcbt-muted: rgba(27, 50, 70, .7);       // texto secundario (4.95 · 4.80)
+    --o-dcbt-line: rgba(27, 50, 70, .12);       // filos que separan
+    --o-dcbt-control: rgba(27, 50, 70, .55);    // borde de lo que se toca o se llena (3.26 · 3.20)
+    --o-dcbt-accent: #EE924A;                   // relleno naranja: nunca texto ni borde (2.20)
+    --o-dcbt-accent-hover: #EF9C5A;             // el mismo naranja con un 10 % de crema, al pasar
+    --o-dcbt-accent-suave: rgba(238, 146, 74, .14);
+    --o-dcbt-accent-fg: #1B3246;                // lo que va encima del naranja (5.56)
+    --o-dcbt-accent-strong: #985D2F;            // texto en naranja: enlaces de acción y precios (4.90 · 4.60)
+    --o-dcbt-accent-edge: #C3783D;              // bordes e íconos naranja (3.20 · 3.01)
+    --o-dcbt-sage: #91C9A2;                     // relleno verde: nunca texto ni borde (1.75)
+    --o-dcbt-sage-suave: rgba(145, 201, 162, .3);
+    --o-dcbt-sage-strong: #53735C;              // texto e íconos verdes (4.92 · 4.62)
+    --o-dcbt-ok: #1E7B34;                       // estado «bien» (4.93 · 4.64)
+    --o-dcbt-error: #B42318;                    // estado «error» (6.08 · 5.71)
+    --o-dcbt-sombra: 0 4px 20px -2px rgba(27, 50, 70, .05);
+    --o-dcbt-fuente: "Montserrat", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     --o-dcbt-curva: cubic-bezier(.22, 1, .36, 1);
     // Cuánto sube la burbuja (el JS la sube sobre la barra fija de «Agregar al carrito» de la ficha en el celular).
     --o-dcbt-abajo: 24px;
-    color: var(--o-dcbt-tinta);
-    font-family: var(--o-dcbt-f-texto);
+    color: var(--o-dcbt-fg);
+    font-family: var(--o-dcbt-fuente);
 
     *,
     *::before,
@@ -48,12 +48,23 @@
         cursor: pointer;
     }
 
+    // `font: inherit` de arriba se llevaba también el peso de los botones de la marca: el principal y el de contorno
+    // van en 700, las respuestas rápidas en 600.
+    button.o_dcbt_btn {
+        font-weight: 700;
+    }
+
+    button.o_dcbt_chip {
+        font-weight: 600;
+    }
+
     svg {
         display: block;
     }
 
+    // El aro de foco de la marca: navy, se ve sobre todos los fondos (crema 12.21, naranja 5.56, verde 6.96).
     :focus-visible {
-        outline: 3px solid var(--o-dcbt-azul);
+        outline: 2px solid var(--o-dcbt-fg);
         outline-offset: 2px;
     }
 }
@@ -63,49 +74,26 @@
 }
 
 // ---------------------------------------------------------------------------
-// El robot en su círculo (una pose a la vez; el JS cambia la pose con su transición)
+// El avatar: el corazón en un círculo crema (como en la cabecera del chat de Baby Caleb)
 // ---------------------------------------------------------------------------
 
-.o_dcbt_pose {
-    position: relative;
-    display: block;
+.o_dcbt_avatar_marca {
     flex: none;
+    display: grid;
+    place-items: center;
     border-radius: 50%;
-    overflow: hidden;
-    background: var(--o-dcbt-azul);
-    isolation: isolate;
+    background: var(--o-dcbt-bg);
+    color: var(--o-dcbt-accent-strong);
 
-    img {
-        position: absolute;
-        left: 7%;
-        top: 7%;
-        width: 86%;
-        height: 86%;
-        object-fit: contain;
-        display: block;
-        user-select: none;
-        -webkit-user-drag: none;
-    }
-
-    img.o_dcbt_encuadrado {
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-
-    .o_dcbt_flash {
-        position: absolute;
-        inset: 0;
-        background: var(--o-dcbt-blanco);
-        opacity: 0;
-        pointer-events: none;
+    svg {
+        width: 50%;
+        height: 50%;
     }
 }
 
 // ---------------------------------------------------------------------------
-// La burbuja (sin texto): reemplaza la burbuja flotante de WhatsApp
+// La burbuja (sin texto): reemplaza la burbuja flotante de WhatsApp. La de Baby Caleb: 56 px, naranja, con el globo
+// de chat en navy (5.56) y quieta; al pasar crece un poco.
 // ---------------------------------------------------------------------------
 
 .o_dcbt_burbuja {
@@ -113,25 +101,29 @@
     z-index: 1032;   // como la de WhatsApp: sobre lo fijo de Odoo (1030) y la barra de la ficha (1031)
     right: #{"max(24px, env(safe-area-inset-right, 0px))"};
     bottom: calc(var(--o-dcbt-abajo) + env(safe-area-inset-bottom, 0px));
-    width: 78px;
-    height: 78px;
+    width: 56px;
+    height: 56px;
     padding: 0;
     border: 0;
     border-radius: 50%;
-    background: var(--o-dcbt-azul);
+    display: grid;
+    place-items: center;
+    background: var(--o-dcbt-accent);
+    color: var(--o-dcbt-accent-fg);
     transform-origin: 50% 100%;
-    box-shadow: 0 0 0 3px var(--o-dcbt-blanco), 0 6px 16px rgba(14, 42, 107, .26);
+    box-shadow: 0 20px 25px -5px rgba(27, 50, 70, .18), 0 8px 10px -6px rgba(27, 50, 70, .14);
     transition: transform .2s var(--o-dcbt-curva), bottom .35s var(--o-dcbt-curva), opacity .25s ease;
     animation: o_dcbt_entra 0.9s var(--o-dcbt-curva) .45s backwards;
     text-decoration: none;
 
-    .o_dcbt_pose {
-        position: absolute;
-        inset: 0;
+    .o_dcbt_burbuja_ico svg {
+        width: 28px;
+        height: 28px;
     }
 
     &:hover {
-        transform: scale(1.06);
+        color: var(--o-dcbt-accent-fg);
+        transform: scale(1.05);
     }
 
     &:active {
@@ -139,22 +131,8 @@
     }
 
     &:focus-visible {
-        outline: 3px solid var(--o-dcbt-navy);
-        outline-offset: 5px;
-    }
-
-    &::after {
-        content: "";
-        position: absolute;
-        inset: -3px;
-        border-radius: 50%;
-        border: 2px solid var(--o-dcbt-azul);
-        opacity: 0;
-        pointer-events: none;
-    }
-
-    &.o_dcbt_halo::after {
-        animation: o_dcbt_halo 1.6s ease-out;
+        outline: 2px solid var(--o-dcbt-fg);
+        outline-offset: 4px;
     }
 
     &.o_dcbt_abriendo {
@@ -166,8 +144,8 @@
         animation: none;
     }
 
-    // Se hace a un lado mientras tendría que tapar un botón de la página («Pregunta por este mueble por WhatsApp»,
-    // «Agregar al carrito», los botones de WhatsApp): nunca tapa uno.
+    // Se hace a un lado mientras tendría que tapar un botón de la página («Agregar al carrito», los botones de
+    // WhatsApp): nunca tapa uno.
     &.o_dcbt_aparte {
         opacity: 0;
         transform: translateX(24px) scale(.8);
@@ -181,8 +159,6 @@
     }
 
     .o_dcbt_burbuja {
-        width: 68px;
-        height: 68px;
         right: #{"max(16px, env(safe-area-inset-right, 0px))"};
     }
 }
@@ -209,18 +185,6 @@ body.editor_enable .o_dcbt {
 
     100% {
         transform: scale(1);
-    }
-}
-
-@keyframes o_dcbt_halo {
-    0% {
-        opacity: .5;
-        transform: scale(1);
-    }
-
-    100% {
-        opacity: 0;
-        transform: scale(1.6);
     }
 }
 
@@ -252,11 +216,10 @@ body.editor_enable .o_dcbt {
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    // Sin fondo propio: el gris claro va en el cuerpo, para que la cabecera de vidrio vea la página de atrás.
-    background: transparent;
-    border-radius: 18px;
-    border: 1px solid var(--o-dcbt-linea);
-    box-shadow: 0 8px 24px rgba(14, 42, 107, .16);
+    background: var(--o-dcbt-surface);
+    border-radius: 16px;
+    border: 1px solid var(--o-dcbt-line);
+    box-shadow: 0 25px 50px -12px rgba(27, 50, 70, .25);
     text-align: left;
     font-size: 16px;
     line-height: 1.4;
@@ -294,54 +257,28 @@ body.editor_enable .o_dcbt {
     position: absolute;
     inset: 0;
     z-index: 5;
-    background: var(--o-dcbt-azul);
+    background: var(--o-dcbt-accent);
     opacity: 0;
     pointer-events: none;
 }
 
-// Cabecera de vidrio líquido (pedido de la dueña, 2026-11-15: «del mismo material que el navbar… los íconos negros;
-// el robot tal cual»). Es el mismo vidrio de la píldora del sitio (website_dcasa/static/src/scss/dcasa.scss,
-// `.o_main_nav::before`): blanco al 62 %, desenfoque y saturación, filos de luz arriba y abajo y, donde el navegador
-// puede (Chromium), la refracción de agua del filtro #dcasa-liquido que enciende animaciones.js. Va en un ::before,
-// igual que allá. Texto en navy y tinta; el amarillo del punto de «en línea» va con un aro azul (nunca toca el blanco).
+// La cabecera: la del chat de Baby Caleb, naranja con todo en navy (5.56): el corazón en su círculo crema, el nombre de
+// la tienda, el estado y los botones (WhatsApp o el carrito, ampliar y cerrar).
 .o_dcbt_cab {
     position: relative;
-    isolation: isolate;
     flex: none;
     display: flex;
     align-items: center;
-    gap: 9px;
-    padding: 10px 4px 10px 12px;
-    background: transparent;
-    color: var(--o-dcbt-tinta);
-    border-bottom: 1px solid rgba(14, 42, 107, .08);
-
-    &::before {
-        content: '';
-        position: absolute;
-        inset: 0;
-        z-index: -1;
-        background: rgba(255, 255, 255, .62);
-        -webkit-backdrop-filter: blur(16px) saturate(210%) brightness(1.08);
-        backdrop-filter: blur(16px) saturate(210%) brightness(1.08);
-        box-shadow:
-            inset 0 1.5px 0 rgba(255, 255, 255, .95),
-            inset 0 -1px 0 rgba(255, 255, 255, .35),
-            inset 0 0 0 1px rgba(255, 255, 255, .12);
-        pointer-events: none;
-    }
+    gap: 10px;
+    padding: 8px 4px 8px 14px;
+    background: var(--o-dcbt-accent);
+    color: var(--o-dcbt-accent-fg);
 
     // El foco va por dentro del círculo del botón (por fuera chocaba con el borde de la pantalla en el celular).
     :focus-visible {
-        outline: 2px solid var(--o-dcbt-azul);
+        outline: 2px solid var(--o-dcbt-fg);
         outline-offset: -4px;
     }
-}
-
-// La refracción de agua, la misma variable que usa la píldora del sitio (solo existe donde el navegador la soporta).
-html.o_dcasa_refraccion .o_dcbt_cab::before {
-    -webkit-backdrop-filter: var(--dcasa-refraccion);
-    backdrop-filter: var(--dcasa-refraccion);
 }
 
 @media (max-width: 767.98px) {
@@ -353,9 +290,8 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
 }
 
 .o_dcbt_avatar_cab {
-    width: 44px;
-    height: 44px;
-    box-shadow: 0 0 0 2px var(--o-dcbt-blanco);
+    width: 32px;
+    height: 32px;
 }
 
 .o_dcbt_cab_textos {
@@ -364,10 +300,9 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
 
     h2 {
         margin: 0;
-        font: 400 22px/1 var(--o-dcbt-f-titulo);
-        letter-spacing: .03em;
-        text-transform: uppercase;
-        color: var(--o-dcbt-navy);
+        font: 700 16px/1.15 var(--o-dcbt-fuente);
+        letter-spacing: -.02em;
+        color: var(--o-dcbt-accent-fg);
     }
 }
 
@@ -376,32 +311,29 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
     display: flex;
     align-items: center;
     gap: 6px;
-    font: 500 11.5px/1.2 var(--o-dcbt-f-sub);
-    letter-spacing: .04em;
-    text-transform: uppercase;
-    color: var(--o-dcbt-gris);
+    font: 500 12px/1.2 var(--o-dcbt-fuente);
+    color: var(--o-dcbt-accent-fg);   // navy entero sobre el naranja (5.56): al 80 % no llega a AA
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-// Amarillo con aro azul: sobre el vidrio claro, el amarillo toca el azul, nunca el blanco.
+// «En línea»: el punto verde salvia con aro navy (el aro es lo que se ve sobre el naranja: 5.56). Apagado, solo el aro.
+// El estado también lo dice el texto de al lado: el color nunca es la única señal.
 .o_dcbt_punto {
     width: 10px;
     height: 10px;
     flex: none;
     border-radius: 50%;
-    border: 2px solid var(--o-dcbt-azul);
-    background: var(--o-dcbt-amarillo);
+    border: 2px solid var(--o-dcbt-fg);
+    background: var(--o-dcbt-sage);
 
     &.o_dcbt_apagado {
-        border-color: var(--o-dcbt-gris-claro);
-        background: var(--o-dcbt-gris-claro);
+        background: transparent;
     }
 }
 
-// Íconos negros (tinta, el mismo de los enlaces del navbar) sobre el vidrio; al pasar o con el foco, la gota azul
-// clarita del navbar.
+// Íconos navy sobre el naranja (5.56); al pasar, un velo navy suave.
 .o_dcbt_cab_boton {
     width: 44px;
     height: 44px;
@@ -411,19 +343,19 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
     border: 0;
     border-radius: 50%;
     background: transparent;
-    color: var(--o-dcbt-tinta);
+    color: var(--o-dcbt-accent-fg);
     text-decoration: none;
     transition: background-color .2s ease, color .2s ease;
 
     svg {
-        width: 23px;
-        height: 23px;
+        width: 22px;
+        height: 22px;
     }
 
     &:hover,
     &:focus-visible {
-        background: rgba(19, 64, 177, .1);
-        color: var(--o-dcbt-navy);
+        background: rgba(27, 50, 70, .1);
+        color: var(--o-dcbt-accent-fg);
     }
 }
 
@@ -431,15 +363,15 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
     flex: 1;
     min-height: 0;
     display: flex;
-    background: var(--o-dcbt-niebla);
+    background: var(--o-dcbt-bg);
 }
 
-// El carrito en la barra (con algo en el carrito, en lugar de WhatsApp; pedido de la dueña, 2026-11-15: «que se vea así»,
-// como el del menú del sitio): el círculo gris claro con el carrito y la cantidad en una burbuja azul con número blanco,
-// con un filo blanco que la despega del círculo (el azul toca el blanco: está bien; el amarillo no podría).
+// El carrito en la cabecera (con algo en el carrito, en lugar de WhatsApp; pedido de la dueña, 2026-11-15): el círculo
+// crema translúcido con el carrito navy y la cantidad en una pastilla navy con número crema (12.21), con un filo
+// naranja que la despega del círculo.
 .o_dcbt_cab_carrito {
     position: relative;
-    background: rgba(27, 34, 51, .07);
+    background: rgba(249, 246, 237, .45);
 }
 
 .o_dcbt_cab_cuenta {
@@ -452,11 +384,11 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
     display: grid;
     place-items: center;
     border-radius: 999px;
-    font: 700 12px/1 var(--o-dcbt-f-texto);
+    font: 700 12px/1 var(--o-dcbt-fuente);
     font-variant-numeric: tabular-nums;
-    color: var(--o-dcbt-blanco);
-    background: var(--o-dcbt-azul);
-    box-shadow: 0 0 0 2px var(--o-dcbt-blanco);
+    color: var(--o-dcbt-bg);
+    background: var(--o-dcbt-fg);
+    box-shadow: 0 0 0 2px var(--o-dcbt-accent);
     pointer-events: none;
 }
 
@@ -472,7 +404,7 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
     flex: 1;
     min-width: 0;
     flex-direction: column;
-    background: var(--o-dcbt-blanco);
+    background: var(--o-dcbt-bg);
 }
 
 .o_dcbt_ampliado {
@@ -484,7 +416,7 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
 @media (min-width: 768px) {
     .o_dcbt_ampliado .o_dcbt_chat_col {
         flex: 0 0 400px;
-        border-right: 1px solid var(--o-dcbt-linea);
+        border-right: 1px solid var(--o-dcbt-line);
     }
 
     .o_dcbt_solo_cel {
@@ -507,10 +439,9 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
 
     h3 {
         margin: 0;
-        font: 600 17px/1.2 var(--o-dcbt-f-sub);
-        letter-spacing: .04em;
-        text-transform: uppercase;
-        color: var(--o-dcbt-navy);
+        font: 700 17px/1.2 var(--o-dcbt-fuente);
+        letter-spacing: -.02em;
+        color: var(--o-dcbt-fg);
     }
 }
 
@@ -524,7 +455,8 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
     border: 0;
     background: transparent;
     font-size: 15px;
-    color: var(--o-dcbt-azul);
+    font-weight: 700;
+    color: var(--o-dcbt-accent-strong);
 
     svg {
         width: 22px;
@@ -569,13 +501,13 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
 
 .o_dcbt_seccion_carrito {
     padding: 12px 14px 4px;
-    border: 1px solid var(--o-dcbt-azul-200);
-    border-radius: 14px;
-    background: var(--o-dcbt-azul-50);
+    border: 1px solid var(--o-dcbt-line);
+    border-radius: 16px;
+    background: var(--o-dcbt-sage-suave);
 
     .o_dcbt_linea_carrito,
     .o_dcbt_linea_envio {
-        border-bottom-color: var(--o-dcbt-azul-200);
+        border-bottom-color: var(--o-dcbt-line);
     }
 }
 
@@ -584,15 +516,14 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
     display: flex;
     align-items: center;
     gap: 8px;
-    font: 400 20px/1.1 var(--o-dcbt-f-titulo);
-    letter-spacing: .02em;
-    text-transform: uppercase;
-    color: var(--o-dcbt-navy);
+    font: 700 18px/1.15 var(--o-dcbt-fuente);
+    letter-spacing: -.02em;
+    color: var(--o-dcbt-fg);
 
     svg {
         width: 20px;
         height: 20px;
-        color: var(--o-dcbt-azul);
+        color: var(--o-dcbt-sage-strong);
     }
 }
 
@@ -607,7 +538,7 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
 }
 
 .o_dcbt_grupo {
-    border-top: 1px solid var(--o-dcbt-linea);
+    border-top: 1px solid var(--o-dcbt-line);
     padding-top: 6px;
 
     &[open] > .o_dcbt_rejilla {
@@ -635,7 +566,7 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
     }
 
     &:hover .o_dcbt_grupo_titulo {
-        color: var(--o-dcbt-azul-osc);
+        color: var(--o-dcbt-accent-strong);
     }
 }
 
@@ -644,24 +575,21 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    font: 400 22px/1.1 var(--o-dcbt-f-titulo);
-    letter-spacing: .02em;
-    text-transform: uppercase;
-    color: var(--o-dcbt-azul);
+    font: 700 18px/1.2 var(--o-dcbt-fuente);
+    letter-spacing: -.02em;
+    color: var(--o-dcbt-fg);
 }
 
 .o_dcbt_grupo_cuenta {
     flex: none;
-    font: 500 12px/1.2 var(--o-dcbt-f-sub);
-    letter-spacing: .06em;
-    text-transform: uppercase;
-    color: var(--o-dcbt-gris);
+    font: 600 12px/1.2 var(--o-dcbt-fuente);
+    color: var(--o-dcbt-muted);
 }
 
 .o_dcbt_grupo_flecha {
     margin-left: auto;
     flex: none;
-    color: var(--o-dcbt-azul);
+    color: var(--o-dcbt-accent-edge);
     transition: transform .2s ease;
 
     svg {
@@ -682,7 +610,7 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
     }
 
     .o_dcbt_grupo_titulo {
-        font-size: 19px;
+        font-size: 17px;
     }
 
     .o_dcbt_vitrina_grid {
@@ -708,12 +636,21 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
     gap: 10px;
     padding: 40px 12px;
     text-align: center;
-    color: var(--o-dcbt-gris);
+    color: var(--o-dcbt-muted);
     font-size: 14px;
 
-    .o_dcbt_pose {
-        width: 84px;
-        height: 84px;
+    // El carrito de línea en un círculo crema, en verde salvia (como los íconos de los sellos de Baby Caleb).
+    .o_dcbt_vitrina_vacia_ico {
+        width: 72px;
+        height: 72px;
+        background: var(--o-dcbt-surface);
+        color: var(--o-dcbt-sage-strong);
+        box-shadow: var(--o-dcbt-sombra);
+
+        svg {
+            width: 32px;
+            height: 32px;
+        }
     }
 }
 
@@ -724,8 +661,8 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
     align-items: center;
     gap: 10px 14px;
     padding: 12px 18px;
-    border-top: 1px solid var(--o-dcbt-linea);
-    background: var(--o-dcbt-blanco);
+    border-top: 1px solid var(--o-dcbt-line);
+    background: var(--o-dcbt-surface);
 
     .o_dcbt_btn {
         flex: 0 0 auto;
@@ -735,7 +672,7 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
         white-space: nowrap;
         font-weight: 600;
         font-size: 12px;
-        color: var(--o-dcbt-navy);
+        color: var(--o-dcbt-fg);
     }
 }
 
@@ -749,11 +686,12 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
 .o_dcbt_resumen {
     flex: 1 1 180px;
     font-size: 14px;
-    color: var(--o-dcbt-gris);
+    color: var(--o-dcbt-muted);
 
     strong {
-        font: 600 20px/1 var(--o-dcbt-f-sub);
-        color: var(--o-dcbt-azul);
+        font: 700 20px/1 var(--o-dcbt-fuente);
+        letter-spacing: -.02em;
+        color: var(--o-dcbt-accent-strong);
     }
 }
 
@@ -804,17 +742,18 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
 }
 
 .o_dcbt_avatar_intro {
-    width: 84px;
-    height: 84px;
-    margin-bottom: 6px;
+    width: 72px;
+    height: 72px;
+    margin-bottom: 8px;
+    background: var(--o-dcbt-surface);
+    box-shadow: var(--o-dcbt-sombra);
 }
 
 .o_dcbt_intro_nombre {
     margin: 0;
-    font: 600 16px/1.2 var(--o-dcbt-f-sub);
-    letter-spacing: .05em;
-    text-transform: uppercase;
-    color: var(--o-dcbt-navy);
+    font: 700 16px/1.2 var(--o-dcbt-fuente);
+    letter-spacing: -.02em;
+    color: var(--o-dcbt-fg);
 }
 
 .o_dcbt_dia {
@@ -825,8 +764,8 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
         display: inline-block;
         padding: 3px 12px;
         border-radius: 999px;
-        background: #E6EAF2;
-        color: var(--o-dcbt-gris);
+        background: rgba(27, 50, 70, .07);
+        color: var(--o-dcbt-fg);
         font-size: 12px;
         font-weight: 600;
     }
@@ -838,18 +777,10 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
     gap: 8px;
     max-width: 100%;
 
-    > .o_dcbt_avatar {
-        width: 32px;
-        height: 32px;
-    }
-
+    // Sin avatar en cada globo (como en el chat de Baby Caleb): el lado y la forma dicen quién habla.
     &.o_dcbt_de_brian {
         align-self: flex-start;
-        padding-right: 26px;
-    }
-
-    &.o_dcbt_de_brian.o_dcbt_seguida > .o_dcbt_avatar {
-        visibility: hidden;
+        padding-right: 40px;
     }
 
     &.o_dcbt_ancha {
@@ -860,7 +791,7 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
 
     &.o_dcbt_del_cliente {
         align-self: flex-end;
-        padding-left: 52px;
+        padding-left: 40px;
     }
 
     &.o_dcbt_fallida .o_dcbt_globo {
@@ -879,28 +810,28 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
     min-width: 0;
     margin: 0;
     padding: 9px 13px 10px;
-    border-radius: 18px;
+    border-radius: 16px;
     font-size: 15px;
     line-height: 1.42;
     overflow-wrap: anywhere;
     white-space: pre-line;
 }
 
+// Las formas del chat de Baby Caleb: el globo de Andrés en `surface` con su filo y la esquina de arriba a la izquierda
+// en pico; el del cliente, naranja con letra navy (5.56) y el pico arriba a la derecha.
 .o_dcbt_de_brian .o_dcbt_globo {
-    background: var(--o-dcbt-blanco);
-    border: 1px solid var(--o-dcbt-linea);
-    color: var(--o-dcbt-tinta);
-    border-top-left-radius: 6px;
-}
-
-.o_dcbt_de_brian.o_dcbt_seguida .o_dcbt_globo {
-    border-top-left-radius: 18px;
+    background: var(--o-dcbt-surface);
+    border: 1px solid var(--o-dcbt-line);
+    color: var(--o-dcbt-fg);
+    border-top-left-radius: 0;
+    box-shadow: 0 1px 2px rgba(27, 50, 70, .05);
 }
 
 .o_dcbt_del_cliente .o_dcbt_globo {
-    background: var(--o-dcbt-azul);
-    color: var(--o-dcbt-blanco);
-    border-bottom-right-radius: 6px;
+    background: var(--o-dcbt-accent);
+    color: var(--o-dcbt-accent-fg);
+    border-top-right-radius: 0;
+    box-shadow: 0 1px 2px rgba(27, 50, 70, .05);
 }
 
 .o_dcbt_entra {
@@ -924,7 +855,7 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
         width: 7px;
         height: 7px;
         border-radius: 50%;
-        background: #8391AE;
+        background: var(--o-dcbt-muted);
         animation: o_dcbt_punto 1.1s ease-in-out infinite;
     }
 
@@ -955,7 +886,7 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-    margin: 2px 0 4px 40px;
+    margin: 2px 0 4px;
 }
 
 .o_dcbt_chip {
@@ -965,9 +896,9 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
     min-height: 40px;
     padding: 0 15px;
     border-radius: 999px;
-    border: 1.5px solid var(--o-dcbt-azul);
-    background: var(--o-dcbt-blanco);
-    color: var(--o-dcbt-azul);
+    border: 1px solid var(--o-dcbt-accent-edge);
+    background: transparent;
+    color: var(--o-dcbt-accent-strong);
     font-weight: 600;
     font-size: 14px;
     line-height: 1.15;
@@ -978,38 +909,41 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
         height: 17px;
     }
 
+    // Al pasar, como el botón de contorno de Baby Caleb: se llena de naranja con letra navy.
     &:hover {
-        background: var(--o-dcbt-azul-50);
+        background: var(--o-dcbt-accent);
+        color: var(--o-dcbt-accent-fg);
     }
 }
 
 .o_dcbt_privacidad {
-    margin: -2px 0 4px 40px;
+    margin: -2px 0 4px;
     display: flex;
     align-items: center;
     gap: 6px;
     font-size: 12px;
-    color: var(--o-dcbt-gris);
+    color: var(--o-dcbt-muted);
 
     svg {
         width: 14px;
         height: 14px;
-        color: var(--o-dcbt-azul);
+        color: var(--o-dcbt-sage-strong);
         flex: none;
     }
 }
 
-// Botones del chat
+// Botones del chat: pastillas de la marca. El principal, naranja con letra navy; el de contorno, filo naranja y letra
+// en el naranja de texto.
 .o_dcbt_btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 7px;
     min-height: 42px;
-    padding: 0 14px;
-    border-radius: 10px;
-    border: 1.5px solid var(--o-dcbt-azul);
-    font-weight: 600;
+    padding: 0 16px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    font-weight: 700;
     font-size: 14px;
     line-height: 1.1;
     text-decoration: none;
@@ -1032,38 +966,39 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
     }
 }
 
+// `o_dcbt_btn_azul` es el nombre técnico de siempre (lo usan el JS y las pruebas): hoy es el principal naranja.
 .o_dcbt_btn_azul {
-    background: var(--o-dcbt-azul);
-    color: var(--o-dcbt-blanco);
+    background: var(--o-dcbt-accent);
+    color: var(--o-dcbt-accent-fg);
 
     &:hover,
     &:focus-visible {
-        background: var(--o-dcbt-azul-osc);
-        border-color: var(--o-dcbt-azul-osc);
-        color: var(--o-dcbt-blanco);
+        background: var(--o-dcbt-accent-hover);
+        color: var(--o-dcbt-accent-fg);
     }
 }
 
 .o_dcbt_btn_borde {
-    background: var(--o-dcbt-blanco);
-    color: var(--o-dcbt-azul);
+    background: transparent;
+    border-color: var(--o-dcbt-accent-edge);
+    color: var(--o-dcbt-accent-strong);
 
     &:hover,
     &:focus-visible {
-        background: var(--o-dcbt-azul-50);
-        color: var(--o-dcbt-azul);
+        background: var(--o-dcbt-accent);
+        color: var(--o-dcbt-accent-fg);
     }
 }
 
+// Lo ya hecho («En el carrito»): el verde salvia de relleno con letra navy (6.96).
 .o_dcbt_btn_hecho {
-    background: var(--o-dcbt-azul-50);
-    color: var(--o-dcbt-azul);
-    border-color: var(--o-dcbt-azul-200);
+    background: var(--o-dcbt-sage);
+    color: var(--o-dcbt-fg);
+    border-color: transparent;
 }
 
 .o_dcbt_btn_grande {
     min-height: 50px;
-    border-radius: 12px;
     font-size: 15.5px;
 }
 
@@ -1073,9 +1008,9 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
     align-items: center;
     flex: none;
     height: 40px;
-    border: 1px solid var(--o-dcbt-linea-fuerte);
-    border-radius: 10px;
-    background: var(--o-dcbt-blanco);
+    border: 1px solid var(--o-dcbt-control);
+    border-radius: 999px;
+    background: var(--o-dcbt-bg);
 
     button {
         width: 36px;
@@ -1083,17 +1018,17 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
         padding: 0;
         border: 0;
         background: transparent;
-        color: var(--o-dcbt-azul);
+        color: var(--o-dcbt-fg);
         display: grid;
         place-items: center;
-        border-radius: 9px;
+        border-radius: 999px;
 
         &:hover:not([disabled]) {
-            background: var(--o-dcbt-azul-50);
+            background: var(--o-dcbt-accent-suave);
         }
 
         &[disabled] {
-            color: var(--o-dcbt-linea-fuerte);
+            color: rgba(27, 50, 70, .3);
             cursor: default;
         }
 
@@ -1106,9 +1041,9 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
     output {
         min-width: 26px;
         text-align: center;
-        font-weight: 600;
+        font-weight: 700;
         font-size: 15px;
-        color: var(--o-dcbt-navy);
+        color: var(--o-dcbt-fg);
         font-variant-numeric: tabular-nums;
     }
 }
@@ -1130,11 +1065,11 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
     height: 36px;
     padding: 0;
     border-radius: 50%;
-    border: 1px solid var(--o-dcbt-linea-fuerte);
-    background: var(--o-dcbt-blanco);
-    color: var(--o-dcbt-azul);
+    border: 1px solid var(--o-dcbt-control);
+    background: var(--o-dcbt-surface);
+    color: var(--o-dcbt-fg);
     place-items: center;
-    box-shadow: 0 2px 6px rgba(14, 42, 107, .12);
+    box-shadow: var(--o-dcbt-sombra);
 
     svg {
         width: 18px;
@@ -1142,7 +1077,7 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
     }
 
     &:hover {
-        background: var(--o-dcbt-azul-50);
+        background: var(--o-dcbt-bg);
     }
 }
 
@@ -1179,18 +1114,25 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    background: var(--o-dcbt-blanco);
-    border: 1px solid var(--o-dcbt-linea);
-    border-radius: 14px;
+    background: var(--o-dcbt-surface);
+    border: 1px solid var(--o-dcbt-line);
+    border-radius: 16px;
+    box-shadow: var(--o-dcbt-sombra);
+    transition: border-color .3s ease;
+
+    &:hover {
+        border-color: var(--o-dcbt-accent-edge);
+    }
 
     h3 {
         margin: 0;
         min-height: 2.6em;
-        font-family: var(--o-dcbt-f-texto);
+        font-family: var(--o-dcbt-fuente);
         font-size: 14px;
-        font-weight: 600;
+        font-weight: 700;
         line-height: 1.3;
-        color: var(--o-dcbt-navy);
+        letter-spacing: -.01em;
+        color: var(--o-dcbt-fg);
         text-transform: none;
         display: -webkit-box;
         -webkit-line-clamp: 2;
@@ -1202,13 +1144,14 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
 .o_dcbt_tarjeta_foto {
     aspect-ratio: 16 / 10;
     max-width: 100%;
-    border-bottom: 1px solid var(--o-dcbt-linea);
-    background: var(--o-dcbt-blanco);
+    border-bottom: 1px solid var(--o-dcbt-line);
+    background: var(--o-dcbt-bg);
 
+    // `contain` y no `cover`: las fotos de Baby Caleb traen su propio fondo y su proporción (como en su tienda).
     img {
         width: 100%;
         height: 100%;
-        object-fit: cover;
+        object-fit: contain;
         display: block;
     }
 }
@@ -1228,26 +1171,31 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
     gap: 6px;
 
     strong {
-        font: 600 20px/1 var(--o-dcbt-f-sub);
-        color: var(--o-dcbt-azul);
+        font: 700 20px/1 var(--o-dcbt-fuente);
+        letter-spacing: -.02em;
+        color: var(--o-dcbt-accent-strong);
     }
 
     small {
         font-weight: 600;
         font-size: 12px;
-        color: var(--o-dcbt-navy);
+        color: var(--o-dcbt-fg);
     }
 }
 
+// Las insignias de disponibilidad: pastillas de 12 px, 700, en caja alta (como las de Baby Caleb). «Quedan pocas»
+// empuja en naranja; «Agotado» cierra en navy con letra crema; «Disponible», verde salvia claro con letra navy.
 .o_dcbt_dispo {
     align-self: flex-start;
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 5px 9px;
+    padding: 5px 10px;
     border-radius: 999px;
-    font-weight: 600;
+    font-weight: 700;
     font-size: 12px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
     line-height: 1;
 
     &::before {
@@ -1260,18 +1208,22 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
 }
 
 .o_dcbt_dispo_ok {
-    color: var(--o-dcbt-ok);
-    background: var(--o-dcbt-ok-fondo);
+    color: var(--o-dcbt-fg);
+    background: var(--o-dcbt-sage-suave);
+
+    &::before {
+        background: var(--o-dcbt-sage-strong);
+    }
 }
 
 .o_dcbt_dispo_pocas {
-    color: var(--o-dcbt-pocas);
-    background: var(--o-dcbt-pocas-fondo);
+    color: var(--o-dcbt-accent-fg);
+    background: var(--o-dcbt-accent);
 }
 
 .o_dcbt_dispo_agotado {
-    color: var(--o-dcbt-gris);
-    background: var(--o-dcbt-agotado-fondo);
+    color: var(--o-dcbt-bg);
+    background: var(--o-dcbt-fg);
 }
 
 .o_dcbt_tarjeta_fila {
@@ -1305,9 +1257,10 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
 
 // Tarjetas de una sola cosa (carrito, ubicación, envío, estrellas)
 .o_dcbt_card {
-    background: var(--o-dcbt-blanco);
-    border: 1px solid var(--o-dcbt-linea);
+    background: var(--o-dcbt-surface);
+    border: 1px solid var(--o-dcbt-line);
     border-radius: 16px;
+    box-shadow: var(--o-dcbt-sombra);
     padding: 12px;
     width: #{"min(100%, 300px)"};
     display: grid;
@@ -1315,8 +1268,9 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
 
     h3 {
         margin: 0;
-        font: 600 19px/1.2 var(--o-dcbt-f-sub);
-        color: var(--o-dcbt-navy);
+        font: 700 17px/1.2 var(--o-dcbt-fuente);
+        letter-spacing: -.02em;
+        color: var(--o-dcbt-fg);
         text-transform: none;
     }
 }
@@ -1328,7 +1282,7 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
     gap: 8px;
     font-weight: 600;
     font-size: 14px;
-    color: var(--o-dcbt-navy);
+    color: var(--o-dcbt-fg);
 }
 
 .o_dcbt_check {
@@ -1336,8 +1290,8 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
     height: 24px;
     flex: none;
     border-radius: 50%;
-    background: var(--o-dcbt-azul);
-    color: var(--o-dcbt-blanco);
+    background: var(--o-dcbt-sage);
+    color: var(--o-dcbt-fg);
     display: grid;
     place-items: center;
 
@@ -1353,17 +1307,17 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
     gap: 4px 10px;
     align-items: center;
     padding-bottom: 10px;
-    border-bottom: 1px solid var(--o-dcbt-linea);
+    border-bottom: 1px solid var(--o-dcbt-line);
 
     img {
         width: 58px;
         height: 42px;
-        object-fit: cover;
+        object-fit: contain;
         border-radius: 8px;
-        border: 1px solid var(--o-dcbt-linea);
+        border: 1px solid var(--o-dcbt-line);
         grid-row: span 2;
         align-self: start;
-        background: var(--o-dcbt-blanco);
+        background: var(--o-dcbt-bg);
     }
 }
 
@@ -1372,7 +1326,7 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
     font-size: 13px;
     font-weight: 500;
     line-height: 1.3;
-    color: var(--o-dcbt-tinta);
+    color: var(--o-dcbt-fg);
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
@@ -1399,7 +1353,7 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
     margin-left: auto;
     font-size: 13px;
     font-weight: 600;
-    color: var(--o-dcbt-navy);
+    color: var(--o-dcbt-fg);
     font-variant-numeric: tabular-nums;
 }
 
@@ -1408,7 +1362,7 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
     padding: 0 4px;
     border: 0;
     background: transparent;
-    color: var(--o-dcbt-gris);
+    color: var(--o-dcbt-muted);
     font-size: 12.5px;
     text-decoration: underline;
     text-underline-offset: 2px;
@@ -1420,18 +1374,19 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
     align-items: baseline;
     gap: 8px;
     font-size: 13.5px;
-    color: var(--o-dcbt-gris);
+    color: var(--o-dcbt-muted);
 
     strong {
-        font: 600 19px/1 var(--o-dcbt-f-sub);
-        color: var(--o-dcbt-azul);
+        font: 700 19px/1 var(--o-dcbt-fuente);
+        letter-spacing: -.02em;
+        color: var(--o-dcbt-accent-strong);
         font-variant-numeric: tabular-nums;
     }
 
     small {
         font-weight: 600;
         font-size: 12px;
-        color: var(--o-dcbt-navy);
+        color: var(--o-dcbt-fg);
     }
 }
 
@@ -1443,40 +1398,41 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
 .o_dcbt_carrito_vacio {
     margin: 0;
     font-size: 14px;
-    color: var(--o-dcbt-gris);
+    color: var(--o-dcbt-muted);
 }
 
+// Antetítulo de la marca: 12 px, 700, caja alta y .14em, en el naranja de texto.
 .o_dcbt_envio_eti {
     margin: 0;
     display: flex;
     align-items: center;
     gap: 6px;
-    font: 500 12px/1.2 var(--o-dcbt-f-sub);
+    font: 700 12px/1.2 var(--o-dcbt-fuente);
     text-transform: uppercase;
-    letter-spacing: .07em;
-    color: var(--o-dcbt-gris);
+    letter-spacing: .14em;
+    color: var(--o-dcbt-accent-strong);
 
     svg {
         width: 16px;
         height: 16px;
-        color: var(--o-dcbt-azul);
+        color: var(--o-dcbt-accent-edge);
     }
 }
 
 .o_dcbt_envio_texto {
     margin: 0;
     padding: 10px 12px;
-    border-radius: 12px;
-    background: var(--o-dcbt-niebla);
+    border-radius: 14px;
+    background: var(--o-dcbt-bg);
     font-size: 14px;
     line-height: 1.45;
-    color: var(--o-dcbt-tinta);
+    color: var(--o-dcbt-fg);
 }
 
 .o_dcbt_osm {
     margin: -4px 0 0;
-    font-size: 11px;
-    color: var(--o-dcbt-gris-claro);
+    font-size: 12px;
+    color: var(--o-dcbt-muted);
 }
 
 .o_dcbt_wa_card {
@@ -1488,11 +1444,11 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
 .o_dcbt_wa_num {
     margin: 0;
     font-size: 12.5px;
-    color: var(--o-dcbt-gris);
+    color: var(--o-dcbt-muted);
     text-align: center;
 
     span:first-child {
-        color: var(--o-dcbt-navy);
+        color: var(--o-dcbt-fg);
         font-weight: 600;
         user-select: all;
     }
@@ -1508,9 +1464,9 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
     height: 44px;
     padding: 0;
     border: 0;
-    border-radius: 10px;
+    border-radius: 50%;
     background: transparent;
-    color: var(--o-dcbt-azul);
+    color: var(--o-dcbt-accent-edge);
     display: grid;
     place-items: center;
 
@@ -1520,7 +1476,7 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
     }
 
     &:hover:not([disabled]) {
-        background: var(--o-dcbt-azul-50);
+        background: var(--o-dcbt-accent-suave);
     }
 
     &[disabled] {
@@ -1532,7 +1488,7 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
     }
 
     &.o_dcbt_activa .o_dcbt_relleno {
-        fill: var(--o-dcbt-azul);
+        fill: var(--o-dcbt-accent);
     }
 }
 
@@ -1559,8 +1515,8 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
     padding: 0 8px;
     border: 0;
     background: transparent;
-    color: var(--o-dcbt-azul);
-    font-weight: 600;
+    color: var(--o-dcbt-accent-strong);
+    font-weight: 700;
     font-size: 13px;
     text-decoration: underline;
     text-underline-offset: 2px;
@@ -1576,12 +1532,12 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
     max-width: calc(100% - 32px);
     margin: 0;
     padding: 9px 14px;
-    border-radius: 12px;
-    background: var(--o-dcbt-navy);
-    color: var(--o-dcbt-blanco);
+    border-radius: 14px;
+    background: var(--o-dcbt-fg);
+    color: var(--o-dcbt-bg);
     font-size: 13px;
     line-height: 1.4;
-    box-shadow: 0 4px 12px rgba(14, 42, 107, .2);
+    box-shadow: 0 4px 20px -2px rgba(27, 50, 70, .2);
 }
 
 .o_dcbt_verificando {
@@ -1592,15 +1548,15 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
     align-items: center;
     gap: 6px;
     padding: 6px 12px 0;
-    background: var(--o-dcbt-blanco);
-    border-top: 1px solid var(--o-dcbt-linea);
+    background: var(--o-dcbt-surface);
+    border-top: 1px solid var(--o-dcbt-line);
     font-size: 12px;
-    color: var(--o-dcbt-gris);
+    color: var(--o-dcbt-muted);
 
     svg {
         width: 14px;
         height: 14px;
-        color: var(--o-dcbt-azul);
+        color: var(--o-dcbt-sage-strong);
     }
 }
 
@@ -1608,13 +1564,13 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
     display: flex;
     justify-content: center;
     padding: 6px 12px 0;
-    background: var(--o-dcbt-blanco);
+    background: var(--o-dcbt-surface);
 }
 
 // ---------------------------------------------------------------------------
 // A1. La barra del carrito, fija encima del campo de texto, y la hoja con el carrito editable (pedido de la dueña,
-// 2026-11-16: «el carrito y el botón se van para arriba»). Azul y navy sobre blanco; la cantidad, azul con número blanco
-// (como la del menú del sitio); el amarillo no se usa aquí.
+// 2026-11-16: «el carrito y el botón se van para arriba»). Navy sobre crema; la cantidad, en una pastilla naranja con
+// número navy (5.56) y filo `surface`; el precio, en el naranja de texto.
 // ---------------------------------------------------------------------------
 
 .o_dcbt_barra {
@@ -1623,8 +1579,8 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
     align-items: center;
     gap: 8px;
     padding: 8px 10px;
-    background: var(--o-dcbt-blanco);
-    border-top: 1px solid var(--o-dcbt-linea);
+    background: var(--o-dcbt-surface);
+    border-top: 1px solid var(--o-dcbt-line);
 }
 
 .o_dcbt_barra_ver {
@@ -1635,16 +1591,16 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
     align-items: center;
     gap: 8px;
     padding: 4px 4px 4px 4px;
-    border: 1px solid var(--o-dcbt-azul-200);
-    border-radius: 12px;
-    background: var(--o-dcbt-azul-50);
-    color: var(--o-dcbt-navy);
+    border: 1px solid var(--o-dcbt-control);
+    border-radius: 14px;
+    background: var(--o-dcbt-bg);
+    color: var(--o-dcbt-fg);
     text-align: left;
     transition: background-color .15s ease, border-color .15s ease;
 
     &:hover,
     &[aria-expanded="true"] {
-        border-color: var(--o-dcbt-azul);
+        border-color: var(--o-dcbt-accent-edge);
     }
 }
 
@@ -1656,8 +1612,8 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
     display: grid;
     place-items: center;
     border-radius: 50%;
-    background: var(--o-dcbt-blanco);
-    color: var(--o-dcbt-azul);
+    background: var(--o-dcbt-surface);
+    color: var(--o-dcbt-fg);
 
     svg {
         width: 22px;
@@ -1673,10 +1629,10 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
     height: 20px;
     padding: 0 5px;
     border-radius: 999px;
-    background: var(--o-dcbt-azul);
-    color: var(--o-dcbt-blanco);
-    box-shadow: 0 0 0 2px var(--o-dcbt-blanco);
-    font: 700 12px/20px var(--o-dcbt-f-texto);
+    background: var(--o-dcbt-accent);
+    color: var(--o-dcbt-accent-fg);
+    box-shadow: 0 0 0 2px var(--o-dcbt-surface);
+    font: 700 12px/20px var(--o-dcbt-fuente);
     font-variant-numeric: tabular-nums;
     text-align: center;
 }
@@ -1693,10 +1649,8 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
-    font: 500 12px/1.2 var(--o-dcbt-f-sub);
-    letter-spacing: .04em;
-    text-transform: uppercase;
-    color: var(--o-dcbt-gris);
+    font: 600 12px/1.2 var(--o-dcbt-fuente);
+    color: var(--o-dcbt-muted);
 }
 
 // «Ver» con su flecha, a la derecha: siempre a la vista aunque el texto de la izquierda se recorte.
@@ -1706,10 +1660,8 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
     justify-items: center;
     gap: 0;
     min-width: 36px;
-    font: 600 11px/1.1 var(--o-dcbt-f-sub);
-    letter-spacing: .06em;
-    text-transform: uppercase;
-    color: var(--o-dcbt-azul);
+    font: 700 12px/1.1 var(--o-dcbt-fuente);
+    color: var(--o-dcbt-accent-strong);
 
     svg {
         width: 20px;
@@ -1724,14 +1676,15 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
     font-variant-numeric: tabular-nums;
 
     strong {
-        font: 600 17px/1.15 var(--o-dcbt-f-sub);
-        color: var(--o-dcbt-azul);
+        font: 700 17px/1.15 var(--o-dcbt-fuente);
+        letter-spacing: -.02em;
+        color: var(--o-dcbt-accent-strong);
     }
 
     small {
         font-weight: 600;
         font-size: 12px;
-        color: var(--o-dcbt-navy);
+        color: var(--o-dcbt-fg);
     }
 }
 
@@ -1739,8 +1692,7 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
     flex: none;
     min-height: 48px;
     gap: 6px;
-    padding: 0 11px;
-    border-radius: 12px;
+    padding: 0 14px;
 }
 
 @media (max-width: 380px) {
@@ -1768,11 +1720,11 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
     max-height: calc(100% - 12px);
     display: flex;
     flex-direction: column;
-    background: var(--o-dcbt-blanco);
-    border: 1px solid var(--o-dcbt-linea);
+    background: var(--o-dcbt-surface);
+    border: 1px solid var(--o-dcbt-line);
     border-bottom: 0;
-    border-radius: 16px 16px 0 0;
-    box-shadow: 0 -6px 18px rgba(14, 42, 107, .12);
+    border-radius: 24px 24px 0 0;
+    box-shadow: 0 -6px 20px -2px rgba(27, 50, 70, .12);
 }
 
 .o_dcbt_hoja_cab {
@@ -1784,10 +1736,9 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
 
     h3 {
         margin: 0;
-        font: 400 20px/1.1 var(--o-dcbt-f-titulo);
-        letter-spacing: .02em;
-        text-transform: uppercase;
-        color: var(--o-dcbt-navy);
+        font: 700 18px/1.15 var(--o-dcbt-fuente);
+        letter-spacing: -.02em;
+        color: var(--o-dcbt-fg);
     }
 }
 
@@ -1807,9 +1758,9 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
     gap: 8px;
     align-items: center;
     padding-bottom: 10px;
-    border-bottom: 1px solid var(--o-dcbt-linea);
+    border-bottom: 1px solid var(--o-dcbt-line);
     font-size: 13px;
-    color: var(--o-dcbt-tinta);
+    color: var(--o-dcbt-fg);
 
     p {
         margin: 0;
@@ -1819,7 +1770,7 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
     svg {
         width: 18px;
         height: 18px;
-        color: var(--o-dcbt-azul);
+        color: var(--o-dcbt-accent-edge);
     }
 }
 
@@ -1833,7 +1784,7 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
     grid-template-columns: 1fr auto;
     gap: 2px 12px;
     font-size: 13px;
-    color: var(--o-dcbt-gris);
+    color: var(--o-dcbt-muted);
     font-variant-numeric: tabular-nums;
 
     dt {
@@ -1843,7 +1794,7 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
     dd {
         margin: 0;
         text-align: right;
-        color: var(--o-dcbt-navy);
+        color: var(--o-dcbt-fg);
         font-weight: 600;
     }
 }
@@ -1854,10 +1805,11 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
     align-items: flex-end;
     gap: 8px;
     margin: 0;
-    background: var(--o-dcbt-blanco);
-    border-top: 1px solid var(--o-dcbt-linea);
+    background: var(--o-dcbt-surface);
+    border-top: 1px solid var(--o-dcbt-line);
     padding: 10px 12px;
 
+    // El campo de la marca: 16 px (el iPhone no hace zoom), radio de 14 px, borde `control` y el aro navy al enfocar.
     textarea {
         flex: 1;
         min-width: 0;
@@ -1865,24 +1817,23 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
         min-height: 48px;
         max-height: 128px;
         margin: 0;
-        padding: 13px 16px;
-        border-radius: 24px;
-        border: 1px solid var(--o-dcbt-linea-fuerte);
-        background: var(--o-dcbt-niebla);
-        color: var(--o-dcbt-tinta);
-        font: 400 16px/1.35 var(--o-dcbt-f-texto);
+        padding: 13px 14px;
+        border-radius: 14px;
+        border: 1px solid var(--o-dcbt-control);
+        background: var(--o-dcbt-bg);
+        color: var(--o-dcbt-fg);
+        font: 400 16px/1.35 var(--o-dcbt-fuente);
         resize: none;
         overflow-y: auto;
 
         &::placeholder {
-            color: var(--o-dcbt-gris-claro);
+            color: var(--o-dcbt-muted);
         }
 
         &:focus {
-            outline: none;
-            border-color: var(--o-dcbt-azul);
-            background: var(--o-dcbt-blanco);
-            box-shadow: 0 0 0 3px var(--o-dcbt-azul-200);
+            outline: 2px solid var(--o-dcbt-fg);
+            outline-offset: 2px;
+            border-color: var(--o-dcbt-fg);
         }
 
         &:disabled {
@@ -1915,12 +1866,12 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
     height: 48px;
     padding: 0;
     border: 0;
-    border-radius: 50%;
-    background: var(--o-dcbt-azul);
-    color: var(--o-dcbt-blanco);
+    border-radius: 14px;
+    background: var(--o-dcbt-accent);
+    color: var(--o-dcbt-accent-fg);
     display: grid;
     place-items: center;
-    transition: background .15s;
+    transition: background .15s, opacity .15s;
 
     svg {
         width: 22px;
@@ -1928,21 +1879,22 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
         margin-left: 2px;
     }
 
+    // Deshabilitado, como en Baby Caleb: el mismo naranja a medias.
     &:disabled {
-        background: var(--o-dcbt-azul-200);
+        opacity: .5;
         cursor: default;
     }
 
     &:not(:disabled):hover {
-        background: var(--o-dcbt-azul-osc);
+        background: var(--o-dcbt-accent-hover);
     }
 }
 
 // ---------------------------------------------------------------------------
-// Notas de voz (docs/JUAN.md §12a): el micrófono junto a «Enviar» (azul sobre blanco, «Enviar» sigue siendo el botón
-// lleno) y, mientras graba, en el mismo renglón: el punto rojo con la palabra «Grabando» (el color nunca es la única
-// señal), el tiempo, la barra del minuto en azul, cancelar y «Listo». Plano, sin el amarillo. Debajo del campo, una vez
-// por sesión, «Si prefieres, mándame una nota de voz».
+// Notas de voz (docs/JUAN.md §12a): el micrófono junto a «Enviar» (de contorno `control` con el ícono navy; «Enviar»
+// sigue siendo el botón lleno) y, mientras graba, en el mismo renglón: el punto rojo con la palabra «Grabando» (el color
+// nunca es la única señal), el tiempo, la barra del minuto en naranja, cancelar y «Listo». Debajo del campo, una vez por
+// sesión, «Si prefieres, mándame una nota de voz».
 // ---------------------------------------------------------------------------
 
 .o_dcbt_composer {
@@ -1959,10 +1911,10 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
     width: 48px;
     height: 48px;
     padding: 0;
-    border: 1.5px solid var(--o-dcbt-azul-200);
-    border-radius: 50%;
-    background: var(--o-dcbt-blanco);
-    color: var(--o-dcbt-azul);
+    border: 1px solid var(--o-dcbt-control);
+    border-radius: 14px;
+    background: var(--o-dcbt-bg);
+    color: var(--o-dcbt-fg);
     display: grid;
     place-items: center;
     transition: background-color .15s ease, border-color .15s ease;
@@ -1973,8 +1925,8 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
     }
 
     &:hover {
-        border-color: var(--o-dcbt-azul);
-        background: var(--o-dcbt-azul-50);
+        border-color: var(--o-dcbt-accent-edge);
+        background: var(--o-dcbt-accent-suave);
     }
 }
 
@@ -1993,7 +1945,7 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
     width: 10px;
     height: 10px;
     border-radius: 50%;
-    background: var(--o-dcbt-gris-claro);
+    background: var(--o-dcbt-muted);
 }
 
 .o_dcbt_voz_grabando[data-estado="grabando"] .o_dcbt_voz_punto {
@@ -2009,15 +1961,15 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
 
 .o_dcbt_voz_estado {
     flex: none;
-    font: 600 14px/1.2 var(--o-dcbt-f-texto);
-    color: var(--o-dcbt-navy);
+    font: 600 14px/1.2 var(--o-dcbt-fuente);
+    color: var(--o-dcbt-fg);
     white-space: nowrap;
 }
 
 .o_dcbt_voz_tiempo {
     flex: none;
     font-size: 13px;
-    color: var(--o-dcbt-gris);
+    color: var(--o-dcbt-muted);
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
 }
@@ -2027,14 +1979,14 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
     min-width: 12px;
     height: 4px;
     border-radius: 2px;
-    background: var(--o-dcbt-linea);
+    background: var(--o-dcbt-line);
     overflow: hidden;
 
     > span {
         display: block;
         width: 0;
         height: 100%;
-        background: var(--o-dcbt-azul);
+        background: var(--o-dcbt-accent);
         transition: width .25s linear;
     }
 }
@@ -2047,7 +1999,7 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
     border: 0;
     border-radius: 50%;
     background: transparent;
-    color: var(--o-dcbt-tinta);
+    color: var(--o-dcbt-fg);
     display: grid;
     place-items: center;
 
@@ -2057,7 +2009,7 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
     }
 
     &:not(:disabled):hover {
-        background: var(--o-dcbt-niebla);
+        background: rgba(27, 50, 70, .07);
     }
 
     &:disabled {
@@ -2073,8 +2025,8 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
 .o_dcbt_voz_girando {
     width: 20px;
     height: 20px;
-    border: 2.5px solid rgba(255, 255, 255, .45);
-    border-top-color: var(--o-dcbt-blanco);
+    border: 2.5px solid rgba(27, 50, 70, .3);
+    border-top-color: var(--o-dcbt-accent-fg);
     border-radius: 50%;
     animation: o_dcbt_voz_gira .8s linear infinite;
 }
@@ -2094,13 +2046,13 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
     padding: 0 6px 0 16px;
     font-size: 12.5px;
     line-height: 1.3;
-    color: var(--o-dcbt-gris);
+    color: var(--o-dcbt-muted);
 
     svg {
         flex: none;
         width: 15px;
         height: 15px;
-        color: var(--o-dcbt-azul);
+        color: var(--o-dcbt-accent-edge);
     }
 }
 
@@ -2126,7 +2078,7 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
     }
 }
 
-// Con movimiento reducido, quieto: ni entradas, ni halo, ni reposo, ni transiciones (el JS tampoco anima las poses).
+// Con movimiento reducido, quieto: ni entradas ni transiciones.
 @media (prefers-reduced-motion: reduce) {
     .o_dcbt *,
     .o_dcbt *::before,
@@ -2158,18 +2110,19 @@ html.o_dcasa_refraccion .o_dcbt_cab::before {
     }
 }
 
+// «Andrés te sugiere»: el antetítulo de la marca; «Lo más buscado»: el titular, como frase.
 .o_dcbt_sugeridos_eti {
     margin: 0;
     width: 100%;
-    font: 500 11.5px/1.2 var(--o-dcbt-f-sub);
-    letter-spacing: .08em;
+    font: 700 12px/1.3 var(--o-dcbt-fuente);
+    letter-spacing: .14em;
     text-transform: uppercase;
-    color: var(--o-dcbt-gris);
+    color: var(--o-dcbt-accent-strong);
 }
 
 .o_dcbt_sugeridos_titulo {
     margin: 0;
-    font: 400 22px/1.1 var(--o-dcbt-f-titulo);
-    text-transform: uppercase;
-    color: var(--o-dcbt-azul);
+    font: 700 20px/1.15 var(--o-dcbt-fuente);
+    letter-spacing: -.02em;
+    color: var(--o-dcbt-fg);
 }

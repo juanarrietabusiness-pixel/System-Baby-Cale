@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <!-- Cuenta unificada: el usuario de la tienda (portal) ve sus puntos en /my. Su ficha es la del programa. -->
-    <template id="portal_my_home_socios" inherit_id="portal.portal_my_home" name="Socios D'CASA en /my" priority="30">
+    <template id="portal_my_home_socios" inherit_id="portal.portal_my_home" name="Socios en /my" priority="30">
         <xpath expr="//div[hasclass('o_portal_docs')]" position="before">
             <t t-set="portal_client_category_enable" t-value="True"/>
             <t t-set="dcasa_socio" t-value="request.env.user.partner_id.sudo()._dcasa_resumen_portal()"/>
@@ -10,13 +10,13 @@
             <div t-if="dcasa_socio" class="col-12 order-0">
                 <div class="o_dcasa_portal_socio">
                     <div class="o_dcasa_portal_socio_texto">
-                        <p class="o_dcasa_kicker mb-1">Socios D'CASA</p>
+                        <p class="o_dcasa_kicker mb-1">Socios Baby Caleb</p>
                         <t t-if="dcasa_socio['es_socio']">
                             <div class="o_dcasa_portal_socio_saldo"><span t-out="dcasa_socio['saldo_fmt']"/> <small>puntos</small></div>
                             <p class="mb-0">
                                 <t t-out="dcasa_socio['premios_pendientes']"/> premio(s) por recoger ·
                                 <t t-out="dcasa_socio['invitados']"/> invitado(s) ·
-                                código <span class="o_dcasa_socios_codigo text-white" t-out="dcasa_socio['codigo']"/>
+                                código <span class="o_dcasa_socios_codigo" t-out="dcasa_socio['codigo']"/>
                             </p>
                         </t>
                         <t t-else="">

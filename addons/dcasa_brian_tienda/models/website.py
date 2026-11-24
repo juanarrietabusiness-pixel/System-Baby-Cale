@@ -1,9 +1,7 @@
-import json
 import re
 
 from odoo import models
 
-RUTA_POSES = '/dcasa_brian_tienda/static/src/img/poses/'
 # Donde la burbuja no sale: el pago (taparía «Confirmar»), las pantallas de Odoo y el acceso.
 # Sin burbuja de Brian (vuelve la de WhatsApp, o ninguna): el pago, el panel, el portal de Odoo y Mi cuenta (su barra
 # de secciones va fija abajo en el celular y esconde la flotante de WhatsApp: la de Brian la taparía).
@@ -24,16 +22,12 @@ class Website(models.Model):
 
     def _dcasa_brian_datos(self):
         """Lo que la página necesita para la burbuja, igual para todo visitante (la página se puede guardar en el
-        borde): el WhatsApp del sitio, el horario de Ajustes de Juan (para saber si es de noche sin pedir nada) y la
-        clave pública de Turnstile si el sitio lo tiene; y si el robot duerme de noche (al cambiarlo se rehacen las
-        páginas guardadas, como con el interruptor). Nada de la sesión."""
+        borde): el WhatsApp del sitio, el nombre de la tienda (la empresa del sitio: el título del chat) y la clave
+        pública de Turnstile si el sitio lo tiene. Nada de la sesión."""
         self.ensure_one()
         coincide = RE_WA.match(self._dcasa_whatsapp_url('') or '')
-        horario = self.env['dcasa.juan.ajustes'].sudo().obtener().horario()
         return {
             'whatsapp': coincide.group(1) if coincide else '',
-            'horario': json.dumps(horario.como_json(), separators=(',', ':')),
-            'poses': RUTA_POSES,
+            'marca': (self.company_id.name or self.name or '').strip(),
             'turnstile': self.env['dcasa.brian.tienda'].sudo()._turnstile_clave_publica(),
-            'dormir': '1' if self.env['dcasa.brian.tienda'].sudo()._dormir_de_noche() else '0',
         }

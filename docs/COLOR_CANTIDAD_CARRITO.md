@@ -1,5 +1,11 @@
 # El color de la cantidad del carrito
 
+> **Con la marca Baby Caleb (2026-11-19, [MARCA_BABY_CALEB.md](MARCA_BABY_CALEB.md)) lo de abajo es historia de D'CASA.**
+> En el chat de la tienda, la cantidad va en la cabecera naranja como una pastilla navy con el número crema (12.21) y un
+> filo naranja que la despega del círculo; en la barra del carrito del chat, naranja con el número navy (5.56), como la
+> del menú de la web de Baby Caleb. La del menú del sitio la pinta website_dcasa. Lo cuida
+> `dcasa_brian_tienda/tests/test_navegador.py`, `TestCarritoEnLaBarra`.
+
 Investigación pedida por la dueña el 2026-11-15: «no quiero que el sesgo o mis gustos me nublen la visión». La marca
 solo deja dos colores: el azul `#1340B1` y el amarillo `#FED00F`. La cantidad es la burbuja con el número sobre el
 ícono del carrito, en el menú del sitio y en la barra del chat de Brian.

@@ -30,8 +30,13 @@ MEDIR = """
         const campos = [...document.querySelectorAll('input:not([type=hidden]), select, textarea')]
             .filter((el) => el.getBoundingClientRect().width > 0)
             .map((el) => [el.name || el.id, parseFloat(getComputedStyle(el).fontSize)]);
+        const estilo = (el) => { if (!el) { return null; } const e = getComputedStyle(el);
+            return [e.backgroundColor, e.color, e.fontFamily.split(',')[0]]; };
         return {
             anchos,
+            marca: { principal: estilo(document.querySelector('.o_dcasa_mc .btn-primary')),
+                     abierta: estilo(document.querySelector('.o_dcasa_mc_nav_item[aria-current="page"]')),
+                     fondo: getComputedStyle(document.querySelector('.o_dcasa_mc')).backgroundColor },
             nav: nav ? { posicion: getComputedStyle(nav).position,
                          abajo: Math.round(innerHeight - nav.getBoundingClientRect().bottom) } : null,
             botones,
@@ -76,6 +81,9 @@ class TestMiCuentaMovil(MiCuentaComun, ChromeMovilCase):
         self._sin_desborde('/mi-cuenta', medida)
         self.assertIsNone(medida['nav'], 'Sin sesión no hay barra de secciones')
         self.assertEqual(medida['camposChicos'], [], 'Campos de menos de 16 px: el iPhone acerca la pantalla')
+        # La marca Baby Caleb: el fondo crema y «Entrar» en el naranja con letra navy (5.56), en Montserrat.
+        self.assertEqual(medida['marca']['fondo'], 'rgb(249, 246, 237)')
+        self.assertEqual(medida['marca']['principal'], ['rgb(238, 146, 74)', 'rgb(27, 50, 70)', 'Montserrat'])
 
     def test_cada_pantalla_cabe_y_la_barra_va_abajo(self):
         self.sesion_extra = {'id': self.socia.id, 'huella': self.socia._dcasa_huella_pin(self.socia)}
@@ -90,3 +98,5 @@ class TestMiCuentaMovil(MiCuentaComun, ChromeMovilCase):
                 for texto, alto, ancho in medida['botones']:
                     self.assertGreaterEqual(min(alto, ancho), 48, f'{ruta}: «{texto}» mide {ancho}x{alto}')
                 self.assertEqual(medida['flotante'], 'none', f'{ruta}: el WhatsApp flotante taparía la barra')
+                # La sección abierta, en la píldora verde salvia con letra navy (6.96), nunca el azul de D'CASA.
+                self.assertEqual(medida['marca']['abierta'][:2], ['rgb(145, 201, 162)', 'rgb(27, 50, 70)'], ruta)
