@@ -14,7 +14,7 @@ class TestAjustesPorDefecto(JuanCase):
 
     def test_decisiones_de_la_duena(self):
         a = self.ajustes
-        self.assertEqual(a.nombre_publico, "el equipo de D'CASA")
+        self.assertEqual(a.nombre_publico, 'Baby Caleb Panamá')
         self.assertTrue(a.bot_activo_global)
         # Horario laboral: el de Baby Caleb (2026-11-18), lunes a sábado de 9:00 a 18:00, hora de Panamá.
         horario = a.horario()
@@ -57,7 +57,7 @@ class TestAjustesPorDefecto(JuanCase):
 
     def test_textos_en_la_voz_de_la_marca(self):
         bienvenida = self.ajustes.mensaje_bienvenida
-        self.assertEqual(bienvenida, "Hola, soy Juan de D'CASA.")
+        self.assertEqual(bienvenida, 'Buenas, un gusto atenderle. Somos Baby Caleb Panamá 👼🏻')
         self.assertNotIn('asistente', bienvenida.lower())       # decisión de la dueña: no se anuncia como asistente
         self.assertNotIn('remate', bienvenida.lower())
         self.assertNotIn('!!', bienvenida)
@@ -76,7 +76,7 @@ class TestAjustesPorDefecto(JuanCase):
         self.env.flush_all()
         mig.migrate(self.env.cr, '19.0.1.0.1')
         self.ajustes.invalidate_recordset()
-        self.assertEqual(self.ajustes.mensaje_bienvenida, "Hola, soy Juan de D'CASA.")
+        self.assertEqual(self.ajustes.mensaje_bienvenida, 'Buenas, un gusto atenderle. Somos Baby Caleb Panamá 👼🏻')
         # Editado por la dueña: no se pisa.
         self.ajustes.write({'mensaje_bienvenida': 'Hola, soy Juan. ¿Qué buscas?'})
         self.env.flush_all()

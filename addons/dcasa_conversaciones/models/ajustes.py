@@ -62,11 +62,11 @@ MAX_LARGO_LECCION = 300
 # «Máximo de clientes esperándole a la vez» (reparto): de 0 (sin límite) a esto.
 MAX_ESPERANDO_A_LA_VEZ = 50
 
-# Decisión de la dueña (2026-10-09, noche): Juan se presenta como una persona de la tienda, sin anunciarse como
-# asistente.
+# Baby Caleb (decisión del dueño, 2026-11-24): el asistente saluda como la tienda, con el saludo de su CRM, sin nombre
+# propio («Juan» es solo el nombre interno).
 # El primer mensaje es corto; el aviso largo de privacidad no se manda por el chat (vive en la política del sitio).
 # Lo que no cambia: Juan nunca afirma ser humano y, si alguien pregunta de verdad, dice que es el asistente virtual.
-BIENVENIDA = "Hola, soy Juan de D'CASA."
+BIENVENIDA = "Buenas, un gusto atenderle. Somos Baby Caleb Panamá 👼🏻"
 # Comentarios de Instagram y Facebook (2026-11-12, la dueña: «Corto y lo demás por privado»). Lo público nunca lleva
 # nada que escriba quien comenta, ni su nombre (decisión del coordinador, 2.ª vuelta de la revisión, 2026-11-13): sin
 # {nombre}.
@@ -115,7 +115,7 @@ class JuanAjustes(models.Model):
     _rec_name = 'nombre_publico'
 
     nombre_publico = fields.Char(
-        'Nombre público', required=True, default="el equipo de D'CASA", tracking=True,
+        'Nombre público', required=True, default='Baby Caleb Panamá', tracking=True,
         help="Cómo se presenta el asistente ante los clientes. «Juan» es solo el nombre interno.")
 
     # --- Encendido -----------------------------------------------------------------------------

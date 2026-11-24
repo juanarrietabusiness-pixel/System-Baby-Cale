@@ -40,7 +40,7 @@ export function seccionHistoria(e: Escena) {
 
       // Lo que le llegó al cliente por el puente: el saludo de Juan (sin anunciarse como asistente) y la respuesta, con «+ ITBMS».
       const texto = w.puente.textos().join("\n");
-      expect(texto).toContain("Hola, soy Juan de D'CASA.");
+      expect(texto).toContain("Buenas, un gusto atenderle. Somos Baby Caleb Panamá 👼🏻");
       expect(texto).not.toMatch(/asistente automático/i);
       expect(texto).toContain("Cama Roble Queen Integración");
       expect(texto).toContain("$349.99 + ITBMS");
@@ -69,7 +69,7 @@ export function seccionHistoria(e: Escena) {
       expect(ficha.phone).toContain("6");
       expect(await e.textosDe(celular, "cliente")).toEqual(["Hola, ¿tienen camas queen?"]);
       const delBot = (await e.textosDe(celular, "bot")).join("\n");
-      expect(delBot).toContain("Hola, soy Juan de D'CASA.");
+      expect(delBot).toContain("Buenas, un gusto atenderle. Somos Baby Caleb Panamá 👼🏻");
       expect(delBot).toContain("$349.99 + ITBMS");
       // La herramienta quedó auditada en Brian como el usuario técnico «juan».
       const acciones = await admin.buscar("brian.accion", [["herramienta", "=", "juan_buscar_productos"], ["canal", "=", "juan"]], ["estado", "usuario_id"]);

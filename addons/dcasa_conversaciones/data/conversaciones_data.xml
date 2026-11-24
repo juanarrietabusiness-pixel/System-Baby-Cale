@@ -19,7 +19,7 @@
          Sábado: 9:00 - 18:00», domingo cerrado. Es el único lugar del horario: lo usan Juan y el sitio (Contacto y el
          pie, models/horario_sitio.py). -->
     <record id="ajustes_juan" model="dcasa.juan.ajustes">
-        <field name="nombre_publico">el equipo de D'CASA</field>
+        <field name="nombre_publico">Baby Caleb Panamá</field>
         <field name="responsable_id" ref="base.user_admin"/>
         <field name="horario_inicio">9.0</field>
         <field name="horario_fin">18.0</field>

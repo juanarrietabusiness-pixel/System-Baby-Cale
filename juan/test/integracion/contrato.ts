@@ -23,7 +23,7 @@ export function seccionContrato(e: Escena) {
       });
       const cfg = normalizarConfig(await cliente().config());
 
-      expect(cfg.nombre_publico).toBe("el equipo de D'CASA");
+      expect(cfg.nombre_publico).toBe("Baby Caleb Panamá");
       expect(cfg.bot_activo_global).toBe(true);
       expect(cfg.canales_activos).toMatchObject({ whatsapp_qr: true, telegram: true, whatsapp_cloud: false, messenger: false, instagram: false });
       expect(cfg.proveedor_ia).toBe("anthropic");
@@ -34,7 +34,7 @@ export function seccionContrato(e: Escena) {
       expect(cfg.presupuesto_ia_mensual_usd).toBe(30);
       expect(cfg.pausa_por_defecto_minutos).toBe(120);
       expect(cfg.palabras_prohibidas).toEqual(["remate", "corre", "¡¡", "!!"]);
-      expect(cfg.mensaje_bienvenida).toBe("Hola, soy Juan de D'CASA.");
+      expect(cfg.mensaje_bienvenida).toBe("Buenas, un gusto atenderle. Somos Baby Caleb Panamá 👼🏻");
       expect(typeof cfg.texto_privacidad_corto).toBe("string"); // vacío por defecto: el primer mensaje es corto
       // Lecciones: una por línea en Odoo, lista en el Worker.
       expect(cfg.lecciones).toEqual(["Si preguntan por Yappy, di que una vendedora lo confirma.", "Saluda por el nombre."]);

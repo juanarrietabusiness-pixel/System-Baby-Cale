@@ -6,7 +6,7 @@ Conversaciones con clientes (Juan)
 ==================================
 
 La parte de Odoo de «Juan», el asistente que atiende a los clientes por WhatsApp, Telegram,
-Messenger e Instagram con el nombre público «el equipo de D'CASA». El motor de IA vive en el Worker
+Messenger e Instagram con el nombre público «Baby Caleb Panamá». El motor de IA vive en el Worker
 ``juan`` (Cloudflare); aquí vive **la verdad**:
 
 * **Bandeja**: cada conversación (canal + id externo) con el cliente como ficha de Odoo (el celular
@@ -30,7 +30,7 @@ Messenger e Instagram con el nombre público «el equipo de D'CASA». El motor d
 
 Contrato completo: docs/JUAN.md. Guía para la dueña: docs/JUAN_ODOO.md.
 """,
-    'version': '19.0.1.5.0',
+    'version': '19.0.1.6.0',
     'category': 'Sales/CRM',
     'author': "D'CASA Panamá",
     'website': 'https://dcasapty.com',
