@@ -139,8 +139,10 @@ del puente. Ya en uso en la cuenta y **no se tocan**: `babycaleb-web`, `babycale
     real chico en producción, el día del dominio.
   - **La clave secreta de Yappy se muestra una sola vez.** Si el dueño no la tiene guardada, generar otra rompe el
     cobro de la web vieja hasta cambiarla allá también: mejor hacerlo el día del dominio.
-  - El aviso (webhook) de Tilopay se le pide a Soporte de Tilopay para `https://babycaleb.com/payment/tilopay/webhook`
-    ese día; sin él, el pago se confirma al volver de Tilopay o con la tarea de cada pocos minutos.
+  - **El aviso (webhook) de Tilopay no existe para estos pagos** (Soporte de Tilopay, 2026-11-24: para `processPayment`
+    «todavía no está disponible»; solo para cobros recurrentes). No se registra nada: el pago se confirma cuando la
+    clienta vuelve de Tilopay y, si cierra la ventana, la tarea programada lo pregunta sola (lo reciente, cada 8
+    minutos). La pantalla «Gestión de URLs» del panel de Tilopay no es para esto (TILOPAY.md, d3').
   - Las claves se pegan en Cloudflare › `sistemabk` › Settings › Variables and Secrets (nombres en TILOPAY.md y
     YAPPY.md), nunca en el chat ni en GitHub.
 - **Duración de cada foto del carrusel de la portada:** 3 s de fábrica (vino de un pedido de la dueña de D'CASA); se
