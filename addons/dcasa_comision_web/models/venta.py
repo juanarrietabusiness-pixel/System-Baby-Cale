@@ -83,8 +83,8 @@ class DcasaWebVenta(models.Model):
     nota_sin_producto = fields.Boolean(
         'Una nota trae líneas sin producto', readonly=True, index=True,
         help='Una nota de crédito de esta factura trae líneas sin producto (escritas a mano): no se puede saber si '
-             'devuelven un mueble o el envío, así que se restan de lo vendido. Revísala: si devolvía solo el envío, la '
-             'base queda más baja de lo que debería.')
+             'devuelven un producto o el envío, así que se restan de lo vendido. Revísala: si devolvía solo el envío, '
+             'la base queda más baja de lo que debería.')
     facturado_distinto = fields.Boolean(
         'Facturado distinto del pedido', readonly=True, index=True,
         help='Lo que dice la factura no coincide con el pedido de la página: el precio, el descuento o la cantidad de '
@@ -109,7 +109,7 @@ class DcasaWebVenta(models.Model):
     devuelto_itbms_centavos = fields.Integer(readonly=True)
     pasarela_centavos = fields.Integer(readonly=True)
     productos = fields.Monetary('Lo vendido', compute='_compute_montos', store=True,
-                                help='Los muebles vendidos por internet, sin ITBMS y con el descuento de cada línea.')
+                                help='Los productos vendidos por internet, sin ITBMS y con el descuento de cada línea.')
     envio = fields.Monetary('Envío', compute='_compute_montos', store=True)
     devuelto = fields.Monetary('Devuelto', compute='_compute_montos', store=True)
     # Lo que se calculó con la versión que regía al cobrar (vacío si todavía no había ninguna).
@@ -266,7 +266,7 @@ class DcasaWebVenta(models.Model):
     @api.model
     def _hay_nota_sin_producto(self, move):
         """¿Alguna nota de crédito que resta de esta factura trae líneas sin producto? No se puede saber si devuelven un
-        mueble o el envío: se restan de lo vendido (decisión de la segunda revisión) y aquí se avisa."""
+        producto o el envío: se restan de lo vendido (decisión de la segunda revisión) y aquí se avisa."""
         return any(ln.display_type == 'product' and not ln.product_id
                    for nota in self._notas_de(move) for ln in nota.line_ids)
 

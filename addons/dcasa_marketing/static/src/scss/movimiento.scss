@@ -1,5 +1,6 @@
-// Movimiento: la misma piel de Rotación y Marketing (plano, azul de la marca; el amarillo no se usa porque nunca toca
-// el blanco). Aquí solo lo propio: los dos periodos, el gráfico de dos líneas y los estados (subió, bajó…).
+// Movimiento: la misma piel de Rotación y Marketing, con la marca de Baby Caleb (docs/MARCA_BABY_CALEB.md). Aquí solo lo
+// propio: los dos periodos, el gráfico de dos líneas y los estados (subió, bajó…). Este periodo va en navy y el de
+// comparación en el gris de los controles: se distinguen sin depender del color (una línea es más gruesa).
 
 // Los botones de arriba (también los usa Rotación para enlazar con esta pantalla).
 .o_dcasa_mk .o_dcasa_mv_cabeza_botones { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: flex-end; }
@@ -13,7 +14,7 @@
     .o_dcasa_mv_bloque { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
     .o_dcasa_mv_fechas { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 4px; }
     .o_dcasa_mv_fechas .o_dcasa_ro_campo { flex: 1 1 150px; }
-    .o_dcasa_mv_rango { display: flex; flex-wrap: wrap; gap: 6px 24px; margin: 0; color: var(--dc-tinta-2, #44506A); }
+    .o_dcasa_mv_rango { display: flex; flex-wrap: wrap; gap: 6px 24px; margin: 0; color: var(--dc-tinta-2, #475967); }
     .o_dcasa_mv_leyenda::before {
         content: "";
         display: inline-block;
@@ -23,8 +24,8 @@
         margin-right: 8px;
         vertical-align: middle;
     }
-    .o_dcasa_mv_leyenda_este::before { background: var(--dc-azul-600, #1340B1); }
-    .o_dcasa_mv_leyenda_otro::before { background: #8A94AB; }
+    .o_dcasa_mv_leyenda_este::before { background: var(--dc-azul-600, #1B3246); }
+    .o_dcasa_mv_leyenda_otro::before { background: var(--dc-control, #7F8A91); }
     .o_dcasa_mv_aviso { margin: 0; }
     .o_dcasa_mv_sin_ventas {
         margin: 0;
@@ -44,29 +45,31 @@
 
     // --- El gráfico ----------------------------------------------------------------------------------------------
     .o_dcasa_mv_grafico {
-        background: #fff;
-        border: 1px solid var(--dc-linea, #E2E7F0);
+        background: var(--dc-blanco, #F2EFE5);
+        border: 1px solid var(--dc-linea, #DEDED9);
         border-radius: 16px;
         padding: 14px 18px;
     }
     .o_dcasa_mv_svg { width: 100%; height: auto; display: block; }
-    .o_dcasa_mv_eje { stroke: #8A94AB; stroke-width: 1; }
-    .o_dcasa_mv_guia { stroke: var(--dc-linea, #E2E7F0); stroke-width: 1; stroke-dasharray: 4 4; }
-    .o_dcasa_mv_texto { fill: var(--dc-tinta-2, #44506A); font-size: 11px; font-family: "Inter", sans-serif; }
-    .o_dcasa_mv_linea_este { fill: none; stroke: var(--dc-azul-600, #1340B1); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
-    .o_dcasa_mv_linea_otro { fill: none; stroke: #8A94AB; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
-    .o_dcasa_mv_punto_este { fill: var(--dc-azul-600, #1340B1); stroke: #fff; stroke-width: 1.5; }
-    .o_dcasa_mv_punto_otro { fill: #8A94AB; stroke: #fff; stroke-width: 1.5; }
+    .o_dcasa_mv_eje { stroke: var(--dc-control, #7F8A91); stroke-width: 1; }
+    .o_dcasa_mv_guia { stroke: var(--dc-linea, #DEDED9); stroke-width: 1; stroke-dasharray: 4 4; }
+    // 12 px: el piso de la letra de la marca.
+    .o_dcasa_mv_texto { fill: var(--dc-tinta-2, #475967); font-size: 12px; font-family: var(--dc-letra); }
+    .o_dcasa_mv_linea_este { fill: none; stroke: var(--dc-azul-600, #1B3246); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+    .o_dcasa_mv_linea_otro { fill: none; stroke: var(--dc-control, #7F8A91); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+    .o_dcasa_mv_punto_este { fill: var(--dc-azul-600, #1B3246); stroke: var(--dc-blanco, #F2EFE5); stroke-width: 1.5; }
+    .o_dcasa_mv_punto_otro { fill: var(--dc-control, #7F8A91); stroke: var(--dc-blanco, #F2EFE5); stroke-width: 1.5; }
 
     // --- Las listas ----------------------------------------------------------------------------------------------
     .o_dcasa_mv_sirve { margin: 0; }
     .o_dcasa_mv_acciones { display: flex; flex-wrap: wrap; gap: 8px 16px; margin: 4px 0 8px; align-items: center; }
     .o_dcasa_mv_estado {
         &.o_dcasa_mv_e_subio, &.o_dcasa_mv_e_desperto { background: #DDF3E8; color: #0B5A39; }
-        &.o_dcasa_mv_e_igual { background: var(--dc-niebla, #F4F6FA); color: var(--dc-tinta-2, #44506A); }
+        &.o_dcasa_mv_e_igual { background: var(--dc-niebla, #F9F6ED); color: var(--dc-tinta-2, #475967); }
         &.o_dcasa_mv_e_bajo { background: #FFF1D6; color: #7A4F00; }
         &.o_dcasa_mv_e_enfrio { background: #FDECEC; color: #8A1C1C; }
-        &.o_dcasa_mv_e_quieto { background: var(--dc-azul-800, #0E2A6B); color: #fff; }
+        // Quieto: navy con letra crema (lo único que va sobre el navy), como lo más parado de Rotación.
+        &.o_dcasa_mv_e_quieto { background: var(--dc-azul-600, #1B3246); color: var(--dc-crema, #F9F6ED); }
     }
     .o_dcasa_mv_fila .o_dcasa_ro_medidas { grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); }
 

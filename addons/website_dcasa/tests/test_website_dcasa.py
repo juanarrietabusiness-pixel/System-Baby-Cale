@@ -104,7 +104,7 @@ class TestWebsitePages(HttpCase):
         self.assertRegex(bajo, r'--o-color-1:\s*#ee924a')
         self.assertRegex(bajo, r'--o-color-5:\s*#1b3246')
         # Y en las hojas de este módulo no queda nada del azul, el amarillo ni el navy de D'CASA, ni su letra.
-        for hoja in ('primary_variables.scss', 'fuentes.scss', 'dcasa.scss'):
+        for hoja in ('primary_variables.scss', 'fuentes.scss', 'dcasa.scss', 'pago.scss'):
             with file_open(f'website_dcasa/static/src/scss/{hoja}') as archivo:
                 fuente = archivo.read().lower()
             for de_dcasa in ('#1340b1', '#fed00f', '#0e2a6b', '#0f3591', "'anton'", "'oswald'", "'inter'"):

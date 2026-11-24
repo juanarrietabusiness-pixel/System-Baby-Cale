@@ -1,50 +1,66 @@
-// D'CASA — el pago como un checkout moderno (rediseño visual, 2026-11-20).
+// El pago como un checkout moderno (rediseño de D'CASA, 2026-11-20), con la marca de Baby Caleb
+// (docs/MARCA_BABY_CALEB.md).
 //
 // Referencias de estructura (sin copiar marcas): Stripe Checkout, Shopify y WooCommerce moderno.
-//   · pantalla sin distracciones: cabecera mínima (logo, «Pago seguro», volver) y sin burbujas encima del botón;
+//   · pantalla sin distracciones: cabecera mínima (el nombre de la tienda, «Pago seguro», volver) y sin burbujas encima
+//     del botón;
 //   · dos columnas en escritorio (métodos a la izquierda, resumen fijo a la derecha) y una en celular, con el
 //     resumen plegable arriba y el botón de pagar pegado abajo;
-//   · métodos como filas de UN solo contenedor: radio + nombre + íconos; la fila elegida se resalta (borde azul,
-//     fondo muy suave) y enseña su ayuda adentro;
+//   · métodos como filas de UN solo contenedor: radio + nombre + íconos; la fila elegida se resalta (el filo naranja y
+//     el crema de fondo) y enseña su ayuda adentro;
 //   · UN botón primario de ancho completo, alto 52 px, con el monto.
 //
-// Marca (CLAUDE.md): azul #1340B1, amarillo #FED00F que NUNCA toca el blanco (aquí no se usa amarillo), Anton para
-// la cifra grande y los titulares, Oswald para subtítulos, Inter para el cuerpo; sistema plano: bordes de 1 px y
-// fondos suaves, ninguna sombra ni degradado. Contraste ≥ 4.5:1 en todo texto (lo mide test_pago_contraste.py).
+// Marca (MARCA_BABY_CALEB.md): crema y superficie de fondo, letra navy, el naranja SOLO de relleno y con letra navy
+// encima (nunca blanca), los enlaces de acción en `accent-strong`, Montserrat para todo (titulares en 700, como frase,
+// nunca en caja alta), botones en pastilla, campos de 14 px y el aro de foco navy de 2 px. Sin degradados ni sombras
+// (aquí tampoco el resplandor del botón: el pago va plano). Contraste ≥ 4.5:1 en todo texto (lo mide
+// test_pago_contraste.py con estos mismos valores).
 //
 // Nada de esto toca el JavaScript del formulario de pago de Odoo: solo estilos sobre sus propios nombres
 // (#o_payment_form, [name=o_payment_option], input[name=o_payment_radio], button[name=o_payment_submit_button]).
 
-$pago-azul: $dcasa-azul;                   // #1340B1
-$pago-azul-osc: $dcasa-azul-osc;           // #0F3591
-$pago-navy: $dcasa-navy;                   // #0E2A6B
-$pago-tinta: $dcasa-tinta;                 // #1B2233
-$pago-gris: $dcasa-gris;                   // #4A5163 (7.9:1 sobre blanco)
-$pago-borde: #D9DDE6;                      // filos de filas y paneles (el control se reconoce por su radio y su texto)
-$pago-borde-campo: #8C93A6;                // borde de un campo de texto: 3.07:1 sobre blanco (WCAG 1.4.11, mínimo 3:1)
-$pago-suave: #F2F5FC;                      // fila elegida: azul al 4 %, casi blanco
-$pago-panel: $dcasa-hueso;                 // panel del resumen
-$pago-radio: 12px;                         // una sola esquina para filas, botones y campos (el panel va a 16 como las tarjetas)
-$pago-radio-panel: 16px;
+$pago-tinta: $bc-fg;                       // #1B3246 navy: la letra, los titulares y el radio elegido
+$pago-gris: #5E6D78;                       // muted (navy al 70 %) ya mezclado sobre el crema: 4.94 crema · 4.64 superficie
+$pago-enlace: $bc-accent-strong;           // #985D2F: enlaces de acción y el precio del premio (4.93 crema · 4.63 superficie)
+$pago-accion: $bc-accent;                  // #EE924A: RELLENO del botón de pagar. Nunca texto ni borde
+$pago-en-accion: $bc-accent-fg;            // #1B3246: la letra sobre el naranja (5.56)
+$pago-accion-encima: #EF9E5E;              // $bc-accent-hover (el naranja mezclado al 88 % con el crema): navy 6.11
+$pago-filo: $bc-accent-edge;               // #C3783D: el borde de la fila elegida (3.20 crema · 3.00 superficie)
+$pago-borde: #DEDED9;                      // line (navy al 12 % sobre el crema): los filos que separan
+$pago-borde-campo: #7F8A91;                // control (navy al 55 % sobre el crema): campos y radios (3.07 a 3.53)
+$pago-elegida: $bc-bg;                     // #F9F6ED: la fila elegida, el crema sobre la superficie de la lista
+$pago-encima: #F6F2E9;                     // la fila bajo el puntero: mitad superficie, mitad crema
+$pago-panel: $bc-surface;                  // #F2EFE5: la lista de métodos, el resumen y las tarjetas
+$pago-campo: $bc-blanco;                   // los campos: blancos con borde `control` (MARCA, «Campos»)
+$pago-insignia: $bc-sage;                  // #91C9A2: la insignia de la cantidad, con letra navy (6.96)
+$pago-icono: $bc-sage-strong;              // #53735C: candado e íconos de estado (4.89 crema · 4.59 superficie)
+$pago-apagado: #E9E7DF;                    // perla (superficie con un 4 % de navy): el botón sin método elegido
+$pago-apagado-letra: #475967;              // el navy al 80 % sobre el crema: 5.86 sobre la perla
+$pago-error: #B42318;                      // solo para «no se completó» (junto a un ícono y texto: nunca solo color)
+$pago-error-fondo: #FDECEA;
+$pago-letra: $bc-letra;                    // Montserrat
+$pago-radio: $bc-r-campo;                  // 14 px: filas, campos y la ventana
+$pago-radio-panel: $bc-r-md;               // 16 px: la lista y los paneles, como las tarjetas
+$pago-pastilla: $bc-pastilla;              // los botones
 $pago-alto-boton: 52px;
 $pago-alto-campo: 48px;
-$pago-error: #B42318;                      // solo para «no se completó» (junto a un ícono y texto: nunca solo color)
 
 // ---------------------------------------------------------------------------
 // A. La lista de métodos (tienda, ventana del portal y cualquier otra pantalla con el formulario de Odoo)
 // ---------------------------------------------------------------------------
 
 #wrapwrap #o_payment_form {
-    font-family: 'Inter', sans-serif;
+    font-family: $pago-letra;
     color: $pago-tinta;
 
     // Título de la lista
     #o_payment_methods > p,
     #o_payment_tokens_heading {
-        font-family: 'Oswald', sans-serif;
-        font-weight: 600;
+        font-family: $pago-letra;
+        font-weight: 700;
         font-size: 1.25rem;
         line-height: 1.2;
+        letter-spacing: -.03em;
         color: $pago-tinta;
         margin-bottom: .75rem !important;
     }
@@ -52,9 +68,9 @@ $pago-error: #B42318;                      // solo para «no se completó» (jun
     // Un solo contenedor con filas
     .list-group {
         border: 1px solid $pago-borde;
-        border-radius: $pago-radio;
+        border-radius: $pago-radio-panel;
         overflow: hidden;
-        background: #fff;
+        background: $pago-panel;
         gap: 0;
     }
 
@@ -64,34 +80,34 @@ $pago-error: #B42318;                      // solo para «no se completó» (jun
         border-radius: 0;
         border-top: 1px solid $pago-borde;
         padding: 1rem 1rem;
-        background: #fff;
+        background: $pago-panel;
         gap: 0 !important;
         transition: background-color $dcasa-t-rapida;
         &:first-child { border-top: 0; }
-        &:hover { background: #F7F8FB; }
+        &:hover { background: $pago-encima; }
 
         // La fila entera es el botón del radio (Odoo ya estira el área de la etiqueta; aquí solo el cursor)
         .o_payment_option_label {
-            font-family: 'Inter', sans-serif;
+            font-family: $pago-letra;
             font-weight: 600;
             font-size: 1rem;
             line-height: 1.4;
             color: $pago-tinta;
         }
 
-        // Radio: 20 px, azul al elegirlo
+        // Radio: 20 px, navy al elegirlo (como los de los formularios del sitio)
         .form-check-input {
             width: 1.25rem;
             height: 1.25rem;
             margin-top: .1rem;
             border: 1px solid $pago-borde-campo;
-            background-color: #fff;
+            background-color: $pago-campo;
             &:checked {
-                background-color: $pago-azul;
-                border-color: $pago-azul;
+                background-color: $pago-tinta;
+                border-color: $pago-tinta;
             }
             &:focus-visible {
-                outline: 3px solid $pago-azul;
+                outline: 2px solid $pago-tinta;
                 outline-offset: 2px;
                 box-shadow: none;
             }
@@ -146,10 +162,11 @@ $pago-error: #B42318;                      // solo para «no se completó» (jun
         .o_payment_option_label { margin: 0; align-self: center; }
     }
 
-    // Fila elegida: borde azul y fondo muy suave. Sin `:has()` (navegadores viejos) la lista queda con el radio azul y todas las ayudas visibles.
+    // Fila elegida: el filo naranja (accent-edge, 3.20) y el crema de fondo. Sin `:has()` (navegadores viejos) la lista
+    // queda con el radio navy y todas las ayudas visibles.
     [name="o_payment_option"].list-group-item:has(input[name="o_payment_radio"]:checked) {
-        background: $pago-suave;
-        box-shadow: inset 0 0 0 2px $pago-azul;
+        background: $pago-elegida;
+        box-shadow: inset 0 0 0 2px $pago-filo;
         border-top-color: transparent;
         z-index: 1;
         + [name="o_payment_option"].list-group-item { border-top-color: transparent; }
@@ -158,20 +175,20 @@ $pago-error: #B42318;                      // solo para «no se completó» (jun
         display: none;
     }
 
-    // «Modo de prueba» / «No publicado» (solo el equipo lo ve): etiqueta con palabras
+    // «Modo de prueba» / «No publicado» (solo el equipo lo ve): una píldora con palabras
     .o_dcasa_pago_aviso {
         display: inline-flex;
         align-items: center;
         gap: .35rem;
         margin-left: 0;
         padding: .1rem .5rem;
-        border: 1px solid $pago-navy;
-        border-radius: 999px;
+        border: 1px solid $pago-borde-campo;
+        border-radius: $pago-pastilla;
         font-size: .75rem;
-        font-weight: 600;
+        font-weight: 700;
         line-height: 1.4;
-        color: $pago-navy;
-        background: #fff;
+        color: $pago-tinta;
+        background: $pago-elegida;
         white-space: nowrap;
     }
 
@@ -184,7 +201,8 @@ $pago-error: #B42318;                      // solo para «no se completó» (jun
 }
 
 // ---------------------------------------------------------------------------
-// B. El botón de pagar (el mismo en la tienda, en la ventana del portal y en el celular)
+// B. El botón de pagar (el mismo en la tienda, en la ventana del portal y en el celular): el botón principal de la
+//    marca, relleno naranja con letra navy, en pastilla
 // ---------------------------------------------------------------------------
 
 #wrapwrap button[name="o_payment_submit_button"] {
@@ -193,25 +211,25 @@ $pago-error: #B42318;                      // solo para «no se completó» (jun
     min-height: $pago-alto-boton;
     margin: 0 !important;
     padding: .75rem 1.5rem !important;
-    font-family: 'Inter', sans-serif;
-    font-weight: 600;
+    font-family: $pago-letra;
+    font-weight: 700;
     font-size: 1.0625rem;
     line-height: 1.3;
     letter-spacing: 0;
     text-transform: none;
-    color: #fff;
-    background: $pago-azul;
+    color: $pago-en-accion;
+    background: $pago-accion;
     border: 0;
-    border-radius: $pago-radio;
+    border-radius: $pago-pastilla;
     box-shadow: none;
     transition: background-color $dcasa-t-rapida;
-    &:hover:not(:disabled):not([disabled]), &:active:not(:disabled):not([disabled]) { background: $pago-azul-osc; color: #fff; }
-    &:focus-visible { outline: 3px solid $pago-azul; outline-offset: 2px; box-shadow: none; }
-    // Sin método elegido: un gris claro firme (no el azul lavado a medias de Odoo)
+    &:hover:not(:disabled):not([disabled]), &:active:not(:disabled):not([disabled]) { background: $pago-accion-encima; color: $pago-en-accion; }
+    &:focus-visible { outline: 2px solid $pago-tinta; outline-offset: 2px; box-shadow: none; }
+    // Sin método elegido: la perla firme (no el naranja lavado a medias de Odoo)
     &:disabled, &[disabled] {
         opacity: 1;
-        color: #566074;
-        background: #E4E7EE;
+        color: $pago-apagado-letra;
+        background: $pago-apagado;
         cursor: not-allowed;
     }
     .oe_currency_value { color: inherit; font-family: inherit; font-weight: 700; }
@@ -225,7 +243,7 @@ $pago-error: #B42318;                      // solo para «no se completó» (jun
     line-height: 1.45;
     color: $pago-gris;
     text-align: center;
-    .fa { margin-right: .35rem; }
+    .fa { margin-right: .35rem; color: $pago-icono; }
 }
 
 // «¿Dudas? Escríbenos por WhatsApp»
@@ -235,11 +253,11 @@ $pago-error: #B42318;                      // solo para «no se completó» (jun
     color: $pago-gris;
     span:first-child { margin-right: .35rem; }
     a {
-        color: $pago-azul;
-        font-weight: 600;
+        color: $pago-enlace;
+        font-weight: 700;
         text-decoration: underline;
         text-underline-offset: 2px;
-        &:hover { color: $pago-azul-osc; }
+        &:hover { color: $pago-tinta; }
     }
 }
 
@@ -251,24 +269,26 @@ $pago-error: #B42318;                      // solo para «no se completó» (jun
     border: 0;
     border-radius: $pago-radio-panel;
     box-shadow: none;
-    font-family: 'Inter', sans-serif;
+    background: $bc-bg;
+    font-family: $pago-letra;
     color: $pago-tinta;
 
     .modal-header {
         padding: 1.25rem 1.5rem 1rem;
         border-bottom: 1px solid $pago-borde;
         .modal-title {
-            font-family: 'Oswald', sans-serif;
-            font-weight: 600;
+            font-family: $pago-letra;
+            font-weight: 700;
             font-size: 1.375rem;
             line-height: 1.2;
+            letter-spacing: -.03em;
             color: $pago-tinta;
         }
-        .o_dcasa_pago_ventana_ref { font-weight: 400; color: $pago-gris; margin-left: .35rem; }
+        .o_dcasa_pago_ventana_ref { font-weight: 500; color: $pago-gris; margin-left: .35rem; }
         .btn-close { opacity: 1; width: 2.75rem; height: 2.75rem; margin: -.5rem -.5rem -.5rem auto; background-size: .875rem; }
     }
     .modal-body { padding: 1.25rem 1.5rem 1.5rem; }
-    // El total, grande y arriba: Anton en la cifra (titulares y cifras grandes)
+    // El total, grande y arriba
     .o_dcasa_pago_total_ventana {
         display: flex;
         align-items: baseline;
@@ -280,12 +300,12 @@ $pago-error: #B42318;                      // solo para «no se completó» (jun
         border: 1px solid $pago-borde;
         border-radius: $pago-radio-panel;
     }
-    .o_dcasa_pago_total_texto { font-family: 'Oswald', sans-serif; font-weight: 600; font-size: 1.0625rem; color: $pago-tinta; }
-    .o_dcasa_pago_total_monto { font-family: 'Anton', 'Oswald', sans-serif; font-weight: 400; font-size: 2rem; line-height: 1.1; letter-spacing: -.01em; color: $pago-navy; white-space: nowrap; .oe_currency_value { font-family: inherit; font-weight: inherit; color: inherit; } }
+    .o_dcasa_pago_total_texto { font-family: $pago-letra; font-weight: 700; font-size: 1.0625rem; color: $pago-tinta; }
+    .o_dcasa_pago_total_monto { font-family: $pago-letra; font-weight: 700; font-size: 2rem; line-height: 1.1; letter-spacing: -.03em; color: $pago-tinta; white-space: nowrap; .oe_currency_value { font-family: inherit; font-weight: inherit; color: inherit; } }
     // La frase de aceptación de Odoo: más chica, legible
     #sign-dialog > .mb-3 { font-size: .875rem; line-height: 1.5; color: $pago-gris; margin-bottom: 1.25rem !important; b { color: $pago-tinta; } }
     // Abono / total (apartados y pagos parciales)
-    .btn-group .btn { border-radius: $pago-radio; border: 1px solid $pago-borde; min-height: 3rem; font-family: 'Inter', sans-serif; text-transform: none; color: $pago-tinta; background: #fff; &.active { border-color: $pago-azul; box-shadow: inset 0 0 0 1px $pago-azul; background: $pago-suave; } }
+    .btn-group .btn { border-radius: $pago-radio; border: 1px solid $pago-borde-campo; min-height: 3rem; font-family: $pago-letra; font-weight: 600; text-transform: none; color: $pago-tinta; background: $pago-panel; &.active { border-color: $pago-filo; box-shadow: inset 0 0 0 1px $pago-filo; background: $pago-elegida; } }
 }
 
 @media (max-width: 575.98px) {
@@ -302,7 +322,7 @@ $pago-error: #B42318;                      // solo para «no se completó» (jun
         z-index: 2;
         margin: 1rem -1.5rem 0 !important;
         padding: .75rem 1.5rem calc(.75rem + env(safe-area-inset-bottom));
-        background: #fff;
+        background: $bc-bg;
         border-top: 1px solid $pago-borde;
     }
 }
@@ -312,9 +332,9 @@ $pago-error: #B42318;                      // solo para «no se completó» (jun
 // ---------------------------------------------------------------------------
 
 .o_dcasa_pago_cabecera {
-    background: #fff;
+    background: $bc-bg;
     border-bottom: 1px solid $pago-borde;
-    font-family: 'Inter', sans-serif;
+    font-family: $pago-letra;
 }
 .o_dcasa_pago_cabecera_in {
     display: flex;
@@ -326,19 +346,33 @@ $pago-error: #B42318;                      // solo para «no se completó» (jun
     margin-inline: auto;
     padding: .5rem $dcasa-gutter;
 }
+// El nombre de la tienda, como en la cabecera del sitio (solo el nombre, en Montserrat 700 navy, sin el sello).
 .o_dcasa_pago_logo {
     display: inline-flex;
     flex: 0 0 auto;
-    img { display: block; height: 2.5rem; width: auto; max-width: none; }
+    align-items: center;
+    min-height: 2.75rem;
+    text-decoration: none;
+    &:hover .o_dcasa_pago_marca { color: $pago-tinta; }
+    &:focus-visible { outline: 2px solid $pago-tinta; outline-offset: 2px; border-radius: 4px; }
 }
-// Celulares (hasta 399 px): menos aire y letra un punto menor, para que logo + «Pago seguro» + enlace quepan en una
-// línea (si no, el navegador ensancha la página y se ve como zoom). Los más angostos (< 380 px) achican también el logo.
+.o_dcasa_pago_marca {
+    font-family: $pago-letra;
+    font-weight: 700;
+    font-size: 1.25rem;
+    line-height: 1;
+    letter-spacing: -.03em;
+    white-space: nowrap;
+    color: $pago-tinta;
+}
+// Celulares (hasta 399 px): menos aire y letra un punto menor, para que el nombre + «Pago seguro» + el enlace quepan en
+// una línea (si no, el navegador ensancha la página y se ve como zoom). Los más angostos (< 380 px) achican el nombre.
 @media (max-width: 399.98px) {
     .o_dcasa_pago_cabecera_in { gap: .5rem; }
     .o_dcasa_pago_seguro, .o_dcasa_pago_volver { font-size: .875rem; }
 }
 @media (max-width: 379.98px) {
-    .o_dcasa_pago_logo img { height: 2.125rem; width: auto; }
+    .o_dcasa_pago_marca { font-size: 1.0625rem; }
 }
 .o_dcasa_pago_seguro {
     display: inline-flex;
@@ -349,7 +383,7 @@ $pago-error: #B42318;                      // solo para «no se completó» (jun
     font-size: .875rem;
     font-weight: 600;
     color: $pago-tinta;
-    .fa { color: $pago-azul; font-size: 1rem; }
+    .fa { color: $pago-icono; font-size: 1rem; }
 }
 .o_dcasa_pago_volver {
     margin-left: auto;
@@ -360,36 +394,37 @@ $pago-error: #B42318;                      // solo para «no se completó» (jun
     white-space: nowrap;
     min-height: 2.75rem;
     font-size: .9375rem;
-    font-weight: 600;
-    color: $pago-azul;
+    font-weight: 700;
+    color: $pago-enlace;
     text-decoration: none;
-    &:hover { color: $pago-azul-osc; text-decoration: underline; text-underline-offset: 2px; }
+    &:hover { color: $pago-tinta; text-decoration: underline; text-underline-offset: 2px; }
     .fa { font-size: 1.25rem; }
 }
 
 .o_dcasa_pago #wrapwrap {
     // El contenido de la página: ancho de checkout
     .o_website_sale_checkout_container.container { max-width: 1120px; padding-inline: $dcasa-gutter; }
-    #wrap { font-family: 'Inter', sans-serif; color: $pago-tinta; }
+    #wrap { font-family: $pago-letra; color: $pago-tinta; }
 
     // Los pasos «Orden › Dirección › Pago»: chicos y sin pelear con el título
     .o_wizard {
         margin: 1.25rem 0 1rem !important;
         font-size: .875rem;
         .fa-angle-right { margin-inline: .5rem !important; font-size: 1rem !important; }
-        a { color: $pago-azul; text-decoration: none; &:hover { text-decoration: underline; } }
+        a { color: $pago-enlace; text-decoration: none; &:hover { text-decoration: underline; } }
         .fw-bold { color: $pago-tinta; }
-        // Los pasos que aún no tocan: Odoo los deja al 50 % de opacidad (2.4:1); aquí, gris de la marca a opacidad completa
+        // Los pasos que aún no tocan: Odoo los deja al 50 % de opacidad; aquí, `muted` a opacidad completa
         .o_disabled { opacity: 1; .text-muted { color: $pago-gris !important; } }
     }
-    // El texto de ejemplo de un campo (placeholder) en el gris de la marca: 7.9:1 sobre blanco, no el 2.9:1 de Odoo
+    // El texto de ejemplo de un campo (placeholder) en `muted`: 5.34 sobre el blanco del campo
     ::placeholder { color: $pago-gris; opacity: 1; }
 
     // La entrega: un recuadro de resumen, no una tarjeta con insignia
     #address_on_payment, .oe_cart > div.mt-3 {
         margin-bottom: 1.5rem;
-        .card { border: 1px solid $pago-borde; border-radius: $pago-radio; background: #fff; box-shadow: none; }
+        .card { border: 1px solid $pago-borde; border-radius: $pago-radio-panel; background: $pago-panel; box-shadow: none; }
         .card-body { padding: 1rem 1.25rem; font-size: .9375rem; line-height: 1.5; }
+        // La etiqueta («Entrega»…) como antetítulo: 12 px, 700, caja alta y .14em
         .badge {
             display: block;
             margin: 0 0 .35rem !important;
@@ -398,17 +433,17 @@ $pago-error: #B42318;                      // solo para «no se completó» (jun
             border: 0 !important;
             border-radius: 0;
             text-align: left;
-            font-family: 'Oswald', sans-serif;
-            font-weight: 500;
-            font-size: .8125rem;
-            letter-spacing: .08em;
+            font-family: $pago-letra;
+            font-weight: 700;
+            font-size: .75rem;
+            letter-spacing: .14em;
             text-transform: uppercase;
-            color: $pago-gris !important;
+            color: $pago-icono !important;
         }
-        a.float-end { font-weight: 600; font-size: .9375rem; color: $pago-azul; text-decoration: none; &:hover { text-decoration: underline; } }
+        a.float-end { font-weight: 700; font-size: .9375rem; color: $pago-enlace; text-decoration: none; &:hover { text-decoration: underline; } }
     }
 
-    // Resumen: panel de fondo suave, fijo al bajar
+    // Resumen: panel en la superficie, fijo al bajar
     .o_total_card {
         background: $pago-panel;
         border: 1px solid $pago-borde;
@@ -418,13 +453,14 @@ $pago-error: #B42318;                      // solo para «no se completó» (jun
     }
     .o_dcasa_pago_panel_titulo {
         margin: 0 0 .5rem;
-        font-family: 'Oswald', sans-serif;
-        font-weight: 600;
+        font-family: $pago-letra;
+        font-weight: 700;
         font-size: 1.125rem;
+        letter-spacing: -.03em;
         color: $pago-tinta;
     }
 
-    // Líneas: miniatura con la cantidad en una insignia azul (el amarillo de Odoo tocaba la foto blanca)
+    // Líneas: miniatura con la cantidad en una insignia verde salvia con letra navy
     .o_cart_products_table {
         --bs-table-bg: transparent;
         margin: 0;
@@ -434,7 +470,7 @@ $pago-error: #B42318;                      // solo para «no se completó» (jun
         .td-img { padding-inline: 0 .75rem !important; width: 3.5rem; }
         .o_cart_product_image {
             width: 3.5rem;
-            img, .img { display: block; width: 3.5rem; height: 3.5rem; object-fit: cover; border-radius: 8px; border: 1px solid $pago-borde; background: #fff; }
+            img, .img { display: block; width: 3.5rem; height: 3.5rem; object-fit: cover; border-radius: 8px; border: 1px solid $pago-borde; background: $bc-bg; }
         }
         .o_cart_item_count.badge {
             top: 0 !important;
@@ -445,18 +481,18 @@ $pago-error: #B42318;                      // solo para «no se completó» (jun
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            background: $pago-azul !important;
-            color: #fff !important;
-            font-family: 'Inter', sans-serif;
+            background: $pago-insignia !important;
+            color: $pago-tinta !important;
+            font-family: $pago-letra;
             font-size: .75rem;
-            font-weight: 600;
-            border-radius: 999px;
+            font-weight: 700;
+            border-radius: $pago-pastilla;
         }
         .td-product_name { font-size: .9375rem; font-weight: 500; line-height: 1.35; padding-inline: 0 !important; }
-        .td-price { font-size: .9375rem; font-weight: 600; white-space: nowrap; padding-inline: .75rem 0 !important; .oe_currency_value { font-family: 'Inter', sans-serif; font-weight: 600; color: inherit; } }
+        .td-price { font-size: .9375rem; font-weight: 600; white-space: nowrap; padding-inline: .75rem 0 !important; .oe_currency_value { font-family: $pago-letra; font-weight: 600; color: inherit; } }
         .text-muted { color: $pago-gris !important; }
-        // El premio de Socios es un descuento: el monto en azul con su signo, sin foto genérica
-        tr.o_dcasa_pago_premio .td-price { color: $pago-azul; }
+        // El premio de Socios es un descuento: el monto en `accent-strong` con su signo, sin foto genérica
+        tr.o_dcasa_pago_premio .td-price { color: $pago-enlace; }
         tr.o_dcasa_pago_premio .o_cart_item_count { display: none; }   // «1» no dice nada en un descuento
         // Sin foto genérica: un regalo en un recuadro del mismo tamaño que las miniaturas
         tr.o_dcasa_pago_premio .o_cart_product_image {
@@ -471,8 +507,8 @@ $pago-error: #B42318;                      // solo para «no se completó» (jun
                 height: 3.5rem;
                 border-radius: 8px;
                 border: 1px solid $pago-borde;
-                background: #fff;
-                color: $pago-azul;
+                background: $bc-bg;
+                color: $pago-filo;
                 font-size: 1.375rem;
             }
         }
@@ -482,13 +518,13 @@ $pago-error: #B42318;                      // solo para «no se completó» (jun
     .o_cart_total {
         table { margin: 0; }
         td { font-size: .9375rem; color: $pago-gris; border: 0; }
-        .monetary_field, .oe_currency_value { color: $pago-tinta; font-family: 'Inter', sans-serif; font-weight: 600; }
+        .monetary_field, .oe_currency_value { color: $pago-tinta; font-family: $pago-letra; font-weight: 600; }
         tr[name="o_order_total"] {
             border-top: 1px solid $pago-borde;
             td { padding-top: 1rem !important; color: $pago-tinta; }
-            td:first-child strong { font-family: 'Oswald', sans-serif; font-weight: 600; font-size: 1.125rem; }
-            .monetary_field, .oe_currency_value { font-family: 'Anton', 'Oswald', sans-serif; font-weight: 400 !important; color: $pago-navy; }
-            .monetary_field { font-size: 2.125rem; line-height: 1; letter-spacing: -.01em; }
+            td:first-child strong { font-family: $pago-letra; font-weight: 700; font-size: 1.125rem; }
+            .monetary_field, .oe_currency_value { font-family: $pago-letra; font-weight: 700 !important; color: $pago-tinta; }
+            .monetary_field { font-size: 2.125rem; line-height: 1; letter-spacing: -.03em; }
         }
     }
     .o_cart_total.border-top { border-color: $pago-borde !important; }
@@ -502,10 +538,10 @@ $pago-error: #B42318;                      // solo para «no se completó» (jun
             min-height: $pago-alto-campo;
             border: 1px solid $pago-borde-campo;
             border-radius: $pago-radio 0 0 $pago-radio;
-            background: #fff;
-            font-family: 'Inter', sans-serif;
-            font-size: .9375rem;
-            &:focus { border-color: $pago-azul; box-shadow: 0 0 0 1px $pago-azul; outline: 0; }
+            background: $pago-campo;
+            font-family: $pago-letra;
+            font-size: 1rem;           // 16 px: el iPhone no hace zoom al escribir
+            &:focus { border-color: $pago-tinta; box-shadow: 0 0 0 1px $pago-tinta; outline: 0; }
         }
         .btn {
             min-height: $pago-alto-campo;
@@ -513,12 +549,12 @@ $pago-error: #B42318;                      // solo para «no se completó» (jun
             border: 1px solid $pago-borde-campo;
             border-left: 0;
             border-radius: 0 $pago-radio $pago-radio 0;
-            background: #fff;
-            color: $pago-azul;
-            font-family: 'Inter', sans-serif;
-            font-weight: 600;
+            background: $pago-campo;
+            color: $pago-tinta;
+            font-family: $pago-letra;
+            font-weight: 700;
             text-transform: none;
-            &:hover { background: $pago-suave; }
+            &:hover { background: $pago-elegida; }
         }
     }
 
@@ -536,10 +572,10 @@ $pago-error: #B42318;                      // solo para «no se completó» (jun
             min-height: 2.75rem;
             margin-top: .5rem !important;
             font-size: .9375rem;
-            font-weight: 600;
-            color: $pago-azul;
+            font-weight: 700;
+            color: $pago-enlace;
             text-decoration: none;
-            &:hover { color: $pago-azul-osc; text-decoration: underline; text-underline-offset: 2px; }
+            &:hover { color: $pago-tinta; text-decoration: underline; text-underline-offset: 2px; }
         }
     }
 }
@@ -577,17 +613,17 @@ $pago-error: #B42318;                      // solo para «no se completó» (jun
             background: $pago-panel;
             border: 1px solid $pago-borde;
             border-radius: $pago-radio;
-            font-family: 'Inter', sans-serif;
+            font-family: $pago-letra;
             font-size: .9375rem;
-            font-weight: 600;
-            color: $pago-azul;
+            font-weight: 700;
+            color: $pago-enlace;
             text-align: left;
             .fa-shopping-bag { margin-right: .5rem; }
             .o_dcasa_pago_resumen_flecha { margin-left: .5rem; font-size: 1.125rem; vertical-align: -1px; transition: transform $dcasa-t-rapida; }
             &:not(.collapsed) .o_dcasa_pago_resumen_flecha { transform: rotate(180deg); }
-            &:focus-visible { outline: 3px solid $pago-azul; outline-offset: 2px; }
+            &:focus-visible { outline: 2px solid $pago-tinta; outline-offset: 2px; }
         }
-        .o_dcasa_pago_resumen_total { font-family: 'Anton', 'Oswald', sans-serif; font-weight: 400; font-size: 1.375rem; letter-spacing: -.01em; color: $pago-navy; }
+        .o_dcasa_pago_resumen_total { font-family: $pago-letra; font-weight: 700; font-size: 1.375rem; letter-spacing: -.03em; color: $pago-tinta; }
         #o_dcasa_pago_resumen {
             margin-top: .5rem;
             padding: .5rem 1rem 1rem;
@@ -602,7 +638,7 @@ $pago-error: #B42318;                      // solo para «no se completó» (jun
         .o_mobile_summary {
             margin-inline: calc(#{$dcasa-gutter} * -1);
             padding: .75rem $dcasa-gutter calc(.75rem + env(safe-area-inset-bottom));
-            background: #fff;
+            background: $bc-bg;
             border-top: 1px solid $pago-borde;
             box-shadow: none;
             z-index: 1030;
@@ -628,9 +664,9 @@ $pago-error: #B42318;                      // solo para «no se completó» (jun
 .o_dcasa_pago_pagina_estado #wrapwrap {
     .wrap > .container { max-width: 38rem; padding: 2.5rem $dcasa-gutter 3rem; }
     .wrap > .container > .row > .col-12 { max-width: none; flex: 0 0 100%; }
-    [name="o_payment_status"] { font-family: 'Inter', sans-serif; color: $pago-tinta; }
-    h1.mb-3 { font-family: 'Anton', 'Oswald', sans-serif; font-weight: 400; text-transform: uppercase; font-size: 2rem; color: $pago-navy; }
-    // La referencia y el monto: un panel suave
+    [name="o_payment_status"] { font-family: $pago-letra; color: $pago-tinta; }
+    h1.mb-3 { font-family: $pago-letra; font-weight: 700; text-transform: none; letter-spacing: -.03em; font-size: 2rem; color: $pago-tinta; }
+    // La referencia y el monto: un panel en la superficie
     .text-bg-light {
         margin-top: 1rem;
         padding: .75rem 1rem !important;
@@ -644,14 +680,15 @@ $pago-error: #B42318;                      // solo para «no se completó» (jun
     }
 }
 
-// La tarjeta del estado (también en el pedido del portal): ícono grande, título corto, mensaje, y un enlace de texto
+// La tarjeta del estado (también en el pedido del portal): ícono grande en un círculo crema, título corto, mensaje, y un
+// enlace de texto
 .o_dcasa_pago [name="o_payment_status_alert"] {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: .75rem !important;
     padding: 2rem 1.5rem;
-    background: #fff;
+    background: $pago-panel;
     border: 1px solid $pago-borde;
     border-radius: $pago-radio-panel;
     text-align: center;
@@ -664,33 +701,33 @@ $pago-error: #B42318;                      // solo para «no se completó» (jun
         width: 4rem;
         height: 4rem;
         border-radius: 50%;
-        background: $pago-suave;
-        color: $pago-azul;
+        background: $pago-elegida;
+        color: $pago-icono;
         font-size: 1.75rem;
     }
     #o_payment_status_message { width: 100%; font-size: 1rem; line-height: 1.55; color: $pago-gris; }
     #o_payment_status_message p { margin: 0; }
     .alert-heading, .alert-heading p {
         margin: 0 0 .5rem !important;
-        font-family: 'Anton', 'Oswald', sans-serif;
-        font-weight: 400;
+        font-family: $pago-letra;
+        font-weight: 700;
         font-size: 1.75rem;
-        line-height: 1.1;
-        text-transform: uppercase;
-        letter-spacing: -.005em;
-        color: $pago-navy;
+        line-height: 1.15;
+        text-transform: none;
+        letter-spacing: -.03em;
+        color: $pago-tinta;
     }
     .o_dcasa_pago_omitir {
         min-height: 2.75rem;
         display: inline-flex;
         align-items: center;
-        font-weight: 600;
-        color: $pago-azul;
+        font-weight: 700;
+        color: $pago-enlace;
         text-decoration: underline;
         text-underline-offset: 2px;
         margin: .25rem 0 0 !important;
     }
-    &.alert-danger #o_payment_status_icon { background: #FDECEA; color: $pago-error; }
+    &.alert-danger #o_payment_status_icon { background: $pago-error-fondo; color: $pago-error; }
 }
 @media (prefers-reduced-motion: reduce) {
     .o_dcasa_pago .fa-spin { animation: none; }
@@ -703,41 +740,41 @@ $pago-error: #B42318;                      // solo para «no se completó» (jun
 .o_dcasa_pago #wrapwrap {
     #wrap h3 {
         margin: 1.25rem 0 .25rem;
-        font-family: 'Anton', 'Oswald', sans-serif;
-        font-weight: 400;
+        font-family: $pago-letra;
+        font-weight: 700;
         font-size: clamp(2rem, 7vw, 2.875rem);
-        line-height: 1.08;
-        text-transform: uppercase;
-        letter-spacing: -.01em;
-        color: $pago-navy;
+        line-height: 1.15;
+        text-transform: none;
+        letter-spacing: -.03em;
+        color: $pago-tinta;
     }
-    #order_name { margin-bottom: 1.25rem !important; h5 { font-family: 'Oswald', sans-serif; font-weight: 500; font-size: 1.125rem; color: $pago-gris; margin: 0; } }
+    #order_name { margin-bottom: 1.25rem !important; h5 { font-family: $pago-letra; font-weight: 600; font-size: 1.125rem; color: $pago-gris; margin: 0; } }
     a[href="/shop/print"] {
         min-height: 2.75rem;
-        padding-inline: 1rem;
-        background: #fff;
-        color: $pago-azul;
-        font-family: 'Inter', sans-serif;
-        font-weight: 600;
+        padding-inline: 1.25rem;
+        background: transparent;
+        color: $pago-tinta;
+        font-family: $pago-letra;
+        font-weight: 700;
         text-transform: none;
         border: 1px solid $pago-borde-campo;
-        border-radius: $pago-radio;
-        &:hover { background: $pago-suave; }
+        border-radius: $pago-pastilla;
+        &:hover { background: $pago-panel; }
     }
     // El estado del pago: una tarjeta con su ícono y su título (no un recuadro de color de Odoo)
     [name="order_confirmation"] {
         margin-top: 0 !important;
         .alert {
             padding: 1.25rem 1.5rem !important;
-            background: #fff;
+            background: $pago-panel;
             color: $pago-tinta;
             border: 1px solid $pago-borde;
-            border-left: 4px solid $pago-azul;
+            border-left: 4px solid $bc-sage-edge;
             border-radius: $pago-radio;
             font-size: 1rem;
             line-height: 1.55;
-            &.alert-info { border-left-color: $pago-navy; }
-            &.alert-warning { border-left-color: $pago-navy; }
+            &.alert-info { border-left-color: $pago-tinta; }
+            &.alert-warning { border-left-color: $pago-filo; }
             &.alert-danger { border-left-color: $pago-error; }
             p { margin: 0 0 .5rem; }
             b { color: $pago-tinta; }
@@ -748,12 +785,13 @@ $pago-error: #B42318;                      // solo para «no se completó» (jun
             align-items: center;
             gap: .5rem;
             margin: 0 0 .5rem !important;
-            font-family: 'Oswald', sans-serif;
-            font-weight: 600;
+            font-family: $pago-letra;
+            font-weight: 700;
             font-size: 1.375rem;
             line-height: 1.2;
+            letter-spacing: -.03em;
             color: $pago-tinta;
-            .fa { font-size: 1.5rem; color: $pago-azul; }
+            .fa { font-size: 1.5rem; color: $pago-icono; }
         }
         .alert-danger .o_dcasa_pago_estado_titulo .fa { color: $pago-error; }
         .o_dcasa_pago_reintentar { margin: 1rem 0 0; }
@@ -771,39 +809,39 @@ $pago-error: #B42318;                      // solo para «no se completó» (jun
             justify-content: center;
             gap: .5rem;
             min-height: $pago-alto-boton;
-            font-family: 'Inter', sans-serif;
-            font-weight: 600;
+            font-family: $pago-letra;
+            font-weight: 700;
             font-size: 1.0625rem;
             text-transform: none;
-            border-radius: $pago-radio;
-            &.btn-primary { background: $pago-azul; border-color: $pago-azul; color: #fff; &:hover { background: $pago-azul-osc; border-color: $pago-azul-osc; } }
-            &.btn-outline-primary { background: #fff; color: $pago-azul; border: 1px solid $pago-azul; &:hover { background: $pago-suave; } }
+            border-radius: $pago-pastilla;
+            &.btn-primary { background: $pago-accion; border-color: $pago-accion; color: $pago-en-accion; &:hover { background: $pago-accion-encima; border-color: $pago-accion-encima; color: $pago-en-accion; } }
+            &.btn-outline-primary { background: transparent; color: $pago-tinta; border: 1px solid $pago-borde-campo; &:hover { background: $pago-panel; color: $pago-tinta; } }
         }
         .o_dcasa_pago_seguir {
             align-self: center;
             display: inline-flex;
             align-items: center;
             min-height: 2.75rem;
-            font-weight: 600;
-            color: $pago-azul;
+            font-weight: 700;
+            color: $pago-enlace;
             text-decoration: none;
-            &:hover { text-decoration: underline; text-underline-offset: 2px; }
+            &:hover { color: $pago-tinta; text-decoration: underline; text-underline-offset: 2px; }
         }
     }
-    // «Intentar de nuevo» y los demás botones de la confirmación: una sola forma
+    // «Intentar de nuevo» y los demás botones de la confirmación: el botón principal de la marca
     [name="order_confirmation"] .btn-primary {
         min-height: $pago-alto-boton;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        font-family: 'Inter', sans-serif;
-        font-weight: 600;
+        font-family: $pago-letra;
+        font-weight: 700;
         font-size: 1.0625rem;
         text-transform: none;
-        background: $pago-azul;
-        border-color: $pago-azul;
-        border-radius: $pago-radio;
-        color: #fff;
+        background: $pago-accion;
+        border-color: $pago-accion;
+        border-radius: $pago-pastilla;
+        color: $pago-en-accion;
     }
 }
 @media (min-width: 992px) {

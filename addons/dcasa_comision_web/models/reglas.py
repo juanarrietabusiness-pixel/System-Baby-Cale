@@ -192,7 +192,7 @@ class DcasaWebReglas(models.Model):
             op = version._opciones()
             c = EJEMPLO
             filas = [
-                ('Un mueble vendido', c['productos'], '+', True, 'Siempre cuenta.'),
+                ('Un producto vendido', c['productos'], '+', True, 'Siempre cuenta.'),
                 ('Descuento o premio ya aplicado', c['descuento_negativas'], '−', op['base_descuentos'] == 'despues',
                  'Se resta si el porcentaje se calcula después de los descuentos.'),
                 ('Cobro de envío', c['envio'], '+', op['base_envio'] == 'con', 'Se suma solo si cuenta el envío.'),

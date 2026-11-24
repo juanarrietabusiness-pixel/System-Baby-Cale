@@ -1,26 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- EL PAGO COMO UN CHECKOUT MODERNO (rediseño visual, 2026-11-20).
+    <!-- EL PAGO COMO UN CHECKOUT MODERNO (rediseño visual de D'CASA, 2026-11-20, con la marca de Baby Caleb).
          Todo es herencia de plantillas de Odoo + estilos (static/src/scss/pago.scss): el JavaScript del formulario de pago
          (`payment_form`) no se toca y conserva sus nombres: #o_payment_form, [name=o_payment_option],
          input[name=o_payment_radio] con sus data-payment-option-*, .o_payment_option_label y
          button[name=o_payment_submit_button]. Lo que se agrega solo suma clases (o_dcasa_pago_*), nunca quita las de Odoo. -->
 
     <!-- ========================================================================================================
-         1. Cabecera mínima: logo, «Pago seguro» y volver. Sin menú de la tienda ni barra de avisos (van dentro del
-         <header> de Odoo, que aquí se apaga con `no_header`).
+         1. Cabecera mínima: el nombre de la tienda, «Pago seguro» y volver. Sin menú de la tienda ni barra de avisos
+         (van dentro del <header> de Odoo, que aquí se apaga con `no_header`).
          ======================================================================================================== -->
     <template id="pago_cabecera" name="D'CASA: cabecera mínima del pago">
         <!-- Parámetros: volver_href / volver_texto (opcional: «Volver al carrito»). -->
         <div class="o_dcasa_pago_cabecera" role="banner">
             <div class="o_dcasa_pago_cabecera_in">
-                <!-- Igual que la cabecera de la tienda: mientras el logo sea el de fábrica, su copia en WebP (3-7 KB); si se
-                     cambia desde el editor, el campo de Odoo de siempre. -->
-                <a href="/" class="o_dcasa_pago_logo" aria-label="D'CASA Panamá, ir al inicio">
-                    <img t-if="website._dcasa_logo_de_fabrica()" src="/website_dcasa/static/src/img/logo-200.webp"
-                         srcset="/website_dcasa/static/src/img/logo-200.webp 1x, /website_dcasa/static/src/img/logo-400.webp 2x"
-                         width="88" height="40" alt="D'CASA Panamá"/>
-                    <img t-else="" t-att-src="website.image_url(website, 'logo')" height="40" t-att-alt="website.name"/>
+                <!-- Igual que la cabecera de la tienda (layout_templates.xml, logo_webp_dcasa): solo el nombre del sitio
+                     escrito, en Montserrat 700 navy, sin el sello. No se traduce ni se parte en dos líneas. -->
+                <a href="/" class="o_dcasa_pago_logo" t-attf-aria-label="#{website.name}, ir al inicio">
+                    <span class="o_dcasa_pago_marca" translate="no" t-out="website.name"/>
                 </a>
                 <span class="o_dcasa_pago_seguro"><i class="fa fa-lock" aria-hidden="true"/>Pago seguro</span>
                 <a t-if="volver_href" t-att-href="volver_href" class="o_dcasa_pago_volver">
@@ -34,7 +31,7 @@
     <template id="pago_ayuda" name="D'CASA: ayuda por WhatsApp en el pago">
         <p class="o_dcasa_pago_ayuda_wa">
             <span>¿Dudas?</span>
-            <a t-att-href="website._dcasa_whatsapp_url('Hola D\'CASA, tengo una duda para pagar mi pedido')"
+            <a t-att-href="website._dcasa_whatsapp_url('Hola %s, tengo una duda para pagar mi pedido' % website.name)"
                target="_blank" rel="noopener">Escríbenos por WhatsApp<span class="visually-hidden"> (se abre en una pestaña nueva)</span></a>
         </p>
     </template>
@@ -59,7 +56,7 @@
     </template>
 
     <template id="pago_layout" inherit_id="website_sale.checkout_layout" name="D'CASA: pago sin distracciones">
-        <!-- Sin <header> de Odoo (menú, buscador y la barra de avisos que D'CASA le pone adentro). -->
+        <!-- Sin <header> de Odoo (menú, buscador y la barra de avisos que el sitio le pone adentro). -->
         <xpath expr="//t[@t-set='no_footer']" position="after">
             <t t-set="no_header" t-value="bool(dcasa_pago)"/>
         </xpath>
@@ -261,16 +258,16 @@
             <t t-set="dcasa_volver_href" t-value="'/shop'"/>
             <t t-set="dcasa_volver_texto">Seguir comprando</t>
         </xpath>
-        <!-- Qué sigue: el CTA de la marca (WhatsApp) y volver a mirar muebles como enlace. Si el pago no se completó,
+        <!-- Qué sigue: el CTA de la marca (WhatsApp) y volver a mirar productos como enlace. Si el pago no se completó,
              el botón principal es «Intentar de nuevo» (ver abajo) y WhatsApp baja a contorno. -->
-        <!-- «Pedido S00008» (Odoo dice «Orden»; en D'CASA es el pedido). -->
+        <!-- «Pedido S00008» (Odoo dice «Orden»; aquí es el pedido). -->
         <xpath expr="//div[@id='order_name']/h5/span[1]" position="replace"><span>Pedido&#160;</span></xpath>
         <xpath expr="//t[@t-call='website_sale.address_on_checkout']/.." position="after">
             <div class="o_dcasa_pago_acciones">
-                <a t-att-href="website._dcasa_whatsapp_url('Hola D\'CASA, quiero coordinar mi pedido ' + (order.name or ''))"
+                <a t-att-href="website._dcasa_whatsapp_url('Hola %s, quiero coordinar mi pedido %s' % (website.name, order.name or ''))"
                    target="_blank" rel="noopener"
                    t-attf-class="btn #{'btn-outline-primary' if tx_sudo and tx_sudo.state in ('cancel', 'error') else 'btn-primary'} o_dcasa_pago_wa"><i class="fa fa-whatsapp" aria-hidden="true"/>Escríbenos por WhatsApp<span class="visually-hidden"> (se abre en una pestaña nueva)</span></a>
-                <a href="/shop" class="o_dcasa_pago_seguir">Seguir viendo muebles</a>
+                <a href="/shop" class="o_dcasa_pago_seguir">Seguir viendo productos</a>
             </div>
         </xpath>
     </template>

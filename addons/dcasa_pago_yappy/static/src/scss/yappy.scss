@@ -1,23 +1,28 @@
 // Yappy directo: el número de Yappy, el botón de Yappy y los mensajes dentro de la fila «Yappy» del pago (2026-11-20).
-// Se ve como el pago rediseñado (website_dcasa/static/src/scss/pago.scss): sistema plano (bordes de 1 px, ninguna sombra ni
-// degradado), azul #1340B1, Inter para el cuerpo, una sola esquina de 12 px para campos y botones, campo de 48 px y botón de
-// 52 px. El amarillo no se usa (nunca toca el blanco). Contraste ≥ 4.5:1 en todo texto.
+// Se ve como el pago rediseñado (website_dcasa/static/src/scss/pago.scss), con la marca de Baby Caleb
+// (docs/MARCA_BABY_CALEB.md): sistema plano (bordes de 1 px, ninguna sombra ni degradado), letra navy, enlaces de acción en
+// `accent-strong`, Montserrat para todo, campos de 14 px con borde `control` y botones en pastilla; campo de 48 px y botón
+// de 52 px. El naranja no se usa aquí (es solo relleno del botón principal). Contraste ≥ 4.5:1 en todo texto.
 //
 // El botón de Yappy lo dibuja su propio paquete. Se usa su tema `dark` (el ÚNICO de los seis que cumple AA con margen:
 // blanco sobre #444c5e = 8.60:1) y aquí solo se le iguala la altura y la esquina a los botones del sitio. Esos ajustes usan
 // nombres de clases del paquete de Yappy: si algún día las renombran, simplemente no se aplican y el botón sigue siendo el
 // de Yappy, usable.
 
-$yappy-azul: #1340B1;
-$yappy-azul-osc: #0F3591;
-$yappy-navy: #0E2A6B;
-$yappy-tinta: #1B2233;
-$yappy-gris: #4A5163;
-$yappy-borde: #D9DDE6;
-$yappy-borde-campo: #8C93A6;
-$yappy-suave: #F2F5FC;
+// Los valores son los de la marca (MARCA_BABY_CALEB.md y pago.scss), escritos aquí porque este módulo va aparte.
+$yappy-tinta: #1B3246;          // fg (navy): la letra y el aro de foco
+$yappy-gris: #5E6D78;           // muted (navy al 70 %) ya mezclado sobre el crema
+$yappy-borde: #DEDED9;          // line: los filos que separan
+$yappy-borde-campo: #7F8A91;    // control: el borde del campo y de los botones de contorno (3.07 a 3.53)
+$yappy-campo: #FFFFFF;          // el campo, blanco con borde `control`
+$yappy-crema: #F9F6ED;          // bg
+$yappy-superficie: #F2EFE5;     // surface
+$yappy-salvia-claro: #E9EFE2;   // el salvia al 15 % sobre el crema: el aviso informativo (navy 11.3)
+$yappy-salvia-filo: #6A9376;    // sage-edge: su borde (3.22)
 $yappy-error: #B42318;
-$yappy-radio: 12px;
+$yappy-letra: 'Montserrat', sans-serif;
+$yappy-radio: 14px;
+$yappy-pastilla: 999px;
 // El gris del botón `dark` de Yappy (#444c5e en reposo) con el ratón encima y al pulsar; contraste del texto blanco 6.48 y 5.41.
 $yappy-dark-encima: #565e72;
 $yappy-dark-pulsado: #626a7e;
@@ -25,7 +30,7 @@ $yappy-dark-pulsado: #626a7e;
 #wrapwrap .o_dcasa_yappy {
     margin: .75rem 0 .25rem;
     padding-left: 2rem;
-    font-family: 'Inter', sans-serif;
+    font-family: $yappy-letra;
     color: $yappy-tinta;
 
     .o_dcasa_yappy_etiqueta {
@@ -43,13 +48,13 @@ $yappy-dark-pulsado: #626a7e;
         padding: .5rem .875rem;
         border: 1px solid $yappy-borde-campo;
         border-radius: $yappy-radio;
-        background: #fff;
-        font-family: 'Inter', sans-serif;
+        background: $yappy-campo;
+        font-family: $yappy-letra;
         font-size: 1rem;          // 16 px: el celular no hace zoom al escribir
         letter-spacing: .02em;
         color: $yappy-tinta;
         box-shadow: none;
-        &:focus { border-color: $yappy-azul; box-shadow: 0 0 0 1px $yappy-azul; outline: 0; }
+        &:focus { border-color: $yappy-tinta; box-shadow: 0 0 0 1px $yappy-tinta; outline: 0; }
     }
 
     .o_dcasa_yappy_ayuda {
@@ -63,13 +68,13 @@ $yappy-dark-pulsado: #626a7e;
     .o_dcasa_yappy_boton {
         margin-top: 1rem;
         border-radius: $yappy-radio + 2px;
-        &:focus-visible { outline: 3px solid $yappy-azul; outline-offset: 2px; }
+        &:focus-visible { outline: 2px solid $yappy-tinta; outline-offset: 2px; }
         btn-yappy { display: block; width: 100%; }
         .yappy-button.ecommerce {
             height: 52px !important;
             border-radius: $yappy-radio !important;
         }
-        // El gris `dark` (el tema que eligió la dueña) con el ratón encima: la regla `:hover` del propio componente lo pinta
+        // El gris `dark` (el tema que eligió la dueña de D'CASA: es el botón de Yappy, no un color de la marca) con el ratón encima: la regla `:hover` del propio componente lo pinta
         // de #9fa6b7 y el texto blanco baja a 2.44:1 (ilegible; solo en computadora). Aquí se mantiene OSCURO: un poco más claro
         // al pasar el ratón y al pulsar (así se nota que responde), siempre con el texto blanco por encima de 4.5:1 (WCAG 2.x
         // sobre los colores de abajo: reposo #444c5e 8.60:1 · encima #565e72 6.48:1 · pulsado #626a7e 5.41:1). Va atado a
@@ -92,11 +97,11 @@ $yappy-dark-pulsado: #626a7e;
         border-radius: $yappy-radio;
         font-size: .9375rem;
         line-height: 1.45;
-        background: #fff;
+        background: $yappy-crema;
         &[hidden] { display: none; }
         .fa { margin-top: .2rem; }
         &[data-tipo="error"] { color: $yappy-error; border-color: $yappy-error; }
-        &[data-tipo="info"] { color: $yappy-navy; border-color: $yappy-azul; background: $yappy-suave; }
+        &[data-tipo="info"] { color: $yappy-tinta; border-color: $yappy-salvia-filo; background: $yappy-salvia-claro; }
     }
 
     // Si el botón no carga o Yappy no está en línea: qué hacer, con «Escríbenos por WhatsApp» (el CTA de la marca).
@@ -105,7 +110,7 @@ $yappy-dark-pulsado: #626a7e;
         padding: .875rem 1rem;
         border: 1px solid $yappy-borde;
         border-radius: $yappy-radio;
-        background: #fff;
+        background: $yappy-crema;
         &[hidden] { display: none; }
         p { margin: 0; font-size: .9375rem; line-height: 1.45; color: $yappy-tinta; }
         p .fa { margin-right: .5rem; color: $yappy-error; }
@@ -117,16 +122,16 @@ $yappy-dark-pulsado: #626a7e;
             justify-content: center;
             min-height: 44px;
             padding: .5rem 1.25rem;
-            border: 1px solid $yappy-azul;
-            border-radius: $yappy-radio;
-            background: #fff;
-            color: $yappy-azul;
-            font-family: 'Inter', sans-serif;
+            border: 1px solid $yappy-borde-campo;
+            border-radius: $yappy-pastilla;
+            background: transparent;
+            color: $yappy-tinta;
+            font-family: $yappy-letra;
             font-size: .9375rem;
-            font-weight: 600;
+            font-weight: 700;
             text-decoration: none;
-            &:hover { background: $yappy-suave; color: $yappy-azul-osc; }
-            &:focus-visible { outline: 3px solid $yappy-azul; outline-offset: 2px; }
+            &:hover { background: $yappy-superficie; color: $yappy-tinta; }
+            &:focus-visible { outline: 2px solid $yappy-tinta; outline-offset: 2px; }
         }
     }
 }
@@ -157,7 +162,7 @@ body #wrapwrap #o_payment_form [name="o_payment_option"].list-group-item:has(.o_
 }
 
 // Con «Yappy» elegido paga el botón de Yappy, no el de Odoo (que el JavaScript esconde). La barra pegada abajo que lo
-// llevaba (la del celular en la tienda y la de la ventana del portal) quedaría vacía, con su borde y su fondo blanco
+// llevaba (la del celular en la tienda y la de la ventana del portal) quedaría vacía, con su borde y su fondo crema
 // tapando la parte de abajo de la lista: se esconde también.
 body:has(#o_payment_form input[name="o_payment_radio"][data-provider-code="yappy"]:checked) {
     .o_mobile_summary { display: none !important; }

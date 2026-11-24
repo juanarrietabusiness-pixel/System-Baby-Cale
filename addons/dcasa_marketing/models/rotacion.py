@@ -128,7 +128,7 @@ def hoja_de_solo_texto(hoja):
 
 class DcasaRotacion(models.AbstractModel):
     _name = 'dcasa.rotacion'
-    _description = "Rotación del inventario de D'CASA: qué se mueve, qué no y cuánto capital hay parado"
+    _description = 'Rotación del inventario: qué se mueve, qué no y cuánto capital hay parado'
 
     # ------------------------------------------------------------------
     # Permisos y entradas
@@ -602,9 +602,9 @@ class DcasaRotacion(models.AbstractModel):
         salida = io.BytesIO()
         libro = xlsxwriter.Workbook(salida, {'in_memory': True, 'strings_to_formulas': False, 'strings_to_urls': False})
         formatos = {
-            'titulo': libro.add_format({'bold': True, 'font_size': 14, 'font_color': '#1340B1'}),
-            'nota': libro.add_format({'italic': True, 'font_color': '#44506A'}),
-            'cabeza': libro.add_format({'bold': True, 'bg_color': '#1340B1', 'font_color': '#FFFFFF',
+            'titulo': libro.add_format({'bold': True, 'font_size': 14, 'font_color': '#1B3246'}),
+            'nota': libro.add_format({'italic': True, 'font_color': '#475967'}),
+            'cabeza': libro.add_format({'bold': True, 'bg_color': '#1B3246', 'font_color': '#F9F6ED',
                                         'text_wrap': True, 'valign': 'vcenter', 'border': 1}),
             'entero': libro.add_format({'num_format': '#,##0'}),
             'decimal': libro.add_format({'num_format': '#,##0.0#'}),

@@ -49,7 +49,7 @@
                         reglas que todavía no rige: la venta se calculó con la versión de hoy. Revisa la fecha del pago.
                     </div>
                     <div class="alert alert-warning" role="alert" invisible="not nota_sin_producto">
-                        Una nota de crédito de esta factura trae líneas sin producto: no se sabe si devuelven un mueble o
+                        Una nota de crédito de esta factura trae líneas sin producto: no se sabe si devuelven un producto o
                         el envío, así que se restan de lo vendido. Si devolvía solo el envío, la base queda más baja de lo
                         que debería: revísala y, si hace falta, anota un ajuste con motivo.
                     </div>

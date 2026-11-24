@@ -96,7 +96,7 @@
                         <!-- El gráfico: una línea por periodo -->
                         <section t-if="grafico" class="o_dcasa_mk_seccion o_dcasa_mv_grafico" aria-labelledby="o_dcasa_mv_t_grafico">
                             <h2 id="o_dcasa_mv_t_grafico">Unidades vendidas <t t-esc="grafico.porSemana ? 'por semana' : 'por día'"/><t t-if="categoriaElegida"> · <t t-esc="categoriaElegida.nombre"/></t></h2>
-                            <p class="o_dcasa_mk_ayuda">La línea azul es este periodo; la gris, el de comparación. Cada punto es el mismo día (o la misma semana) de cada uno.</p>
+                            <p class="o_dcasa_mk_ayuda">La línea oscura es este periodo; la gris, el de comparación. Cada punto es el mismo día (o la misma semana) de cada uno.</p>
                             <svg class="o_dcasa_mv_svg" t-att-viewBox="'0 0 ' + grafico.ancho + ' ' + grafico.alto" role="img"
                                  aria-label="Unidades vendidas en este periodo y en el de comparación">
                                 <line class="o_dcasa_mv_eje" t-att-x1="grafico.izq" t-att-x2="grafico.ancho - grafico.der" t-att-y1="grafico.cero" t-att-y2="grafico.cero"/>

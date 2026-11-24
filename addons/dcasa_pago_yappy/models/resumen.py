@@ -76,7 +76,7 @@ def lineas(pedido, citar=False):
             'precio': linea.price_unit,
             'descuento': linea.discount,
             'total': linea.price_total,
-            'pieza_de': (combo.product_id.name if combo else '') or ('combo cama + colchón' if en_combo_armado else ''),
+            'pieza_de': (combo.product_id.name if combo else '') or ('combo armado' if en_combo_armado else ''),
             'es_envio': bool(getattr(linea, 'is_delivery', False)),
             'es_combo': linea.product_type == 'combo',
         })

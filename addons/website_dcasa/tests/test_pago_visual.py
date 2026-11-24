@@ -14,6 +14,7 @@ del portal (``/my/orders/<id>``), «Estado del pago» y la confirmación. Se com
 """
 import re
 from datetime import timedelta
+from urllib.parse import quote
 
 from lxml import html as lxml_html
 
@@ -87,7 +88,7 @@ class TestPaginaDePago(PagoVisualComun):
     def test_es_una_pantalla_sin_distracciones(self):
         url, texto, arbol = self.pagina('/shop/payment')
         self.assertIn('/shop/payment', url)
-        # Cabecera mínima: logo, «Pago seguro» y volver al carrito.
+        # Cabecera mínima: el nombre de la tienda, «Pago seguro» y volver al carrito.
         cabecera = arbol.xpath(self.con_clase('o_dcasa_pago_cabecera', 'div'))
         self.assertEqual(len(cabecera), 1)
         self.assertIn('Pago seguro', self.texto(cabecera[0]))
@@ -95,7 +96,14 @@ class TestPaginaDePago(PagoVisualComun):
         self.assertEqual(len(volver), 1)
         self.assertEqual(volver[0].get('href'), '/shop/cart')
         self.assertIn('Volver al carrito', self.texto(volver[0]))
-        self.assertTrue(cabecera[0].xpath('.//a[@href="/"]//img'), 'el logo lleva a la tienda')
+        # Como la cabecera del sitio (MARCA_BABY_CALEB.md): solo el nombre escrito, sin el sello, y lleva a la tienda.
+        inicio = cabecera[0].xpath('.//a[@href="/"]')
+        self.assertEqual(len(inicio), 1)
+        self.assertEqual(self.texto(inicio[0]), self.website.name, 'el nombre del sitio, nunca uno escrito a mano')
+        self.assertEqual(inicio[0].get('aria-label'), f'{self.website.name}, ir al inicio')
+        self.assertFalse(inicio[0].xpath('.//img'), 'sin el sello: solo el nombre')
+        self.assertNotIn("D'CASA", texto)
+        self.assertNotIn('D&#39;CASA', texto)
         # Sin menú de la tienda, ni barra de avisos, ni botón flotante de WhatsApp.
         self.assertNotIn('o_dcasa_anuncios', texto)
         self.assertFalse(arbol.xpath('//header[@id="top"]'), 'sin la cabecera de Odoo (menú, buscador, avisos)')
@@ -299,7 +307,13 @@ class TestVentanaDelPortalYEstados(PagoVisualComun):
         self.assertIn('Te escribimos por WhatsApp con el número de Yappy', texto)
         self.assertTrue(
             arbol.xpath('//a[contains(@class, "o_dcasa_pago_wa")][starts-with(@href, "https://wa.me/")]'))
-        self.assertTrue(arbol.xpath('//a[@class="o_dcasa_pago_seguir"][@href="/shop"]'))
+        seguir = arbol.xpath('//a[@class="o_dcasa_pago_seguir"][@href="/shop"]')
+        self.assertTrue(seguir)
+        self.assertEqual(self.texto(seguir[0]), 'Seguir viendo productos', 'Baby Caleb no vende muebles')
+        # El mensaje de WhatsApp saluda a la tienda por su nombre (el del sitio), con el número del pedido.
+        wa = arbol.xpath('//a[contains(@class, "o_dcasa_pago_wa")]')[0].get('href')
+        self.assertIn(quote(f'Hola {self.website.name}, quiero coordinar mi pedido {orden.name}'), wa)
+        self.assertNotIn('CASA', wa)
         self.assertFalse(arbol.xpath('//*[contains(@class, "o_dcasa_pago_reintentar")]'), 'no hay nada que reintentar')
 
     def test_si_el_pago_no_se_completo_hay_un_camino_de_vuelta(self):

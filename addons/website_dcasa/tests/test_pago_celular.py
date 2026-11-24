@@ -136,7 +136,7 @@ class TestPagoEnElCelular(PagoVisualDatos, ChromeMovilCase):
                 self.assertGreaterEqual(boton['ancho'], ancho - 2 * 24, 'a todo el ancho de la pantalla')
                 self.assertGreaterEqual((boton['arriba'] + boton['abajo']) / 2, ALTO * ZONA_DEL_PULGAR,
                                        'el botón está en la zona del pulgar (abajo)')
-                self.assertIn('Inter', boton['fuente'], 'el botón va en la letra del cuerpo, no en la del titular')
+                self.assertIn('Montserrat', boton['fuente'], 'el botón va en Montserrat, la letra de la marca')
                 # El resumen plegable, arriba, con el monto.
                 resumen = medidas['resumen']
                 self.assertIsNotNone(resumen)
@@ -152,7 +152,7 @@ class TestPagoEnElCelular(PagoVisualDatos, ChromeMovilCase):
             self.assertTrue(estado['elegido'])
             self.assertFalse(estado['apagado'], 'con un método elegido el botón se enciende')
             self.assertLessEqual(estado['abajo'], estado['alto'], 'el botón sigue a la vista')
-            self.assertTrue(estado['filaResaltada'], 'la fila elegida se resalta con su borde azul')
+            self.assertTrue(estado['filaResaltada'], 'la fila elegida se resalta con su filo naranja')
 
     def test_la_linea_de_seguridad_de_tilopay_solo_sale_con_tilopay_elegido(self):
         metodo = self.env.ref('dcasa_pago_tilopay.payment_method_tilopay', raise_if_not_found=False)
@@ -170,8 +170,8 @@ class TestPagoEnElCelular(PagoVisualDatos, ChromeMovilCase):
             estado = self._evaluar(browser, ELEGIR_TILOPAY)
         self.assertEqual(estado['antes'], [], 'sin elegir nada, ninguna línea de seguridad a la vista')
         self.assertEqual(len(estado['conTilopay']), 1, 'con Tilopay elegido, una sola línea a la vista (la de abajo)')
-        self.assertEqual(
-            estado['conTilopay'][0], "Pagas en la página segura de Tilopay; D'CASA nunca ve los datos de tu tarjeta.")
+        self.assertEqual(estado['conTilopay'][0],
+                         f'Pagas en la página segura de Tilopay; {self.website.name} nunca ve los datos de tu tarjeta.')
         self.assertEqual(estado['conOtro'], [], 'con otro método elegido, la línea se va')
         self.assertTrue(estado['filaConIconos'], 'la fila de Tilopay lleva los íconos de Visa y Mastercard')
         self.assertTrue(estado['ayudaDentro'], 'la ayuda de Tilopay se ve DENTRO de su fila cuando está elegida')

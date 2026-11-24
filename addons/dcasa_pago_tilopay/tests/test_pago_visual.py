@@ -9,7 +9,10 @@ from odoo.tests import HttpCase, tagged
 
 from .common import ComunTilopay, SimuladorTilopay
 
-LINEA_DE_SEGURIDAD = "Pagas en la página segura de Tilopay; D'CASA nunca ve los datos de tu tarjeta."
+
+def linea_de_seguridad(sitio):
+    """La línea bajo el botón: dice el nombre del sitio (el de la empresa que vende), nunca uno escrito a mano."""
+    return f'Pagas en la página segura de Tilopay; {sitio} nunca ve los datos de tu tarjeta.'
 
 
 @tagged('post_install', '-at_install')
@@ -49,7 +52,8 @@ class TestTilopayEnElPagoRedisenado(ComunTilopay, HttpCase):
         formulario = arbol.xpath('//form[@id="o_payment_form"]')[0]
         notas = formulario.xpath('.//p[@data-dcasa-proveedor="tilopay"]')
         self.assertEqual(len(notas), 1)
-        self.assertEqual(self._texto(notas[0]), LINEA_DE_SEGURIDAD)
+        self.assertEqual(self._texto(notas[0]), linea_de_seguridad(self.env.ref('website.default_website').name))
+        self.assertNotIn('CASA', self._texto(notas[0]))
         self.assertIn('o_dcasa_pago_nota', notas[0].get('class'))
         anterior = notas[0].getprevious()
         self.assertEqual(anterior.get('name'), 'o_payment_submit_button', 'va justo debajo del botón')
