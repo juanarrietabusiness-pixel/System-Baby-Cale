@@ -113,8 +113,7 @@ del puente. Ya en uso en la cuenta y **no se tocan**: `babycaleb-web`, `babycale
 - **Lo que dicen las fotos y conviene confirmar:** cada paquete de Velvee trae 50 (P), 44 (M) y 42 (G) pañales, y la
   lista del dueño dice 150, 132 y 126: ¿se vende el bulto de 3 paquetes? Si es así, la ficha debería decirlo. La caja
   de Dany Baby dice «6 PCS» de 100: confirma la lista (6 paquetes de 100) y no la web (12 de 50).
-- **Water wipes Nateen** quedó publicado, pero la web de Baby Caleb lo marca «descatalogado» (`content.json`). Si ya no
-  se vende, se despublica en su ficha.
+- **Water wipes Nateen:** el dueño confirmó (2026-11-24) que se sigue vendiendo, aunque la web vieja lo marque «descatalogado»: queda publicado.
 - Datos de la empresa: RUC y DV (los escribe el dueño en *Ajustes › Empresas*), web y lema de los documentos. La razón
   social ya es «Baby Caleb Panamá» y no hay dirección (vende en línea).
 - Promoción de Dany Baby (DANY-AW600): «2 cajas (1,200 toallitas) por $35.00». Anotada, no programada.
