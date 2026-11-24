@@ -3157,7 +3157,9 @@ body.editor_enable .o_dcasa_wa_float {
     min-height: 2.75rem;
 }
 
-// Las migas: cada paso a 44 px de alto y todos centrados en la misma línea (con la barra que los separa).
+// Las migas: cada paso a 44 px de alto y todos centrados en la misma línea (con la barra que los separa). Sin el relleno
+// de arriba y abajo de Odoo (7 px): los 44 px ya son el dedo, y en el celular esos 14 px de más empujaban la
+// disponibilidad de la ficha debajo de la barra fija de «Agregar al carrito».
 .breadcrumb {
     align-items: center;
 }
@@ -3172,6 +3174,13 @@ body.editor_enable .o_dcasa_wa_float {
         align-items: center;
         min-height: 2.75rem;
     }
+}
+
+// (La tienda de Odoo les pone el relleno de un botón con un selector más fuerte:
+// `.o_wsale_content_contained .breadcrumb …`.)
+#wrapwrap .breadcrumb .breadcrumb-item {
+    padding-top: 0;
+    padding-bottom: 0;
 }
 
 // El nombre del producto en las tarjetas (carril de la portada y la tienda): el enlace ocupa al menos 44 px aunque el
@@ -3770,9 +3779,10 @@ a[class='mt-2 mt-lg-0 text-center'] {
     }
 }
 
-// Celular angosto (360 px): la barra fija en una sola fila (cantidad y «Agregar al carrito», sin el ícono del carrito).
-// En dos filas medía 127 px y tapaba el precio y la disponibilidad al abrir la ficha.
-@media (max-width: 389.98px) {
+// Celular (hasta 429 px): la barra fija en una sola fila (cantidad y «Agregar al carrito», sin el ícono del carrito).
+// En dos filas medía 127 px y tapaba el precio y la disponibilidad al abrir la ficha. Desde que el − y el + miden 44 px
+// (auditoría del 2026-11-24), a 390 px tampoco cabía con el ícono: el tope pasó de 389 a 429 px.
+@media (max-width: 429.98px) {
     #product_detail #o_wsale_cta_wrapper > div:first-child {
         flex-wrap: nowrap !important;
     }
