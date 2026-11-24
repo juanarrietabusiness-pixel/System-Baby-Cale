@@ -13,7 +13,7 @@ from .common import CorreoCase
 CARGAR_REGLAS = 'odoo.addons.dcasa_socios.models.reglas.cargar_reglas'
 REDACTAR = 'odoo.addons.dcasa_conversaciones.models.reglas_clientes.redactar'
 MI_CUENTA = 'odoo.addons.dcasa_correo.models.correo.DcasaCorreo._mi_cuenta_instalado'
-IMPRESO = 'el código de socio que viene en tu factura'
+IMPRESO = 'el código de socio que viene en tu comprobante'
 
 
 @tagged('post_install', '-at_install')

@@ -125,14 +125,15 @@
         </xpath>
 
         <!-- Títulos. Una factura de cliente con algo pagado y algo por pagar sale como ABONO (con su número): lo que
-             se cobra, los impuestos y los asientos son los de la misma factura; solo cambia el papel. -->
-        <xpath expr="//t[@name='invoice_title']" position="replace"><t name="invoice_title"><t t-if="o._dcasa_es_abono()">Abono</t><t t-else="">Factura</t></t></xpath>
-        <xpath expr="//t[@name='draft_invoice_title']" position="replace"><t name="draft_invoice_title">Factura en borrador</t></xpath>
-        <xpath expr="//t[@name='cancelled_invoice_title']" position="replace"><t name="cancelled_invoice_title">Factura anulada</t></xpath>
+             se cobra, los impuestos y los asientos son los de la misma factura; solo cambia el papel. Ninguno dice
+             «Factura»: no es la fiscal de la DGI (Baby Caleb, 2026-11-24; _dcasa_titulo_documento). -->
+        <xpath expr="//t[@name='invoice_title']" position="replace"><t name="invoice_title"><t t-out="o._dcasa_titulo_documento()"/></t></xpath>
+        <xpath expr="//t[@name='draft_invoice_title']" position="replace"><t name="draft_invoice_title">Comprobante en borrador</t></xpath>
+        <xpath expr="//t[@name='cancelled_invoice_title']" position="replace"><t name="cancelled_invoice_title">Comprobante anulado</t></xpath>
         <xpath expr="//t[@name='credit_note_title']" position="replace"><t name="credit_note_title">Nota de crédito</t></xpath>
         <xpath expr="//t[@name='draft_credit_note_title']" position="replace"><t name="draft_credit_note_title">Nota de crédito en borrador</t></xpath>
         <xpath expr="//t[@name='cancelled_credit_note_title']" position="replace"><t name="cancelled_credit_note_title">Nota de crédito anulada</t></xpath>
-        <xpath expr="//t[@name='proforma_invoice_title']" position="replace"><t name="proforma_invoice_title">Factura proforma</t></xpath>
+        <xpath expr="//t[@name='proforma_invoice_title']" position="replace"><t name="proforma_invoice_title">Proforma</t></xpath>
 
         <!-- Líneas: código en su columna; muebles arriba, flete y servicios en su bloque;
              precio unitario e importe con el mismo criterio de ITBMS, y con $ -->

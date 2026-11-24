@@ -383,10 +383,10 @@ class ResPartner(models.Model):
         if correo:
             codigo, sugerencia = B.problema_del_correo(correo)
             if codigo == 'dedo':
-                errores['email'] = self.env._('Revisa tu correo: ¿quisiste decir %s? Ahí te llega tu factura.',
+                errores['email'] = self.env._('Revisa tu correo: ¿quisiste decir %s? Ahí te llega tu comprobante.',
                                               sugerencia)
             elif codigo == 'relleno':
-                errores['email'] = self.env._('Escribe tu correo de verdad: ahí te llega tu factura.')
+                errores['email'] = self.env._('Escribe tu correo de verdad: ahí te llega tu comprobante.')
             elif codigo == 'varios':
                 errores['email'] = self.env._('Escribe un solo correo.')
         if celular:

@@ -42,7 +42,7 @@ GRUPOS = (
 )
 CANCELADAS_A_LA_VISTA = 5
 
-TEXTO_SIN_FACTURA = 'Tu factura y tus pagos aparecen aquí cuando se emita.'
+TEXTO_SIN_FACTURA = 'Tu comprobante y tus pagos aparecen aquí cuando se emita.'
 TEXTO_COMO = 'Retiro en la tienda o entrega a domicilio: lo coordinamos por WhatsApp.'
 # El mueble se entrega pagado completo (decisión de la dueña, 2026-10-17): con saldo, nunca «Listo».
 TEXTO_AL_TERMINAR = 'Cuando termines de pagar, te escribimos para coordinar la entrega o el retiro.'
@@ -452,7 +452,7 @@ class DcasaMiCuenta(models.AbstractModel):
             'puntos': R.como_puntos(self._mc_puntos_de(pedido.partner_id, facturas)),
             'whatsapp': self._mc_whatsapp(website, f'Hola {MARCA}, tengo una pregunta sobre mi compra {pedido.name}'),
             'whatsapp_factura': self._mc_whatsapp(
-                website, f'Hola {MARCA}, necesito la factura de mi compra {pedido.name}'),
+                website, f'Hola {MARCA}, necesito el comprobante de mi compra {pedido.name}'),
             'pdf': '',
             'pdf_facturas': [],
         }
@@ -507,8 +507,8 @@ class DcasaMiCuenta(models.AbstractModel):
             'mensaje': '',
             'apartado': False,
             'puntos': R.como_puntos(self._mc_puntos_de(factura.partner_id, factura)),
-            'whatsapp': self._mc_whatsapp(website, f'Hola {MARCA}, tengo una pregunta sobre mi factura {factura.name}'),
-            'whatsapp_factura': self._mc_whatsapp(website, f'Hola {MARCA}, necesito mi factura {factura.name}'),
+            'whatsapp': self._mc_whatsapp(website, f'Hola {MARCA}, tengo una pregunta sobre mi compra {factura.name}'),
+            'whatsapp_factura': self._mc_whatsapp(website, f'Hola {MARCA}, necesito mi comprobante {factura.name}'),
             'pdf': '',
             'pdf_facturas': [{'nombre': factura.name,
                               'url': f'/my/invoices/{factura.id}?report_type=pdf&download=true'}] if tienda else [],

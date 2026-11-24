@@ -87,6 +87,10 @@ class TestAbonosPorVencer(TransactionCase):
         self.assertIn(factura.name, texto)
         self.assertIn('$100.00', texto)
         self.assertIn((self.hoy + timedelta(days=3)).strftime('%d/%m/%Y'), texto)
+        # Con el nombre de la empresa y sin «factura» (Baby Caleb, 2026-11-24: el papel no es la fiscal de la DGI).
+        self.assertIn(f'te saludamos de {factura.company_id.name}.', texto)
+        self.assertNotIn("D'CASA", texto)
+        self.assertNotIn('factura', texto.lower())
 
     def test_numeros_para_whatsapp(self):
         self.assertEqual(whatsapp_de('6026-1919'), '50760261919')

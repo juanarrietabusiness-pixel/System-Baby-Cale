@@ -43,17 +43,17 @@
             </tr>
         </table>
         <p t-if="v['vencido']" style="margin:0 0 12px 0;font-weight:bold;">Esa fecha ya pasó: escríbenos por WhatsApp.</p>
-        <p style="margin:0;color:#5C6B76;">Tu abono de la factura <t t-out="v['numero']"/> va adjunto en PDF.</p>
+        <p style="margin:0;color:#5C6B76;">Tu abono del comprobante <t t-out="v['numero']"/> va adjunto en PDF.</p>
     </t>
     <t t-elif="v['pagada']">
-        <p style="margin:0 0 12px 0;">Gracias por tu compra<t t-if="v['nombre']">, <t t-out="v['nombre']"/></t>. Tu factura <strong t-out="v['numero']"/> quedó pagada por completo.</p>
+        <p style="margin:0 0 12px 0;">Gracias por tu compra<t t-if="v['nombre']">, <t t-out="v['nombre']"/></t>. Tu compra <strong t-out="v['numero']"/> quedó pagada por completo.</p>
         <p t-if="v['puntos_compra']" style="margin:0 0 12px 0;">Con esta compra sumaste <strong><t t-out="v['puntos_compra']"/> puntos</strong>.</p>
         <p t-if="v['opinar']" style="margin:0 0 12px 0;">¿Qué tal tu compra? Cuéntanos en <a t-att-href="v['opinar']" style="color:#985D2F;font-weight:bold;">Mi cuenta › Tus opiniones</a>: la leemos y la publicamos en la tienda.</p>
-        <p style="margin:0;color:#5C6B76;">Tu factura va adjunta en PDF.</p>
+        <p style="margin:0;color:#5C6B76;">Tu comprobante de pago va adjunto en PDF.</p>
     </t>
     <t t-else="">
-        <p style="margin:0 0 12px 0;">Hola<t t-if="v['nombre']"> <t t-out="v['nombre']"/></t>: te enviamos tu factura <strong t-out="v['numero']"/> por <strong t-out="v['total']"/>.</p>
-        <p style="margin:0;color:#5C6B76;">Va adjunta en PDF.</p>
+        <p style="margin:0 0 12px 0;">Hola<t t-if="v['nombre']"> <t t-out="v['nombre']"/></t>: te enviamos el comprobante de tu compra <strong t-out="v['numero']"/> por <strong t-out="v['total']"/>.</p>
+        <p style="margin:0;color:#5C6B76;">Va adjunto en PDF.</p>
     </t>
 </div>
             </field>
@@ -88,14 +88,14 @@
             <field name="model_id" ref="account.model_account_move"/>
             <field name="email_from">{{ object.company_id.email_formatted }}</field>
             <field name="use_default_to" eval="True"/>
-            <field name="subject">Tu abono vence el {{ object._dcasa_correo_valores()['vence'] }} · Factura {{ object.name }}</field>
+            <field name="subject">Tu abono vence el {{ object._dcasa_correo_valores()['vence'] }} · Comprobante {{ object.name }}</field>
             <field name="description">Recordatorio unos días antes de que venza un abono: lo que falta y la fecha.</field>
             <field name="email_layout_xmlid">dcasa_correo.layout_correo</field>
             <field name="auto_delete" eval="True"/>
             <field name="body_html" type="html">
 <div>
     <t t-set="v" t-value="object._dcasa_correo_valores()"/>
-    <p style="margin:0 0 16px 0;">Hola<t t-if="v['nombre']"> <t t-out="v['nombre']"/></t>: te recordamos que el abono de tu factura <strong t-out="v['numero']"/> vence pronto.</p>
+    <p style="margin:0 0 16px 0;">Hola<t t-if="v['nombre']"> <t t-out="v['nombre']"/></t>: te recordamos que el abono de tu compra <strong t-out="v['numero']"/> vence pronto.</p>
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;margin:0 0 16px 0;font-family:Montserrat, Arial, Helvetica, sans-serif;font-size:16px;line-height:1.6;color:#1B3246;">
         <tr>
             <td style="padding:8px 0;border-bottom:1px solid #D8D8D2;color:#5C6B76;">Total de tu compra</td>
@@ -136,7 +136,7 @@
     <p style="margin:0 0 12px 0;">Gracias por tu compra. En Mi cuenta ves tus compras, tus pagos y tus puntos.</p>
     <p t-if="v['acceso'] == 'pin'" style="margin:0;color:#5C6B76;">Entra con tu celular y tu PIN.</p>
     <p t-elif="v['acceso'] == 'tienda'" style="margin:0;color:#5C6B76;">Entra con el correo y la contraseña de tu cuenta de la tienda en línea.</p>
-    <p t-elif="v['acceso'] == 'registro'" style="margin:0;color:#5C6B76;">La primera vez, toca «¿Primera vez? Hazte socio» y regístrate con tu celular, el código de socio que viene en tu factura y un PIN que tú eliges.</p>
+    <p t-elif="v['acceso'] == 'registro'" style="margin:0;color:#5C6B76;">La primera vez, toca «¿Primera vez? Hazte socio» y regístrate con tu celular, el código de socio que viene en tu comprobante y un PIN que tú eliges.</p>
     <p t-else="" style="margin:0;color:#5C6B76;">Para entrar la primera vez, escríbenos por WhatsApp y te ayudamos.</p>
 </div>
             </field>

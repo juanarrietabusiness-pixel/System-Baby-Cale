@@ -36,7 +36,7 @@ class TestCola(CorreoCase):
         self.assertIn('dcasa_base/static/img/logo.png', correo.body_html)
         self.assertIn('Escríbenos por WhatsApp', correo.body_html)
         self.assertIn('¡Tu compra está pagada!', correo.body_html)
-        self.assertEqual(correo.subject, f'Tu factura {factura.name} está pagada')
+        self.assertEqual(correo.subject, f'Tu comprobante de pago {factura.name}')
         self.assertFalse(factura.access_token, 'Ningún correo crea un access_token')
         self.assertFalse(factura.invoice_pdf_report_id, 'El PDF del correo no reemplaza el de la factura')
 
@@ -80,7 +80,7 @@ class TestCola(CorreoCase):
         (correo,) = self.correos_de(factura)
         cuerpo = correo.body_html
         self.assertIn('Recibimos tu abono', cuerpo)
-        self.assertEqual(correo.subject, f'Recibimos tu abono · Factura {factura.name}')
+        self.assertEqual(correo.subject, f'Recibimos tu abono · Comprobante {factura.name}')
         for clave in ('total', 'pagado', 'saldo'):
             with self.subTest(clave=clave):
                 self.assertIn(correo_modelo._monto(estado[clave], factura.currency_id), cuerpo)

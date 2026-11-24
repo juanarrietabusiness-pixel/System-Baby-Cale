@@ -125,7 +125,7 @@
                     <a href="/socios/registro" class="btn btn-outline-primary w-100 mt-3 o_dcasa_mc_btn">
                         <i class="fa fa-star-o me-2" aria-hidden="true"/>¿Primera vez? Hazte socio</a>
                     <p class="mt-3 mb-0 o_dcasa_mc_nota">Si ya compraste en Baby Caleb, al hacerte socio escribe el código de
-                        socio que trae tu factura: así ves tus compras y tus puntos.</p>
+                        socio que trae tu comprobante: así ves tus compras y tus puntos.</p>
                 </section>
             </div>
         </t>
@@ -245,7 +245,7 @@
             <t t-set="titulo">Mis compras</t>
             <t t-set="pestana">Mis compras · Mi cuenta</t>
             <p t-if="not grupos" class="o_dcasa_mc_vacio">Todavía no vemos compras en tu cuenta. Si compraste y no aparece,
-                escríbenos por WhatsApp con el número de tu factura.</p>
+                escríbenos por WhatsApp con el número de tu comprobante.</p>
             <section t-foreach="grupos" t-as="grupo" class="o_dcasa_mc_bloque" t-attf-aria-labelledby="mc_grupo_#{grupo['clave']}">
                 <h2 t-attf-id="mc_grupo_#{grupo['clave']}" class="o_dcasa_mc_h2"><t t-out="grupo['titulo']"/>
                     <span class="o_dcasa_mc_cuantas" t-out="'(%s)' % (len(grupo['compras']) + grupo['ocultas'])"/></h2>
@@ -273,7 +273,7 @@
     <!-- ===================================================================== detalle de una compra -->
     <template id="detalle" name="Mi cuenta: una compra">
         <t t-call="dcasa_mi_cuenta.marco">
-            <t t-set="titulo" t-value="('Compra %s' if compra['tipo'] == 'pedido' else 'Factura %s') % compra['nombre']"/>
+            <t t-set="titulo" t-value="('Compra %s' if compra['tipo'] == 'pedido' else 'Comprobante %s') % compra['nombre']"/>
             <t t-set="pestana" t-value="'%s · Mi cuenta' % compra['nombre']"/>
             <t t-set="pago" t-value="compra['pago']"/>
             <a href="/mi-cuenta/compras" class="o_dcasa_mc_volver"><i class="fa fa-arrow-left me-2" aria-hidden="true"/>Mis compras</a>
@@ -308,15 +308,15 @@
                             <strong t-out="abono['monto']"/>
                         </li>
                     </ul>
-                    <p t-else="" class="o_dcasa_mc_nota">Todavía no hay pagos registrados en esta factura.</p>
+                    <p t-else="" class="o_dcasa_mc_nota">Todavía no hay pagos registrados en este comprobante.</p>
                     <dl class="o_dcasa_mc_cuentas">
-                        <div><dt>Total de tu factura</dt><dd t-out="pago['total_fmt']"/></div>
+                        <div><dt>Total de tu compra</dt><dd t-out="pago['total_fmt']"/></div>
                         <div><dt>Pagado</dt><dd t-out="pago['pagado_fmt']"/></div>
                         <div class="o_dcasa_mc_cuentas_saldo"><dt>Saldo</dt><dd t-out="pago['saldo_fmt']"/></div>
                     </dl>
-                    <p t-if="compra['parcial']" class="o_dcasa_mc_nota">Esto es lo de tu factura. El resto de la compra
-                        aparece aquí cuando se facture.</p>
-                    <p t-if="pago['por_pagar']" class="o_dcasa_mc_nota mb-0">Para abonar, pasa por la tienda o escríbenos por
+                    <p t-if="compra['parcial']" class="o_dcasa_mc_nota">Esto es lo de tu comprobante. El resto de la compra
+                        aparece aquí cuando se emita su comprobante.</p>
+                    <p t-if="pago['por_pagar']" class="o_dcasa_mc_nota mb-0">Para abonar, escríbenos por
                         WhatsApp con el número <strong t-out="compra['nombre']"/>.</p>
                 </t>
                 <t t-elif="compra['estado'] == 'sale'">
@@ -357,17 +357,18 @@
                 <p t-if="compra['puntos'] != '0'" class="o_dcasa_mc_nota mb-0">Esta compra te sumó <strong t-out="compra['puntos']"/> puntos.</p>
             </section>
 
-            <!-- La factura: el PDF solo con la cuenta de la tienda (trae datos personales) -->
+            <!-- El comprobante (antes «factura»: no es la fiscal de la DGI, Baby Caleb 2026-11-24): el PDF solo con la
+                 cuenta de la tienda (trae datos personales) -->
             <section class="o_dcasa_mc_bloque o_dcasa_mc_tarjeta" aria-labelledby="mc_factura">
-                <h2 id="mc_factura" class="o_dcasa_mc_h2">Tu factura</h2>
+                <h2 id="mc_factura" class="o_dcasa_mc_h2">Tu comprobante</h2>
                 <t t-if="tienda and (compra['pdf'] or compra['pdf_facturas'])">
                     <a t-foreach="compra['pdf_facturas']" t-as="pdf" t-att-href="pdf['url']" class="btn btn-outline-primary w-100 mb-2 o_dcasa_mc_btn">
-                        <i class="fa fa-download me-2" aria-hidden="true"/>Descargar la factura <t t-out="pdf['nombre']"/></a>
+                        <i class="fa fa-download me-2" aria-hidden="true"/>Descargar el comprobante <t t-out="pdf['nombre']"/></a>
                     <a t-if="compra['pdf']" t-att-href="compra['pdf']" class="btn btn-outline-primary w-100 o_dcasa_mc_btn">
                         <i class="fa fa-download me-2" aria-hidden="true"/><t t-out="'Descargar la cotización' if compra['estado'] == 'sent' else 'Descargar el pedido'"/></a>
                 </t>
                 <a t-else="" t-att-href="compra['whatsapp_factura']" target="_blank" rel="noopener" class="btn btn-outline-primary w-100 o_dcasa_mc_btn">
-                    <i class="fa fa-whatsapp me-2" aria-hidden="true"/>¿Necesitas tu factura? Escríbenos por WhatsApp</a>
+                    <i class="fa fa-whatsapp me-2" aria-hidden="true"/>¿Necesitas tu comprobante? Escríbenos por WhatsApp</a>
             </section>
 
             <section class="o_dcasa_mc_bloque o_dcasa_mc_ayuda">

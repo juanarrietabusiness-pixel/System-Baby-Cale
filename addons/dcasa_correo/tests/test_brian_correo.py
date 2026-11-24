@@ -49,7 +49,7 @@ class TestBrianCorreo(CorreoCase):
         self.assertTrue(envio.huella.startswith(f'manual:{factura.id}:'))
         self.procesar()
         self.assertEqual(envio.estado, 'enviado')
-        self.assertIn('Tu factura', self.correos_de(factura).body_html)
+        self.assertIn('Tu comprobante', self.correos_de(factura).body_html)
 
     def test_factura_sin_correo(self):
         self.encender()

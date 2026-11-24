@@ -58,7 +58,7 @@
         <table class="o_df_datos">
             <tr>
                 <td><div class="o_df_etiqueta">Pedido</div><div class="o_df_dato" t-out="o.origin or '—'"/></td>
-                <td><div class="o_df_etiqueta">Factura</div><div class="o_df_dato" t-out="', '.join(df_facturas) or '—'"/></td>
+                <td><div class="o_df_etiqueta">Comprobante</div><div class="o_df_dato" t-out="', '.join(df_facturas) or '—'"/></td>
                 <td><div class="o_df_etiqueta">Fecha</div><div class="o_df_dato" t-out="o._dcasa_fecha_para_entrega() or '—'"/></td>
             </tr>
         </table>

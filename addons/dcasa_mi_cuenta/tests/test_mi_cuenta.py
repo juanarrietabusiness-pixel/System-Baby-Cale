@@ -129,8 +129,8 @@ class TestMiCuentaHttp(MiCuentaComun, HttpCase):
         self.assertNotIn('/my/orders', html)
         self.assertNotIn(CALLE, html)
         self.assertNotIn(CORREO, html)
-        self.assertIn('¿Necesitas tu factura? Escríbenos por WhatsApp', html)
-        self.assertIn(quote(f"necesito la factura de mi compra {self.pedido.name}"), html)
+        self.assertIn('¿Necesitas tu comprobante? Escríbenos por WhatsApp', html)
+        self.assertIn(quote(f"necesito el comprobante de mi compra {self.pedido.name}"), html)
 
     def test_apartado_cancelado_y_factura_suelta(self):
         self.entrar()
@@ -141,7 +141,7 @@ class TestMiCuentaHttp(MiCuentaComun, HttpCase):
         self.assertIn(f'Se anuló porque venció el apartado el {dia_mes(self.anulado.dcasa_apartado_vence)}.', anulado)
         suelta = self.url_open(f'/mi-cuenta/facturas/{self.suelta.id}')
         self.assertEqual(suelta.status_code, 200)
-        self.assertIn(f'Factura {self.suelta.name}', suelta.text)
+        self.assertIn(f'Comprobante {self.suelta.name}', suelta.text)
         self.assertIn(monto(self.suelta.amount_total), suelta.text)
         # La factura de un pedido se ve dentro del pedido.
         del_pedido = self.url_open(f'/mi-cuenta/facturas/{self.factura.id}')
@@ -162,7 +162,7 @@ class TestMiCuentaHttp(MiCuentaComun, HttpCase):
         sin_factura.action_confirm()
         self.entrar()
         html = self.url_open(f'/mi-cuenta/compras/{sin_factura.id}').text
-        self.assertIn('Tu factura y tus pagos aparecen aquí cuando se emita.', html)
+        self.assertIn('Tu comprobante y tus pagos aparecen aquí cuando se emita.', html)
         self.assertIn(monto(sin_factura.amount_total), html)
         self.assertNotIn('Te falta', html)
 

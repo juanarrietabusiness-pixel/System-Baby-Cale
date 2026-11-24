@@ -86,6 +86,18 @@ class AccountMove(models.Model):
         self.ensure_one()
         return self.move_type == 'out_invoice' and self.state == 'posted' and self.payment_state == 'partial'
 
+    def _dcasa_titulo_documento(self):
+        """Cómo se llama el papel de una venta publicada. No es la factura fiscal de la DGI (esa sale del Facturador
+        Gratuito o de un PAC), así que no dice «Factura» (el dueño de Baby Caleb, 2026-11-24; D'CASA #137): con saldo,
+        «Abono»; pagada, «Comprobante de pago»; sin ningún pago todavía, «Comprobante de compra» (no dice «pago» lo que
+        aún no se pagó)."""
+        self.ensure_one()
+        if self._dcasa_es_abono():
+            return self.env._('Abono')
+        if self.payment_state in ('paid', 'in_payment'):
+            return self.env._('Comprobante de pago')
+        return self.env._('Comprobante de compra')
+
     def _dcasa_dias_abono(self):
         """Días continuos para terminar de pagar un abono (``dcasa_invoice.abono_dias``; 30 de fábrica, 0 = no vence).
         Un valor que no es un número entero vale lo de fábrica (y queda en el registro)."""
@@ -166,10 +178,11 @@ class AccountMove(models.Model):
         }
 
     def _get_report_base_filename(self):
-        """El PDF de una factura en abono se llama «Abono INV/…»; el de las demás, como siempre."""
+        """El PDF de una venta publicada se llama como su papel: «Abono INV/…», «Comprobante de pago INV/…» o
+        «Comprobante de compra INV/…» (``_dcasa_titulo_documento``); el de los demás documentos, como siempre."""
         nombre = super()._get_report_base_filename()
-        if len(self) == 1 and self._dcasa_es_abono():
-            return f'Abono {nombre}'.strip()
+        if len(self) == 1 and self.move_type == 'out_invoice' and self.state == 'posted':
+            return f'{self._dcasa_titulo_documento()} {nombre}'.strip()
         return nombre
 
     def _dcasa_mostrar_pagos(self):
@@ -218,7 +231,7 @@ class AccountMove(models.Model):
     def _dcasa_datos(self):
         """[(etiqueta, valor)] de la columna de datos del documento; solo lo que tiene valor."""
         self.ensure_one()
-        etiqueta_fecha = 'Fecha de la nota' if self.move_type == 'out_refund' else 'Fecha de factura'
+        etiqueta_fecha = 'Fecha de la nota' if self.move_type == 'out_refund' else 'Fecha'
         datos = [
             (etiqueta_fecha, self._dcasa_fecha(self.invoice_date)),
             *self._dcasa_fechas_de_pago(),

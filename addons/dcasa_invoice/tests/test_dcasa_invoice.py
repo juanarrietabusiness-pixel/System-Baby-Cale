@@ -97,8 +97,10 @@ class TestDcasaInvoice(TransactionCase):
         self.company.website = 'https://babycaleb.com'
         invoice = self._create_invoice()
         html = self._render(invoice.with_context(lang='en_US'))
-        for etiqueta in ('Factura', 'Descripción', 'Cantidad', 'Precio unitario', 'Importe'):
+        for etiqueta in ('Comprobante de compra', 'Descripción', 'Cantidad', 'Precio unitario', 'Importe'):
             self.assertIn(etiqueta, html)
+        # Baby Caleb (2026-11-24): el papel no es la factura fiscal de la DGI, así que no dice «Factura» en ningún lado.
+        self.assertNotIn('Factura', html.split('<body', 1)[1])
         self.assertNotIn('Unit Price', html)
         self.assertIn('Dólares', html)
         self.assertNotIn('Dollars', html)

@@ -129,22 +129,27 @@ class TestPapelDelAbono(DocumentosDePrueba):
 
     # --- Lo demás, como siempre ---------------------------------------------------------------
 
-    def test_pagada_por_completo_dice_factura_con_sus_abonos(self):
+    def test_pagada_por_completo_dice_comprobante_de_pago_con_sus_abonos(self):
+        # Baby Caleb (2026-11-24): el papel no es la factura fiscal de la DGI, así que no dice «Factura».
         factura = self.factura_completa(abono=100.0)
         self._abonar(factura, factura.amount_residual)
         self.assertTrue(factura._dcasa_is_paid())
         titulo, recuadro, datos, hoja = self._papel(factura)
-        self.assertTrue(titulo.startswith('Factura'), titulo)
+        self.assertTrue(titulo.startswith('Comprobante de pago'), titulo)
+        self.assertNotIn('Factura', titulo)
+        self.assertIn(factura.name, titulo, 'el número sigue visible')
         self.assertIsNone(recuadro)
         self.assertEqual(hoja.count('Abono del 14/10/2026'), 2, 'la lista de abonos sigue')
         self.assertNotIn('Inicio del abono', datos)
         self.assertNotIn('Vence', datos)
 
-    def test_sin_pagos_dice_factura_y_vence(self):
+    def test_sin_pagos_dice_comprobante_de_compra_y_vence(self):
+        # Sin ningún pago no dice «de pago»: lo que aún no se pagó no se llama comprobante de pago.
         factura = self.factura_completa(abono=0)
         self.assertFalse(factura._dcasa_es_abono())
         titulo, recuadro, datos, hoja = self._papel(factura)
-        self.assertTrue(titulo.startswith('Factura'), titulo)
+        self.assertTrue(titulo.startswith('Comprobante de compra'), titulo)
+        self.assertNotIn('Factura', titulo)
         self.assertIsNone(recuadro)
         self.assertEqual(datos['Vence'], '14/10/2026', 'la condición de pago manda, como siempre')
         self.assertNotIn('Inicio del abono', datos)
@@ -187,11 +192,12 @@ class TestPapelDelAbono(DocumentosDePrueba):
         self.assertEqual(factura._get_report_base_filename(), f'Abono {factura.name}')
         informe = self.env.ref('account.account_invoices')
         self.assertTrue(factura._get_invoice_report_filename(report=informe).startswith('Abono'))
-        # Pagada: el nombre de siempre (el número), sin «Abono».
+        # Pagada: «Comprobante de pago» y el número; sin ningún pago, «Comprobante de compra» (Baby Caleb, 2026-11-24:
+        # el papel no es la factura fiscal de la DGI).
         self._abonar(factura, factura.amount_residual)
-        self.assertEqual(factura._get_report_base_filename(), factura.name)
+        self.assertEqual(factura._get_report_base_filename(), f'Comprobante de pago {factura.name}')
         sin_pagos = self.factura_completa(abono=0)
-        self.assertEqual(sin_pagos._get_report_base_filename(), sin_pagos.name)
+        self.assertEqual(sin_pagos._get_report_base_filename(), f'Comprobante de compra {sin_pagos.name}')
 
     # --- Imprimir no toca la contabilidad -----------------------------------------------------
 

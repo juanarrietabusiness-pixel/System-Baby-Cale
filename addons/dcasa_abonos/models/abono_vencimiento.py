@@ -114,11 +114,14 @@ class AccountMove(models.Model):
         saldo = f'${estado["saldo"]:,.2f}'
         vence = estado['vence'].strftime('%d/%m/%Y') if estado['vence'] else ''
         saludo = f'Hola {nombre}, ' if nombre else 'Hola, '
+        # El nombre de la empresa, no el de la tienda de origen; y «compra», no «factura»: el papel no es la factura
+        # fiscal de la DGI (Baby Caleb, 2026-11-24).
+        empresa = self.company_id.name or ''
         if estado['vencido']:
-            cuerpo = (f'te saludamos de D\'CASA. El abono de tu factura {self.name} venció el {vence} y te faltan '
+            cuerpo = (f'te saludamos de {empresa}. El abono de tu compra {self.name} venció el {vence} y te faltan '
                       f'{saldo}. Escríbenos y vemos juntos cómo completarlo.')
         else:
-            cuerpo = (f'te saludamos de D\'CASA. Te recordamos que el abono de tu factura {self.name} vence el '
+            cuerpo = (f'te saludamos de {empresa}. Te recordamos que el abono de tu compra {self.name} vence el '
                       f'{vence} y te faltan {saldo}. Cualquier duda, escríbenos por aquí.')
         return saludo + cuerpo
 

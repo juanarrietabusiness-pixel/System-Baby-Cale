@@ -131,7 +131,7 @@ class TestFacturaCompleta(TransactionCase):
         for texto in ('CLIENTE DE PRUEBA', '8-000-0000', '6123-4567', 'cliente@example.com',
                       'Calle 5, Barrio Balboa',
                       '>Entrega<', 'Villa Lucre, casa 12', 'Arraiján', '6999-0000',
-                      'Fecha de factura', 'Vence', 'Pedido', 'S01004', 'Vendedor/a', 'Ana Vendedora', 'Condiciones'):
+                      'Fecha', 'Vence', 'Pedido', 'S01004', 'Vendedor/a', 'Ana Vendedora', 'Condiciones'):
             self.assertIn(texto, html, texto)
         datos = dict(factura._dcasa_datos())
         self.assertEqual(datos['Pedido'], 'S01004')
