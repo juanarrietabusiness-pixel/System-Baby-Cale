@@ -14,6 +14,7 @@ import os
 import re
 
 from odoo import api, fields, models
+from odoo.addons.dcasa_base import sin_itbms
 from odoo.exceptions import AccessError, UserError, ValidationError
 
 from . import horario as H
@@ -684,6 +685,9 @@ class JuanAjustes(models.Model):
         self.ensure_one()
         return {
             'nombre_publico': self.nombre_publico,
+            # Baby Caleb no cobra ITBMS (DCASA_COBRA_ITBMS=0, dcasa_base.aplicar_sin_itbms): el Worker no le pone
+            # «+ ITBMS» a ningún precio.
+            'cobra_itbms': not sin_itbms(self.env),
             'bot_activo_global': bool(self.bot_activo_global),
             'canales_activos': self.canales_activos(),
             'horario': self.horario().como_json(),

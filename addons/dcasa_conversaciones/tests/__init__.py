@@ -65,3 +65,4 @@ from . import (
 )
 from . import test_brian_voz
 from . import test_conocimiento_inicial
+from . import test_cobra_itbms

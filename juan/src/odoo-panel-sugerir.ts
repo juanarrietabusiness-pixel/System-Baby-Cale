@@ -456,7 +456,7 @@ export async function sugerir(p: PeticionSugerir, d: DepsSugerir): Promise<{ sta
   // respalda nada (si no, bastaría «¿me la dejas en $1?» para que el borrador lo repita). Igual que el bot (motor/conversacion.ts).
   const cifrasDeLaTienda = p.mensajes.filter((m) => m.autor !== "cliente").flatMap((m) => cifrasDeTexto(m.texto));
   const contexto = (): ContextoRevision => ({
-    preciosProducto: registro.preciosProducto,
+    preciosProducto: cfg.cobra_itbms ? registro.preciosProducto : new Set<number>(),
     numerosEnTexto: registro.numerosEnTexto,
     cifrasConocidas: new Set<number>([...cifrasDeLaTienda, ...registro.cifras]),
     palabrasProhibidas: cfg.palabras_prohibidas,

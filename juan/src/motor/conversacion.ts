@@ -2061,7 +2061,7 @@ export class MotorConversacion {
     const promptDeFugas = promptParaFugas(cfg);
     // Se arma de nuevo en cada revisión: el segundo intento pudo consultar herramientas que el primero no.
     const contextoDeRevision = (): ContextoRevision => ({
-      preciosProducto: registro.preciosProducto,
+      preciosProducto: cfg.cobra_itbms ? registro.preciosProducto : new Set<number>(),
       cifrasConocidas: new Set<number>([...historicas, ...registro.cifras]),
       numerosEnTexto: registro.numerosEnTexto,
       palabrasProhibidas: cfg.palabras_prohibidas,

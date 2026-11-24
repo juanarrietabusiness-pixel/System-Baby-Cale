@@ -118,8 +118,15 @@ export function resolverUrl(url: string, sitio: string | undefined): string | nu
 }
 
 /** Recorre el resultado: quita existencias, agrega `precio_texto`, recoge cifras y fotos. Devuelve una copia. */
-export function procesarResultado(valor: unknown, reg: RegistroDelTurno, sitio: string | undefined, clave = "", enPrecio = false): unknown {
-  if (Array.isArray(valor)) return valor.map((v) => procesarResultado(v, reg, sitio, clave, enPrecio));
+export function procesarResultado(
+  valor: unknown,
+  reg: RegistroDelTurno,
+  sitio: string | undefined,
+  clave = "",
+  enPrecio = false,
+  sinItbmsHeredado = false,
+): unknown {
+  if (Array.isArray(valor)) return valor.map((v) => procesarResultado(v, reg, sitio, clave, enPrecio, sinItbmsHeredado));
 
   if (typeof valor === "number") {
     if (Number.isFinite(valor) && !CLAVES_SIN_CIFRAS.test(clave)) {
@@ -142,10 +149,13 @@ export function procesarResultado(valor: unknown, reg: RegistroDelTurno, sitio: 
   if (!esObjeto(valor)) return valor;
 
   const salida: Record<string, unknown> = {};
+  // Un producto sin ITBMS (`mas_itbms: false`): sus precios (también los de sus tallas) son cifras conocidas, pero no se
+  // marcan para «+ ITBMS».
+  const sinItbms = sinItbmsHeredado || valor.mas_itbms === false;
   for (const [k, v] of Object.entries(valor)) {
     // El modelo nunca ve un número de existencias, aunque Odoo lo mande por error.
     if (CLAVES_DE_EXISTENCIAS.test(k) && (typeof v === "number" || (typeof v === "string" && /^\s*\d+([.,]\d+)?\s*$/.test(v)))) continue;
-    salida[k] = procesarResultado(v, reg, sitio, k, enPrecio || CLAVES_DE_PRECIO.test(k));
+    salida[k] = procesarResultado(v, reg, sitio, k, (enPrecio || CLAVES_DE_PRECIO.test(k)) && !sinItbms, sinItbms);
   }
 
   // Un producto: código + foto. Es lo único que `enviar_foto_producto` puede mandar.
@@ -180,7 +190,7 @@ export function procesarResultado(valor: unknown, reg: RegistroDelTurno, sitio: 
 
   // «$499.00 + ITBMS» ya armado, para que el modelo lo copie en vez de escribirlo.
   const precio = valor.precio;
-  if (typeof precio === "number" && Number.isFinite(precio) && valor.mas_itbms !== false && salida.precio_texto === undefined) {
+  if (typeof precio === "number" && Number.isFinite(precio) && !sinItbms && salida.precio_texto === undefined) {
     salida.precio_texto = `${formatearPrecio(precio)} + ITBMS`;
     reg.preciosProducto.add(precio);
   }

@@ -49,6 +49,8 @@ export interface Horario {
 
 export interface Config {
   nombre_publico: string;
+  /** ¿El negocio cobra ITBMS? Baby Caleb no (Odoo: DCASA_COBRA_ITBMS=0): entonces ningún precio lleva «+ ITBMS». */
+  cobra_itbms: boolean;
   bot_activo_global: boolean;
   canales_activos: Partial<Record<CanalId, boolean>>;
   horario: Horario;
@@ -182,6 +184,7 @@ const MAX_TEXTO_PUBLICO = 300;
 export const CONFIG_POR_DEFECTO: Config = {
   // Sin Odoo, un nombre neutro («Buenas, un gusto atenderle. Somos la tienda.»): el de la empresa lo pone la dueña en Ajustes de Juan.
   nombre_publico: "el equipo de la tienda",
+  cobra_itbms: true,
   bot_activo_global: true,
   canales_activos: {},
   horario: { inicio: "08:00", fin: "17:00", dias: [0, 1, 2, 3, 4, 5, 6], zona: "America/Panama" },
@@ -374,6 +377,7 @@ export function normalizarConfig(crudo: unknown): Config {
     : d.horario.dias;
   return {
     nombre_publico: texto(c.nombre_publico, d.nombre_publico),
+    cobra_itbms: typeof c.cobra_itbms === "boolean" ? c.cobra_itbms : d.cobra_itbms,
     bot_activo_global: typeof c.bot_activo_global === "boolean" ? c.bot_activo_global : d.bot_activo_global,
     canales_activos: canales,
     horario: horarioCon(

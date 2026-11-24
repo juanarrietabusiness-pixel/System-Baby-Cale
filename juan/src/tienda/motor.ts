@@ -1032,7 +1032,7 @@ export class MotorTienda {
     const nombres = [...new Set([...HERRAMIENTAS_DEL_CONTRATO, ...NOMBRES_DE_HERRAMIENTAS_LOCALES, ...HERRAMIENTAS_DE_LA_TIENDA, ...defs.map((d) => d.nombre), NOMBRE_RESPONDER, "etiquetar_conversacion", "guardar_correo", "no_quiere_novedades"])];
     const fugas = promptTiendaParaFugas(cfg);
     const contexto = (): ContextoRevision => ({
-      preciosProducto: registro.preciosProducto,
+      preciosProducto: cfg.cobra_itbms ? registro.preciosProducto : new Set<number>(),
       cifrasConocidas: new Set<number>([...historicas, ...registro.cifras]),
       numerosEnTexto: registro.numerosEnTexto,
       palabrasProhibidas: cfg.palabras_prohibidas,
