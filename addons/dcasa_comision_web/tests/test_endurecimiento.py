@@ -25,7 +25,7 @@ from ..models.movimiento import CANDADO_LIQUIDACIONES, CANDADO_NUMERACION
 from .test_comision import ComisionReloj
 from .test_vendedoras import VendedoraCommon
 
-MIGRACION = (Path(__file__).resolve().parents[2] / 'dcasa_base' / 'migrations' / '19.0.1.10.0' / 'post-migrate.py')
+MIGRACION = (Path(__file__).resolve().parents[2] / 'dcasa_base' / 'migrations' / '19.0.1.11.0' / 'post-migrate.py')
 
 
 def todos_los_usuarios(modelo, empleados):

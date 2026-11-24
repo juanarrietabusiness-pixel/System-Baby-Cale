@@ -16,7 +16,7 @@ from .test_comision import ComisionReloj
 from .test_endurecimiento import Liquida
 from .test_vendedoras import VendedoraCommon
 
-MIGRACION = (Path(__file__).resolve().parents[2] / 'dcasa_base' / 'migrations' / '19.0.1.10.0' / 'post-migrate.py')
+MIGRACION = (Path(__file__).resolve().parents[2] / 'dcasa_base' / 'migrations' / '19.0.1.11.0' / 'post-migrate.py')
 
 
 @tagged('post_install', '-at_install')

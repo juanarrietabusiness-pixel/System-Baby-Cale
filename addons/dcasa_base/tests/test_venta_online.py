@@ -7,7 +7,8 @@ from odoo import Command
 from odoo.exceptions import UserError
 from odoo.tests import TransactionCase, tagged
 
-MIGRACION = Path(__file__).resolve().parent.parent / 'migrations' / '19.0.1.10.0' / 'post-migrate.py'
+# En D'CASA es la 19.0.1.10.0; en esta copia esa versión ya era la de los colores de la marca.
+MIGRACION = Path(__file__).resolve().parent.parent / 'migrations' / '19.0.1.11.0' / 'post-migrate.py'
 
 
 @tagged('post_install', '-at_install')
