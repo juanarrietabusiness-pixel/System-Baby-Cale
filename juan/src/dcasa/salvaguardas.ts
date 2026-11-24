@@ -2,7 +2,8 @@
 // bien; esto garantiza lo mínimo aunque el modelo se equivoque o el cliente intente manipularlo
 // (docs/JUAN.md, reglas 2, 3, 6 y 11):
 //
-//   · un precio que la herramienta da con «+ ITBMS» lo lleva → se corrige solo
+//   · nunca un precio de producto sin «+ ITBMS» → se corrige solo (OJO, Baby Caleb no cobra ITBMS: hoy también se le pone a
+//     un precio que la herramienta dio con mas_itbms: false, porque todo número de un campo «precio» cuenta como de producto)
 //   · nunca una cifra de dinero que no salió de una herramienta
 //   · nunca un número de existencias
 //   · nunca prometer entrega, flete, financiamiento, apartado ni descuento (el costo del envío y un «envío gratis»

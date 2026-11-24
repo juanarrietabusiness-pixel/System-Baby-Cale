@@ -10,9 +10,10 @@ import { describe, expect, it } from "vitest";
 import { CONFIG_POR_DEFECTO, normalizarConfig } from "../src/config";
 import { promptEstable, promptSeguimiento } from "../src/dcasa/prompt";
 import { notaDeCorreccion } from "../src/dcasa/salvaguardas";
+import { RegistroDelTurno, procesarResultado } from "../src/motor/herramientas";
 import { promptDelBorrador, validarPeticion, type PeticionSugerir } from "../src/odoo-panel-sugerir";
 import { promptTienda } from "../src/tienda/prompt";
-import { AHORA_INICIAL } from "./helpers/mundo";
+import { AHORA_INICIAL, crearMundo } from "./helpers/mundo";
 
 const cfg = normalizarConfig({ nombre_publico: "el equipo de Baby Caleb", brian_tienda: { activo: true } });
 const peticion = validarPeticion({
@@ -63,5 +64,39 @@ describe("la voz de Baby Caleb en todos los prompts", () => {
       expect(p).not.toMatch(/\btuteo\b|cero emojis/i);
       expect(p).toMatch(/de usted, siempre/i);
     }
+  });
+});
+
+describe("un precio sin mas_itbms sale de la herramienta sin «+ ITBMS» (Baby Caleb no lo cobra)", () => {
+  // OJO: esto es lo que VE el modelo. El guardián (`asegurarItbms`) todavía le agrega «+ ITBMS» a todo número que llegó en un campo
+  // «precio», lleve o no el impuesto: arreglarlo toca la lógica de herramientas.ts (anotado en el informe de esta rama).
+  it("lo que ve el modelo: precio_texto tal cual, sin «+ ITBMS», también en las tallas; con mas_itbms, igual que siempre", () => {
+    const reg = new RegistroDelTurno();
+    const visto = procesarResultado(
+      {
+        productos: [
+          { codigo: "NAT-M", nombre: "Pañales Nateen de cierre", precio: 45, precio_texto: "$45.00", mas_itbms: false, variantes: [{ nombre: "Talla M", precio: 45, precio_texto: "$45.00" }] },
+          { codigo: "DANY-AW600", nombre: "Toallitas Dany Baby", precio: 18, mas_itbms: false },
+        ],
+      },
+      reg,
+      undefined,
+    ) as { productos: { precio_texto?: string; variantes?: { precio_texto: string }[] }[] };
+    expect(visto.productos[0].precio_texto).toBe("$45.00");
+    expect(visto.productos[0].variantes![0].precio_texto).toBe("$45.00");
+    expect(visto.productos[1].precio_texto).toBeUndefined();
+    expect(JSON.stringify(visto)).not.toContain("ITBMS");
+    const conItbms = procesarResultado({ codigo: "X", precio: 10, mas_itbms: true }, new RegistroDelTurno(), undefined) as { precio_texto: string };
+    expect(conItbms.precio_texto).toBe("$10.00 + ITBMS");
+  });
+
+  it("de punta a punta, el modelo recibe el precio sin «+ ITBMS» y el prompt le pide copiarlo tal cual", async () => {
+    const m = crearMundo();
+    m.odoo.manejadores.buscar_productos = () => ({ productos: [{ codigo: "NAT-M", nombre: "Pañales Nateen talla M", precio: 45, precio_texto: "$45.00", mas_itbms: false, disponibilidad: "disponible" }] });
+    const g = m.guion([{ llamadas: [{ nombre: "buscar_productos", args: { consulta: "nateen" } }] }, { texto: "La caja de Nateen talla M está en $45.00. ¿Le sirve?" }]);
+    await m.conversar("precio de nateen m");
+    expect(g.prompts()[1]).toContain('"precio_texto":"$45.00"');
+    expect(g.prompts()[1]).not.toContain('"precio_texto":"$45.00 + ITBMS"');
+    expect(g.prompts()[1]).toContain("copia el campo precio_texto tal cual: si trae «+ ITBMS», va con eso; si no, sin nada.");
   });
 });
