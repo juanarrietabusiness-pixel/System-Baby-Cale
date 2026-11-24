@@ -4,11 +4,15 @@ Chrome, con el teléfono emulado, lo que la persona ve:
 * Arreglo 3: las marcas de relleno (placeholder) del buscador del catálogo y de Socios y los pasos del carrito que aún
   no tocan se leen con 4,5:1 o más (antes 2,86, 3,12 y 2,38:1).
 * Arreglo 4: en el celular, lo que se toca con el dedo mide 44 px o más (antes de 32 a 40 px).
-* Arreglo 5: el buscador del catálogo dice qué busca (aria-label), su botón dice «Buscar» y su texto de ayuda es corto y
-  no se corta en el cajón del celular. (La pista visible de la cámara es de dcasa_buscar_foto y se prueba allá.)
+* Arreglo 5: el buscador del catálogo dice qué busca (aria-label), su botón dice «Buscar» y su texto de ayuda no se
+  corta en el menú del celular. (La pista visible de la cámara es de dcasa_buscar_foto y se prueba allá.)
 * Arreglo 6: «Enviar mensaje» del contacto, a todo el ancho y de 48 px o más, como el formulario de /socios.
-* Arreglo 7: el botón de WhatsApp del hero no queda pegado a la burbuja de Andrés en el celular, y los botones de
-  categoría de «no encontramos» se apartan de la burbuja con el gancho que el chat ya tiene.
+* Arreglo 7: el botón del hero no queda pegado a la burbuja de Andrés en el celular, y los botones de categoría de «no
+  encontramos» se apartan de la burbuja con el gancho que el chat ya tiene.
+
+Viene de D'CASA (2026-11-19) y se puso al día con la marca de Baby Caleb (docs/MARCA_BABY_CALEB.md): el gris es `muted`
+(el navy al 70 %), el texto de ayuda del buscador sigue siendo «Escribe lo que buscas» (el menú del celular de Baby
+Caleb ocupa la pantalla: se mide que quepa) y el botón del hero es «Ver el catálogo» (su hero no lleva WhatsApp).
 """
 import json
 import re
@@ -17,7 +21,7 @@ from odoo.tests import HttpCase, tagged
 
 from .chrome_movil import ChromeMovilCase
 from .contraste import razon_del_texto, sonda
-from .test_contrato_visual import _cama_de_estudio
+from .test_contrato_visual import _caja_de_estudio
 
 MINIMO = 4.5     # texto normal (WCAG 1.4.3)
 
@@ -42,7 +46,7 @@ class TestLegibilidadColor(ChromeMovilCase):
         super().setUpClass()
         recamaras = cls.env.ref('website_dcasa.public_category_recamaras')
         cls.producto = cls.env['product.template'].create({
-            'name': 'Cama del test de legibilidad', 'list_price': 129.99, 'is_published': True,
+            'name': 'Caja del test de legibilidad', 'list_price': 29.99, 'is_published': True,
             'public_categ_ids': [(6, 0, recamaras.ids)],
         })
 
@@ -64,7 +68,7 @@ class TestLegibilidadColor(ChromeMovilCase):
                     with self.subTest(ruta=ruta, ancho=ancho):
                         self._abrir(browser, ruta)
                         medida = self._medir(browser, selector, '::placeholder')
-                        self.assertEqual(medida['color'], 'rgb(74, 81, 99)', 'el gris de la marca (#4A5163)')
+                        self.assertEqual(medida['color'], 'rgba(27, 50, 70, 0.7)', '`muted`: el navy al 70 %')
                         self.assertEqual(medida['opacidad'], 1, 'sin la opacidad que Odoo le baja al placeholder')
                         razon = razon_del_texto(medida)
                         self.assertGreaterEqual(razon, MINIMO, f'placeholder de {ruta}: {razon:.2f}:1 sobre '
@@ -80,7 +84,7 @@ class TestLegibilidadColor(ChromeMovilCase):
                         product_id: {self.producto.product_variant_id.id}, quantity: 1}}}})
                 }}).then((r) => r.json()).then((j) => !j.error)
             """)
-            self.assertTrue(agregado, 'la cama entró al carrito')
+            self.assertTrue(agregado, 'la caja entró al carrito')
             self._abrir(browser, '/shop/cart')
             # El paso actual («Orden») y los que faltan («Dirección», «Pago»): los que faltan son .o_disabled.
             pasos = self._evaluar(browser, "document.querySelectorAll('.o_wizard .o_disabled').length")
@@ -156,7 +160,9 @@ class TestLegibilidadZonasTactiles(ChromeMovilCase):
                 '#contactus_form .s_website_form_send'])
 
 
-PLACEHOLDER = 'Busca un mueble'
+# En D'CASA es «Busca un mueble» (16 letras, para su cajón). En Baby Caleb el texto es el de siempre y lo que se exige
+# es lo que de verdad importa: que quepa entero en el campo del menú del celular (TestLegibilidadBuscadorMovil).
+PLACEHOLDER = 'Escribe lo que buscas'
 
 
 @tagged('post_install', '-at_install')
@@ -178,22 +184,19 @@ class TestLegibilidadBuscador(HttpCase):
                     self.assertIn('aria-label="Buscar en el catálogo"', caja,
                                   'el campo se llamaba solo por su placeholder')
                     ayuda = re.search(r'placeholder="([^"]*)"', caja).group(1)
-                    self.assertLessEqual(len(ayuda), 16, f'texto de ayuda largo: «{ayuda}»')
+                    self.assertNotIn('mueble', ayuda.lower(), 'Baby Caleb no vende muebles')
                 propias = [c for c in cajas if f'placeholder="{PLACEHOLDER}"' in c]
-                self.assertGreaterEqual(len(propias), 2, 'la cabecera y la barra de la tienda dicen «Busca un mueble»')
+                self.assertGreaterEqual(len(propias), 2, f'la cabecera y la barra de la tienda dicen «{PLACEHOLDER}»')
                 for boton in botones:
                     self.assertIn('aria-label="Buscar"', boton, 'el botón era «Búsqueda», un sustantivo')
                     self.assertIn('title="Buscar"', boton)
                     self.assertNotIn('Búsqueda', boton)
 
-    def test_el_texto_de_ayuda_es_corto(self):
-        # Cabe en el campo del cajón del celular (≈ 100 px de texto): unas 16 letras como mucho.
-        self.assertLessEqual(len(PLACEHOLDER), 16)
 
 
 @tagged('post_install', '-at_install')
 class TestLegibilidadBuscadorMovil(ChromeMovilCase):
-    """Arreglo 5, en Chrome con el teléfono emulado: el texto de ayuda cabe entero en el cajón del menú."""
+    """Arreglo 5, en Chrome con el teléfono emulado: el texto de ayuda cabe entero en el menú del celular."""
 
     MEDIR_PLACEHOLDER = """
         (async () => {
@@ -261,9 +264,10 @@ class TestLegibilidadContacto(ChromeMovilCase):
 
 @tagged('post_install', '-at_install')
 class TestLegibilidadBurbuja(ChromeMovilCase):
-    """Arreglo 7 (la parte de CSS y de plantilla; el chat no se toca): en el celular el botón de WhatsApp del hero deja
-    al menos 16 px de aire a la burbuja de Andrés (68 px de ancho y 16 px del borde derecho), y los botones de
-    categoría de «no encontramos» llevan el gancho `o_dcasa_brian_no_tapar` con el que el chat se aparta de ellos."""
+    """Arreglo 7 (la parte de CSS y de plantilla; el chat no se toca): en el celular el botón del hero («Ver el
+    catálogo»; el de Baby Caleb no lleva WhatsApp) deja al menos 16 px de aire a la burbuja de Andrés (68 px de ancho y
+    16 px del borde derecho), y los botones de categoría de «no encontramos» llevan el gancho `o_dcasa_brian_no_tapar`
+    con el que el chat se aparta de ellos."""
 
     @classmethod
     def setUpClass(cls):
@@ -271,25 +275,24 @@ class TestLegibilidadBurbuja(ChromeMovilCase):
         recamaras = cls.env.ref('website_dcasa.public_category_recamaras')
         cls.diapositivas = cls.env['dcasa.portada.diapositiva']
         cls.diapositivas.search([]).unlink()
-        cls.camas = cls.env['product.template']
         for n in range(1, 3):
-            # El carrusel solo toma productos con foto: una cama «de estudio» dibujada, como la del contrato visual.
-            cama = cls.env['product.template'].create({
-                'name': f'Cama del test de la burbuja {n}', 'list_price': 99.99 + n, 'is_published': True,
-                'public_categ_ids': [(6, 0, recamaras.ids)], 'image_1920': _cama_de_estudio((28, 28, 30))})
-            cls.diapositivas.create({'product_tmpl_id': cama.id, 'sequence': n})
+            # El carrusel solo toma productos con foto: una caja «de estudio» dibujada, como la del contrato visual.
+            caja = cls.env['product.template'].create({
+                'name': f'Caja del test de la burbuja {n}', 'list_price': 29.99 + n, 'is_published': True,
+                'public_categ_ids': [(6, 0, recamaras.ids)], 'image_1920': _caja_de_estudio((238, 146, 74))})
+            cls.diapositivas.create({'product_tmpl_id': caja.id, 'sequence': n})
 
     MEDIR_BOTON = """
         (async () => {
             for (let i = 0; i < 200 && document.body.getAttribute('is-ready') !== 'true'; i++) {
                 await new Promise((ok) => setTimeout(ok, 50));
             }
-            const b = document.querySelector('.o_dcasa_hero_vitrina .o_dcasa_btn_linea').getBoundingClientRect();
+            const b = document.querySelector('.o_dcasa_hero_vitrina .o_dcasa_btn_hero').getBoundingClientRect();
             return { derecha: b.right, pantalla: document.documentElement.clientWidth, texto_partido: b.height > 70 };
         })()
     """
 
-    def test_el_boton_de_whatsapp_del_hero_no_pega_con_la_burbuja(self):
+    def test_el_boton_del_hero_no_pega_con_la_burbuja(self):
         for ancho in (390, 430):
             with self.subTest(ancho=ancho), self._chrome_movil(ancho) as browser:
                 browser.navigate_to(self.base_url() + '/', wait_stop=True)
