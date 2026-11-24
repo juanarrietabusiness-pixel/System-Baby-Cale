@@ -50,7 +50,7 @@ class DcasaBuscarFotoAjustes(models.TransientModel):
     busquedas_mes = fields.Integer('Últimos 30 días', compute='_compute_uso')
     con_resultado_mes = fields.Integer('Encontraron productos', compute='_compute_uso')
     sin_resultado_mes = fields.Integer('No encontraron nada parecido', compute='_compute_uso')
-    no_mueble_mes = fields.Integer('No eran un mueble', compute='_compute_uso')
+    no_mueble_mes = fields.Integer('No eran un producto', compute='_compute_uso')
     documentos_mes = fields.Integer('Parecían un documento', compute='_compute_uso')
     no_leidas_mes = fields.Integer('No se pudieron leer', compute='_compute_uso')
 

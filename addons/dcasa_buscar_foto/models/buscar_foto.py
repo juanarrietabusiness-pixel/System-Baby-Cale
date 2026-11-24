@@ -20,14 +20,14 @@ El recorrido de una búsqueda (``dcasa.buscar.foto._dcasa_buscar``):
    encima del 80 % de su tope; devuelve SOLO el registro cerrado, que aquí se vuelve a pasar por listas cerradas (con
    sus tipos: nada mal formado revienta). Sin Worker, sin cupo de IA, caído o lento: ``no_ahora``.
 5. **Comprobantes y cédulas no se buscan**: tipo ``comprobante``/``identidad`` o cualquier señal de pago o de
-   identidad → ``documento``. Lo que no es un mueble → ``otra``.
+   identidad → ``documento``. Lo que no es un producto → ``otra``.
 6. **Búsqueda, solo entre lo publicado** (``website._dcasa_dominio_publicado``, como el «Agregar» de un clic): primero
    por el código leído (el código público ``DC-…`` o la referencia, exacta: las mismas reglas que la búsqueda de Juan);
    si no, por categoría y medida (las mismas palabras y la misma puntuación que ``buscar_productos`` de Juan). Si no hay
    nada: ``nada``.
 
 La foto vive solo en la memoria de esta petición: no se escribe en ningún modelo, adjunto, sesión ni registro (log). La
-página nunca muestra texto de la imagen: solo etiquetas de listas cerradas («Cama · Queen»).
+página nunca muestra texto de la imagen: solo etiquetas de listas cerradas («Pañales · RN»).
 """
 import base64
 import binascii
@@ -79,18 +79,15 @@ MAX_TOPE_MES = 1000.0
 MIMES = ('image/jpeg', 'image/png', 'image/webp')
 # Las mismas listas cerradas del lector (juan/src/motor/vision.ts).
 TIPOS = ('producto', 'publicacion', 'comprobante', 'identidad', 'otra', 'ilegible')
-MEDIDAS = {'twin': 'Twin', 'full': 'Full', 'queen': 'Queen', 'king': 'King'}
+# La talla del pañal que se lee en la caja (el lector la manda en «medida», en minúsculas).
+MEDIDAS = {'rn': 'RN', 'p': 'P', 's': 'S', 'm': 'M', 'l': 'L', 'g': 'G', 'xl': 'XL', 'xxl': 'XXL'}
 # categoría del lector → (cómo se dice en la página, palabras con que se busca en el catálogo, en orden).
 CATEGORIAS = {
-    'cama': ('Cama', ('cama',)),
-    'colchon': ('Colchón', ('colchon',)),
-    'sofa': ('Sofá', ('sofa', 'sala')),
-    'comedor': ('Comedor', ('comedor',)),
-    'escritorio': ('Escritorio', ('escritorio',)),
-    'silla': ('Silla', ('silla',)),
-    'closet': ('Clóset', ('closet', 'ropero', 'armario')),
-    'mesa': ('Mesa', ('mesa',)),
+    'panal': ('Pañales', ('panales',)),
+    'toallitas': ('Toallitas', ('toallitas', 'wipes')),
+    'fular': ('Fular', ('fular',)),
 }
+# «otro» (otro producto para bebé) no tiene lista: se busca solo por el código que se lea.
 RE_CODIGO = re.compile(r'^[A-Za-z0-9][A-Za-z0-9-]{1,23}$')
 RE_BASE64 = re.compile(r'^[A-Za-z0-9+/]+={0,2}$')
 
@@ -135,7 +132,7 @@ def _de_la_lista(valor, permitidos):
 def normalizar_lectura(crudo):
     """El registro cerrado que mandó el Worker, otra vez contra las listas cerradas; ``None`` si no es uno.
 
-    Se revisa el TIPO de cada campo (un ``['cama']`` o un ``{'queen': 1}`` no revientan: se descartan). Como en el
+    Se revisa el TIPO de cada campo (un ``['panal']`` o un ``{'m': 1}`` no revientan: se descartan). Como en el
     lector: si faltan las señales de pago o de identidad (o no son ``false``), se asume lo prudente (que sí las hay)."""
     if not isinstance(crudo, dict):
         return None
@@ -161,7 +158,7 @@ def es_documento(lectura):
 
 
 def etiqueta_de(lectura):
-    """«Cama · Queen»: SOLO de listas cerradas (nunca texto de la imagen)."""
+    """«Pañales · RN»: SOLO de listas cerradas (nunca texto de la imagen)."""
     partes = []
     if lectura and _de_la_lista(lectura.get('categoria'), CATEGORIAS):
         partes.append(CATEGORIAS[lectura['categoria']][0])
@@ -317,10 +314,10 @@ class DcasaBuscarFoto(models.AbstractModel):
             try:
                 lectura = self._dcasa_leer(datos, mime)
                 del datos   # la foto no sale de aquí
-                mueble = bool(lectura) and lectura['tipo'] in ('producto', 'publicacion')
+                producto = bool(lectura) and lectura['tipo'] in ('producto', 'publicacion')
                 if lectura is False:
                     estado = 'no_ahora'
-                elif lectura is None or (not mueble and not es_documento(lectura)):
+                elif lectura is None or (not producto and not es_documento(lectura)):
                     estado = 'otra'
                 elif es_documento(lectura):
                     estado = 'documento'
@@ -372,7 +369,8 @@ class DcasaBuscarFoto(models.AbstractModel):
         candidatos = Juan._j_candidatos(publicadas.sudo())
         medida = lectura['medida']
         encontrados = []
-        # Primero con la medida («cama queen»); si con la medida no hay nada, la categoría sola («cama»).
+        # Primero con la talla («panales rn»); si con la talla no hay nada, la categoría sola («panales»). Una talla de
+        # una letra (P, S, M, L, G) no separa en la búsqueda: salen todos los pañales, que también sirve.
         for consultas in ([f'{p} {medida}' for p in categoria[1]] if medida else [], list(categoria[1])):
             for consulta in consultas:
                 for plantilla in Juan._j_puntuados(consulta, candidatos):

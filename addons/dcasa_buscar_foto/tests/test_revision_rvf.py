@@ -68,9 +68,9 @@ class TestRevisionRvf(TransactionCase):
     # ------------------------------------------------------------------
 
     def test_una_lectura_con_tipos_raros_no_revienta(self):
-        for raro in ({'tipo': 'producto', 'codigos': [], 'categoria': ['cama'], 'medida': None,
+        for raro in ({'tipo': 'producto', 'codigos': [], 'categoria': ['panal'], 'medida': None,
                       'parece_pago': False, 'parece_identidad': False},
-                     {'tipo': 'producto', 'codigos': [], 'categoria': 'cama', 'medida': {'queen': 1},
+                     {'tipo': 'producto', 'codigos': [], 'categoria': 'panal', 'medida': {'m': 1},
                       'parece_pago': False, 'parece_identidad': False}):
             with self.subTest(raro=raro):
                 try:
@@ -84,7 +84,7 @@ class TestRevisionRvf(TransactionCase):
         deshaga la transacción de la petición lo comprueba el escenario C de scripts/revision_rvf_carrera_foto.py.)"""
         Cliente = type(self.env['dcasa.juan.cliente'])
         respuesta = {'conectado': True, 'error': None, 'cuerpo': {'ok': True, 'lectura': {
-            'tipo': 'producto', 'codigos': [], 'categoria': ['cama'], 'medida': None,
+            'tipo': 'producto', 'codigos': [], 'categoria': ['panal'], 'medida': None,
             'parece_pago': False, 'parece_identidad': False}}}
         orden = []
         confirmar = TestCursor.commit

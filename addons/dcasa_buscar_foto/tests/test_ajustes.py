@@ -98,7 +98,7 @@ class TestAjustesBuscarFoto(TransactionCase):
         Uso.create({'resultado': 'resultados', 'fecha': ahora - timedelta(days=40)})
         ajustes = self.env['dcasa.buscar.foto.ajustes'].with_user(self.gerente).create({})
         self.assertEqual((ajustes.busquedas_hoy, ajustes.busquedas_mes), (6, 6))
-        # «No encontraron nada parecido» es solo de muebles; lo que no era un mueble va aparte.
+        # «No encontraron nada parecido» es solo de productos; lo que no era un producto va aparte.
         self.assertEqual((ajustes.con_resultado_mes, ajustes.sin_resultado_mes, ajustes.no_mueble_mes,
                           ajustes.documentos_mes, ajustes.no_leidas_mes), (2, 1, 1, 1, 1))
 

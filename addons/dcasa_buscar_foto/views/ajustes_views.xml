@@ -11,7 +11,7 @@
                 <app string="Busca con una foto" name="website">
                     <block title="Busca con una foto en la tienda" name="dcasa_buscar_foto_bloque">
                         <setting id="dcasa_buscar_foto_activo"
-                                 help="Un botón de cámara en la búsqueda de la tienda web: el cliente sube la foto de un mueble (o una captura de Instagram) y le salen los productos publicados que se le parecen. Si la foto parece un comprobante o una cédula, no se busca nada. La foto nunca se guarda.">
+                                 help="Un botón de cámara en la búsqueda de la tienda web: el cliente sube la foto de un producto (o una captura de Instagram) y le salen los productos publicados que se le parecen. Si la foto parece un comprobante o una cédula, no se busca nada. La foto nunca se guarda.">
                             <field name="activo"/>
                         </setting>
                     </block>
@@ -44,7 +44,7 @@
                             <div class="d-flex flex-column">
                                 <div>Encontraron productos: <field name="con_resultado_mes" class="oe_inline" readonly="1"/></div>
                                 <div>No encontraron nada parecido: <field name="sin_resultado_mes" class="oe_inline" readonly="1"/></div>
-                                <div>No eran un mueble: <field name="no_mueble_mes" class="oe_inline" readonly="1"/></div>
+                                <div>No eran un producto: <field name="no_mueble_mes" class="oe_inline" readonly="1"/></div>
                                 <div>Parecían un documento: <field name="documentos_mes" class="oe_inline" readonly="1"/></div>
                                 <div>No se pudieron leer: <field name="no_leidas_mes" class="oe_inline" readonly="1"/></div>
                             </div>

@@ -13,7 +13,7 @@ RESULTADOS = [
     ('resultados', 'Encontró productos'),
     ('nada', 'No encontró nada parecido'),
     ('documento', 'Parecía un documento (no se buscó)'),
-    ('otra', 'No era un mueble'),
+    ('otra', 'No era un producto'),
     ('no_ahora', 'No se pudo leer (Worker apagado, caído o lento, o sin cupo de IA)'),
 ]
 HUELLAS_HORAS = 24
