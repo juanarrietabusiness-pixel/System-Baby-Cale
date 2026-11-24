@@ -782,10 +782,28 @@ provocan a propósito: ruido). El resultado real está en la línea `✖ Fallaro
   - **Cuatro ayudantes en paralelo agotaron el límite de 5 horas de uso** (2026-11-19). El trabajo quedó en commits en
     sus *worktrees* (`/home/user/wt/<nombre>`, ramas `marca-*`) y se juntó en la sesión siguiente sin conflicto. Con
     ayudantes en paralelo, cada uno commitea a menudo en su rama: lo que no está en un commit se pierde si se corta.
-  - **La tienda de staging sale vacía hasta que los productos tienen foto.** `dcasa_catalogo` los crea con
-    `is_published = False` y se publican desde Odoo cuando tienen foto. Sin productos publicados tampoco sale la
-    tarjetita del hero («Desde $…»). Para revisar el diseño en local, se ponen fotos y se publica en la base de prueba,
-    nunca en el código.
+  - **Las fotos del catálogo entran con el código** (2026-11-24, pedido del dueño): `dcasa_catalogo/data/fotos/` y
+    `poner_fotos` (al instalar y en la migración 19.0.2.1.0) las ponen solo donde no hay ninguna y publican lo que
+    recibe su foto principal. Un aviso («Foto próximamente») o el logo no son una foto: el producto parecería tenerla y
+    saldría de «fotos que faltan».
+  - **Odoo no procesa un WEBP en un campo de imagen** (`tools/image.py`: «don't process WEBP»): no saca los tamaños
+    chicos y `image_128` sería la foto entera. Las fotos de la web (WEBP) se pasan a JPEG, o a PNG si tienen
+    transparencia de verdad (canal alfa < 255), antes de cargarlas.
+  - **El CI salta TODAS las pruebas de navegador** (no tiene `websocket-client`; 837 subtests en la corrida del
+    2026-11-24): una regresión visual pasa el CI en verde. Después de un cambio visual hay que correr la suite completa
+    aquí (`scripts/test.sh` sin módulos, ~1 h 45 min). Así salió que, desde que el − y el + miden 44 px, a 390 px la barra
+    fija de «Agregar al carrito» pasaba a dos filas (127 px) y tapaba la disponibilidad de la ficha.
+  - **Las migas de la ficha llevan el relleno de un botón de Odoo** con un selector más fuerte que el nuestro
+    (`.o_wsale_content_contained .breadcrumb .breadcrumb-item`, 7 px arriba y abajo): una regla con `.breadcrumb
+    .breadcrumb-item` no lo quita; con `#wrapwrap` delante, sí.
+  - **Las capturas de referencia del contrato visual son del sistema entero.** Sacadas con solo `website_dcasa`, la
+    cabecera tenía «Iniciar sesión» y el hero no tenía la tarjetita ni la burbuja del chat: la suite completa daba 3 %
+    de diferencia. El script ahora instala todo y la comparación de píxeles se salta si falta un módulo propio.
+  - **El auditor sin `isMobile` mide las flechas de la foto de la ficha en 32 px**: el 44 px va en
+    `@media (pointer: coarse)`, que solo se cumple en un teléfono de verdad (o con `isMobile` y `hasTouch` en Playwright).
+    Con mouse, 32 px cumple (WCAG 2.5.8 pide 24).
+  - **En staging alguien publicó a mano productos sin foto** (Velvee, Dany Baby y Fular Moon, visto el 2026-11-24).
+    Ningún código publica sin foto: antes de buscar un error, preguntar al dueño.
   - **La auditoría de la web** (`axe-core` 4.10 con Playwright, más medidas propias de lo táctil de 44 px, la letra de
     12 px, el desborde y los íconos, a 390, 768, 1024 y 1440 px) encontró casi todo en lo que dibuja Odoo: las tallas
     en radios de 16 px, los − y + de 34 px, el menú de 38 px, íconos con `role="img"` sin nombre, un rol inválido en la

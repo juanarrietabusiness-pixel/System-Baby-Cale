@@ -61,6 +61,10 @@ del puente. Ya en uso en la cuenta y **no se tocan**: `babycaleb-web`, `babycale
   `sistemabk-chatbot-staging` también está arriba, todavía sin sus claves (`JUAN_ODOO_TOKEN`, `JUAN_WORKER_TOKEN`, la IA:
   ver `docs/PASO_A_PASO_CLAVES.md`). Entrar: `/web/login`, usuario `admin`, la `ODOO_ADMIN_PASSWORD` de staging; pide
   enrolar el doble factor.
+- **Staging al día el 2026-11-24** (CI/CD 45421430520, commit `09aca67`, con el bot Juan): la web igual a
+  babycaleb.com, las fotos de su web en el catálogo y los productos con foto publicados. Auditoría en vivo con axe-core a
+  390, 768 y 1440 px: 0 problemas. Quedan para la siguiente subida los arreglos de la ficha en el celular (`cc867fe`) y
+  la guía sin muebles (`f42bfef`). Staging sigue 24/7: el dueño no quiere que duerma (2026-11-24).
 - **Producción**: no desplegada. `main` sigue siendo el espejo exacto de D'CASA; todas las adecuaciones viven en la rama
   `claude/nifty-keller-k8rcmz`.
 
