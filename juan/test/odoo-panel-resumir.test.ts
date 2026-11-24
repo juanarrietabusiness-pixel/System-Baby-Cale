@@ -173,8 +173,9 @@ describe("la IA y el gasto", () => {
 
 describe("el prompt", () => {
   it("lleva el nombre de la marca de la configuración", () => {
-    const cfg = normalizarConfig({ ...CONFIG_POR_DEFECTO, nombre_publico: "D'CASA Panamá" });
-    expect(promptDelResumen(cfg, validarPeticion(peticion()) as PeticionResumir)).toContain("D'CASA");
+    const cfg = normalizarConfig({ ...CONFIG_POR_DEFECTO, nombre_publico: "Baby Caleb Panamá" });
+    expect(promptDelResumen(cfg, validarPeticion(peticion()) as PeticionResumir)).toContain("una VENDEDORA de «Baby Caleb Panamá»");
+    expect(promptDelResumen(cfg, validarPeticion(peticion()) as PeticionResumir)).not.toContain("D'CASA");
   });
 });
 
