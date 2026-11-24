@@ -40,7 +40,7 @@ no se corta y la letra de la marca (Montserrat, TTF de dcasa_base).
 * «Mostrar el código público de los productos…» (apagado de fábrica): la columna «Código» de la factura, la cotización
   y la nota de entrega muestra DC-K7M4PX en lugar de la referencia del proveedor.
 """,
-    'version': '19.0.2.4.0',
+    'version': '19.0.2.5.0',
     'category': 'Accounting/Accounting',
     'author': "D'CASA Panamá",
     'website': 'https://dcasapty.com',

@@ -15,19 +15,22 @@ BLOQUES_LEGALES = [
 
 # Se escriben UNA vez (parámetro TEXTOS_PUESTOS) y solo en campos vacíos: lo que el administrador
 # cambie o borre después no se vuelve a pisar al actualizar el módulo. Revisarlos con un abogado.
+# Baby Caleb (2026-11-24): armados SOLO con lo que respondió el dueño (cambios: preguntas 5 y 10; defectos: 12;
+# pagos y delivery: 3, 4 y 8; factura fiscal: 9; sin ITBMS: 21), sin cifras nuevas; propuestos para su visto bueno.
+# Los de D'CASA (muebles, colchones, flete, «el ITBMS se suma») quedan en migrations/19.0.2.5.0, que los reemplaza
+# si nadie los cambió.
 TEXTOS_INICIALES = {
     'dcasa_factura_garantia': (
-        "Tus muebles tienen garantía de 30 días desde la entrega contra defectos de fabricación. "
-        "No cubre golpes, humedad, mal uso ni armado hecho por terceros. Escríbenos por WhatsApp "
-        "con tu factura y fotos del detalle y lo resolvemos."),
+        "Si un producto llega defectuoso o dañado, se le cambia. Escríbanos por WhatsApp con este comprobante "
+        "y una foto del producto."),
     'dcasa_factura_cambios': (
-        "Puedes cambiar tu compra dentro de los 7 días siguientes a la entrega, con la factura, "
-        "el producto sin uso y en su empaque original. Los colchones no tienen cambio por "
-        "higiene, salvo defecto de fábrica."),
+        "Si llegó una talla distinta a la que pidió, el cambio va por cuenta de la tienda. Si la talla la eligió "
+        "usted y no le queda, se puede cambiar pagando el delivery de ida y vuelta y la diferencia de precio, si "
+        "la hay; los paquetes abiertos se pagan. Para cualquier cambio, escríbanos por WhatsApp."),
     'dcasa_factura_terminos': (
-        "Precios en dólares; el ITBMS se suma al precio. Un apartado se confirma con un abono y "
-        "el mueble queda reservado hasta completar el pago en el plazo acordado. El flete se "
-        "cotiza según la zona y se paga aparte; la entrega se coordina por WhatsApp."),
+        "Precios finales en dólares. Se paga el total por adelantado (productos y delivery): no hay pago contra "
+        "entrega. El delivery depende de la zona y no está incluido en el precio. Este comprobante no es la factura "
+        "fiscal: si la necesita, pídala por WhatsApp con su nombre, apellido y dirección de entrega."),
 }
 TEXTOS_PUESTOS = 'dcasa_invoice.textos_iniciales_puestos'
 

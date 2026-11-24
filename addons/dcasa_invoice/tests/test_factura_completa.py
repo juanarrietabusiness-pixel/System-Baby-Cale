@@ -266,6 +266,35 @@ class TestFacturaCompleta(TransactionCase):
 @tagged('post_install', '-at_install')
 class TestTextosIniciales(TransactionCase):
 
+    def test_los_textos_son_de_baby_caleb_y_no_de_dcasa(self):
+        """Pañales, no muebles (Baby Caleb, 2026-11-24): nada de colchones, flete, «el ITBMS se suma» ni «factura»
+        para el comprobante (no es la fiscal de la DGI). Y ninguna cifra que el dueño no haya dado."""
+        import re
+
+        from odoo.addons.dcasa_invoice.models.res_company import TEXTOS_INICIALES
+        todo = ' '.join(TEXTOS_INICIALES.values()).lower()
+        for palabra in ('mueble', 'colch', 'flete', 'armado', 'itbms se suma', 'apartado', 'd\'casa'):
+            self.assertNotIn(palabra, todo)
+        self.assertIn('no es la factura fiscal', todo)
+        self.assertFalse(re.search(r'\d', todo), 'sin plazos ni montos que el dueño no dio')
+
+    def test_la_migracion_cambia_solo_los_textos_de_dcasa_sin_tocar(self):
+        import importlib.util
+
+        from odoo.addons.dcasa_invoice.models.res_company import TEXTOS_INICIALES
+        from odoo.tools.misc import file_path
+        spec = importlib.util.spec_from_file_location(
+            'mig_textos', file_path('dcasa_invoice/migrations/19.0.2.5.0/post-migrate.py'))
+        mig = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mig)
+        empresa = self.env.company
+        empresa.write({**mig.TEXTOS_DCASA, 'dcasa_factura_terminos': 'Términos del dueño.'})
+        mig.migrate(self.env.cr, '19.0.2.4.0')
+        empresa.invalidate_recordset()
+        self.assertEqual(empresa.dcasa_factura_garantia, TEXTOS_INICIALES['dcasa_factura_garantia'])
+        self.assertEqual(empresa.dcasa_factura_cambios, TEXTOS_INICIALES['dcasa_factura_cambios'])
+        self.assertEqual(empresa.dcasa_factura_terminos, 'Términos del dueño.', 'lo escrito a mano no se toca')
+
     def test_textos_iniciales_una_vez_y_sin_pisar(self):
         from odoo.addons.dcasa_invoice.models.res_company import TEXTOS_INICIALES, TEXTOS_PUESTOS
         empresa = self.env.company
