@@ -119,17 +119,60 @@ CATEGORIAS_PORTADA = [
 
 # Menú principal: tres opciones. Las categorías viven dentro del catálogo (/shop). Baby Caleb no tiene tienda que
 # visitar: /visitanos es su página de contacto (cobertura, horario y canales).
+# El menú de babycaleb.com (src/blocks/S01Nav.tsx), en el mismo orden (pedido del dueño, 2026-11-24: «tal cual»).
+# «Productos» es la tienda de Odoo. Socios, Mi cuenta y Contacto siguen en el pie y en el menú del celular.
 MENU_PRINCIPAL = [
-    ('Catálogo', '/shop'),
-    ('Socios Baby Caleb', '/socios'),
-    ('Contacto', '/visitanos'),
+    ('Productos', '/shop'),
+    ('Beneficios', '/beneficios'),
+    ('Historia', '/historia'),
+    ('Tips', '/tips'),
+    ('Cómo comprar', '/como-comprar'),
+    ('FAQ', '/faq'),
 ]
+
+# Las preguntas frecuentes de babycaleb.com (content.json › faq), en su orden. Dos respuestas dicen lo que este
+# sistema hace y su web no: la de la tienda física (se paga con Yappy o por transferencia al pedir) y la del delivery
+# (el costo se confirma por WhatsApp; allá se elige la zona al pagar). Las usan /faq y su FAQPage para Google.
+PREGUNTAS_FRECUENTES = [
+    ('¿Cómo sé qué talla necesita mi bebé?',
+     'Las tallas van por peso: RN (4-11 lb), S (6-13 lb), M (8-19 lb), L (15-39 lb), XL (26-55 lb) '
+     'y XXL (más de 55 lb). '
+     'Para prematuros y recién nacidos es la talla RN. En pants: L (19-31 lb), XL (26-37.5 lb) y XXL (más de 33 lb). '
+     'Si dudas, escríbenos por WhatsApp y te asesoramos.'),
+    ('¿Tienen talla XXL?',
+     'Sí. Manejamos la talla XXL para niños de más de 55 libras, una talla que casi no se consigue en Panamá. '
+     'Caja de 112 unidades.'),
+    ('¿Por qué venden en caja y no por paquete?',
+     'Porque la caja te alcanza para todo el mes y el costo por pañal te sale más accesible que comprando paquete por '
+     'paquete. Solo vendemos cajas completas, así que antes de pedir te ayudamos por WhatsApp a elegir bien la talla '
+     'según el peso de tu bebé.'),
+    ('¿Cuál es la diferencia entre hipoalergénico y sin cloro?',
+     'Hipoalergénico significa que tiene bajo riesgo de causar alergias. Sin cloro significa que no se usaron '
+     'compuestos de cloro para blanquear la pulpa del pañal. Nuestros pañales Nateen son las dos cosas: '
+     'hipoalergénicos y sin cloro ni perfumes.'),
+    ('¿Los wipes tienen alcohol o parabenos?',
+     'No. Nuestros wipes son hipoalergénicos, sin alcohol, sin parabenos y sin perfumes. Los wipes de agua Dany Baby '
+     'son 99% agua pura, ideales para recién nacidos.'),
+    ('¿Tienen tienda física?',
+     'Hoy vendemos únicamente online: haces tu pedido aquí mismo en la página, pagas con Yappy o por transferencia '
+     'y te lo entregamos por delivery en Ciudad de Panamá.'),
+    ('¿Cuánto cuesta el delivery?',
+     'Depende de tu zona. Te confirmamos el costo del envío por WhatsApp antes de cobrarte.'),
+    ('¿Los pañales son biodegradables?',
+     'Sí — Nateen fabrica sus pañales con 100% fibras de bambú, biodegradables, transpirables y sin cloro ni '
+     'perfumes.'),
+]
+
+# El pañal de la tarjetita que flota sobre la foto del hero (S02Hero.tsx): los Nateen de cierre, de RN a XXL. Los
+# Pants (NAT-P-…) quedan fuera, como en su web.
+CODIGOS_TARJETA_HERO = ('NAT-%', 'NAT-P-%')
 
 
 def _es_menu_viejo(url):
     """Menús que el menú corto reemplaza: los de Odoo por defecto y los de una categoría."""
     url = url or ''
-    return url in ('/', '/shop', '/contactus', '/socios', '/#visitanos') or url.startswith('/shop/category/')
+    return (url in ('/', '/shop', '/contactus', '/socios', '/#visitanos', '/visitanos')
+            or url.startswith('/shop/category/'))
 
 
 _RESENAS = {'mtime': None, 'datos': None}
@@ -321,6 +364,48 @@ class Website(models.Model):
             })
         return items
 
+    def _dcasa_preguntas(self):
+        """[(pregunta, respuesta)] de /faq (PREGUNTAS_FRECUENTES)."""
+        return PREGUNTAS_FRECUENTES
+
+    def _dcasa_faq_json_ld(self):
+        """Las mismas preguntas como FAQPage para Google (src/pages/FAQ.tsx), en JSON seguro dentro de <script>."""
+        return json_scriptsafe.dumps({
+            '@context': 'https://schema.org',
+            '@type': 'FAQPage',
+            'mainEntity': [
+                {'@type': 'Question', 'name': pregunta, 'acceptedAnswer': {'@type': 'Answer', 'text': respuesta}}
+                for pregunta, respuesta in PREGUNTAS_FRECUENTES
+            ],
+        }, ensure_ascii=False)
+
+    def _dcasa_hero_tarjeta(self):
+        """La tarjetita que flota sobre la foto del hero de babycaleb.com: «Desde talla RN · Pañal Nateen · Desde $…».
+
+        El precio es el menor de los pañales Nateen de cierre publicados y a la venta, leído de Odoo como el de la
+        tienda (nunca escrito a mano: CLAUDE.md, «un dato, un solo dueño»). Sin ninguno publicado, la tarjeta no sale.
+        """
+        self.ensure_one()
+        si, no = CODIGOS_TARJETA_HERO
+        # En sudo: el visitante anónimo no lee el código interno de la variante. Solo se expone lo publicado (el precio
+        # y la ficha que ya ve cualquiera en la tienda).
+        publicados = self.env['product.template'].sudo().search(self._dcasa_dominio_publicado())
+        variantes = self.env['product.product'].sudo().search(Domain.AND([
+            [('default_code', '=like', si), ('default_code', 'not like', no)],
+            [('product_tmpl_id', 'in', publicados.ids)],
+        ]))
+        if not variantes:
+            return False
+        plantilla = variantes[:1].product_tmpl_id
+        con_tarifa = bool(request) and hasattr(request, 'pricelist')
+        if con_tarifa:
+            precios = [v._get_combination_info_variant()['price'] for v in variantes]
+            moneda = request.pricelist.currency_id or self.currency_id
+        else:
+            precios = variantes.mapped('lst_price')
+            moneda = self.currency_id
+        return {'desde': min(precios), 'moneda': moneda, 'url': plantilla.website_url}
+
     def _dcasa_compra_directa(self, producto, precio=None):
         """¿Se puede agregar al carrito sin pasar por la ficha?
 
@@ -368,6 +453,15 @@ class Website(models.Model):
     def _dcasa_reglas_socios(self):
         """Cifras del programa de socios, leídas de puntos.json (nunca escritas a mano)."""
         return reglas_socios.cargar_reglas()
+
+    def _dcasa_socios_con_cifras(self):
+        """¿El programa de Socios ya tiene sus cifras (puntos por dólar, o los del referido)? Solo entonces la portada
+        enseña su banda: con todo en PENDIENTE (Baby Caleb, 2026-11-18) prometería puntos que nadie gana. La portada de
+        babycaleb.com no la tiene; vuelve sola el día que el dueño ponga sus cifras en puntos.json."""
+        reglas = self._dcasa_reglas_socios()
+        referido = reglas.get('referido') or {}
+        return bool((reglas.get('acumulacion') or {}).get('puntosPorDolar')
+                    or (referido.get('puntosAlPadrino') and referido.get('puntosAlAhijado')))
 
     # ------------------------------------------------------------------
     # SEO

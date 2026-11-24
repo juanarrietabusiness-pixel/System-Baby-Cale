@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- La cabecera de babycaleb.com (src/blocks/S01Nav.tsx), pedida «tal cual» el 2026-11-24: el nombre «Baby Caleb»
+         escrito (sin el sello), los enlaces de su web (models/website.py, MENU_PRINCIPAL) y los íconos de lucide que usa
+         su web (licencia ISC), todos de 24 px dentro de un círculo de 44 px (el dedo, no el cursor). Lo que este sistema
+         tiene y su web no —la búsqueda y Mi cuenta— va con el mismo trazo y el mismo tamaño. -->
+
+    <!-- La bolsa de lucide (ShoppingBag) en lugar del carrito lleno de FontAwesome. El número sigue siendo el de Odoo
+         (lo pone al día su JavaScript); el nombre accesible, en español. -->
+    <template id="cabecera_bolsa" inherit_id="website_sale.header_cart_link" name="Baby Caleb: la bolsa de la cabecera">
+        <xpath expr="//a[@href='/shop/cart']" position="attributes">
+            <attribute name="aria-label">Mi carrito</attribute>
+            <attribute name="title">Mi carrito</attribute>
+        </xpath>
+        <xpath expr="//i[hasclass('fa-shopping-cart')]" position="replace">
+            <svg t-if="_icon" class="o_dcasa_icono" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M16 10a4 4 0 0 1-8 0"/><path d="M3.103 6.034h17.794"/><path d="M3.4 5.467a2 2 0 0 0-.4 1.2V20a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6.667a2 2 0 0 0-.4-1.2l-2-2.667A2 2 0 0 0 17 2H7a2 2 0 0 0-1.6.8z"/></svg>
+        </xpath>
+        <xpath expr="//span[@t-if='_text']" position="replace">
+            <span t-if="_text" t-attf-class="#{_text_class}">Mi carrito</span>
+        </xpath>
+    </template>
+
+    <!-- La lupa de lucide (Search) en el botón que abre la búsqueda. -->
+    <template id="cabecera_lupa" inherit_id="website.header_search_box" name="Baby Caleb: la lupa de la cabecera">
+        <xpath expr="//a[@data-bs-target='#o_search_modal']" position="attributes">
+            <attribute name="title">Buscar en el catálogo</attribute>
+            <attribute name="aria-label">Buscar en el catálogo</attribute>
+        </xpath>
+        <xpath expr="//i[hasclass('oi-search')]" position="replace">
+            <svg class="o_dcasa_icono" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.34-4.34"/></svg>
+        </xpath>
+    </template>
+    <!-- La lupa del botón de enviar de la caja de búsqueda (la de la cabecera, la del menú del celular y la del catálogo):
+         la misma de lucide. -->
+    <template id="buscador_lupa" inherit_id="website.website_search_box_input" name="Baby Caleb: la lupa del buscador">
+        <xpath expr="//button[@type='submit']//i[hasclass('oi-search')]" position="replace">
+            <svg class="o_dcasa_icono" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.34-4.34"/></svg>
+        </xpath>
+    </template>
+</odoo>

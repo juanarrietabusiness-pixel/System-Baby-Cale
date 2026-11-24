@@ -762,6 +762,36 @@ provocan a propósito: ruido). El resultado real está en la línea `✖ Fallaro
 
 ### Esta máquina (sesiones de Claude)
 
+- **Marca Baby Caleb y la web de babycaleb.com (2026-11-19 al 24): lo que mordió.**
+  - **`Write` sobre un archivo que ya existía.** `views/paginas_templates.xml` ya era la plantilla de Contacto y se
+    pisó al crear las páginas nuevas. Se recuperó con `git checkout --` antes de commitear. Antes de crear un archivo,
+    `ls` o `git ls-files` con el nombre; los nuevos llevan un nombre propio (`paginas_baby_caleb_templates.xml`).
+  - **Una herencia que quita un atributo rompe a otra que lo usa para ubicarse, solo en una instalación limpia.** Se
+    quitó `t-att-aria-label` del `<form>` de la tarjeta de la tienda, y `website_dcasa.tarjeta_nombre_cliente` hace su
+    xpath por ese atributo. En la base actualizada (`-u`) funcionaba, porque las vistas viejas ya estaban antes; en
+    `scripts/test.sh` (base nueva) falló la carga del módulo. Regla: probar la actualización con `-u` y también la
+    instalación limpia. Antes de quitar o cambiar un atributo con xpath, buscarlo con grep en todas las herencias.
+  - **Odoo también dibuja íconos fuera de la cabecera.** La lupa de `website.website_search_box_input` vive en la
+    ventana de búsqueda (Odoo la saca de la cabecera al cargar) y en el catálogo. Un estilo `.o_dcasa_icono` metido
+    dentro de `header#top` dejaba el SVG gigante y negro allí. Los íconos de lucide van con su regla global.
+  - **Un xpath con `hasclass()` no encuentra un elemento con `t-attf-class`.** El `<form>` de la tarjeta de Odoo
+    lleva la clase calculada. Se ubica por otro atributo (`@role='article'`).
+  - **Un ícono de Odoo puede estar en una plantilla APAGADA.** El segundo `oi-settings-adjust` está en
+    `website_sale.floating_bar` (`active="False"`), no en la tira de categorías; el xpath a la tira tumbó la
+    actualización. Antes de heredar, ubicar en qué plantilla está la línea (con awk sobre los `<template`).
+  - **Cuatro ayudantes en paralelo agotaron el límite de 5 horas de uso** (2026-11-19). El trabajo quedó en commits en
+    sus *worktrees* (`/home/user/wt/<nombre>`, ramas `marca-*`) y se juntó en la sesión siguiente sin conflicto. Con
+    ayudantes en paralelo, cada uno commitea a menudo en su rama: lo que no está en un commit se pierde si se corta.
+  - **La tienda de staging sale vacía hasta que los productos tienen foto.** `dcasa_catalogo` los crea con
+    `is_published = False` y se publican desde Odoo cuando tienen foto. Sin productos publicados tampoco sale la
+    tarjetita del hero («Desde $…»). Para revisar el diseño en local, se ponen fotos y se publica en la base de prueba,
+    nunca en el código.
+  - **La auditoría de la web** (`axe-core` 4.10 con Playwright, más medidas propias de lo táctil de 44 px, la letra de
+    12 px, el desborde y los íconos, a 390, 768, 1024 y 1440 px) encontró casi todo en lo que dibuja Odoo: las tallas
+    en radios de 16 px, los − y + de 34 px, el menú de 38 px, íconos con `role="img"` sin nombre, un rol inválido en la
+    tarjeta y un salto de títulos. Arreglos en `views/accesibilidad_templates.xml` y en la sección «Auditoría» de
+    `dcasa.scss`. Hay que repetirla cada vez que cambia una pantalla.
+
 - **Un `null` en la acumulación de `puntos.json` hacía FALLAR el cobro** (2026-11-18, al dejar todo en PENDIENTE para
   la copia de Baby Caleb). `_invoice_paid_hook` → `dcasa.compra._registrar` → `reglas.puntos_de_compra` lanza
   `FaltaConfigurar` («se niega a acreditar») y ese error subía hasta el registro del pago: «el programa se niega» quería

@@ -72,19 +72,49 @@ La web en vivo, para comparar, es `https://babycaleb.com`.
 
 ## La web pública
 
-- **Cabecera:** una pastilla flotante de vidrio crema, con la marca «Baby Caleb» escrita en Montserrat 700 navy, los
-  enlaces en navy 500 y el carrito. **No hay barra de anuncios encima** ni foto oscura detrás.
-- **Portada**, en el orden de `Baby-caleb/src/pages/Home.tsx`:
-  1. Hero en crema, con el titular navy, el antetítulo en píldora y la foto `hero-bebe` con esquinas redondeadas.
-  2. Los cuatro sellos (`trust`): Hipoalergénico, Sin cloro, Biodegradable y Piel sensible.
-  3. La banda verde de educación («¿Sabías que…?»).
-  4. Los productos: el carrusel de la tienda, con los datos reales de Odoo.
-  5. Lo que dicen las mamás (`testimonials` de `content.json`, **copiados tal cual**: son de la dueña).
+Es la de babycaleb.com «tal cual» (pedido del dueño, 2026-11-24). La ficha del producto, el carrito y la cuenta del
+cliente son los de este sistema, más completos que los de su web.
+
+- **Cabecera** (`views/cabecera_templates.xml` y `views/layout_templates.xml`):
+  - Una pastilla flotante de vidrio crema, con solo el nombre «Baby Caleb» escrito en Montserrat 700 navy, sin sello.
+  - Los enlaces de su web, a la derecha: Productos (la tienda), Beneficios, Historia, Tips, Cómo comprar y FAQ.
+  - Los íconos de lucide —bolsa, lupa y persona («Mi cuenta»)—, todos de 24 px en un círculo de 44 px.
+  - En el teléfono: la lupa, la bolsa y el menú a pantalla completa, con los enlaces grandes, la búsqueda (con la
+    cámara) y «Mi cuenta».
+  - No hay barra de anuncios.
+- **Portada**, en el orden de `Baby-caleb/src/pages/Home.tsx`, con un carril de productos de Odoo en medio:
+  1. Hero en crema, con la tarjetita «Desde talla RN · Pañal Nateen · Desde $…». El precio sale de Odoo:
+     `website._dcasa_hero_tarjeta`.
+  2. Los cuatro sellos.
+  3. La banda verde de educación.
+  4. «Lo más buscado».
+  5. Lo que dicen las mamás (los testimonios de su web, tal cual).
   6. Cobertura.
-  7. La banda verde final («Dale a tu bebé el cuidado que su piel merece.» y «Ver el catálogo»).
-  8. Preguntas frecuentes.
-- **Pie:** crema, con la marca, el lema, los enlaces y el contacto, igual que el de su web.
+  7. La banda verde final.
+
+  La banda de Socios solo sale cuando el programa tenga sus cifras (`_dcasa_socios_con_cifras`).
+- **Páginas de su web** (`views/paginas_baby_caleb_templates.xml`), cada una con su título y su descripción de
+  `src/seo/rutas.ts`:
+  - `/beneficios`
+  - `/historia`
+  - `/tips`
+  - `/como-comprar`
+  - `/faq`, con su FAQPage para Google.
+
+  Las secciones se comparten con la portada: un texto se corrige en un solo lugar.
+- **Lo que dicen distinto de su web, porque aquí funciona distinto:** el pago se elige al hacer el pedido (Yappy o
+  transferencia) y el costo del envío se confirma por WhatsApp. Su web dice «paga con Yappy en la misma página».
+- **Pie:**
+  - La marca y el lema.
+  - Enlaces: los del menú.
+  - Tu cuenta: Mi cuenta, Socios y Horario y contacto.
+  - Contacto y legales.
 - **Nada de muebles:** ni fotos, ni categorías por espacio, ni «Para dormir mejor».
+- **Accesibilidad**, auditada con axe-core (WCAG 2.2 AA) a 390, 768, 1024 y 1440 px el 2026-11-24, con 0 problemas:
+  - Todo lo que se toca mide 44 px.
+  - Las tallas de la ficha son pastillas que se tocan enteras, con el radio de Odoo invisible debajo, para el teclado y
+    el lector de pantalla.
+  - Los arreglos a lo que dibuja Odoo están en `views/accesibilidad_templates.xml`.
 
 ## El panel
 

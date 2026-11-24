@@ -223,6 +223,12 @@ describe("rutas que pueden salir de la caché (mismas URL que Odoo)", () => {
       "/privacidad",
       "/terminos",
       "/black-weekend",
+      // Las páginas de babycaleb.com (2026-11-24): contenido fijo, sin datos del visitante.
+      "/beneficios",
+      "/historia",
+      "/tips",
+      "/como-comprar",
+      "/faq",
     ]) {
       expect(ruta(u), u).toBe(u);
     }

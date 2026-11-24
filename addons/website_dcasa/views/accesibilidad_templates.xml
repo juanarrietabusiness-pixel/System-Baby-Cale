@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Lo que encontró la auditoría de la web (axe-core, WCAG 2.2 AA, a 390, 768, 1024 y 1440 px; 2026-11-24) en las
+         piezas que dibuja la tienda de Odoo. Los estilos (lo táctil de 44 px, las tallas en pastilla) van en
+         static/src/scss/dcasa.scss, «Auditoría». -->
+
+    <!-- Íconos que Odoo marca como imagen (role="img") sin nombre: son adorno junto a un texto («Filtros», el nombre de la
+         categoría). Para el lector de pantalla, nada. -->
+    <template id="a11y_filtros_productos" inherit_id="website_sale.products" name="Baby Caleb: íconos de adorno en la tienda">
+        <xpath expr="//i[hasclass('oi-settings-adjust')]" position="attributes">
+            <attribute name="role"/>
+            <attribute name="aria-hidden">true</attribute>
+        </xpath>
+    </template>
+
+    <template id="a11y_tira_categorias" inherit_id="website_sale.filmstrip_categories" name="Baby Caleb: tira de categorías accesible">
+        <!-- La casilla escondida de cada categoría solo guarda el estado para el estilo (tabindex="-1", sin puntero): el
+             enlace es el que se toca y el que nombra la categoría. Fuera del árbol de accesibilidad. -->
+        <xpath expr="//input[@type='radio'][hasclass('btn-check')]" position="attributes">
+            <attribute name="aria-hidden">true</attribute>
+        </xpath>
+    </template>
+
+    <template id="a11y_ficha_migas" inherit_id="website_sale.product" name="Baby Caleb: flecha de las migas de la ficha">
+        <xpath expr="//i[hasclass('oi-chevron-left')][@role='img']" position="attributes">
+            <attribute name="role"/>
+            <attribute name="aria-hidden">true</attribute>
+        </xpath>
+        <!-- Son dos (la de la categoría y la del producto): el segundo xpath encuentra la que queda con role="img". -->
+        <xpath expr="//i[hasclass('oi-chevron-left')][@role='img']" position="attributes">
+            <attribute name="role"/>
+            <attribute name="aria-hidden">true</attribute>
+        </xpath>
+    </template>
+
+    <!-- El nombre del atributo («Talla») es un h6 justo debajo del h1 del producto: salto de títulos para el lector de
+         pantalla. Se le dice que es de nivel 2 (aria-level) sin cambiar la etiqueta ni su estilo. -->
+    <template id="a11y_variantes_titulo" inherit_id="website_sale.variants" name="Baby Caleb: título de las variantes">
+        <xpath expr="//h6[hasclass('attribute_name')]" position="attributes">
+            <attribute name="aria-level">2</attribute>
+        </xpath>
+    </template>
+
+    <!-- La tarjeta de producto de la tienda: Odoo le pone role="article" a un <form>, rol que un formulario no admite
+         (axe: aria-allowed-role). Fuera el rol; el nombre (aria-label) se queda: lo usa y lo cambia
+         website_dcasa.tarjeta_nombre_cliente (nombres_cliente_templates.xml). -->
+    <template id="a11y_tarjeta_tienda" inherit_id="website_sale.products_item" name="Baby Caleb: tarjeta de la tienda sin rol inválido">
+        <xpath expr="//form[@role='article']" position="attributes">
+            <attribute name="role"/>
+        </xpath>
+    </template>
+
+    <!-- El rango de precio (dos deslizadores encima): sin nombre para el lector de pantalla. -->
+    <template id="a11y_rango_precio" inherit_id="website_sale.filter_products_price" name="Baby Caleb: rango de precio con nombre">
+        <xpath expr="(//input[@type='range'])[1]" position="attributes">
+            <attribute name="aria-label">Rango de precio</attribute>
+        </xpath>
+        <xpath expr="(//input[@type='range'])[2]" position="attributes">
+            <attribute name="aria-label">Rango de precio</attribute>
+        </xpath>
+    </template>
+</odoo>

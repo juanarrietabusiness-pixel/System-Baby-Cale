@@ -58,7 +58,7 @@
                 <a href="/shop" role="button" class="o_dcasa_lupa_movil o_navlink_background_hover btn rounded-circle border-0 text-reset"
                    data-bs-toggle="modal" data-bs-target="#o_search_modal"
                    aria-label="Buscar en el catálogo" title="Buscar en el catálogo">
-                    <i class="oi oi-search" aria-hidden="true"/>
+                    <svg class="o_dcasa_icono" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.34-4.34"/></svg>
                 </a>
             </li>
         </xpath>

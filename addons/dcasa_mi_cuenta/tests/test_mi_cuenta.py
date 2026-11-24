@@ -329,7 +329,12 @@ class TestMiCuentaHttp(MiCuentaComun, HttpCase):
     def test_cabecera_y_pie_enlazan_mi_cuenta(self):
         html = self.url_open('/shop').text
         cabecera = _cabecera(html)
-        self.assertRegex(cabecera, r'<a href="/mi-cuenta"[^>]*>Mi cuenta</a>')
+        # La persona de lucide en la pastilla (como la bolsa) y el texto «Mi cuenta», que es su nombre accesible y el
+        # que se ve en el menú del celular (2026-11-24).
+        enlace = re.search(r'<a href="/mi-cuenta"[^>]*class="[^"]*o_dcasa_cuenta[^"]*"[^>]*>.*?</a>', cabecera, re.S)
+        self.assertTrue(enlace, 'el enlace a Mi cuenta en la cabecera')
+        self.assertIn('class="o_dcasa_icono"', enlace.group(0))
+        self.assertIn('<span class="o_dcasa_cuenta_texto">Mi cuenta</span>', enlace.group(0))
         self.assertNotIn('href="/web/login"', cabecera)
         pie = re.search(r'<footer.*?</footer>', html, re.S).group(0)
         self.assertIn('href="/mi-cuenta"', pie)

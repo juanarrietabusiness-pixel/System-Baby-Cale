@@ -38,7 +38,7 @@ Sitio web sobre el constructor de sitios y el eCommerce de Odoo (copia de Baby C
 Todo el contenido de las páginas es editable con el constructor de Odoo
 (Sitio web > Editar), sin programador.
 """,
-    'version': '19.0.1.19.0',
+    'version': '19.0.1.20.0',
     'category': 'Website/Website',
     'author': "D'CASA Panamá",
     'website': 'https://dcasapty.com',
@@ -53,11 +53,14 @@ Todo el contenido de las páginas es editable con el constructor de Odoo
         'views/apartados_views.xml',
         'views/resenas_views.xml',
         'views/layout_templates.xml',
+        'views/cabecera_templates.xml',
+        'views/accesibilidad_templates.xml',
         'views/resenas_templates.xml',
         'views/black_weekend_templates.xml',
         'views/campana_views.xml',
         'views/portada_views.xml',
         'views/homepage_templates.xml',
+        'views/paginas_baby_caleb_templates.xml',
         'views/paginas_templates.xml',
         'views/legal_templates.xml',
         'data/website_menu_data.xml',

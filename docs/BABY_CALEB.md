@@ -51,6 +51,7 @@ del puente. Ya en uso en la cuenta y **no se tocan**: `babycaleb-web`, `babycale
 | 2026-11-18 | Costos | El dueño dirá qué herramientas del sistema de D'CASA se quedan y cuáles se quitan, para bajar el consumo |
 | 2026-11-18 | Nombres de los asistentes | Cada empresa debe poder nombrarlos como quiera (trabajo aparte, por hacer) |
 | 2026-11-19 | Marca de todo el sistema | **El branding de la web de Baby Caleb, tal cual**, en la web pública, el panel, los documentos y los correos: crema, navy, naranja y verde salvia, Montserrat y botones en pastilla. Fuera el azul, el amarillo, Anton y Oswald, y toda foto o sección de muebles. El contrato es `docs/MARCA_BABY_CALEB.md` y reemplaza las reglas de marca de D'CASA de `CLAUDE.md`. Esto cambia la decisión del 2026-11-18 «Web pública: mismo diseño» |
+| 2026-11-24 | Web pública | **Igual a babycaleb.com:** la cabecera (solo el nombre y los enlaces Productos, Beneficios, Historia, Tips, Cómo comprar y FAQ), la portada, el pie y las páginas `/beneficios`, `/historia`, `/tips`, `/como-comprar` y `/faq`. Se conservan y se irán mejorando la ficha del producto, el carrito y la cuenta. Socios y Contacto salen del menú y quedan en el pie. La banda de Socios sale de la portada hasta que el programa tenga cifras. Las tallas pasan a pastillas. Auditoría de accesibilidad: 0 problemas |
 
 ## Estado
 

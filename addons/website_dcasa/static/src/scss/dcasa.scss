@@ -517,24 +517,16 @@ body {
         }
     }
 
-    // La marca: «Baby Caleb» en Montserrat 700 navy (text-xl, tracking-tight) y el sello del logo al lado, chico.
+    // La marca: solo «Baby Caleb» en Montserrat 700 navy (text-xl, tracking-tight), como en su web.
     .navbar-brand {
         display: inline-flex;
         align-items: center;
-        gap: .625rem;
         flex-shrink: 0;
         min-height: 2.75rem;
         margin-right: 1rem;
         padding-block: 0;
         color: $bc-fg;
         text-decoration: none;
-
-        img,
-        .o_dcasa_marca_sello {
-            width: auto;
-            height: 2.5rem !important;
-            max-height: 2.5rem;
-        }
     }
 
     .o_dcasa_marca {
@@ -589,9 +581,35 @@ body {
         }
     }
 
-    .o_wsale_my_cart .fa,
-    .oi-search {
-        font-size: 1.25rem;
+    // Los íconos de lucide (bolsa, lupa, persona): 24 px y trazo de 2, como `h-6 w-6` en su web, centrados en el
+    // círculo de 44 px. Todos del mismo tamaño: ninguno se ve más pesado que otro.
+    .o_dcasa_icono {
+        display: block;
+        width: 1.5rem;
+        height: 1.5rem;
+        flex-shrink: 0;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+
+    .o_wsale_my_cart a > div {
+        position: relative;
+        display: grid;
+        place-items: center;
+    }
+
+    // El número del carrito, arriba a la derecha de la bolsa (`absolute top-0 right-0`, h-5 min-w-5).
+    .o_wsale_my_cart .my_cart_quantity {
+        top: -.375rem !important;
+        right: -.5rem !important;
+        margin: 0 !important;
+        height: 1.25rem;
+        padding: 0 .3125rem;
+        line-height: 1.25rem;
+        border-radius: $bc-pastilla !important;
     }
 
     // La burbuja del carrito: naranja con la cifra en navy (S01Nav.tsx).
@@ -605,7 +623,40 @@ body {
         min-width: 1.25rem;
     }
 
-    // «Mi cuenta»: una pastilla de contorno, como los botones secundarios.
+    // «Mi cuenta» en la pastilla de la computadora: la persona de lucide en un círculo de 44 px, como la bolsa. El texto
+    // queda para el lector de pantalla (es su nombre). En el menú del celular, el texto se ve (más abajo).
+    > .navbar:not(.o_header_mobile) .o_dcasa_cuenta {
+        display: inline-grid;
+        place-items: center;
+        width: 2.75rem;
+        height: 2.75rem;
+        min-height: 2.75rem;
+        padding: 0 !important;
+        border: 0 !important;
+        border-radius: 50% !important;
+        background: transparent;
+        color: $bc-fg;
+
+        &:hover,
+        &:focus-visible {
+            color: $bc-accent-strong;
+            background: transparent;
+        }
+
+        .o_dcasa_cuenta_texto {
+            position: absolute !important;
+            width: 1px !important;
+            height: 1px !important;
+            padding: 0 !important;
+            margin: -1px !important;
+            overflow: hidden !important;
+            clip: rect(0, 0, 0, 0) !important;
+            white-space: nowrap !important;
+            border: 0 !important;
+        }
+    }
+
+    // «Mi cuenta» como pastilla de contorno (el del menú del celular).
     .o_nav_link_btn {
         display: inline-flex;
         align-items: center;
@@ -661,20 +712,19 @@ html.o_dcasa_refraccion #wrapwrap > header#top .o_main_nav::before {
     overflow: hidden;
 }
 
-// Menú centrado en la pastilla desde 1200 px; más angosto, en su lugar (no pisa los íconos).
-@media (min-width: 1200px) {
+// La marca a la izquierda y los enlaces a la derecha, junto a los íconos, como en su web (`justify-between`, enlaces
+// con `gap-6 xl:gap-8`).
+@media (min-width: 992px) {
     #wrapwrap > header#top #top_menu {
-        position: absolute;
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
-        margin: 0 !important;
+        margin-left: auto !important;
+        margin-right: 0 !important;
+        gap: .25rem;
     }
 }
 
-@media (min-width: 992px) and (max-width: 1199.98px) {
+@media (min-width: 1200px) {
     #wrapwrap > header#top #top_menu {
-        margin-inline: auto !important;
+        gap: .75rem;
     }
 }
 
@@ -730,11 +780,17 @@ html.o_dcasa_refraccion #wrapwrap > header#top .o_main_nav::before {
 
     .o_nav_link_btn {
         justify-content: center;
+        gap: .5rem;
         min-height: 3rem;
         border: 1.5px solid $bc-control !important;
         border-radius: $bc-pastilla !important;
         font-weight: 700;
         color: $bc-fg;
+
+        .o_dcasa_icono {
+            width: 1.25rem;
+            height: 1.25rem;
+        }
     }
 }
 
@@ -2020,12 +2076,22 @@ $dcasa-vitrina-tiempo: 6.5s;   // lo que dura cada foto
 
 .o_dcasa_pie_rejilla {
     display: grid;
-    gap: 2.5rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2.5rem 1.5rem;
     margin-bottom: 2.5rem;
 
-    @media (min-width: 768px) {
-        grid-template-columns: 2fr 1fr 1fr;
+    // La marca a todo el ancho en el teléfono; las columnas de enlaces, de a dos.
+    .o_dcasa_pie_marca {
+        grid-column: 1 / -1;
+    }
+
+    @media (min-width: 992px) {
+        grid-template-columns: 2fr 1fr 1fr 1fr;
         gap: 3rem;
+
+        .o_dcasa_pie_marca {
+            grid-column: auto;
+        }
     }
 }
 
@@ -2546,6 +2612,699 @@ body.editor_enable .o_dcasa_wa_float {
         [data-anim-cascada='derecha'] > * {
             --anim-desde: translate3d(0, 1.75rem, 0);
         }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// La tarjetita del hero (S02Hero.tsx): «Desde talla RN · Pañal Nateen · Desde $…», abajo a la izquierda de la foto,
+// en crema casi opaco con su filo y la sombra suave. Lleva a la ficha: toda la tarjeta es el enlace.
+// ---------------------------------------------------------------------------
+
+.o_dcasa_hero_tarjeta {
+    position: absolute;
+    left: -.75rem;
+    bottom: -1.5rem;
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    max-width: 16rem;
+    padding: 1rem 1.5rem 1rem 1rem;
+    border: 1px solid $bc-line;
+    border-radius: $bc-r-md;
+    background: rgba($bc-bg, .95);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    box-shadow: $bc-sombra;
+    color: $bc-fg;
+    text-decoration: none;
+    transition: transform $dcasa-t-rapida $dcasa-curva, box-shadow $dcasa-t-rapida $dcasa-curva;
+
+    @media (min-width: 768px) {
+        left: -1.5rem;
+    }
+
+    @media (min-width: 992px) {
+        left: -2.5rem;
+    }
+
+    &:hover,
+    &:focus-visible {
+        color: $bc-fg;
+        transform: translateY(-2px);
+        box-shadow: $bc-sombra-alta;
+    }
+
+    img {
+        width: 4rem;
+        height: 4rem;
+        flex-shrink: 0;
+        object-fit: contain;
+        border-radius: $bc-r-sm;
+        background: rgba($bc-sage, .2);
+    }
+}
+
+.o_dcasa_hero_tarjeta_texto {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.o_dcasa_hero_tarjeta_talla {
+    font-size: .75rem;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: $bc-sage-strong;
+}
+
+.o_dcasa_hero_tarjeta_nombre {
+    font-weight: 700;
+    line-height: 1.25;
+}
+
+.o_dcasa_hero_tarjeta_precio {
+    font-size: .75rem;
+    color: $bc-muted;
+}
+
+// ---------------------------------------------------------------------------
+// Las páginas de babycaleb.com (Beneficios, Historia, Tips, Cómo comprar y FAQ): la cabecera flota encima, como en la
+// portada; el aire de arriba es el `pt-32 md:pt-24` de su <main>.
+// ---------------------------------------------------------------------------
+
+.o_dcasa_pagina_bc {
+    padding-top: 6.5rem;
+    background: $bc-bg;
+
+    @media (min-width: 768px) {
+        padding-top: 6rem;
+    }
+}
+
+.o_dcasa_section_descripcion {
+    margin-top: 1rem;
+}
+
+// Por qué Baby Caleb (S08Differentiators.tsx): banda `surface` con cuatro tarjetas crema numeradas.
+.o_dcasa_diferenciadores {
+    background: $bc-surface;
+}
+
+.o_dcasa_diferenciadores_lista {
+    display: grid;
+    gap: 1.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    @media (min-width: 576px) {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    @media (min-width: 992px) {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+.o_dcasa_diferenciador {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 2rem;
+    border: 1px solid $bc-line;
+    border-radius: $bc-r-md;
+    background: $bc-bg;
+
+    h3 {
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 700;
+        line-height: 1.25;
+        color: $bc-fg;
+    }
+
+    p {
+        margin: 0;
+        font-size: .9375rem;
+        line-height: 1.6;
+        color: $bc-muted;
+    }
+}
+
+.o_dcasa_diferenciador_numero {
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: .14em;
+    line-height: 1;
+    color: $bc-sage-strong;
+}
+
+// Nuestra historia (S12Historia.tsx): el texto con su cita y sus tres cifras; la foto cuadrada con el sello encima.
+.o_dcasa_historia_grid {
+    display: grid;
+    gap: 3rem;
+    align-items: center;
+
+    @media (min-width: 768px) {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    @media (min-width: 992px) {
+        gap: 5rem;
+    }
+}
+
+.o_dcasa_historia_texto {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+
+    .o_dcasa_lead {
+        margin: 0;
+    }
+}
+
+.o_dcasa_historia_cita {
+    margin: 0;
+    padding: 1rem 1rem 1rem 1.5rem;
+    border-left: 4px solid $bc-sage-edge;
+    border-radius: 0 $bc-r-sm $bc-r-sm 0;
+    background: $bc-surface;
+
+    p {
+        margin: 0;
+        font-style: italic;
+        line-height: 1.6;
+        color: $bc-fg;
+    }
+}
+
+.o_dcasa_historia_cifras {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+    margin: .5rem 0 0;
+
+    dt {
+        font-size: clamp(1.875rem, calc(1.5rem + 1.2vw), 2.25rem);
+        font-weight: 700;
+        line-height: 1.1;
+        letter-spacing: -.03em;
+        color: $bc-accent-strong;
+    }
+
+    dd {
+        margin: .25rem 0 0;
+        font-size: .75rem;
+        line-height: 1.5;
+        color: $bc-muted;
+    }
+}
+
+.o_dcasa_historia_visual {
+    position: relative;
+    margin-bottom: 1rem;
+}
+
+.o_dcasa_historia_foto {
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    border-radius: $bc-r-lg;
+    background: rgba($bc-sage, .2);
+    box-shadow: $bc-sombra-foto;
+
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+}
+
+.o_dcasa_historia_sello {
+    position: absolute;
+    left: -.75rem;
+    bottom: -1.5rem;
+    width: 5.5rem;
+    height: 5.5rem;
+    padding: .5rem;
+    border-radius: 50%;
+    background: $bc-bg;
+    object-fit: contain;
+    filter: drop-shadow(0 12px 18px rgba($bc-fg, .18));
+
+    @media (min-width: 768px) {
+        left: -2rem;
+        bottom: -2rem;
+        width: 7rem;
+        height: 7rem;
+    }
+}
+
+// Tips (S13Tips.tsx): tarjetas `surface` con la foto en 4:5; al pasar, el filo verde y un poco hacia arriba.
+.o_dcasa_tips_lista {
+    display: grid;
+    gap: 1.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    @media (min-width: 576px) {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    @media (min-width: 992px) {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    > li {
+        display: flex;
+    }
+}
+
+.o_dcasa_tip {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    overflow: hidden;
+    border: 1px solid $bc-line;
+    border-radius: $bc-r-md;
+    background: $bc-surface;
+    box-shadow: $bc-sombra;
+    transition: transform .3s $dcasa-curva, border-color .3s ease;
+
+    &:hover {
+        transform: translateY(-4px);
+        border-color: $bc-sage-edge;
+    }
+
+    &:hover .o_dcasa_tip_foto img {
+        transform: scale(1.03);
+    }
+}
+
+.o_dcasa_tip_foto {
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    background: $bc-bg;
+
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform .5s $dcasa-curva;
+    }
+}
+
+.o_dcasa_tip_cuerpo {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: .75rem;
+    padding: 1.5rem;
+
+    h3 {
+        margin: 0;
+        font-size: 1.125rem;
+        font-weight: 700;
+        line-height: 1.35;
+        color: $bc-fg;
+    }
+
+    p {
+        margin: 0;
+    }
+
+    p:last-child {
+        font-size: .9375rem;
+        line-height: 1.6;
+        color: $bc-muted;
+    }
+}
+
+.o_dcasa_tip_numero {
+    font-size: .75rem;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: $bc-sage-strong;
+}
+
+.o_dcasa_tips_cierre {
+    margin: 4rem 0 0;
+    text-align: center;
+    color: $bc-muted;
+}
+
+// Cómo comprar (S16HowToBuy.tsx): banda `surface`; a la derecha, los tres pasos sobre una línea fina con un punto
+// naranja cada uno.
+.o_dcasa_como_comprar {
+    background: $bc-surface;
+}
+
+.o_dcasa_como_comprar_grid {
+    display: grid;
+    gap: 3rem;
+    align-items: center;
+
+    @media (min-width: 768px) {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 4rem;
+    }
+}
+
+.o_dcasa_pasos {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+    margin: 0;
+    padding: 0 0 0 2rem;
+    list-style: none;
+
+    &::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: .5rem;
+        bottom: .5rem;
+        width: 1px;
+        background: $bc-line;
+    }
+
+    @media (min-width: 768px) {
+        padding-left: 3rem;
+    }
+}
+
+.o_dcasa_paso {
+    position: relative;
+
+    &::before {
+        content: '';
+        position: absolute;
+        top: .375rem;
+        left: calc(-2rem - 3.5px);
+        width: .5rem;
+        height: .5rem;
+        border-radius: 50%;
+        background: $bc-accent;
+
+        @media (min-width: 768px) {
+            left: calc(-3rem - 3.5px);
+        }
+    }
+
+    h3 {
+        margin: 0 0 .5rem;
+        font-size: clamp(1.25rem, calc(1.1rem + .6vw), 1.5rem);
+        font-weight: 700;
+        color: $bc-fg;
+    }
+
+    p {
+        margin: 0;
+        color: $bc-muted;
+    }
+}
+
+.o_dcasa_paso .o_dcasa_paso_numero {
+    margin-bottom: .5rem;
+    font-size: .8125rem;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: $bc-sage-strong;
+}
+
+// Preguntas frecuentes (S14FAQ.tsx): banda `surface` y cada pregunta en su tarjeta crema; la flecha gira al abrir.
+.o_dcasa_preguntas {
+    background: $bc-surface;
+}
+
+.o_dcasa_preguntas_lista {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    max-width: 48rem;
+    margin-inline: auto;
+}
+
+.o_dcasa_pregunta {
+    overflow: hidden;
+    border: 1px solid $bc-line;
+    border-radius: $bc-r-md;
+    background: $bc-bg;
+
+    summary {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 2rem;
+        min-height: 2.75rem;
+        padding: 1.5rem;
+        cursor: pointer;
+        list-style: none;
+        font-weight: 700;
+        line-height: 1.4;
+        color: $bc-fg;
+
+        &::-webkit-details-marker {
+            display: none;
+        }
+
+        &:focus-visible {
+            outline-offset: -4px;
+        }
+    }
+
+    > p {
+        margin: 0;
+        padding: 0 1.5rem 1.5rem;
+        line-height: 1.6;
+        color: $bc-muted;
+    }
+}
+
+.o_dcasa_pregunta_flecha {
+    width: 1.25rem;
+    height: 1.25rem;
+    flex-shrink: 0;
+    fill: none;
+    stroke: $bc-muted;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: transform .3s $dcasa-curva;
+
+    .o_dcasa_pregunta[open] & {
+        transform: rotate(180deg);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .o_dcasa_hero_tarjeta,
+    .o_dcasa_tip,
+    .o_dcasa_tip_foto img,
+    .o_dcasa_pregunta_flecha {
+        transition: none;
+    }
+
+    .o_dcasa_hero_tarjeta:hover,
+    .o_dcasa_hero_tarjeta:focus-visible,
+    .o_dcasa_tip:hover,
+    .o_dcasa_tip:hover .o_dcasa_tip_foto img {
+        transform: none;
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Auditoría (2026-11-24, axe-core y medidas a 390, 768, 1024 y 1440 px): todo lo que se toca mide al menos 44 px
+// (el dedo, no el cursor), también lo que dibuja la tienda de Odoo. Las plantillas que arreglan nombres y roles para el
+// lector de pantalla van en views/accesibilidad_templates.xml.
+// ---------------------------------------------------------------------------
+
+// Los íconos de lucide en todo el sitio (la lupa también vive en la caja de búsqueda y en el catálogo, fuera de la
+// cabecera): trazo de 2, sin relleno; 24 px, y 20 dentro del botón de enviar de una caja de búsqueda.
+.o_dcasa_icono {
+    display: block;
+    width: 1.5rem;
+    height: 1.5rem;
+    flex-shrink: 0;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.oe_search_button .o_dcasa_icono {
+    width: 1.25rem;
+    height: 1.25rem;
+}
+
+// Los enlaces del menú de la computadora: 44 px de alto (medían 38).
+#wrapwrap > header#top #top_menu .nav-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+}
+
+// Enlaces de acción («Ver todo →», «Horario y contacto →»): 44 px de alto sin cambiar cómo se ven.
+.o_dcasa_link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+}
+
+// Las migas: cada paso a 44 px de alto y todos centrados en la misma línea (con la barra que los separa).
+.breadcrumb {
+    align-items: center;
+}
+
+.breadcrumb .breadcrumb-item {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+
+    > a {
+        display: inline-flex;
+        align-items: center;
+        min-height: 2.75rem;
+    }
+}
+
+// El nombre del producto en las tarjetas (carril de la portada y la tienda): el enlace ocupa al menos 44 px aunque el
+// nombre sea de una línea.
+.o_dcasa_pcard_name a,
+.o_wsale_products_item_title a {
+    display: flex;
+    align-items: flex-start;
+    min-height: 2.75rem;
+}
+
+// Los datos de la cobertura (el teléfono abre WhatsApp) y los enlaces del pie: 44 × 44 como mínimo («Tips» y «FAQ»
+// medían 28 de ancho).
+.o_dcasa_cobertura_datos a,
+.o_dcasa_pie_columna a,
+.o_dcasa_pie_legales a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    min-width: 2.75rem;
+}
+
+// La barra de la tienda: «Ordenar por» y «Filtros».
+.o_sortby_dropdown .dropdown-toggle,
+button[data-bs-target='#o_wsale_offcanvas'] {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+}
+
+// Contacto (/visitanos): el teléfono, el correo e Instagram, a 44 de alto (medían 38). Y «Agregar para comparar».
+.o_dcasa_visita_lista a,
+.o_add_compare_dyn {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+}
+
+// La cantidad en la ficha y el carrito: − y + de 44 × 44 (medían 34 de ancho).
+.css_quantity .btn,
+.css_quantity .css_quantity_minus,
+.css_quantity .css_quantity_plus {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+}
+
+.css_quantity input.quantity {
+    min-width: 2.75rem;
+}
+
+// Entrar: «Restablecer contraseña», «¿No tienes una cuenta?» y el ojo de la contraseña.
+.oe_login_form .btn-link,
+.oe_signup_form .btn-link,
+.oe_reset_password_form .btn-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+}
+
+.oe_login_form .input-group .btn,
+.oe_signup_form .input-group .btn {
+    min-width: 2.75rem;
+}
+
+// Las tallas de la ficha (atributos tipo «radio»): pastillas de 44 px que se tocan enteras, como las de una app. El
+// botón de radio sigue en su lugar para el teclado (flechas) y el lector de pantalla, solo que invisible y del tamaño
+// de la pastilla. La elegida se rellena de verde con letra navy (6.96) y borde `sage-edge`; las demás, de contorno.
+.o_wsale_product_attribute > .js_attribute_value > label.col-form-label {
+    position: relative;
+    cursor: pointer;
+
+    .form-check {
+        display: inline-flex;
+        align-items: center;
+        gap: .5rem;
+        min-height: 2.75rem;
+        min-width: 2.75rem;
+        margin: 0;
+        padding: .375rem 1.125rem;
+        border: 1.5px solid $bc-control;
+        border-radius: $bc-pastilla;
+        background: transparent;
+        color: $bc-fg;
+        font-weight: 700;
+        transition: background-color $dcasa-t-rapida ease, border-color $dcasa-t-rapida ease;
+    }
+
+    .form-check-input {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        opacity: 0;
+        cursor: pointer;
+        float: none;
+    }
+
+    .form-check-label {
+        display: inline-flex;
+        align-items: center;
+        gap: .5rem;
+        margin: 0;
+        cursor: pointer;
+    }
+
+    &:hover .form-check {
+        border-color: $bc-fg;
+    }
+
+    &:has(.form-check-input:checked) .form-check {
+        background: $bc-sage;
+        border-color: $bc-sage-edge;
+    }
+
+    &:has(.form-check-input:focus-visible) .form-check {
+        outline: 2px solid $bc-fg;
+        outline-offset: 2px;
+    }
+
+    // Una talla agotada o que no combina: tachada y apagada, pero se puede elegir para ver que no está.
+    &:has(.form-check-input.css_not_available) .form-check {
+        opacity: .55;
+        text-decoration: line-through;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .o_wsale_product_attribute > .js_attribute_value > label.col-form-label .form-check {
+        transition: none;
     }
 }
 

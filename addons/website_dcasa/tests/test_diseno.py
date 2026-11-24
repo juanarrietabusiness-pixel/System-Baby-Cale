@@ -149,14 +149,18 @@ class TestDisenoUniforme(HttpCase):
                 cabecera = _cabecera(html)
                 self.assertNotIn('o_dcasa_anuncios', cabecera, 'sin la barra de anuncios encima (S01Nav.tsx)')
                 self.assertIn('o_main_nav', cabecera)
-                # La marca escrita (Montserrat 700 navy) y, al lado, el sello del logo en WebP liviano.
+                # Solo la marca escrita (Montserrat 700 navy), sin el sello: como en S01Nav.tsx.
                 self.assertRegex(cabecera, r'<span class="o_dcasa_marca" translate="no">Baby Caleb</span>')
-                self.assertIn('/website_dcasa/static/src/img/logo-200.webp', cabecera)
+                self.assertNotIn('logo-200.webp', cabecera)
                 self.assertNotIn('/web/image/website/1/logo', cabecera)
                 menu = re.search(r'id="top_menu".*?</ul>', cabecera, re.S).group(0)
-                for enlace, texto in (('/shop', 'Catálogo'), ('/socios', 'Socios Baby Caleb'),
-                                      ('/visitanos', 'Contacto')):
+                for enlace, texto in (('/shop', 'Productos'), ('/beneficios', 'Beneficios'), ('/historia', 'Historia'),
+                                      ('/tips', 'Tips'), ('/como-comprar', 'Cómo comprar'), ('/faq', 'FAQ')):
                     self.assertRegex(menu, rf'href="{re.escape(enlace)}"[^>]*>\s*<span>{texto}</span>')
+                # Los íconos de lucide (bolsa, lupa y persona), no los de FontAwesome, todos con la misma clase.
+                self.assertNotIn('fa-shopping-cart', cabecera)
+                self.assertNotIn('oi-search', cabecera)
+                self.assertGreaterEqual(cabecera.count('class="o_dcasa_icono"'), 3)
                 self.assertIn('o_wsale_my_cart', cabecera, 'Carrito')
                 self.assertIn('o_search_modal', cabecera, 'Búsqueda')
                 # «Inicia sesión» de Odoo, o «Mi cuenta» (/mi-cuenta) si dcasa_mi_cuenta está instalado.
@@ -212,13 +216,13 @@ class TestDisenoUniforme(HttpCase):
             self.assertIn('loading="eager"', foto.group(0))
             self.assertIn('fetchpriority="high"', foto.group(0))
 
-    def test_logo_propio_se_respeta(self):
-        """Si la dueña sube otro logo desde el editor, la pastilla muestra el suyo (y el nombre escrito se queda)."""
+    def test_la_marca_es_el_nombre_aunque_haya_otro_logo(self):
+        """Como en babycaleb.com, la pastilla lleva el nombre escrito y no una imagen: aunque se suba otro logo desde
+        el editor (que sigue sirviendo para el editor, el favicon y los datos para Google)."""
         self.website.logo = self.env['website']._default_logo()
         cabecera = _cabecera(self.url_open('/shop').text)
-        self.assertNotIn('logo-200.webp', cabecera)
-        self.assertIn('/web/image/website/', cabecera)
-        self.assertIn('class="o_dcasa_marca"', cabecera)
+        self.assertNotIn('/web/image/website/', cabecera)
+        self.assertRegex(cabecera, r'<span class="o_dcasa_marca" translate="no">Baby Caleb</span>')
 
     def test_la_marca_en_el_navegador(self):
         """Medido en Chrome, elemento por elemento, en la portada, la tienda, la ficha, el contacto, la cuenta y una

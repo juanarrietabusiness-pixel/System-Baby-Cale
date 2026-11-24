@@ -217,6 +217,29 @@ class DcasaTienda(http.Controller):
         """Contacto: Baby Caleb vende 100% en línea (sin tienda ni mapa): cobertura, horario y cómo escribirnos."""
         return request.render('website_dcasa.pagina_visitanos')
 
+    # Las páginas de babycaleb.com (src/pages/*.tsx), con su contenido (content.json) y sus títulos (src/seo/rutas.ts).
+    # Cada una es una plantilla de views/paginas_baby_caleb_templates.xml; nada de datos: lo que cambia (precios,
+    # productos) vive en la tienda.
+    @http.route('/beneficios', type='http', auth='public', website=True, sitemap=True)
+    def beneficios(self, **kwargs):
+        return request.render('website_dcasa.pagina_beneficios')
+
+    @http.route('/historia', type='http', auth='public', website=True, sitemap=True)
+    def historia(self, **kwargs):
+        return request.render('website_dcasa.pagina_historia')
+
+    @http.route('/tips', type='http', auth='public', website=True, sitemap=True)
+    def tips(self, **kwargs):
+        return request.render('website_dcasa.pagina_tips')
+
+    @http.route('/como-comprar', type='http', auth='public', website=True, sitemap=True)
+    def como_comprar(self, **kwargs):
+        return request.render('website_dcasa.pagina_como_comprar')
+
+    @http.route('/faq', type='http', auth='public', website=True, sitemap=True)
+    def faq(self, **kwargs):
+        return request.render('website_dcasa.pagina_faq')
+
     @http.route('/privacidad', type='http', auth='public', website=True, sitemap=True)
     def privacidad(self, **kwargs):
         """Política de privacidad (Ley 81 de 2019), con el uso de inteligencia artificial."""

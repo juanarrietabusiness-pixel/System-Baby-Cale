@@ -161,21 +161,17 @@
         </xpath>
     </template>
 
-    <!-- La marca de la pastilla, como la de babycaleb.com (src/blocks/S01Nav.tsx): el nombre «Baby Caleb» escrito, en
-         Montserrat 700 navy, y al lado el sello del logo, chico. El logo va en WebP (7-15 KB en vez del PNG de 40 KB)
-         mientras sea el de fábrica del módulo (dcasa_base/static/img/logo.png; los WebP, con lo de afuera del sello
-         transparente, los hace scripts/iconos_de_la_marca.py); en el editor, o si la dueña sube otro, el campo de Odoo
-         de siempre. El nombre no se traduce ni se parte en dos líneas (translate="no" y nowrap en el CSS). -->
+    <!-- La marca de la pastilla, como la de babycaleb.com (src/blocks/S01Nav.tsx): solo el nombre «Baby Caleb» escrito,
+         en Montserrat 700 navy, sin el sello (pedido del dueño, 2026-11-24: «tal cual»). En el editor sigue el campo del
+         logo de Odoo, para que se pueda cambiar desde ahí. El nombre no se traduce ni se parte en dos líneas
+         (translate="no" y nowrap en el CSS). -->
     <template id="logo_webp_dcasa" inherit_id="website.option_header_brand_logo" name="D'CASA: logo en WebP">
         <xpath expr="//span[@t-field='website.logo']" position="attributes">
-            <attribute name="t-if">editable or not website._dcasa_logo_de_fabrica()</attribute>
+            <attribute name="t-if">editable</attribute>
             <attribute name="t-att-aria-label">website.name</attribute>
         </xpath>
         <xpath expr="//span[@t-field='website.logo']" position="after">
-            <img t-else="" src="/website_dcasa/static/src/img/logo-200.webp"
-                 srcset="/website_dcasa/static/src/img/logo-200.webp 1x, /website_dcasa/static/src/img/logo-400.webp 2x"
-                 width="200" height="196" class="img img-fluid o_dcasa_marca_sello" loading="eager" alt=""/>
-            <span class="o_dcasa_marca" translate="no" t-out="website.name"/>
+            <span t-else="" class="o_dcasa_marca" translate="no" t-out="website.name"/>
         </xpath>
     </template>
 
@@ -324,12 +320,24 @@
                                 <p class="o_dcasa_pie_lema">Esenciales de bebé hipoalergénicos y biodegradables — pensamos en cada etapa de tu bebé.</p>
                                 <p class="o_dcasa_pie_cobertura">Venta 100% online con entrega a domicilio en Ciudad de Panamá.</p>
                             </div>
+                            <!-- Los enlaces de su pie (S20Footer.tsx), los mismos del menú. -->
                             <nav class="o_dcasa_pie_columna" aria-labelledby="dcasa-pie-enlaces">
                                 <h2 id="dcasa-pie-enlaces" class="o_dcasa_pie_titulo">Enlaces</h2>
                                 <ul class="list-unstyled">
-                                    <li><a href="/shop">Catálogo</a></li>
-                                    <li><a href="/socios">Socios: mis puntos</a></li>
+                                    <li><a href="/shop">Productos</a></li>
+                                    <li><a href="/beneficios">Beneficios</a></li>
+                                    <li><a href="/historia">Historia</a></li>
+                                    <li><a href="/tips">Tips</a></li>
+                                    <li><a href="/como-comprar">Cómo comprar</a></li>
+                                    <li><a href="/faq">FAQ</a></li>
+                                </ul>
+                            </nav>
+                            <!-- Lo que este sistema tiene y su web no: la cuenta del cliente, los puntos y el contacto. -->
+                            <nav class="o_dcasa_pie_columna" aria-labelledby="dcasa-pie-cuenta">
+                                <h2 id="dcasa-pie-cuenta" class="o_dcasa_pie_titulo">Tu cuenta</h2>
+                                <ul class="list-unstyled">
                                     <li><a href="/my">Mi cuenta</a></li>
+                                    <li><a href="/socios">Socios: mis puntos</a></li>
                                     <li><a href="/visitanos">Horario y contacto</a></li>
                                 </ul>
                             </nav>

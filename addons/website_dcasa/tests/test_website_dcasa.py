@@ -64,8 +64,9 @@ class TestWebsitePages(HttpCase):
 
     def test_socios_linked_from_site(self):
         home = self.url_open('/').text
-        self.assertIn('href="/socios"', home)
-        self.assertIn('Suma puntos y gana invitando', home)
+        self.assertIn('href="/socios"', home, 'Socios sigue en el pie')
+        # La banda solo sale con las cifras del programa puestas (hoy todas en PENDIENTE): no promete puntos.
+        self.assertNotIn('Suma puntos y gana invitando', home)
         response = self.url_open('/socios')
         self.assertEqual(response.status_code, 200)
         self.assertIn('https://wa.me/50767575065', response.text, 'La app del socio usa el mismo sitio y pie')
@@ -183,7 +184,8 @@ class TestPortadaDinamica(HttpCase):
 
     def test_la_portada_en_el_orden_de_babycaleb(self):
         """El orden de Baby-caleb/src/pages/Home.tsx (docs/MARCA_BABY_CALEB.md): hero, sellos, educación, productos,
-        las mamás, la cobertura, la banda final y las preguntas, con los textos de su web (content.json) tal cual."""
+        las mamás, la cobertura y la banda final, con los textos de su web (content.json) tal cual. Las preguntas viven
+        en /faq desde el 2026-11-24, como en su web."""
         portada = self.url_open('/').text
         piezas = [
             'Cuidado hipoalergénico para la piel de tu bebé',            # 1. hero
@@ -193,10 +195,11 @@ class TestPortadaDinamica(HttpCase):
             'Lo que dicen nuestras mamás.',                               # 5. testimonios
             'Vendemos online y te lo llevamos.',                          # 6. cobertura
             'Dale a tu bebé el cuidado que su piel merece.',              # 7. banda final
-            'Lo que más nos preguntan',                                   # 8. preguntas
         ]
         posiciones = [portada.index(pieza) for pieza in piezas]
         self.assertEqual(posiciones, sorted(posiciones), 'las secciones en el orden de su web')
+        self.assertNotIn('o_dcasa_preguntas', portada, 'las preguntas, en /faq')
+        self.assertNotIn('o_dcasa_socios_band', portada, 'sin la banda de Socios: sus cifras siguen en PENDIENTE')
         for texto in ('Pensamos en cada etapa de tu bebé', 'Pañales y wipes hipoalergénicos: sin químicos agresivos, '
                       'sin perfumes, sin alcohol, sin cloro.', 'Hipoalergénico', 'Sin cloro', 'Biodegradable',
                       '#QUENOTENEGAÑEN', 'Elizabeth M.', 'Mamá de 2', 'Cero alergias', 'Ana C.', 'Mamá primeriza',
@@ -434,15 +437,28 @@ class TestMarcaYMovimiento(HttpCase):
         js = ''.join(self.url_open(src).text for src in scripts)
         self.assertIn('website_dcasa.revelar', js, 'Las animaciones son Interactions de Odoo')
 
-    def test_menu_corto_con_catalogo(self):
+    def test_menu_de_babycaleb(self):
+        """El menú de babycaleb.com (S01Nav.tsx), en su orden (pedido del dueño, 2026-11-24)."""
         website = self.env.ref('website.default_website')
-        nombres = website.menu_id.child_id.sorted('sequence').mapped('name')
-        self.assertEqual(nombres, ['Catálogo', 'Socios Baby Caleb', 'Contacto'])
-        self.assertEqual(website.menu_id.child_id[0].url, '/shop')
-        catalogo = website.menu_id.child_id.filtered(lambda m: m.url == '/shop')
-        self.assertEqual(catalogo.with_context(lang='es_419').name, 'Catálogo', 'No «Tienda» en español')
-        contacto = website.menu_id.child_id.filtered(lambda m: m.name == 'Contacto')
-        self.assertEqual(contacto.url, '/visitanos', 'El contacto (sin tienda que visitar) tiene su propia página')
+        menu = website.menu_id.child_id.sorted('sequence')
+        self.assertEqual(menu.mapped('name'), ['Productos', 'Beneficios', 'Historia', 'Tips', 'Cómo comprar', 'FAQ'])
+        self.assertEqual(menu.mapped('url'), ['/shop', '/beneficios', '/historia', '/tips', '/como-comprar', '/faq'])
+        tienda = menu.filtered(lambda m: m.url == '/shop')
+        self.assertEqual(tienda.with_context(lang='es_419').name, 'Productos', 'No «Tienda» en español')
+        for url in ('/socios', '/visitanos'):
+            self.assertFalse(menu.filtered(lambda m, url=url: m.url == url), f'{url} sigue en el pie, no en el menú')
+
+    def test_menu_se_arma_otra_vez_sin_duplicar(self):
+        """La migración de 19.0.1.20.0 lo vuelve a armar en staging: el menú viejo (Catálogo · Socios · Contacto) pasa
+        al de su web y correrlo dos veces no duplica nada."""
+        website = self.env.ref('website.default_website')
+        Menu = self.env['website.menu']
+        for nombre, url in (('Socios Baby Caleb', '/socios'), ('Contacto', '/visitanos')):
+            Menu.create({'name': nombre, 'url': url, 'parent_id': website.menu_id.id, 'website_id': website.id})
+        self.env['website']._dcasa_armar_menu_principal()
+        self.env['website']._dcasa_armar_menu_principal()
+        self.assertEqual(website.menu_id.child_id.sorted('sequence').mapped('url'),
+                         ['/shop', '/beneficios', '/historia', '/tips', '/como-comprar', '/faq'])
 
     def test_navbar_liquido_y_franja_visitanos(self):
         html = self.url_open('/').text
@@ -474,13 +490,15 @@ class TestMarcaYMovimiento(HttpCase):
         self.assertNotIn('geo', datos, 'Sin local: sin coordenadas')
 
     def test_menu_visitanos_viejo_se_actualiza(self):
-        """Un sitio con el menú viejo (ancla /#visitanos) queda con uno solo, a la página."""
+        """Un sitio con el menú viejo (el ancla /#visitanos) queda con el de babycaleb.com: el contacto pasó al pie."""
         website = self.env.ref('website.default_website')
-        website.menu_id.child_id.filtered(lambda m: m.url == '/visitanos').url = '/#visitanos'
+        self.env['website.menu'].create({'name': 'Visítanos', 'url': '/#visitanos', 'parent_id': website.menu_id.id,
+                                         'website_id': website.id})
         self.env['website']._dcasa_armar_menu_principal()
         urls = website.menu_id.child_id.mapped('url')
-        self.assertIn('/visitanos', urls)
         self.assertNotIn('/#visitanos', urls)
+        self.assertNotIn('/visitanos', urls, 'el contacto va en el pie')
+        self.assertIn('href="/visitanos"', self.url_open('/').text, 'y sigue a un clic, en el pie')
 
     def test_armar_menu_respeta_lo_agregado(self):
         website = self.env.ref('website.default_website')
@@ -632,7 +650,11 @@ class TestSinRestosDeDcasa(HttpCase):
         """El menú se arma una vez al instalar y las entregas y los pagos también: en una base que ya existía (staging)
         la migración 19.0.1.19.0 los pone al día. Aquí se simula esa base vieja y se corre lo que corre la migración."""
         idiomas = [codigo for codigo, _n in self.env['res.lang'].get_installed()]
+        # La base vieja tenía «Socios D'CASA» en el menú (el de babycaleb.com, desde 19.0.1.20.0, ya no lo lleva).
         socios = self.website.menu_id.child_id.filtered(lambda m: m.url == '/socios')
+        socios = socios or self.env['website.menu'].create({
+            'name': "Socios D'CASA", 'url': '/socios', 'parent_id': self.website.menu_id.id,
+            'website_id': self.website.id})
         socios.update_field_translations('name', dict.fromkeys(idiomas, "Socios D'CASA"))
         Carrier = self.env['delivery.carrier'].sudo().with_context(active_test=False)
         retiro = Carrier.search([('name', '=', 'Retiro en tienda')])

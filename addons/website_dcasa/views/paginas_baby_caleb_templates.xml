@@ -1,0 +1,361 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Las páginas de babycaleb.com (src/pages/*.tsx) y las secciones con que se arman (src/blocks/*.tsx), pedidas
+         «tal cual» por el dueño el 2026-11-24. Los textos son los de su web (content.json); solo cambia lo que este
+         sistema hace distinto, y cada cambio lo dice su comentario. El pago no es «con Yappy en la misma página»: se
+         elige Yappy o transferencia al hacer el pedido, y el envío se cotiza por WhatsApp.
+
+         La portada (homepage_templates.xml) usa las mismas secciones: un texto se corrige en un solo lugar. -->
+
+    <!-- ==================================================================================================== -->
+    <!-- Secciones                                                                                            -->
+    <!-- ==================================================================================================== -->
+
+    <!-- Los cuatro sellos (S04Trust.tsx · content.json › trust), con los íconos de lucide de su web (leaf,
+         droplet-off, recycle, heart; licencia ISC) en un círculo crema. Lleva la clase o_dcasa_beneficios de siempre:
+         la reconoce Brian de la tienda (dcasa_brian_tienda). -->
+    <template id="seccion_sellos" name="Baby Caleb: los cuatro sellos">
+        <section class="o_dcasa_beneficios o_dcasa_confianza" aria-label="Lo que distingue a nuestros productos">
+            <div class="o_dcasa_container">
+                <ul class="o_dcasa_confianza_lista" role="list" data-anim-cascada="">
+                    <li>
+                        <span class="o_dcasa_confianza_icono" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg></span>
+                        <span class="o_dcasa_confianza_texto">Hipoalergénico</span>
+                    </li>
+                    <li>
+                        <span class="o_dcasa_confianza_icono" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M18.715 13.186C18.29 11.858 17.384 10.607 16 9.5c-2-1.6-3.5-4-4-6.5a10.7 10.7 0 0 1-.884 2.586"/><path d="m2 2 20 20"/><path d="M8.795 8.797A11 11 0 0 1 8 9.5C6 11.1 5 13 5 15a7 7 0 0 0 13.222 3.208"/></svg></span>
+                        <span class="o_dcasa_confianza_texto">Sin cloro</span>
+                    </li>
+                    <li>
+                        <span class="o_dcasa_confianza_icono" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 19H4.815a1.83 1.83 0 0 1-1.57-.881 1.785 1.785 0 0 1-.004-1.784L7.196 9.5"/><path d="M11 19h8.203a1.83 1.83 0 0 0 1.556-.89 1.784 1.784 0 0 0 0-1.775l-1.226-2.12"/><path d="m14 16-3 3 3 3"/><path d="M8.293 13.596 7.196 9.5 3.1 10.598"/><path d="m9.344 5.811 1.093-1.892A1.83 1.83 0 0 1 11.985 3a1.784 1.784 0 0 1 1.546.888l3.943 6.843"/><path d="m13.378 9.633 4.096 1.098 1.097-4.096"/></svg></span>
+                        <span class="o_dcasa_confianza_texto">Biodegradable</span>
+                    </li>
+                    <li>
+                        <span class="o_dcasa_confianza_icono" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg></span>
+                        <span class="o_dcasa_confianza_texto">Piel sensible</span>
+                    </li>
+                </ul>
+            </div>
+        </section>
+    </template>
+
+    <!-- La banda verde de educación (S03Education.tsx · content.json › education), tal cual. -->
+    <template id="seccion_educacion" name="Baby Caleb: ¿Sabías que…?">
+        <section class="o_dcasa_educacion">
+            <div class="o_dcasa_container o_dcasa_educacion_inner">
+                <h2 class="o_dcasa_educacion_pregunta" data-titular="">¿Sabías que no es lo mismo 'libre de cloro' que 'sin cloro'?</h2>
+                <p class="o_dcasa_educacion_respuesta" data-anim="">Muchos pañales del mercado son ECF (Elemental Chlorine Free): no usan cloro puro, pero sí derivados del cloro para blanquear la pulpa. Nuestros pañales Nateen se fabrican sin cloro ni perfumes, con 100% fibras de bambú. Pregunta siempre qué lleva el pañal de tu bebé: #QUENOTENEGAÑEN.</p>
+            </div>
+        </section>
+    </template>
+
+    <!-- Lo que dicen las mamás (S11Testimonials.tsx · content.json › testimonials): de la dueña, publicados en su web,
+         copiados tal cual (nombre, papel, cita y resultado). -->
+    <template id="seccion_testimonios" name="Baby Caleb: lo que dicen las mamás">
+        <section class="o_dcasa_section o_dcasa_testimonios" aria-labelledby="dcasa-testimonios-titulo">
+            <div class="o_dcasa_container">
+                <div class="o_dcasa_section_head o_dcasa_section_head_centro">
+                    <div>
+                        <p class="o_dcasa_kicker">Experiencias reales</p>
+                        <h2 id="dcasa-testimonios-titulo" class="o_dcasa_h2" data-titular="">Lo que dicen nuestras mamás.</h2>
+                    </div>
+                </div>
+                <ul class="o_dcasa_testimonios_lista" role="list" data-anim-cascada="">
+                    <li>
+                        <figure class="o_dcasa_testimonio">
+                            <blockquote><p>“Desde que usamos Nateen, las irritaciones desaparecieron por completo. La talla XL fue un salvavidas.”</p></blockquote>
+                            <figcaption>
+                                <span><strong>Elizabeth M.</strong><span class="o_dcasa_testimonio_papel">Mamá de 2</span></span>
+                                <span class="o_dcasa_testimonio_resultado">Cero alergias</span>
+                            </figcaption>
+                        </figure>
+                    </li>
+                    <li>
+                        <figure class="o_dcasa_testimonio">
+                            <blockquote><p>“El servicio por WhatsApp es súper cercano. Me guiaron con la talla y la caja de wipes me dura muchísimo.”</p></blockquote>
+                            <figcaption>
+                                <span><strong>Ana C.</strong><span class="o_dcasa_testimonio_papel">Mamá primeriza</span></span>
+                                <span class="o_dcasa_testimonio_resultado">Talla correcta</span>
+                            </figcaption>
+                        </figure>
+                    </li>
+                    <li>
+                        <figure class="o_dcasa_testimonio">
+                            <blockquote><p>“Encontrar pañales para prematuro en Panamá fue un alivio enorme. Súper suaves, mi bebé duerme mejor.”</p></blockquote>
+                            <figcaption>
+                                <span><strong>Carla R.</strong><span class="o_dcasa_testimonio_papel">Mamá de prematuro</span></span>
+                                <span class="o_dcasa_testimonio_resultado">Piel calmada</span>
+                            </figcaption>
+                        </figure>
+                    </li>
+                </ul>
+            </div>
+        </section>
+    </template>
+
+    <!-- La banda verde final (S19CTA.tsx), con su frase y «Ver el catálogo». -->
+    <template id="seccion_cta_final" name="Baby Caleb: banda final">
+        <section class="o_dcasa_cta_final" aria-labelledby="dcasa-cta-final-titulo">
+            <div class="o_dcasa_container o_dcasa_cta_final_inner" data-anim-cascada="">
+                <h2 id="dcasa-cta-final-titulo" class="o_dcasa_cta_final_titulo">Dale a tu bebé el cuidado que su piel merece.</h2>
+                <div><a href="/shop" class="btn btn-primary btn-lg o_dcasa_btn_hero">Ver el catálogo</a></div>
+            </div>
+        </section>
+    </template>
+
+    <!-- Por qué Baby Caleb (S08Differentiators.tsx · content.json › differentiators). El cuarto dice «haces tu pedido en
+         la página» donde su web dice «pagas en la página»: aquí el pago se elige al pedir y el envío se cotiza. -->
+    <template id="seccion_diferenciadores" name="Baby Caleb: por qué Baby Caleb">
+        <section class="o_dcasa_section o_dcasa_diferenciadores" aria-labelledby="dcasa-diferenciadores-titulo">
+            <div class="o_dcasa_container">
+                <div class="o_dcasa_section_head">
+                    <div>
+                        <p class="o_dcasa_kicker">Por qué Baby Caleb</p>
+                        <h2 id="dcasa-diferenciadores-titulo" class="o_dcasa_h2" data-titular="">Más allá de un pañal, un servicio pensado para ti.</h2>
+                    </div>
+                </div>
+                <ol class="o_dcasa_diferenciadores_lista" role="list" data-anim-cascada="">
+                    <li class="o_dcasa_diferenciador">
+                        <span class="o_dcasa_diferenciador_numero" aria-hidden="true">01</span>
+                        <h3>Cajas para todo el mes</h3>
+                        <p>Vendemos en caja grande, no por paquete suelto: te sale más accesible y no te quedas sin pañales a mitad de mes.</p>
+                    </li>
+                    <li class="o_dcasa_diferenciador">
+                        <span class="o_dcasa_diferenciador_numero" aria-hidden="true">02</span>
+                        <h3>De recién nacido a XXL</h3>
+                        <p>Cubrimos desde recién nacidos y prematuros (talla RN, desde 4 libras) hasta niños de más de 55 libras — la talla XXL es difícil de conseguir en Panamá.</p>
+                    </li>
+                    <li class="o_dcasa_diferenciador">
+                        <span class="o_dcasa_diferenciador_numero" aria-hidden="true">03</span>
+                        <h3>Atención personal</h3>
+                        <p>Asesoría directa y humana por WhatsApp — te ayudamos a elegir la talla, nada de formularios.</p>
+                    </li>
+                    <li class="o_dcasa_diferenciador">
+                        <span class="o_dcasa_diferenciador_numero" aria-hidden="true">04</span>
+                        <h3>Delivery a domicilio</h3>
+                        <p>Vendemos 100% online: eliges, haces tu pedido en la página y te lo llevamos a domicilio en Ciudad de Panamá.</p>
+                    </li>
+                </ol>
+            </div>
+        </section>
+    </template>
+
+    <!-- Nuestra historia (S12Historia.tsx · content.json › about), con la cita y las tres cifras de su web: son de la
+         dueña, publicadas en babycaleb.com, no se inventan aquí. -->
+    <template id="seccion_historia" name="Baby Caleb: nuestra historia">
+        <section class="o_dcasa_section o_dcasa_historia" aria-labelledby="dcasa-historia-titulo">
+            <div class="o_dcasa_container o_dcasa_historia_grid">
+                <div class="o_dcasa_historia_texto" data-anim-cascada="">
+                    <div>
+                        <p class="o_dcasa_kicker">Nuestra historia</p>
+                        <h2 id="dcasa-historia-titulo" class="o_dcasa_h2">Cuidamos a los que más amas</h2>
+                    </div>
+                    <p class="o_dcasa_lead">Baby Caleb nació en 2024 en Panamá con una idea simple: que conseguir pañales y wipes verdaderamente hipoalergénicos no tenga que ser una odisea. Trabajamos con marcas de buena reputación —pañales y wipes Nateen, wipes de agua Dany Baby y fulares Moon— y vendemos en cajas que te alcanzan para todo el mes, con atención personal por WhatsApp y entrega a domicilio en Ciudad de Panamá.</p>
+                    <blockquote class="o_dcasa_historia_cita"><p>«En Baby Caleb Panamá pensamos en cada etapa de tu bebé.»</p></blockquote>
+                    <dl class="o_dcasa_historia_cifras">
+                        <div><dt>6</dt><dd>tallas, de RN a XXL</dd></div>
+                        <div><dt>2024</dt><dd>cuidando bebés en Panamá</dd></div>
+                        <div><dt>100%</dt><dd>online con delivery</dd></div>
+                    </dl>
+                </div>
+                <div class="o_dcasa_historia_visual">
+                    <div class="o_dcasa_historia_foto">
+                        <img src="/website_dcasa/static/src/img/promo-nateen-1200.webp"
+                             srcset="/website_dcasa/static/src/img/promo-nateen-800.webp 800w, /website_dcasa/static/src/img/promo-nateen-1200.webp 1200w"
+                             sizes="(min-width: 768px) 45vw, 100vw" width="1200" height="850" loading="lazy" decoding="async"
+                             alt="Familia Nateen — línea completa de pañales hipoalergénicos"/>
+                    </div>
+                    <img class="o_dcasa_historia_sello" src="/website_dcasa/static/src/img/sello-badge-224.webp"
+                         width="112" height="112" loading="lazy" decoding="async" alt="Baby Caleb"/>
+                </div>
+            </div>
+        </section>
+    </template>
+
+    <!-- Tips (S13Tips.tsx · content.json › tips): las seis lecturas con su foto. Su web cierra mandando al asistente del
+         chat; aquí el canal seguro es WhatsApp (el chat de la tienda depende de las llaves de Juan), así que el cierre
+         lleva ahí. -->
+    <template id="seccion_tips" name="Baby Caleb: tips">
+        <section class="o_dcasa_section o_dcasa_tips" aria-labelledby="dcasa-tips-titulo">
+            <div class="o_dcasa_container">
+                <div class="o_dcasa_section_head">
+                    <div>
+                        <p class="o_dcasa_kicker">Tips y educación</p>
+                        <h2 id="dcasa-tips-titulo" class="o_dcasa_h2" data-titular="">Cuidar la piel de tu bebé, mejor informada.</h2>
+                        <p class="o_dcasa_lead o_dcasa_section_descripcion">Lo que aprendimos vendiendo pañales hipoalergénicos, resumido en 6 lecturas breves.</p>
+                    </div>
+                </div>
+                <t t-set="dcasa_tips" t-value="[
+                    ('tip-panalitis', 'Tips para evitar la pañalitis', 'Cambios frecuentes, secado correcto y pañales transpirables: hábitos pequeños que evitan grandes irritaciones.'),
+                    ('tip-cloro', 'Pañal «libre de cloro» vs «sin cloro»', 'No es lo mismo. Te explicamos qué hay detrás de cada etiqueta para que no te la vendan con cuento.'),
+                    ('tip-senales-piel', 'La piel avisa antes de quejarse', '3 señales de que tu pañal actual podría estar irritando a tu bebé, y qué hacer antes de que empeore.'),
+                    ('tip-quien-se-beneficia', '¿Quién se beneficia más de un pañal hipoalergénico?', 'Recién nacidos, prematuros, piel sensible o historial familiar de alergias — quién debería probar el cambio.'),
+                    ('tip-wipes-caja', '¿Por qué comprar la caja de wipes?', 'Más toallitas por caja, menor costo por unidad y te alcanza para todo el mes.'),
+                    ('tip-pediatra', 'Cuándo consultar al pediatra', 'Irritación de más de 3 días, ampollas o fiebre: cuándo lo del pañal ya no es cosa del pañal.'),
+                ]"/>
+                <ul class="o_dcasa_tips_lista" role="list" data-anim-cascada="">
+                    <li t-foreach="dcasa_tips" t-as="tip">
+                        <article class="o_dcasa_tip">
+                            <div class="o_dcasa_tip_foto">
+                                <img t-att-src="'/website_dcasa/static/src/img/%s-720.webp' % tip[0]"
+                                     t-att-srcset="'/website_dcasa/static/src/img/%s-480.webp 480w, /website_dcasa/static/src/img/%s-720.webp 720w' % (tip[0], tip[0])"
+                                     sizes="(min-width: 992px) 30vw, (min-width: 576px) 46vw, 100vw"
+                                     width="720" height="900" t-att-loading="'eager' if tip_index &lt; 3 else 'lazy'" decoding="async"
+                                     t-att-alt="tip[1]"/>
+                            </div>
+                            <div class="o_dcasa_tip_cuerpo">
+                                <p class="o_dcasa_tip_numero">Tip <t t-out="'%02d' % (tip_index + 1)"/></p>
+                                <h3 t-out="tip[1]"/>
+                                <p t-out="tip[2]"/>
+                            </div>
+                        </article>
+                    </li>
+                </ul>
+                <p class="o_dcasa_tips_cierre">¿Tienes una duda que no está aquí?
+                    <a class="o_dcasa_link" href="/whatsapp" target="_blank" rel="noopener">Escríbenos por WhatsApp<span class="visually-hidden"> (se abre en una pestaña nueva)</span></a>
+                </p>
+            </div>
+        </section>
+    </template>
+
+    <!-- Cómo comprar (S16HowToBuy.tsx · content.json › howToBuy). Los pasos 02 y 03 dicen lo que este sistema hace: el
+         pago se elige al pedir (Yappy o transferencia) y el costo del envío se confirma por WhatsApp antes de cobrar.
+         Su web dice «paga con Yappy en la misma página» y «eliges tu zona al pagar». -->
+    <template id="seccion_como_comprar" name="Baby Caleb: cómo comprar">
+        <section class="o_dcasa_section o_dcasa_como_comprar" aria-labelledby="dcasa-como-comprar-titulo">
+            <div class="o_dcasa_container o_dcasa_como_comprar_grid">
+                <div>
+                    <p class="o_dcasa_kicker">Cómo comprar</p>
+                    <h2 id="dcasa-como-comprar-titulo" class="o_dcasa_h2" data-titular="">Simple, directo y sin complicaciones.</h2>
+                    <p class="o_dcasa_lead o_dcasa_section_descripcion">Hacer tu pedido es tan fácil como enviar un mensaje. Nosotros nos encargamos del resto.</p>
+                </div>
+                <ol class="o_dcasa_pasos" role="list" data-anim-cascada="">
+                    <li class="o_dcasa_paso">
+                        <p class="o_dcasa_paso_numero">Paso 01</p>
+                        <h3>Elige</h3>
+                        <p>Entra al catálogo y elige tu producto, tu presentación y tu talla. Si dudas con la talla, escríbenos por WhatsApp y te ayudamos.</p>
+                    </li>
+                    <li class="o_dcasa_paso">
+                        <p class="o_dcasa_paso_numero">Paso 02</p>
+                        <h3>Pide</h3>
+                        <p>Agrégalo al carrito y haz tu pedido aquí mismo: eliges si pagas con Yappy o por transferencia. El costo del envío te lo confirmamos por WhatsApp antes de cobrar.</p>
+                    </li>
+                    <li class="o_dcasa_paso">
+                        <p class="o_dcasa_paso_numero">Paso 03</p>
+                        <h3>Recibe</h3>
+                        <p>Te lo llevamos a domicilio en Ciudad de Panamá, en la fecha que coordinamos contigo.</p>
+                    </li>
+                </ol>
+            </div>
+        </section>
+    </template>
+
+    <!-- Preguntas frecuentes (S14FAQ.tsx · content.json › faq). <details> en lugar de su acordeón de React: se abre y se
+         cierra con el teclado y sin JavaScript, y el lector de pantalla anuncia si está abierta. Dos respuestas dicen lo
+         que este sistema hace (la de la tienda física y la del delivery); el resto, tal cual. -->
+    <template id="seccion_preguntas" name="Baby Caleb: preguntas frecuentes">
+        <t t-set="dcasa_preguntas" t-value="website._dcasa_preguntas()"/>
+        <section class="o_dcasa_section o_dcasa_preguntas" aria-labelledby="dcasa-preguntas-titulo">
+            <div class="o_dcasa_container">
+                <div class="o_dcasa_section_head o_dcasa_section_head_centro">
+                    <div>
+                        <p class="o_dcasa_kicker">Preguntas frecuentes</p>
+                        <h2 id="dcasa-preguntas-titulo" class="o_dcasa_h2" data-titular="">Resolvemos tus dudas.</h2>
+                    </div>
+                </div>
+                <div class="o_dcasa_preguntas_lista" data-anim-cascada="">
+                    <details t-foreach="dcasa_preguntas" t-as="pregunta" class="o_dcasa_pregunta">
+                        <summary>
+                            <span t-out="pregunta[0]"/>
+                            <svg class="o_dcasa_pregunta_flecha" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+                        </summary>
+                        <p t-out="pregunta[1]"/>
+                    </details>
+                </div>
+            </div>
+        </section>
+        <!-- Para Google: las mismas preguntas como FAQPage (src/pages/FAQ.tsx). Solo en /faq, que es la página de las
+             preguntas (dcasa_faq_json_ld). -->
+        <script t-if="dcasa_faq_json_ld" type="application/ld+json" t-out="website._dcasa_faq_json_ld()"/>
+    </template>
+
+    <!-- ==================================================================================================== -->
+    <!-- Páginas (src/pages/*.tsx), con el título y la descripción de su web (src/seo/rutas.ts)              -->
+    <!-- ==================================================================================================== -->
+
+    <!-- El esqueleto común: la cabecera flota encima (como en todas las de su web), el titular de la página es solo para
+         el lector de pantalla y los buscadores (su web hace lo mismo: <h1 className="sr-only">) y cierra la banda final. -->
+    <template id="pagina_baby_caleb" name="Baby Caleb: página">
+        <t t-call="website.layout">
+            <t t-set="dcasa_header_overlay" t-value="True"/>
+            <div id="wrap" t-attf-class="o_dcasa_pagina_bc o_dcasa_pagina_#{dcasa_pagina}">
+                <h1 class="visually-hidden" t-out="dcasa_h1"/>
+                <t t-out="0"/>
+                <t t-call="website_dcasa.seccion_cta_final"/>
+            </div>
+        </t>
+    </template>
+
+    <template id="pagina_beneficios" name="Beneficios">
+        <t t-call="website_dcasa.pagina_baby_caleb">
+            <t t-set="pageName" t-value="'beneficios'"/>
+            <t t-set="dcasa_pagina" t-value="'beneficios'"/>
+            <t t-set="title">Beneficios | Pañales hipoalergénicos Nateen — Baby Caleb Panamá</t>
+            <t t-set="website_meta_description">Cajas para todo el mes, tallas de RN a XXL, atención personal por WhatsApp y delivery a domicilio. Descubre por qué las familias eligen Baby Caleb.</t>
+            <t t-set="dcasa_h1">Beneficios de los pañales hipoalergénicos Nateen</t>
+            <t t-call="website_dcasa.seccion_diferenciadores"/>
+            <t t-call="website_dcasa.seccion_testimonios"/>
+        </t>
+    </template>
+
+    <template id="pagina_historia" name="Historia">
+        <t t-call="website_dcasa.pagina_baby_caleb">
+            <t t-set="pageName" t-value="'historia'"/>
+            <t t-set="dcasa_pagina" t-value="'historia'"/>
+            <t t-set="title">Nuestra historia | Baby Caleb Panamá</t>
+            <t t-set="website_meta_description">Baby Caleb nació en 2024 en Panamá para que conseguir pañales y wipes hipoalergénicos deje de ser una odisea. Marcas de confianza, cajas para todo el mes y delivery.</t>
+            <t t-set="dcasa_h1">Nuestra historia</t>
+            <t t-call="website_dcasa.seccion_historia"/>
+            <t t-call="website_dcasa.seccion_sellos"/>
+            <t t-call="website_dcasa.seccion_educacion"/>
+        </t>
+    </template>
+
+    <template id="pagina_tips" name="Tips">
+        <t t-call="website_dcasa.pagina_baby_caleb">
+            <t t-set="pageName" t-value="'tips'"/>
+            <t t-set="dcasa_pagina" t-value="'tips'"/>
+            <t t-set="title">Tips y cuidado de la piel del bebé | Baby Caleb Panamá</t>
+            <t t-set="website_meta_description">Consejos prácticos para evitar la pañalitis, entender qué significa «sin cloro» y reconocer señales de irritación en la piel de tu bebé.</t>
+            <t t-set="dcasa_h1">Tips para cuidar la piel de tu bebé</t>
+            <t t-call="website_dcasa.seccion_tips"/>
+            <t t-call="website_dcasa.seccion_educacion"/>
+        </t>
+    </template>
+
+    <!-- «Haz tu pedido por WhatsApp en 3 pasos» de su descripción pasa a «en 3 pasos»: aquí el pedido se hace en la
+         página y WhatsApp es para la talla y el envío. -->
+    <template id="pagina_como_comprar" name="Cómo comprar">
+        <t t-call="website_dcasa.pagina_baby_caleb">
+            <t t-set="pageName" t-value="'como-comprar'"/>
+            <t t-set="dcasa_pagina" t-value="'como_comprar'"/>
+            <t t-set="title">Cómo comprar | Baby Caleb Panamá</t>
+            <t t-set="website_meta_description">Haz tu pedido en 3 pasos. Vendemos 100% online con entrega a domicilio en Ciudad de Panamá.</t>
+            <t t-set="dcasa_h1">Cómo comprar en Baby Caleb</t>
+            <t t-call="website_dcasa.seccion_como_comprar"/>
+            <t t-call="website_dcasa.seccion_visitanos"/>
+        </t>
+    </template>
+
+    <template id="pagina_faq" name="Preguntas frecuentes">
+        <t t-call="website_dcasa.pagina_baby_caleb">
+            <t t-set="pageName" t-value="'faq'"/>
+            <t t-set="dcasa_pagina" t-value="'faq'"/>
+            <t t-set="title">Preguntas frecuentes | Baby Caleb Panamá</t>
+            <t t-set="website_meta_description">Tallas por peso de RN a XXL, diferencia entre hipoalergénico y sin cloro, ingredientes de los wipes y cómo funciona el delivery. Resolvemos tus dudas.</t>
+            <t t-set="dcasa_h1">Preguntas frecuentes</t>
+            <t t-set="dcasa_faq_json_ld" t-value="True"/>
+            <t t-call="website_dcasa.seccion_preguntas"/>
+        </t>
+    </template>
+</odoo>

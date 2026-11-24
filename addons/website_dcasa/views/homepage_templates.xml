@@ -360,50 +360,30 @@
                                      alt="Bebé recién nacido cuidado con Nateen"/>
                                 <!-- La píldora verde que flota sobre la foto en babycaleb.com (S02Hero.tsx). -->
                                 <span class="o_dcasa_hero_pildora"><span class="o_dcasa_punto" aria-hidden="true"/>Sin cloro · Sin perfumes</span>
+                                <!-- La tarjetita de su web (S02Hero.tsx): «Desde talla RN · Pañal Nateen · Desde $…», con el
+                                     menor precio de los Nateen de cierre leído de Odoo; lleva a su ficha. Sin nada
+                                     publicado, no sale (website._dcasa_hero_tarjeta). -->
+                                <t t-set="dcasa_tarjeta" t-value="website._dcasa_hero_tarjeta()"/>
+                                <a t-if="dcasa_tarjeta" t-att-href="dcasa_tarjeta['url']" class="o_dcasa_hero_tarjeta">
+                                    <img src="/website_dcasa/static/src/img/panal-nateen-tarjeta.webp" width="64" height="64"
+                                         loading="eager" decoding="async" alt=""/>
+                                    <span class="o_dcasa_hero_tarjeta_texto">
+                                        <span class="o_dcasa_hero_tarjeta_talla">Desde talla RN</span>
+                                        <span class="o_dcasa_hero_tarjeta_nombre">Pañal Nateen</span>
+                                        <span class="o_dcasa_hero_tarjeta_precio">Desde <span t-out="dcasa_tarjeta['desde']" t-options="{'widget': 'monetary', 'display_currency': dcasa_tarjeta['moneda']}"/></span>
+                                    </span>
+                                </a>
                             </div>
                         </div>
                     </section>
                 </div>
                 </t>
 
-                <!-- 2. Los cuatro sellos (content.json › trust), con los íconos de lucide de su web (leaf, droplet-off,
-                     recycle, heart; licencia ISC) en un círculo crema. Lleva la clase o_dcasa_beneficios de siempre: la
-                     reconoce Brian de la tienda (dcasa_brian_tienda). -->
-                <div class="oe_structure" id="oe_structure_dcasa_beneficios">
-                    <section class="o_dcasa_beneficios o_dcasa_confianza" data-snippet="s_text_block" data-name="Sellos"
-                             aria-label="Lo que distingue a nuestros productos">
-                        <div class="o_dcasa_container">
-                            <ul class="o_dcasa_confianza_lista" role="list" data-anim-cascada="">
-                                <li>
-                                    <span class="o_dcasa_confianza_icono" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg></span>
-                                    <span class="o_dcasa_confianza_texto">Hipoalergénico</span>
-                                </li>
-                                <li>
-                                    <span class="o_dcasa_confianza_icono" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M18.715 13.186C18.29 11.858 17.384 10.607 16 9.5c-2-1.6-3.5-4-4-6.5a10.7 10.7 0 0 1-.884 2.586"/><path d="m2 2 20 20"/><path d="M8.795 8.797A11 11 0 0 1 8 9.5C6 11.1 5 13 5 15a7 7 0 0 0 13.222 3.208"/></svg></span>
-                                    <span class="o_dcasa_confianza_texto">Sin cloro</span>
-                                </li>
-                                <li>
-                                    <span class="o_dcasa_confianza_icono" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 19H4.815a1.83 1.83 0 0 1-1.57-.881 1.785 1.785 0 0 1-.004-1.784L7.196 9.5"/><path d="M11 19h8.203a1.83 1.83 0 0 0 1.556-.89 1.784 1.784 0 0 0 0-1.775l-1.226-2.12"/><path d="m14 16-3 3 3 3"/><path d="M8.293 13.596 7.196 9.5 3.1 10.598"/><path d="m9.344 5.811 1.093-1.892A1.83 1.83 0 0 1 11.985 3a1.784 1.784 0 0 1 1.546.888l3.943 6.843"/><path d="m13.378 9.633 4.096 1.098 1.097-4.096"/></svg></span>
-                                    <span class="o_dcasa_confianza_texto">Biodegradable</span>
-                                </li>
-                                <li>
-                                    <span class="o_dcasa_confianza_icono" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg></span>
-                                    <span class="o_dcasa_confianza_texto">Piel sensible</span>
-                                </li>
-                            </ul>
-                        </div>
-                    </section>
-                </div>
+                <!-- 2. Los cuatro sellos (views/paginas_baby_caleb_templates.xml: la misma sección sale en /historia). -->
+                <t t-call="website_dcasa.seccion_sellos"/>
 
-                <!-- 3. La banda verde de educación (content.json › education), tal cual. -->
-                <div class="oe_structure" id="oe_structure_dcasa_educacion">
-                    <section class="o_dcasa_educacion" data-snippet="s_text_block" data-name="¿Sabías que…?">
-                        <div class="o_dcasa_container o_dcasa_educacion_inner">
-                            <h2 class="o_dcasa_educacion_pregunta" data-titular="">¿Sabías que no es lo mismo 'libre de cloro' que 'sin cloro'?</h2>
-                            <p class="o_dcasa_educacion_respuesta" data-anim="">Muchos pañales del mercado son ECF (Elemental Chlorine Free): no usan cloro puro, pero sí derivados del cloro para blanquear la pulpa. Nuestros pañales Nateen se fabrican sin cloro ni perfumes, con 100% fibras de bambú. Pregunta siempre qué lleva el pañal de tu bebé: #QUENOTENEGAÑEN.</p>
-                        </div>
-                    </section>
-                </div>
+                <!-- 3. La banda verde de educación (también en /historia y /tips). -->
+                <t t-call="website_dcasa.seccion_educacion"/>
 
                 <!-- 4. Los productos (dinámico: los de la tienda, con su precio de Odoo y «Agregar» de un clic). La campaña
                      del sitio, si está activa, va justo antes (models/black_weekend.py). -->
@@ -415,116 +395,24 @@
                     <t t-set="enlace" t-value="'/shop'"/>
                 </t>
 
-                <!-- 5. Lo que dicen las mamás (content.json › testimonials): de la dueña, publicados en su web, copiados tal
-                     cual (nombre, papel, cita y resultado). -->
-                <div class="oe_structure" id="oe_structure_dcasa_testimonios">
-                    <section class="o_dcasa_section o_dcasa_testimonios" data-snippet="s_text_block" data-name="Lo que dicen las mamás"
-                             aria-labelledby="dcasa-testimonios-titulo">
-                        <div class="o_dcasa_container">
-                            <div class="o_dcasa_section_head o_dcasa_section_head_centro">
-                                <div>
-                                    <p class="o_dcasa_kicker">Experiencias reales</p>
-                                    <h2 id="dcasa-testimonios-titulo" class="o_dcasa_h2" data-titular="">Lo que dicen nuestras mamás.</h2>
-                                </div>
-                            </div>
-                            <ul class="o_dcasa_testimonios_lista" role="list" data-anim-cascada="">
-                                <li>
-                                    <figure class="o_dcasa_testimonio">
-                                        <blockquote><p>“Desde que usamos Nateen, las irritaciones desaparecieron por completo. La talla XL fue un salvavidas.”</p></blockquote>
-                                        <figcaption>
-                                            <span><strong>Elizabeth M.</strong><span class="o_dcasa_testimonio_papel">Mamá de 2</span></span>
-                                            <span class="o_dcasa_testimonio_resultado">Cero alergias</span>
-                                        </figcaption>
-                                    </figure>
-                                </li>
-                                <li>
-                                    <figure class="o_dcasa_testimonio">
-                                        <blockquote><p>“El servicio por WhatsApp es súper cercano. Me guiaron con la talla y la caja de wipes me dura muchísimo.”</p></blockquote>
-                                        <figcaption>
-                                            <span><strong>Ana C.</strong><span class="o_dcasa_testimonio_papel">Mamá primeriza</span></span>
-                                            <span class="o_dcasa_testimonio_resultado">Talla correcta</span>
-                                        </figcaption>
-                                    </figure>
-                                </li>
-                                <li>
-                                    <figure class="o_dcasa_testimonio">
-                                        <blockquote><p>“Encontrar pañales para prematuro en Panamá fue un alivio enorme. Súper suaves, mi bebé duerme mejor.”</p></blockquote>
-                                        <figcaption>
-                                            <span><strong>Carla R.</strong><span class="o_dcasa_testimonio_papel">Mamá de prematuro</span></span>
-                                            <span class="o_dcasa_testimonio_resultado">Piel calmada</span>
-                                        </figcaption>
-                                    </figure>
-                                </li>
-                            </ul>
-                        </div>
-                    </section>
-                </div>
+                <!-- 5. Lo que dicen las mamás (también en /beneficios). -->
+                <t t-call="website_dcasa.seccion_testimonios"/>
 
                 <!-- 5b. Opiniones reales de Google (dinámico: data/resenas.json; sin opiniones, no sale). -->
                 <t t-call="website_dcasa.resenas_google"/>
 
-                <!-- 5c. Socios (dinámico: cifras de puntos.json). -->
-                <t t-call="website_dcasa.seccion_socios"/>
+                <!-- 5c. Socios: solo con las cifras del programa puestas (website._dcasa_socios_con_cifras). La portada de
+                     babycaleb.com no la tiene y hoy todo está en PENDIENTE: no sale. Socios sigue en el pie y en /socios. -->
+                <t t-if="website._dcasa_socios_con_cifras()" t-call="website_dcasa.seccion_socios"/>
 
                 <!-- 6. Cobertura (dinámico: teléfono y horario de los Ajustes; fuera del bloque editable: el ancla
                      #visitanos no debe perderse al guardar desde el editor). -->
                 <t t-call="website_dcasa.seccion_visitanos"/>
 
-                <!-- 7. La banda verde final de babycaleb.com (S19CTA.tsx), con su frase y «Ver el catálogo». -->
-                <div class="oe_structure" id="oe_structure_dcasa_cta_final">
-                    <section class="o_dcasa_cta_final" data-snippet="s_text_block" data-name="Banda final">
-                        <div class="o_dcasa_container o_dcasa_cta_final_inner" data-anim-cascada="">
-                            <h2 class="o_dcasa_cta_final_titulo">Dale a tu bebé el cuidado que su piel merece.</h2>
-                            <div><a href="/shop" class="btn btn-primary btn-lg o_dcasa_btn_hero">Ver el catálogo</a></div>
-                        </div>
-                    </section>
-                </div>
+                <!-- 7. La banda verde final de babycaleb.com (S19CTA.tsx); cierra también cada página interior. -->
+                <t t-call="website_dcasa.seccion_cta_final"/>
 
-                <!-- 8. Preguntas frecuentes (editable): las de la web de Baby Caleb (content.json › faq), tal cual. Sin
-                     «¿Cuánto cuesta el delivery?»: allá se elige la zona y se ve el costo al pagar; aquí la entrega se
-                     cotiza por WhatsApp. -->
-                <div class="oe_structure" id="oe_structure_dcasa_inspira">
-                    <section class="o_dcasa_section o_dcasa_ayuda" data-snippet="s_text_block" data-name="Preguntas frecuentes">
-                        <div class="o_dcasa_container o_dcasa_split_grid o_dcasa_split_top">
-                            <div>
-                                <p class="o_dcasa_kicker">Preguntas frecuentes</p>
-                                <h2 class="o_dcasa_h2" data-titular="">Lo que más nos preguntan</h2>
-                            </div>
-                            <div>
-                                <div class="o_dcasa_faq" data-anim-cascada="">
-                                    <details>
-                                        <summary>¿Cómo sé qué talla necesita mi bebé?</summary>
-                                        <p>Las tallas van por peso: RN (4-11 lb), S (6-13 lb), M (8-19 lb), L (15-39 lb), XL (26-55 lb) y XXL (más de 55 lb). Para prematuros y recién nacidos es la talla RN. En pants: L (19-31 lb), XL (26-37.5 lb) y XXL (más de 33 lb). Si dudas, escríbenos por WhatsApp y te asesoramos.</p>
-                                    </details>
-                                    <details>
-                                        <summary>¿Tienen talla XXL?</summary>
-                                        <p>Sí. Manejamos la talla XXL para niños de más de 55 libras, una talla que casi no se consigue en Panamá. Caja de 112 unidades.</p>
-                                    </details>
-                                    <details>
-                                        <summary>¿Por qué venden en caja y no por paquete?</summary>
-                                        <p>Porque la caja te alcanza para todo el mes y el costo por pañal te sale más accesible que comprando paquete por paquete. Solo vendemos cajas completas, así que antes de pedir te ayudamos por WhatsApp a elegir bien la talla según el peso de tu bebé.</p>
-                                    </details>
-                                    <details>
-                                        <summary>¿Cuál es la diferencia entre hipoalergénico y sin cloro?</summary>
-                                        <p>Hipoalergénico significa que tiene bajo riesgo de causar alergias. Sin cloro significa que no se usaron compuestos de cloro para blanquear la pulpa del pañal. Nuestros pañales Nateen son las dos cosas: hipoalergénicos y sin cloro ni perfumes.</p>
-                                    </details>
-                                    <details>
-                                        <summary>¿Los wipes tienen alcohol o parabenos?</summary>
-                                        <p>No. Nuestros wipes son hipoalergénicos, sin alcohol, sin parabenos y sin perfumes. Los wipes de agua Dany Baby son 99% agua pura, ideales para recién nacidos.</p>
-                                    </details>
-                                    <details>
-                                        <summary>¿Tienen tienda física?</summary>
-                                        <p>Hoy vendemos únicamente online: haces tu pedido aquí mismo en la página, pagas con Yappy y te lo entregamos por delivery en Ciudad de Panamá.</p>
-                                    </details>
-                                    <details>
-                                        <summary>¿Los pañales son biodegradables?</summary>
-                                        <p>Sí — Nateen fabrica sus pañales con 100% fibras de bambú, biodegradables, transpirables y sin cloro ni perfumes.</p>
-                                    </details>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-                </div>
+                <!-- (Las preguntas frecuentes viven en /faq desde el 2026-11-24, como en babycaleb.com.) -->
             </div>
         </xpath>
     </template>

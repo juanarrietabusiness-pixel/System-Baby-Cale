@@ -13,7 +13,13 @@
          las páginas anónimas, así que el enlace no puede depender de la sesión del PIN. Allí se elige cómo entrar. -->
     <template id="cabecera_mi_cuenta" inherit_id="portal.user_sign_in" name="Mi cuenta: enlace de la cabecera">
         <xpath expr="//a" position="replace">
-            <a href="/mi-cuenta" t-attf-class="#{_link_class}">Mi cuenta</a>
+            <!-- En la pastilla de la computadora, la persona de lucide (User) en un círculo de 44 px, como la bolsa; en el
+                 menú del celular, el texto (website_dcasa/static/src/scss/dcasa.scss, «Cabecera»). El texto está siempre:
+                 es el nombre accesible. -->
+            <a href="/mi-cuenta" t-attf-class="#{_link_class} o_dcasa_cuenta" title="Mi cuenta">
+                <svg class="o_dcasa_icono" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                <span class="o_dcasa_cuenta_texto">Mi cuenta</span>
+            </a>
         </xpath>
     </template>
 

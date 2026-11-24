@@ -149,7 +149,7 @@ MEDIR = """
             hamburguesa: { visible: visible(hamburguesa), icono: icono ? cs(icono).backgroundImage : null,
                            filtroIcono: icono ? cs(icono).filter : null },
             cta: nav.querySelector('.btn_cta') ? true : null,
-            logo: !!nav.querySelector('.navbar-brand img[src*="logo-200.webp"]'),
+            logo: !!nav.querySelector('.navbar-brand img'),
             cabecera: rect(cabecera),
         };
         const hero = document.querySelector('.o_dcasa_hero:not(.o_dcasa_hero_compacto)');
@@ -397,7 +397,7 @@ class TestContratoVisual(HttpCase):
         self.assertEqual(p['sombra'], VIDRIO['sombra'], 'la sombra larga de su pastilla')
         self.assertEqual(p['radio'], RADIO_PILDORA, 'esquinas del vidrio')
         self.assertEqual(p['radioNav'], RADIO_PILDORA, 'esquinas del nav')
-        self.assertTrue(m['logo'], 'el sello del logo en WebP, al lado de la marca')
+        self.assertFalse(m['logo'], 'solo el nombre escrito, sin el sello (S01Nav.tsx, 2026-11-24)')
         self.assertIsNone(m['cta'], 'sin botón «Escríbenos» en la pastilla')
         marca = m['marca']
         self.assertTrue(marca, 'la marca escrita en la pastilla')
