@@ -9,6 +9,16 @@ programar y se pone al día al terminar.
 > y si fue de verdad o de prueba. Solo con las cuatro respuestas correctas el pedido queda pagado. Lo que llegue por el
 > navegador o por un aviso nunca decide nada por sí solo.
 
+> **En la copia de Baby Caleb** (traído de D'CASA tal cual, como espejo, el 2026-11-24; **nace apagado**): donde este
+> documento dice el Worker `dcasa`, léase **`sistemabk`** (producción), y `dcasa-staging` es **`sistemabk-staging`**. Los
+> nombres de los secretos y las variables **no cambian** (`TILOPAY_API_KEY`, `TILOPAY_API_USER`, `TILOPAY_API_PASSWORD`,
+> `TILOPAY_ENTORNO`, `DCASA_ENTORNO`). Staging ya trae `TILOPAY_ENTORNO=prueba` fijado en `edge/wrangler.jsonc`. El dominio
+> que se registra en Tilopay (§6.3) es la dirección donde cobra el sistema: hoy la `workers.dev` de cada Worker
+> (`sistemabk-staging.juanarrietabusiness.workers.dev` y `sistemabk.juanarrietabusiness.workers.dev`), y `babycaleb.com` el día
+> que se mueva el dominio ([DOMINIO.md](DOMINIO.md)). La web actual de babycaleb.com ya cobra con Tilopay (BABY_CALEB.md ›
+> Pendiente): usar aquí la misma cuenta lo decide el dueño. El pago se ve con la marca de Baby Caleb
+> (`website_dcasa/static/src/scss/pago.scss`).
+
 ## 1. Estado y alcance
 
 | Pieza | Estado |

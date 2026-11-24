@@ -8,6 +8,17 @@ y las trampas que ya se conocen.
 > app**. Yappy le avisa a Odoo de servidor a servidor con un aviso **firmado**; **solo ese aviso con la firma correcta**
 > deja el pedido pagado. Lo que diga el navegador («pago exitoso») nunca decide nada.
 
+> **En la copia de Baby Caleb** (traído de D'CASA tal cual, como espejo, el 2026-11-24; **nace apagado**): donde este
+> documento dice el Worker `dcasa`, léase **`sistemabk`** (producción), y `dcasa-staging` es **`sistemabk-staging`**. Los
+> nombres de los secretos y las variables **no cambian** (`YAPPY_ID_COMERCIO`, `YAPPY_CLAVE_SECRETA`, `YAPPY_DOMINIO`,
+> `YAPPY_ENTORNO`, `YAPPY_URL_BASE`, `DCASA_ENTORNO`). Staging ya trae fijados en `edge/wrangler.jsonc`
+> `YAPPY_ENTORNO=prueba` y `YAPPY_URL_BASE=https://sistemabk-staging.juanarrietabusiness.workers.dev`: en esta copia
+> `web.base.url` de staging ya es esa misma dirección (`CANONICAL_HOST`), así que el aviso de Yappy llega sin el problema de
+> `staging.dcasapty.com` que cuenta §6 y §7 B. `YAPPY_DOMINIO` es el dominio que se escriba al crear el botón para **este**
+> sistema, letra por letra: hoy la dirección `workers.dev` del Worker donde se cobra, y `babycaleb.com` el día que se mueva
+> el dominio ([DOMINIO.md](DOMINIO.md)). La web actual de babycaleb.com ya cobra con Yappy (BABY_CALEB.md › Pendiente): usar
+> aquí sus mismas credenciales, o un botón nuevo, lo decide el dueño.
+
 ## 1. Estado y alcance
 
 | Pieza | Estado |

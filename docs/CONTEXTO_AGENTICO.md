@@ -762,6 +762,23 @@ provocan a propósito: ruido). El resultado real está en la línea `✖ Fallaro
 
 ### Esta máquina (sesiones de Claude)
 
+- **Traer commits de D'CASA a la copia de Baby Caleb (2026-11-24, #130 y #131: pagos, comisión web, reportes).**
+  - **Dos migraciones con el mismo número.** D'CASA subió `dcasa_base` a la 19.0.1.10.0 con su migración (el origen de los
+    pedidos) y esta copia ya tenía su propia 19.0.1.10.0 (los colores de la marca), que staging ya había corrido: con el
+    mismo número, la de D'CASA nunca habría corrido en staging. Va en la 19.0.1.11.0. Al traer algo de D'CASA, comparar
+    las versiones de cada `__manifest__.py` y las carpetas `migrations/` de los dos lados antes de resolver.
+  - **Una hoja nueva de D'CASA que usa variables que esta copia ya no tiene no compila, y tumba TODO el sitio.** `pago.scss`
+    usaba `$dcasa-azul`, `$dcasa-navy`, `$dcasa-hueso`…, que la marca de Baby Caleb quitó de `dcasa.scss`: el paquete de
+    estilos del sitio entero falla, no solo el pago. Cada hoja nueva de D'CASA se pasa a los tokens `$bc-*` antes de
+    instalar (y `test_website_dcasa` revisa también `pago.scss`).
+  - **Un cambio de texto de D'CASA puede entrar sin conflicto.** «Busca un mueble» (el buscador), «Seguir viendo muebles»,
+    «Un mueble vendido» y «combo cama + colchón» entraron limpios porque esta copia no había tocado esas líneas. Después
+    de resolver los conflictos, buscar en lo añadido `mueble`, `colch`, `cama`, `D'CASA`, `#1340B1`, `Anton`, `Oswald` e
+    `Inter`.
+  - **El ayudante quedó en una copia de trabajo de `D_Casa_new_word`, no de esta.** La rama se armó allí con
+    `git fetch /home/user/System-Baby-Cale claude/nifty-keller-k8rcmz` (las dos historias comparten `d2ba8ca`), y para
+    juntarla hay que traerla de ese repositorio.
+
 - **Marca Baby Caleb y la web de babycaleb.com (2026-11-19 al 24): lo que mordió.**
   - **`Write` sobre un archivo que ya existía.** `views/paginas_templates.xml` ya era la plantilla de Contacto y se
     pisó al crear las páginas nuevas. Se recuperó con `git checkout --` antes de commitear. Antes de crear un archivo,
