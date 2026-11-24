@@ -1,5 +1,8 @@
 # CLAUDE.md — reglas de este repositorio
 
+> **Regla número 1 del dueño (2026-11-24): responderle SIEMPRE en español**, en palabras sencillas, también los
+> avisos cortos de avance y los resúmenes. Nada de inglés en lo que él lee.
+
 > **Esta es la copia de Baby Caleb** (espejo de D'CASA del 2026-11-18, en adecuación). Antes que nada, leer
 > `docs/BABY_CALEB.md`: qué se cambió, qué decidió el dueño y qué está pendiente. Donde este archivo hable de D'CASA y
 > `docs/BABY_CALEB.md` diga otra cosa, manda `docs/BABY_CALEB.md`.
