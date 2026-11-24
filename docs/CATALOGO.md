@@ -46,21 +46,26 @@ de la web (`content.json`: «Caja L, 15 a 39 lb, 128 uds»).
 - **Categorías** (`data/product_category_data.xml` y `data/product_public_category_data.xml`): Pañales, Toallitas
   húmedas y Fulares, internas y de la tienda. Las reglas por nombre (`reglas.CATEGORIAS`: pañal, toallita/wipes,
   fular/portabebé) son las mismas para el inventario anterior y para la importación de Brian.
-- **Sin fotos**: el dueño las sube a mano en Odoo. Lo que no tiene foto queda en inventario **sin publicar** en la
-  tienda (la regla de siempre); se publica desde la ficha (o con Brian) cuando ya tiene su foto. Mientras tanto Juan no
-  da nombre ni precio de lo no publicado: dice que está en el sistema y pasa la conversación a una vendedora.
+- **Fotos** (pedido del dueño, 2026-11-24: «sube las fotos de Baby Caleb y publica los productos»): las de la web de
+  Baby Caleb (`content.json` › `products` › `image` y la de cada talla, `public/img/`), pasadas a JPEG o a PNG (si
+  tienen transparencia) en `data/fotos/`, porque Odoo no saca los tamaños chicos de un WEBP. En el JSON, `foto` es la
+  principal del producto y, en cada talla, `foto` y `fotos_extra` (su segunda foto). `poner_fotos` las pone al
+  instalar y en la migración 19.0.2.1.0, **solo donde no hay ninguna**, y **publica lo que recibe su foto
+  principal**. Una foto que puso una persona no se cambia y a ese producto no se le toca la publicación.
+  - Publicados: Pañales Nateen de cierre (RN a XXL), Pañales Nateen Pants (L, XL y XXL) y Water wipes Nateen.
+  - **Sin foto y sin publicar** (`origen_foto` dice por qué): Velvee (no está en la web de Baby Caleb), Dany Baby (la
+    web muestra el logo en su lugar) y Fular Moon (la web muestra un aviso, «Foto próximamente»). Un aviso o el logo no
+    se ponen como foto: el producto parecería tenerla y saldría de «fotos que faltan». Se publican desde la ficha (o con
+    Brian) cuando tengan su foto. Mientras tanto Juan no da nombre ni precio de lo no publicado: dice que está en el
+    sistema y pasa la conversación a una vendedora.
 
-### Qué muestra la web mientras tanto
+### Qué muestra la web
 
-La web no se rediseñó. Las categorías de muebles de D'CASA siguen existiendo (vacías) en `dcasa_base` y
-`website_dcasa`: la portada las nombra por xmlid (`CATEGORIAS_PORTADA`, el carril «Para dormir mejor») y unas 25
-pruebas de la web las usan. Un visitante no ve una categoría vacía en la tienda (regla de Odoo). En la portada:
-
-- «Compra por espacio» sigue mostrando las tarjetas de D'CASA (Salas, Recámaras, Colchones…, con sus fotos de muebles):
-  sin nada publicado, cada una abre WhatsApp con el mensaje listo en vez de una página vacía.
-- Los carriles «Lo más buscado» y «Para dormir mejor» salen vacíos hasta que se publique algo (y el segundo solo
-  muestra recámaras y colchones).
-- Cambiar esas tarjetas, sus fotos y el carril por los de Baby Caleb es trabajo de la web (marca), no del catálogo.
+Desde el 2026-11-24 la web es la de Baby Caleb (`docs/MARCA_BABY_CALEB.md` › «La web pública»): sin las tarjetas de
+muebles ni «Para dormir mejor». Con los productos publicados salen «Lo más buscado» y, en el hero, la tarjetita
+«Desde talla RN · Pañal Nateen · Desde $…», con el precio más bajo de los Nateen de cierre publicados. Las categorías de
+muebles de D'CASA siguen existiendo (vacías) en `dcasa_base` y `website_dcasa`, porque unas 25 pruebas las usan; un
+visitante no ve una categoría vacía en la tienda (regla de Odoo).
 
 ### Preguntas pendientes para el dueño
 
@@ -73,11 +78,13 @@ pruebas de la web las usan. Un visitante no ve una categoría vacía en la tiend
    clienta pagaría el precio de la lista **más** 7 % (NAT-M: $50.00 + $3.50).
 4. **Categorías**: ¿bastan Pañales, Toallitas húmedas y Fulares? ¿Se quitan las de muebles de D'CASA de la portada y de
    la tienda (trabajo de la web)?
-5. **Water wipes Nateen**: la web lo marca «descatalogado» y la lista trae 15 cajas. ¿Se vende?
+5. **Water wipes Nateen**: la web lo marca «descatalogado» y la lista trae 15 cajas. ¿Se vende? Desde el 2026-11-24
+   está publicado (el dueño pidió publicar los productos y tiene su foto); si ya no se vende, se despublica en su
+   ficha.
 6. **Dany Baby**: la web dice «12 paquetes de 50» y la lista «6 paquetes de 100». ¿Cuál es? (la web hay que corregirla).
 7. **Velvee** no está en la web de Baby Caleb. ¿Se agrega?
-8. **Publicar sin foto**: hoy nada se publica hasta tener foto. ¿Se publican ya (sin foto) para que Juan y la tienda los
-   ofrezcan?
+8. ~~**Publicar sin foto**~~: decidido el 2026-11-24. Se publica lo que tiene foto (la de su web); Velvee y Dany Baby
+   esperan la suya.
 9. **Pedir lo agotado**: la tienda deja pedir aunque no haya (regla de D'CASA, «se confirma por WhatsApp»); NAT-L y
    NAT-XL están en 0. ¿Se deja así?
 
@@ -98,7 +105,7 @@ productos que falten: un cambio de precio o de existencias de un producto que ya
 no en el JSON.
 
 `up media/` sigue siendo el buzón del dueño en GitHub (`.github/workflows/up-media.yml` y
-`scripts/procesar_up_media.py`), pero hoy no carga nada: el catálogo se escribe a mano y las fotos se ponen en Odoo, así
+`scripts/procesar_up_media.py`), pero hoy no carga nada: el catálogo se escribe a mano y las fotos nuevas se ponen en Odoo, así
 que todo lo que se sube queda guardado y anotado como pendiente en `up media/RESUMEN.md`. `scripts/importar_catalogo.py`
 ya no tiene ningún Excel registrado (el lector del Excel de D'CASA, que escribía el formato anterior, está en el
 historial de git). `fuentes/` queda con su LEEME, vacía.

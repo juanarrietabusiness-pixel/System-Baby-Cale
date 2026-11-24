@@ -166,11 +166,41 @@ class TestCatalogoBabyCaleb(TransactionCase):
             arch = self.env[modelo].get_view(self.env.ref(xmlid).id, tipo)['arch']
             self.assertIn('name="dcasa_presentacion"', arch, xmlid)
 
-    def test_sin_fotos_no_se_publica(self):
-        for producto in self.plantillas():
-            self.assertFalse(producto.image_1920, producto.name)
-            self.assertFalse(producto.is_published, f'{producto.name}: sin foto no sale en la web')
+    def test_con_su_foto_se_publica_y_sin_foto_no(self):
+        """Las fotos de la web de Baby Caleb (pedido del dueño, 2026-11-24): la principal de cada producto y la de cada
+        talla con su segunda foto. Lo que no tiene foto (Velvee no está en su web; Dany Baby sale con el logo) no se
+        publica."""
+        con_foto = ('nateen-diapers', 'nateen-pants', 'nateen-wipes', 'fular-moon')
+        for clave in PRODUCTOS:
+            producto = self.producto(clave)
             self.assertTrue(producto.allow_out_of_stock_order)
+            if clave in con_foto:
+                self.assertTrue(producto.image_1920, clave)
+                self.assertTrue(producto.is_published, f'{clave}: con su foto sale en la web')
+            else:
+                self.assertFalse(producto.image_1920, clave)
+                self.assertFalse(producto.is_published, f'{clave}: sin foto no sale en la web')
+        for clave in ('nateen-diapers', 'nateen-pants'):
+            variantes = self.producto(clave).product_variant_ids
+            self.assertEqual(len(variantes), len(PRODUCTOS[clave][2]))
+            for variante in variantes:
+                self.assertTrue(variante.image_variant_1920, f'{variante.default_code}: la foto de su talla')
+                self.assertEqual(len(variante.product_variant_image_ids), 1, f'{variante.default_code}: y su segunda')
+            fotos = {v.image_variant_1920 for v in variantes}
+            self.assertEqual(len(fotos), len(variantes), f'{clave}: cada talla con la suya')
+
+    def test_cada_foto_del_archivo_existe_y_ninguna_sobra(self):
+        carpeta = os.path.join(get_module_path('dcasa_catalogo'), 'data', 'fotos')
+        nombradas = set()
+        for item in leer_catalogo()['productos']:
+            nombradas.update(filter(None, [item.get('foto')]))
+            for variante in item['variantes']:
+                nombradas.update(filter(None, [variante.get('foto'), *(variante.get('fotos_extra') or [])]))
+            if not item.get('foto'):
+                self.assertTrue(item.get('origen_foto'), f"{item['clave']}: sin foto, dice por qué")
+        self.assertEqual(nombradas, set(os.listdir(carpeta)))
+        for nombre in nombradas:
+            self.assertRegex(nombre, r'\.(jpg|png)$', 'JPEG o PNG: Odoo saca de ahí los tamaños chicos (el WEBP no)')
 
     def test_nada_del_catalogo_de_dcasa(self):
         self.assertEqual(sorted(self.plantillas().mapped('product_variant_ids.default_code')), sorted(LISTA_DEL_DUENO))
@@ -291,6 +321,37 @@ class TestCargaDelArchivo(TransactionCase):
         self.env.ref(f'dcasa_catalogo.{xmlid_de("zz-simple")}').unlink()
         self.assertEqual(cargar_catalogo(self.env, self.catalogo(item)), 1)
         self.assertEqual(self.variante('ZZ-SIMPLE').dcasa_presentacion, 'Uno')
+
+    def test_las_fotos_solo_llenan_lo_vacio_y_publican_lo_que_reciben(self):
+        foto = 'producto-fular-moon.jpg'
+        con_tallas = _item('zz-fotos', [
+            {'valor': 'CH', 'codigo': 'ZZ-F-CH', 'precio': 5.0, 'existencias': 0, 'foto': foto,
+             'fotos_extra': [foto, foto]},
+            {'valor': 'GR', 'codigo': 'ZZ-F-GR', 'precio': 6.0, 'existencias': 0},
+        ], atributo='Talla de prueba', foto=foto)
+        ya_tenia = _item('zz-ya-tenia', [{'codigo': 'ZZ-YA', 'precio': 7.0, 'existencias': 0}], foto=foto)
+        sin_foto = _item('zz-sin-foto', [{'codigo': 'ZZ-SIN-FOTO', 'precio': 8.0, 'existencias': 0}])
+        catalogo = self.catalogo(con_tallas, ya_tenia, sin_foto)
+        cargar_catalogo(self.env, catalogo)
+        # Una persona ya le puso otra foto a «zz-ya-tenia» y lo dejó sin publicar: se respeta.
+        propia = self.env.ref(f'dcasa_catalogo.{xmlid_de("zz-ya-tenia")}')
+        propia.image_1920 = C.foto_del_catalogo('producto-nateen-cierre-rn.jpg')
+        antes = propia.image_1920
+        self.assertEqual(C.poner_fotos(self.env, catalogo), 1)
+        producto = self.env.ref(f'dcasa_catalogo.{xmlid_de("zz-fotos")}')
+        self.assertTrue(producto.image_1920 and producto.is_published)
+        self.assertTrue(self.variante('ZZ-F-CH').image_variant_1920)
+        self.assertEqual(self.variante('ZZ-F-CH').product_variant_image_ids.mapped('sequence'), [1, 2])
+        self.assertFalse(self.variante('ZZ-F-GR').image_variant_1920, 'Sin foto de la talla: usa la del producto')
+        self.assertEqual(propia.image_1920, antes, 'La foto que puso una persona no se cambia')
+        self.assertFalse(propia.is_published, 'ni se publica lo que ella dejó sin publicar')
+        sin = self.env.ref(f'dcasa_catalogo.{xmlid_de("zz-sin-foto")}')
+        self.assertFalse(sin.image_1920 or sin.is_published)
+        # Repetir no duplica nada, ni vuelve a publicar lo que alguien quitó de la web.
+        producto.is_published = False
+        self.assertEqual(C.poner_fotos(self.env, catalogo), 0)
+        self.assertFalse(producto.is_published)
+        self.assertEqual(len(self.variante('ZZ-F-CH').product_variant_image_ids), 2)
 
     def test_un_precio_que_falta_no_se_inventa(self):
         item = _item('zz-sin-precio', [{'codigo': 'ZZ-SIN-PRECIO', 'precio': None, 'existencias': 3}])

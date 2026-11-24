@@ -52,6 +52,7 @@ del puente. Ya en uso en la cuenta y **no se tocan**: `babycaleb-web`, `babycale
 | 2026-11-18 | Nombres de los asistentes | Cada empresa debe poder nombrarlos como quiera (trabajo aparte, por hacer) |
 | 2026-11-19 | Marca de todo el sistema | **El branding de la web de Baby Caleb, tal cual**, en la web pública, el panel, los documentos y los correos: crema, navy, naranja y verde salvia, Montserrat y botones en pastilla. Fuera el azul, el amarillo, Anton y Oswald, y toda foto o sección de muebles. El contrato es `docs/MARCA_BABY_CALEB.md` y reemplaza las reglas de marca de D'CASA de `CLAUDE.md`. Esto cambia la decisión del 2026-11-18 «Web pública: mismo diseño» |
 | 2026-11-24 | Web pública | **Igual a babycaleb.com:** la cabecera (solo el nombre y los enlaces Productos, Beneficios, Historia, Tips, Cómo comprar y FAQ), la portada, el pie y las páginas `/beneficios`, `/historia`, `/tips`, `/como-comprar` y `/faq`. Se conservan y se irán mejorando la ficha del producto, el carrito y la cuenta. Socios y Contacto salen del menú y quedan en el pie. La banda de Socios sale de la portada hasta que el programa tenga cifras. Las tallas pasan a pastillas. Auditoría de accesibilidad: 0 problemas |
+| 2026-11-24 | Fotos y publicación | «Sube las fotos de Baby Caleb y publica los productos»: las de su web (`content.json`, `public/img/`) entran con el catálogo (`dcasa_catalogo/data/fotos/`, la principal y la de cada talla con su segunda foto) y se publica lo que tiene foto: Nateen de cierre, Nateen Pants y Water wipes Nateen. Una foto puesta a mano no se pisa. Velvee, Dany Baby y Fular Moon (en su web, el logo o «Foto próximamente») siguen sin publicar hasta tener la suya |
 
 ## Estado
 
@@ -82,10 +83,11 @@ del puente. Ya en uso en la cuenta y **no se tocan**: `babycaleb-web`, `babycale
   - Los testimonios van de dos en dos.
   - En la ficha del producto, WhatsApp sigue siendo el botón principal y «Agregar al carrito» va de contorno.
   - En los PDF el papel queda blanco, porque se imprimen.
-- **La tienda de staging está vacía** (2026-11-24): los productos están sin publicar porque no tienen foto. Mientras
-  tanto no salen ni «Lo más buscado» ni la tarjetita del hero («Desde talla RN · Pañal Nateen · Desde $…»), que toma
-  el precio más bajo de los Nateen publicados. Para verla completa hay que subir las fotos (las de `public/img/` del
-  repo `Baby-caleb` sirven) y publicar: lo hace el dueño desde el panel, o se hace con su sí.
+- **Sin foto y sin publicar:** Velvee (no está en la web de Baby Caleb), Dany Baby (su web muestra el logo en lugar de
+  la foto) y Fular Moon (su web muestra «Foto próximamente»). Se publican cuando el dueño suba su foto (en la ficha del
+  producto o con Brian).
+- **Water wipes Nateen** quedó publicado, pero la web de Baby Caleb lo marca «descatalogado» (`content.json`). Si ya no
+  se vende, se despublica en su ficha.
 - Datos de la empresa: razón social, RUC y DV, dirección, teléfono, correo, web, lema de los documentos.
 - Promoción de Dany Baby (DANY-AW600): «2 cajas (1,200 toallitas) por $35.00». Anotada, no programada.
 - **Cifras de Socios y del programa de vendedores de Baby Caleb**: `addons/dcasa_socios/data/puntos.json` (versión 6)

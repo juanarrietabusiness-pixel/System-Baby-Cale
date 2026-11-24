@@ -11,14 +11,16 @@
    "orden": 1,
    "descripcion": "Hipoalergénicos, súper absorbentes, sin cloro ni perfumes, 100% fibras de bambú y biodegradables. Tallas RN a XXL, en caja para todo el mes.",
    "origen_descripcion": "Web de Baby Caleb (content.json › products › nateen-diapers), tal cual. NAT-L no estaba en la lista del dueño del 2026-11-18: el dueño decidió cargarlo después ($45.00, sin existencias), con el texto de la web.",
+   "foto": "producto-nateen-cierre-m.jpg",
+   "origen_foto": "Web de Baby Caleb (content.json › products › nateen-diapers › image, y la de cada talla con su segunda foto; public/img/), pasadas a JPEG o a PNG (si tiene transparencia) para Odoo.",
    "atributo": "Talla",
    "variantes": [
-    {"valor": "RN", "codigo": "NAT-RN", "precio": 50.00, "existencias": 4, "texto": "Pañal Nateen Talla RN de cierre — caja de 160 (4–11 lbs / 2–5 kg)"},
-    {"valor": "S", "codigo": "NAT-S", "precio": 50.00, "existencias": 3, "texto": "Pañal Nateen Talla S de cierre — caja de 160 (6–13 lbs / 3–6 kg)"},
-    {"valor": "M", "codigo": "NAT-M", "precio": 50.00, "existencias": 7, "texto": "Pañal Nateen Talla M de cierre — caja de 144 (8–19 lbs / 4–9 kg)"},
-    {"valor": "L", "codigo": "NAT-L", "precio": 45.00, "existencias": 0, "texto": "Caja L — 15 a 39 lb — 128 uds", "origen_texto": "Web de Baby Caleb (content.json › nateen-diapers › NAT-L: size, range, units); precio y existencias, decisión del dueño"},
-    {"valor": "XL", "codigo": "NAT-XL", "precio": 45.00, "existencias": 0, "texto": "Pañal Nateen Talla XL de cierre — caja de 112 (26–55 lbs / 12–25 kg)"},
-    {"valor": "XXL", "codigo": "NAT-XXL", "precio": 45.00, "existencias": 3, "texto": "Pañal Nateen Talla XXL de cierre — caja de 112 (+55 lbs / +25 kg)"}
+    {"valor": "RN", "codigo": "NAT-RN", "precio": 50.00, "existencias": 4, "texto": "Pañal Nateen Talla RN de cierre — caja de 160 (4–11 lbs / 2–5 kg)", "foto": "producto-nateen-cierre-rn.jpg", "fotos_extra": ["producto-nateen-cierre-rn-2.png"]},
+    {"valor": "S", "codigo": "NAT-S", "precio": 50.00, "existencias": 3, "texto": "Pañal Nateen Talla S de cierre — caja de 160 (6–13 lbs / 3–6 kg)", "foto": "producto-nateen-cierre-s.jpg", "fotos_extra": ["producto-nateen-cierre-s-2.png"]},
+    {"valor": "M", "codigo": "NAT-M", "precio": 50.00, "existencias": 7, "texto": "Pañal Nateen Talla M de cierre — caja de 144 (8–19 lbs / 4–9 kg)", "foto": "producto-nateen-cierre-m.jpg", "fotos_extra": ["producto-nateen-cierre-m-2.jpg"]},
+    {"valor": "L", "codigo": "NAT-L", "precio": 45.00, "existencias": 0, "texto": "Caja L — 15 a 39 lb — 128 uds", "origen_texto": "Web de Baby Caleb (content.json › nateen-diapers › NAT-L: size, range, units); precio y existencias, decisión del dueño", "foto": "producto-nateen-cierre-l.jpg", "fotos_extra": ["producto-nateen-cierre-l-2.png"]},
+    {"valor": "XL", "codigo": "NAT-XL", "precio": 45.00, "existencias": 0, "texto": "Pañal Nateen Talla XL de cierre — caja de 112 (26–55 lbs / 12–25 kg)", "foto": "producto-nateen-cierre-xl.jpg", "fotos_extra": ["producto-nateen-cierre-xl-2.jpg"]},
+    {"valor": "XXL", "codigo": "NAT-XXL", "precio": 45.00, "existencias": 3, "texto": "Pañal Nateen Talla XXL de cierre — caja de 112 (+55 lbs / +25 kg)", "foto": "producto-nateen-cierre-xxl.jpg", "fotos_extra": ["producto-nateen-cierre-xxl-2.png"]}
    ]
   },
   {
@@ -28,11 +30,13 @@
    "orden": 2,
    "descripcion": "Tipo pantaloncito (pull-ups), con la misma protección hipoalergénica Nateen: sin cloro ni perfumes, 100% fibras de bambú. Caja de 160 para todo el mes. Solo tallas L, XL y XXL.",
    "origen_descripcion": "Web de Baby Caleb (content.json › products › nateen-pants), tal cual.",
+   "foto": "producto-nateen-pants-l.jpg",
+   "origen_foto": "Web de Baby Caleb (content.json › products › nateen-pants › image, y la de cada talla con su segunda foto; public/img/), pasadas a JPEG o a PNG (si tiene transparencia) para Odoo.",
    "atributo": "Talla",
    "variantes": [
-    {"valor": "L", "codigo": "NAT-P-L", "precio": 55.00, "existencias": 6, "texto": "Pañal Nateen Talla L de pants — caja de 160 (19-31 lbs) (9 kg - 14 kg)"},
-    {"valor": "XL", "codigo": "NAT-P-XL", "precio": 55.00, "existencias": 2, "texto": "Pañal Nateen Talla XL de pants — caja de 160 (26-37.5 lbs) (12 kg - 17kg)"},
-    {"valor": "XXL", "codigo": "NAT-P-XXL", "precio": 55.00, "existencias": 9, "texto": "Pañal Nateen Talla XXL de pants — caja de 160 (+33 lbs) (+ de 15 kg)"}
+    {"valor": "L", "codigo": "NAT-P-L", "precio": 55.00, "existencias": 6, "texto": "Pañal Nateen Talla L de pants — caja de 160 (19-31 lbs) (9 kg - 14 kg)", "foto": "producto-nateen-pants-l.jpg", "fotos_extra": ["producto-nateen-pants-l-2.png"]},
+    {"valor": "XL", "codigo": "NAT-P-XL", "precio": 55.00, "existencias": 2, "texto": "Pañal Nateen Talla XL de pants — caja de 160 (26-37.5 lbs) (12 kg - 17kg)", "foto": "producto-nateen-pants-xl.jpg", "fotos_extra": ["producto-nateen-pants-xl-2.png"]},
+    {"valor": "XXL", "codigo": "NAT-P-XXL", "precio": 55.00, "existencias": 9, "texto": "Pañal Nateen Talla XXL de pants — caja de 160 (+33 lbs) (+ de 15 kg)", "foto": "producto-nateen-pants-xxl.jpg", "fotos_extra": ["producto-nateen-pants-xxl-2.jpg"]}
    ]
   },
   {
@@ -42,6 +46,7 @@
    "orden": 3,
    "descripcion": null,
    "origen_descripcion": "Velvee no está en la web de Baby Caleb: solo el texto del dueño (en cada talla).",
+   "origen_foto": "Sin foto: Velvee no está en la web de Baby Caleb. No se publica hasta tener la del producto.",
    "atributo": "Talla",
    "variantes": [
     {"valor": "P", "codigo": "VELVEE-P", "precio": 35.00, "existencias": 2, "texto": "Pañal Velvee Talla P (S): (7.5 - 13 lb) (3.5 - 6 kg) 150 pañales"},
@@ -56,6 +61,8 @@
    "orden": 4,
    "descripcion": "Toallitas hipoalergénicas en caja grande. Sin alcohol, sin parabenos, sin perfumes — pensadas para la piel más delicada.",
    "origen_descripcion": "Web de Baby Caleb (content.json › products › nateen-wipes), tal cual. Ojo: la web lo marca «descatalogado» y la lista del dueño lo trae con existencias.",
+   "foto": "producto-wipes-caja.jpg",
+   "origen_foto": "Web de Baby Caleb (content.json › products › nateen-wipes › image; public/img/), pasada a JPEG para Odoo.",
    "variantes": [
     {"codigo": "WIPESNAT", "precio": 45.00, "existencias": 15, "texto": "Water wipes hipoalergénicas Nateen — Caja de 960 toallitas (12 paquetes de 80)"}
    ]
@@ -67,6 +74,7 @@
    "orden": 5,
    "descripcion": "Toallitas de agua 99% pura, sin alcohol ni perfumes, ideales para recién nacidos.",
    "origen_descripcion": "Web de Baby Caleb (content.json › products › danybaby-aquawipes), sin «Caja de 12 paquetes de 50»: el dueño dice 6 paquetes de 100.",
+   "origen_foto": "Sin foto: la web de Baby Caleb muestra el logo (logo-badge.png) en su lugar. No se publica hasta tener la del producto.",
    "variantes": [
     {"codigo": "DANY-AW600", "precio": 20.00, "existencias": 26, "texto": "Water wipes hipoalergénicas Dany Baby — caja de 600 toallitas (6 paquetes de 100)"}
    ]
@@ -78,6 +86,8 @@
    "orden": 6,
    "descripcion": "Portabebés ergonómico Moon: unitalla y ajustable, de recién nacido hasta ~25 lb. Carga a tu bebé cómoda y segura.",
    "origen_descripcion": "Web de Baby Caleb (content.json › products › fular-moon), sin «Disponibilidad y colores por WhatsApp»: la lista del dueño trae un solo color (gris).",
+   "foto": "producto-fular-moon.jpg",
+   "origen_foto": "Web de Baby Caleb (content.json › products › fular-moon › image; public/img/), pasada a JPEG para Odoo.",
    "variantes": [
     {"codigo": "MOON-FUL", "precio": 46.00, "existencias": 2, "texto": "Fular prearmado Moon de bambú color gris — unitalla ajustable XS a 3XL (RN hasta ~25 lbs)"}
    ]

@@ -14,12 +14,16 @@ Formato de ``data/catalogo.json``::
         "nombre": "…", "categoria": "panales", "orden": 1,
         "descripcion": "…" | null,                    # la de la web del negocio; null si no hay
         "atributo": "Talla",                          # solo si tiene variantes
-        "variantes": [{"valor": "RN", "codigo": "NAT-RN", "precio": 50.0, "existencias": 4, "texto": "…"}]
+        "foto": "producto-nateen-cierre-m.jpg",          # opcional: archivo de data/fotos/ (la foto principal)
+        "variantes": [{"valor": "RN", "codigo": "NAT-RN", "precio": 50.0, "existencias": 4, "texto": "…",
+                       "foto": "…", "fotos_extra": ["…"]}]   # opcionales: la de esa talla y las de más
      }]}
 
-Sin fotos: el dueño las sube a mano en Odoo. Lo que no tiene foto no se publica en la tienda (la misma regla de
-siempre); se publica desde Odoo cuando ya tiene su foto.
+Las fotos (``data/fotos/``) son las de la web del negocio, pasadas a JPEG o PNG; ``poner_fotos`` las pone solo donde
+no hay ninguna y publica lo que recibe su foto principal. Lo que no tiene foto no se publica en la tienda (la misma
+regla de siempre); se publica desde Odoo cuando ya la tiene.
 """
+import base64
 import json
 import logging
 import re
@@ -280,6 +284,48 @@ def cargar_catalogo(env, catalogo=None):
     env['website'].search([]).show_line_subtotals_tax_selection = 'tax_excluded'
     _logger.info('Catálogo: %s productos nuevos.', creados)
     return creados
+
+
+def foto_del_catalogo(nombre):
+    """Los bytes (base64) de ``data/fotos/<nombre>``, listos para un campo de imagen."""
+    with file_open(f'{MODULO}/data/fotos/{nombre}', 'rb') as archivo:
+        return base64.b64encode(archivo.read())
+
+
+def poner_fotos(env, catalogo=None):
+    """Las fotos del catálogo en los productos que no tienen, y se publica lo que recibe su foto principal.
+
+    Solo se llena lo vacío: una foto que ya está (la puso una persona) no se cambia, y a ese producto no se le toca la
+    publicación. Las fotos de más de una talla se agregan solo si la talla no tiene ninguna. Un producto del archivo
+    que ya no está en Odoo (lo borraron) se salta. Se puede repetir sin duplicar nada. Devuelve cuántos productos se
+    publicaron.
+    """
+    catalogo = leer_catalogo() if catalogo is None else catalogo
+    Imagen = env['product.image']
+    publicados = 0
+    for item in catalogo.get('productos') or []:
+        plantilla = env.ref(f'{MODULO}.{xmlid_de(item["clave"])}', raise_if_not_found=False)
+        if not plantilla:
+            continue
+        if item.get('foto') and not plantilla.image_1920:
+            plantilla.image_1920 = foto_del_catalogo(item['foto'])
+            if not plantilla.is_published:
+                plantilla.is_published = True
+                publicados += 1
+        variantes = plantilla.with_context(active_test=False).product_variant_ids
+        for datos in item.get('variantes') or []:
+            variante = variantes.filtered(lambda v, c=datos['codigo']: v.default_code == c)[:1]
+            if not variante:
+                continue
+            if datos.get('foto') and not variante.image_variant_1920:
+                variante.image_variant_1920 = foto_del_catalogo(datos['foto'])
+            if datos.get('fotos_extra') and not variante.product_variant_image_ids:
+                nombre = ' '.join(filter(None, (plantilla.name, datos.get('valor'))))
+                Imagen.create([{'name': nombre, 'product_variant_id': variante.id, 'sequence': orden,
+                                'image_1920': foto_del_catalogo(archivo)}
+                               for orden, archivo in enumerate(datos['fotos_extra'], start=1)])
+    _logger.info('Catálogo: fotos puestas; %s productos publicados.', publicados)
+    return publicados
 
 
 # --- Black Weekend ------------------------------------------------------------------------------
