@@ -15,20 +15,21 @@ import { adaptadorDe, crearAdaptadores } from "../../src/canales/index";
 import type { CanalId } from "../../src/canales/tipos";
 import { MARCA_BOTON_UBICACION, TEXTO_BOTON_UBICACION } from "../../src/canales/ubicacion";
 import { crearWhatsappCloud } from "../../src/canales/whatsappCloud";
+import { PARAMETRO_OTRA_CASA } from "../../src/motor/herramientas";
 import type { Env } from "../../src/env";
 
 const ADAPTADORES = crearAdaptadores();
 
-/** Una conversación en `canal` (con las capacidades REALES de ese canal) donde el modelo manda el enlace para marcar el punto. */
 /** Una conversación en `canal`, encendido en Ajustes de Juan (fuera del de siempre, los canales empiezan apagados). */
 const mundoEn = (canal: CanalId) => crearMundo({ canal, idExterno: canal.startsWith("whatsapp") ? "50760261919" : "998877", config: { canales_activos: { [canal]: true } } });
 
-function mundoConEnlace(canal: CanalId, boton: unknown, respuesta = FRASE_DEL_ENLACE) {
+/** Una conversación en `canal` (con las capacidades REALES de ese canal) donde el modelo manda el enlace para marcar el punto. */
+function mundoConEnlace(canal: CanalId, boton: unknown, respuesta = FRASE_DEL_ENLACE, args: Record<string, unknown> = {}) {
   const m = mundoEn(canal);
   m.odoo.defs = [...HERRAMIENTAS_DE_PRUEBA, DEF_ENLACE_DE_UBICACION];
   m.odoo.botonWhatsapp = boton;
   m.canal.cap = adaptadorDe(canal, ADAPTADORES)!.capacidades(canal);
-  const g = m.guion([{ llamadas: [{ nombre: "enlace_de_ubicacion", args: {} }] }, { texto: respuesta }]);
+  const g = m.guion([{ llamadas: [{ nombre: "enlace_de_ubicacion", args }] }, { texto: respuesta }]);
   return { m, g };
 }
 
@@ -107,6 +108,45 @@ describe("el botón «Enviar ubicación» después del enlace", () => {
     expect(m.odoo.mensajes.find((x) => x.autor === "bot")!.texto).not.toContain(MARCA_BOTON_UBICACION);
     expect(m.odoo.de("pasar_a_vendedora")).toEqual([]);
     expect(m.registros.filter((r) => r.nivel === "error")).toEqual([]);
+  });
+});
+
+describe("para otra casa (un regalo, la abuela, el trabajo): el enlace sin botón", () => {
+  const RESPUESTA = `Con gusto. Abra este enlace y busque su barriada, o mueva el mapa hasta su casa: ${ENLACE_DE_UBICACION}`;
+
+  it("el modelo ve `para_otra_casa` en la herramienta; con true no sale el botón y a Odoo no le llega el parámetro", async () => {
+    const { m, g } = mundoConEnlace("whatsapp_cloud", true, RESPUESTA, { para_otra_casa: true });
+    await m.conversar("es para mi mamá, que vive en Arraiján");
+    const esquema = g.doGenerateCalls[0].tools!.find((t) => t.name === "enlace_de_ubicacion") as unknown as { inputSchema: { properties: Record<string, { type: string }> } };
+    expect(esquema.inputSchema.properties[PARAMETRO_OTRA_CASA].type).toBe("boolean");
+    expect(m.odoo.de("enlace_de_ubicacion").map((l) => l.args)).toEqual([{}]);
+    expect(m.canal.ultimaSalida!.pedirUbicacion).toBeUndefined();
+    expect(m.canal.botonesDeUbicacion).toEqual([]);
+    expect(m.canal.textos.join(" ")).toContain(ENLACE_DE_UBICACION);
+  });
+
+  it("el modelo recibe cómo decírselo: que busque la barriada o mueva el mapa (no «Mi ubicación», que sería la del teléfono)", async () => {
+    const { m, g } = mundoConEnlace("whatsapp_cloud", true, RESPUESTA, { para_otra_casa: true });
+    await m.conversar("es para mi mamá, que vive en Arraiján");
+    const resultado = g.prompts()[1];
+    expect(resultado).toContain("Es para otra casa");
+    expect(resultado).toContain("busque la barriada o mueva el mapa hasta esa casa");
+    expect(resultado).not.toContain("boton_whatsapp");
+  });
+
+  it("con false (o sin el parámetro) es la de siempre: sale el botón", async () => {
+    const { m } = mundoConEnlace("whatsapp_cloud", true, FRASE_DEL_ENLACE, { para_otra_casa: false });
+    await m.conversar("¿cuánto es el envío a mi casa?");
+    expect(m.canal.botonesDeUbicacion).toEqual([TEXTO_BOTON_UBICACION]);
+    expect(m.odoo.de("enlace_de_ubicacion").map((l) => l.args)).toEqual([{}]);
+  });
+
+  it("si Odoo ya declara `para_otra_casa`, le llega tal cual (y tampoco sale el botón)", async () => {
+    const { m } = mundoConEnlace("whatsapp_cloud", true, RESPUESTA, { para_otra_casa: true });
+    m.odoo.defs = [...HERRAMIENTAS_DE_PRUEBA, { ...DEF_ENLACE_DE_UBICACION, parametros: { type: "object", properties: { para_otra_casa: { type: "boolean" } } } }];
+    await m.conversar("es para mi mamá, que vive en Arraiján");
+    expect(m.odoo.de("enlace_de_ubicacion").map((l) => l.args)).toEqual([{ para_otra_casa: true }]);
+    expect(m.canal.botonesDeUbicacion).toEqual([]);
   });
 });
 
