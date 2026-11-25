@@ -25,6 +25,7 @@ import { costoDe, sumarUso, usoDelSdk, USO_VACIO, type TablaDePrecios, type Uso 
 import { planDeIntentos, topeDeSalida, type FabricaDeModelos, type ProveedorIa, type SeleccionDeModelo } from "../motor/proveedores";
 import { partirEnBurbujas } from "../motor/burbujas";
 import type { Sql } from "../motor/sql";
+import { sinCoordenadas } from "../motor/ubicacion";
 import { limpiarError } from "../motor/conversacion";
 import type { DefHerramienta, OdooApi, ResultadoHerramienta } from "../odoo/cliente";
 import {
@@ -1297,14 +1298,8 @@ export function argumentosLimpios(nombre: string, argumentos: Record<string, unk
   return salida;
 }
 
-/** Quita cualquier coordenada que Odoo devolviera (no tiene por qué, pero no se guarda ni se le muestra al modelo). */
-export function sinCoordenadas(v: unknown): unknown {
-  if (Array.isArray(v)) return v.map(sinCoordenadas);
-  if (!esObjeto(v)) return v;
-  const salida: Record<string, unknown> = {};
-  for (const [k, x] of Object.entries(v)) if (!/^(lat|lon|lng|latitud|longitud|coordenadas)$/i.test(k)) salida[k] = sinCoordenadas(x);
-  return salida;
-}
+/** Quita cualquier coordenada que Odoo devolviera: vive con lo demás de la ubicación (motor/ubicacion.ts), el mismo para los canales. */
+export { sinCoordenadas };
 
 /** El producto y la cantidad de una propuesta del modelo, solo si es de lo visto, agregable y con una cantidad válida (1 a 20). */
 function productoDelCarrito(v: unknown, vistos: Iterable<ProductoVisto>): Oferta | null {

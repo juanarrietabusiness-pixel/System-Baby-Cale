@@ -3,6 +3,7 @@
 // registrarlo en `canales/index.ts` (docs/JUAN.md → «Cómo agregar un canal»).
 
 import type { Env } from "../env";
+import type { OrigenUbicacion, UbicacionEntrante } from "./ubicacion";
 
 /** Los mismos valores que `canal` en el contrato con Odoo (docs/JUAN.md). */
 export type CanalId = "whatsapp_qr" | "whatsapp_cloud" | "telegram" | "messenger" | "instagram";
@@ -90,6 +91,17 @@ export interface Entrante {
   reenviado?: "una" | "muchas";
   /** No es un mensaje: es un comentario público en una publicación (ver `ComentarioEntrante`). `texto` es lo que comentó. */
   comentario?: ComentarioEntrante;
+  /**
+   * La ubicación de entrega que compartió la clienta (canales/ubicacion.ts): por el chat o con un enlace de mapa en el texto. Las
+   * coordenadas van SOLO a Odoo (`POST /ubicacion`): nunca al modelo, al texto de la conversación, a lo que guarda el Durable Object ni al
+   * registro. Solo en mensajes de la clienta (nunca en uno `propio`).
+   */
+  ubicacion?: UbicacionEntrante;
+  /**
+   * El mensaje traía una ubicación que NO viaja con él: la copia que se guarda para el rescate (`crudoDe`) o la cola de pendientes del
+   * puente nunca guardan coordenadas. Si se atiende desde ahí, el modelo sabe que la compartió y que hay que pedírsela otra vez.
+   */
+  ubicacion_omitida?: OrigenUbicacion;
 }
 
 /** Las respuestas a un comentario, por la API de la puerta por la que llegó. */
