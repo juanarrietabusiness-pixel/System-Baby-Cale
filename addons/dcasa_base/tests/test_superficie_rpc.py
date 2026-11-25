@@ -1435,12 +1435,12 @@ LISTA_BLANCA = {
         'en ESA venta (check_access) ANTES del sudo con que crea el enlace de un solo uso de su dirección de entrega; '
         'devuelve el wa.me con el texto, sin coordenadas.',
     ('dcasa_ubicacion', 'sale.order', 'action_dcasa_avisar_sale_hoy'):
-        'Botón y acción de la lista «🚚 Sale hoy: avisarle»: exige sales_team.group_sale_salesman en el servidor y poder '
-        'escribir en esas ventas (check_access) ANTES de cualquier sudo; una vez por venta y por día; deja el mensaje '
-        '«por enviar» del asistente (sin coordenadas) o devuelve el wa.me para una persona.',
+        'Botón y acción de la lista «🚚 Sale hoy: avisarle»: exige sales_team.group_sale_salesman en el servidor y '
+        'poder escribir en esas ventas (check_access) ANTES de cualquier sudo; una vez por venta y por día; deja el '
+        'mensaje «por enviar» del asistente (sin coordenadas) o devuelve el wa.me para una persona.',
     ('dcasa_ubicacion', 'stock.picking', 'action_dcasa_avisar_sale_hoy'):
-        'Botón «🚚 Sale hoy: avisarle» de la entrega: exige poder leer la entrega (check_access) y llama al de su venta '
-        'como el mismo usuario (que exige el grupo de ventas y poder escribir en la venta).',
+        'Botón «🚚 Sale hoy: avisarle» de la entrega: exige poder leer la entrega (check_access) y llama al de su '
+        'venta como el mismo usuario (que exige el grupo de ventas y poder escribir en la venta).',
     ('dcasa_ubicacion', 'delivery.carrier', 'fixed_rate_shipment'):
         OVERRIDE + ' Solo para la entrega a domicilio: el precio sale del punto confirmado de la dirección de entrega '
                    'del pedido (la tabla de envíos aprobada); no escribe nada.',
