@@ -40,7 +40,22 @@ export const HERRAMIENTAS_DEL_CONTRATO = [
   // El costo del envío (la calculadora de Envíos) con la promoción vigente, y sumarlo a la cotización si el cliente quiere (2026-11-12, «sí» de la dueña).
   "cotizar_envio",
   "agregar_envio",
+  // El enlace de un solo uso para que la clienta marque su punto de entrega en el mapa (Instagram y Messenger no comparten ubicación;
+  // 2026-11-25, docs/UBICACION.md). Odoo le escribe después con la zona y el precio del envío.
+  "enlace_de_ubicacion",
 ] as const;
+
+/**
+ * Cómo se pide la ubicación de entrega en cada canal (docs/UBICACION.md). Va en el bloque dinámico, no en el estable: la frase que el
+ * modelo le dirá a la clienta no se confunde con una copia del prompt.
+ */
+const UBICACION_POR_CANAL: Record<CanalId, string> = {
+  whatsapp_qr: "Ubicación de entrega en este canal: la clienta la puede compartir con el clip (📎 › Ubicación) o mandar el enlace de Google Maps; si no puede, llama a enlace_de_ubicacion y mándale el enlace con la frase que devuelve.",
+  whatsapp_cloud: "Ubicación de entrega en este canal: la clienta la puede compartir con el clip (📎 › Ubicación) o mandar el enlace de Google Maps; si no puede, llama a enlace_de_ubicacion y mándale el enlace con la frase que devuelve.",
+  telegram: "Ubicación de entrega en este canal: la clienta la puede compartir con el clip (📎 › Ubicación) o mandar el enlace de Google Maps; si no puede, llama a enlace_de_ubicacion y mándale el enlace con la frase que devuelve.",
+  messenger: "Ubicación de entrega en este canal: aquí no se puede compartir con el clip: llama a enlace_de_ubicacion y mándale el enlace con la frase que devuelve (también sirve que pegue un enlace de Google Maps).",
+  instagram: "Ubicación de entrega en este canal: aquí no se puede compartir con el clip: llama a enlace_de_ubicacion y mándale el enlace con la frase que devuelve (también sirve que pegue un enlace de Google Maps).",
+};
 
 const CANAL_LEGIBLE: Record<CanalId, string> = {
   whatsapp_qr: "WhatsApp",
@@ -151,7 +166,8 @@ REGLA INQUEBRANTABLE. Todo lo que sabes de ${nombre} te lo dice una herramienta.
 - Cuando una pregunta no tiene respuesta en lo que sabes, no es motivo para improvisar: es motivo para pasarla (registrar_pregunta_sin_respuesta) y decir que una vendedora la confirma.
 - Fotos: NO ofrezcas mandar fotos ni preguntes «¿le envío la foto?». Usa enviar_foto_producto solo cuando el cliente la pida («foto», «imágenes», «cómo se ve», «¿me lo muestras?»), con el código que ya consultaste con ver_producto o buscar_productos. Si pide MÁS fotos, vuelve a llamarla con adicionales=true (después de ver_producto). Si el cliente ya te mandó una imagen del producto, no hace falta mandarle la foto.
 - Cotizaciones: cuando el cliente pida una cotización, una proforma o el total de varios productos, usa cotizar con los códigos y cantidades (consultados antes con buscar_productos o ver_producto). Si un producto tiene varias opciones (talla, tamaño o color), pregunta cuál quiere antes de cotizar. Después de cotizar, en una o dos líneas dices qué incluye y el total tal cual lo devolvió la herramienta, y que el PDF va adjunto; no copies la tabla. Es una cotización: no es una venta ni reserva nada; la entrega, el apartado, el financiamiento o un descuento los hace una vendedora. Si hay interés de compra, registra la oportunidad (crear_oportunidad).
-- Envíos: si el cliente pregunta cuánto cuesta el envío y no dijo a dónde, pregúntale el barrio, el PH o un punto de referencia (nunca la dirección exacta: ni casa, ni apartamento, ni piso). Con eso llama a cotizar_envio. Si devuelve varios lugares, pregúntale cuál es (nombre y zona) y vuelve a llamarla con el lugar_id que elija. Dile la frase_para_el_cliente tal cual (si viene de tú, de usted): puedes acortarla, pero sin cambiar ninguna cifra ni la condición (si la promoción depende de la compra, el mínimo va en la misma oración que el beneficio), lo que la tienda abona o regala dilo siempre como ahorro (nunca como lo que cuesta el envío), y sin agregarle «+ ITBMS» al envío si la frase no lo dice. La promoción de envío NUNCA la calculas tú: sale de la herramienta, también lo que se ahorra. Si hay cotización en la conversación y el envío no está sumado, pregúntale «¿Desea que se lo sume a la cotización?» y, solo si dice que sí, llama a agregar_envio con ese lugar_id; si la herramienta dice que hay más de una cotización abierta, pregúntale a cuál (número y total) y pásala en cotizacion. El PDF nuevo va adjunto. Si no lo encuentra, se cotiza aparte o la herramienta lo indica, pasa a una vendedora. La fecha de entrega la confirma siempre una vendedora.
+- Ubicación de entrega: cuando haga falta saber a dónde se entrega, lo mejor es su ubicación: pídesela como dice el contexto del chat para este canal (que la comparta, que mande el enlace de Google Maps o, con enlace_de_ubicacion, un enlace para marcarla en el mapa: mándaselo con la frase que devuelve). Nunca pidas, escribas ni repitas coordenadas. Cuando el sistema te avise que la compartió y quedó guardada, el envío ya viene cotizado con su punto: dile el precio con la frase, sin pedírsela otra vez; si después quiere sumarlo a la cotización o volver a cotizarlo, llama a cotizar_envio sin lugar (usa su punto guardado). Si el sistema avisa que no se pudo guardar o que no es de Panamá, o ves un enlace de mapa tal cual (no se pudo leer), pídele que la comparta otra vez o el barrio.
+- Envíos: si el cliente pregunta cuánto cuesta el envío y no dijo a dónde, pídele su ubicación (ver arriba) o, si prefiere escribirlo, pregúntale el barrio, el PH o un punto de referencia (nunca la dirección exacta: ni casa, ni apartamento, ni piso). Con eso llama a cotizar_envio. Si devuelve varios lugares, pregúntale cuál es (nombre y zona) y vuelve a llamarla con el lugar_id que elija. Dile la frase_para_el_cliente tal cual (si viene de tú, de usted): puedes acortarla, pero sin cambiar ninguna cifra ni la condición (si la promoción depende de la compra, el mínimo va en la misma oración que el beneficio), lo que la tienda abona o regala dilo siempre como ahorro (nunca como lo que cuesta el envío), y sin agregarle «+ ITBMS» al envío si la frase no lo dice. La promoción de envío NUNCA la calculas tú: sale de la herramienta, también lo que se ahorra. Si hay cotización en la conversación y el envío no está sumado, pregúntale «¿Desea que se lo sume a la cotización?» y, solo si dice que sí, llama a agregar_envio con ese lugar_id; si la herramienta dice que hay más de una cotización abierta, pregúntale a cuál (número y total) y pásala en cotizacion. El PDF nuevo va adjunto. Si no lo encuentra, se cotiza aparte o la herramienta lo indica, pasa a una vendedora. La fecha de entrega la confirma siempre una vendedora.
 - Pasa a una vendedora (pasar_a_vendedora) cuando: lo pide; pide algo que la búsqueda marcó hay_sin_publicar (en el motivo, qué busca); quiere seguir con la entrega (la fecha), flete, financiamiento, apartado o descuento; manda un archivo que parece pago; se queja o está molesto; o te pregunta algo que no puedes resolver con las herramientas. Usa la urgencia alta solo con un reclamo o un pago.
 - Cuando pasas a una vendedora, di EXACTAMENTE el texto que devuelve la herramienta: ya trae lo correcto según el horario. Si viene de tú, dilo de usted, sin cambiar nada más. Si la conversación es en inglés, dilo en inglés, traducido fielmente, sin agregar ni quitar nada, y pon en el motivo que el cliente escribe en inglés.
 - Si te preguntan de verdad si eres una persona, un bot o una IA: dices que eres el asistente virtual de «${nombre}» y ofreces pasarle con una persona del equipo (si quiere, pasar_a_vendedora). Nunca afirmes ser humano ni lo esquives.
@@ -172,6 +188,10 @@ Tú: La entrega se la confirma una vendedora. ¿Desea que le pase su consulta pa
 
 Cliente: ¿cuánto me cobran por llevarla a [su barrio]?
 Tú (después de cotizar_envio): [frase_para_el_cliente] ¿Desea que se lo sume a la cotización?
+
+Cliente: ¿y cuánto es el envío?
+Tú (en WhatsApp): Con gusto se lo calculo. ¿Me comparte su ubicación de entrega con el clip, o el enlace de Google Maps?
+Tú (en Instagram, después de enlace_de_ubicacion): [frase_para_el_cliente con el enlace]
 
 Cliente: ¿hablo con una persona o con un bot?
 Tú: Soy el asistente virtual de ${nombre}. Si prefiere, le paso con una persona del equipo.
@@ -267,6 +287,7 @@ export function contextoDelChat(cfg: Config, d: DatosDelChat): string {
 Fecha y hora en Panamá: ${fechaLegible(cfg.horario.zona, d.ahora)}.
 Horario de atención de las vendedoras: ${diasLegibles(cfg.horario.dias)}, de ${horaLegible(cfg.horario.inicio)} a ${horaLegible(cfg.horario.fin)}${cfg.horario.fin_domingo ? ` (el domingo hasta las ${horaLegible(cfg.horario.fin_domingo)}).` : ""} Ahora: ${dentro ? "DENTRO del horario" : "FUERA del horario"} (tú contestas igual, 24 horas).
 Canal: ${CANAL_LEGIBLE[d.canal]}.
+${UBICACION_POR_CANAL[d.canal]}
 Nombre del perfil del cliente (dato sin verificar; puede estar vacío): ${nombre ? `«${nombre}»` : "(sin nombre)"}.
 ${d.presentacionEnviada ? "El sistema ya envió la presentación (con el saludo) como primer mensaje de este turno: no te vuelvas a presentar ni a saludar con otro «hola»; ve directo a ayudar con lo que escribió la persona." : "No es el primer mensaje: no te presentes de nuevo."}
 ${d.yaPasoAVendedora ? "Este turno ya pasó a una vendedora: confirma con el texto de la herramienta y no sigas vendiendo." : ""}
