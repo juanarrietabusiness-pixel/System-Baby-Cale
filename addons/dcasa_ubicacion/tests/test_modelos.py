@@ -1,6 +1,7 @@
 """La ubicación en Odoo: la zona y el precio salen de la tabla, la ficha guarda el punto, el enlace de un solo uso
 amarrado a la conversación, la entrega del motorizado (y su QR), el precio del envío en el carrito y las herramientas de
 Juan y de Brian."""
+import json
 from datetime import timedelta
 from unittest.mock import patch
 
@@ -228,6 +229,25 @@ class TestHerramientas(UbicacionCase):
         orden = self.env['sale.order'].create({'partner_id': self.clienta.id, 'user_id': vendedora.id})
         leido = Brian._brian_ubicacion_de_entrega(venta=orden.name)
         self.assertTrue(leido['tiene_punto'])
-        self.assertIn('google.com/maps/dir', leido['enlaces']['google'])
+        self.assertNotIn('enlaces', leido, 'los botones llevan las coordenadas: no van al modelo')
+        self.assertNotIn('8.9012', json.dumps(leido))
+        self.assertEqual((leido['abrir']['modelo'], leido['abrir']['res_id']), ('sale.order', orden.id))
         enlace = Brian._brian_enlace_de_ubicacion_para_cliente(cliente='Ana Prueba')
         self.assertIn('/u/', enlace['enlace'])
+
+    def test_la_auditoria_de_brian_no_guarda_coordenadas_secretos_ni_la_casa(self):
+        # Auditoría 1: el registro de Brian no se edita ni se borra; lo privado entra tapado.
+        vendedora = new_test_user(self.env, login='vend_auditoria', groups='sales_team.group_sale_salesman')
+        Brian = self.env['brian.herramientas'].with_user(vendedora)
+        hecho = Brian.ejecutar('poner_ubicacion_de_entrega', {'cliente': 'Ana Prueba', 'latitud': CERCA[0],
+                                                               'longitud': CERCA[1], 'referencia': 'Casa azul 24'})
+        self.assertTrue(hecho['ok'], hecho)
+        enlace = Brian.ejecutar('enlace_de_ubicacion_para_cliente', {'cliente': 'Ana Prueba'})
+        self.assertTrue(enlace['ok'], enlace)
+        self.assertIn('/u/', enlace['datos']['enlace'], 'la persona sí recibe el enlace para mandarlo')
+        acciones = self.env['brian.accion'].sudo().search([('create_uid', '=', vendedora.id)])
+        self.assertEqual(len(acciones), 2)
+        guardado = ' '.join((a.argumentos or '') + (a.resultado or '') for a in acciones)
+        for privado in ('8.9012', '79.8013', 'Casa azul 24', enlace['datos']['enlace'].rsplit('/', 1)[-1]):
+            self.assertNotIn(privado, guardado)
+        self.assertIn('Villa Prueba II', guardado, 'la zona sí queda: sirve para revisar qué hizo Brian')

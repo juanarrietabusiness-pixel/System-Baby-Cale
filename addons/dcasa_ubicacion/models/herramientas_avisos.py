@@ -34,6 +34,7 @@ class BrianHerramientasAvisos(models.AbstractModel):
         parametros={'venta': PARAM_VENTA}, requeridos=['venta'],
         nivel='construccion', categoria='ventas', grupos=VENDEDORA,
         ejemplos=['«pídele la ubicación a la clienta de S00042» → pedir_ubicacion_al_cliente(venta=S00042)'],
+        privado=True,
     )
     def _brian_pedir_ubicacion_al_cliente(self, venta):
         orden = self._aviso_venta(venta)
@@ -65,6 +66,7 @@ class BrianHerramientasAvisos(models.AbstractModel):
         parametros={'venta': PARAM_VENTA}, requeridos=['venta'],
         nivel='construccion', categoria='ventas', grupos=VENDEDORA,
         ejemplos=['«avísale a la de S00042 que hoy le llega» → avisar_que_sale_hoy(venta=S00042)'],
+        privado=True,
     )
     def _brian_avisar_que_sale_hoy(self, venta):
         orden = self._aviso_venta(venta)

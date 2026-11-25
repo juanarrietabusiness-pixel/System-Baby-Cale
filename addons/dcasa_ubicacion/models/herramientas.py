@@ -72,6 +72,7 @@ class BrianHerramientasUbicacion(models.AbstractModel):
         nivel='construccion', categoria='ventas', grupos=GRUPOS,
         ejemplos=['«¿cómo le paso mi dirección?» en Instagram → enlace_de_ubicacion()',
                   '«es para mi mamá, vive en Arraiján» → enlace_de_ubicacion(para_otra_casa=true)'],
+        privado=True,
     )
     def _juan_enlace_de_ubicacion(self, para_otra_casa=False):
         conv = self._j_conversacion()
@@ -125,6 +126,7 @@ class BrianHerramientasUbicacion(models.AbstractModel):
                                                               '(hasta 200 letras).'}},
         requeridos=['texto'], nivel='construccion', categoria='ventas', grupos=GRUPOS,
         ejemplos=['«es la casa 24, la del portón negro» → guardar_indicaciones(texto=casa 24, portón negro)'],
+        privado=True,
     )
     def _juan_guardar_indicaciones(self, texto):
         conv = self._j_conversacion()
@@ -176,20 +178,23 @@ class BrianHerramientasUbicacion(models.AbstractModel):
     @herramienta(
         nombre='ubicacion_de_entrega',
         descripcion='El punto de entrega de una venta: la zona, la dirección, la referencia, de dónde salió el punto '
-                    '(GPS, mapa, chat, enlace o escrita) y los botones de Waze y Google Maps para el motorizado.',
+                    '(GPS, mapa, chat, enlace o escrita) y un botón para abrir la venta con la ruta del motorizado.',
         parametros={'venta': {'type': 'string', 'description': 'El número de la venta (p. ej. S00042).'}},
         requeridos=['venta'], nivel='lectura', categoria='ventas', grupos=INTERNO,
         ejemplos=['«¿a dónde va el pedido S00042?» → ubicacion_de_entrega(venta=S00042)'],
+        privado=True, texto_externo=True,
     )
     def _brian_ubicacion_de_entrega(self, venta):
         orden = self._ubic_venta(venta)
         destino = orden.partner_shipping_id or orden.partner_id
         resumen = destino._dcasa_ubic_resumen()
+        # Ni las coordenadas (van en los enlaces de Waze y Google Maps) ni el secreto de la página del motorizado van
+        # al modelo de IA (auditoría 1): la persona los abre desde la venta, con el botón «Ruta del motorizado».
+        resumen.pop('enlaces', None)
         resumen['venta'] = orden.name
         resumen['va_a_domicilio'] = orden._dcasa_va_a_domicilio()
-        entrega = self.env['dcasa.ubicacion.entrega']._de_la_venta(orden, crear=False)
-        if entrega and self.env.user.has_group('sales_team.group_sale_salesman'):
-            resumen['pagina_del_motorizado'] = entrega._url()
+        resumen['abrir'] = {'modelo': 'sale.order', 'res_id': orden.id,
+                            'titulo': self.env._('Abrir %s (Ruta del motorizado)', orden.name)}
         if not resumen['tiene_punto']:
             resumen['aviso'] = 'Sin punto en el mapa: el motorizado tiene que llamar antes de salir.'
         elif not resumen['confiable']:
@@ -204,6 +209,7 @@ class BrianHerramientasUbicacion(models.AbstractModel):
         requeridos=['cliente'], nivel='construccion', categoria='ventas', grupos=INTERNO,
         ejemplos=['«mándale a Ana el enlace para que ponga su ubicación» → '
                   'enlace_de_ubicacion_para_cliente(cliente=Ana)'],
+        privado=True,
     )
     def _brian_enlace_de_ubicacion_para_cliente(self, cliente):
         partner = self._ubic_cliente(cliente)
@@ -226,6 +232,7 @@ class BrianHerramientasUbicacion(models.AbstractModel):
         requeridos=['cliente'], nivel='construccion', categoria='ventas', grupos=INTERNO,
         ejemplos=['«guarda esta ubicación de Ana: https://maps.app.goo.gl/…» → poner_ubicacion_de_entrega(cliente=Ana, '
                   'enlace_mapa=…)'],
+        privado=True,
     )
     def _brian_poner_ubicacion_de_entrega(self, cliente, enlace_mapa=None, latitud=None, longitud=None,
                                           referencia=None):

@@ -71,6 +71,7 @@ class BrianHerramientasCasa(models.AbstractModel):
         ejemplos=['«lo recibe mi mamá Rosa» → guardar_quien_recibe(nombre=Rosa, mi mamá)',
                   '«si no contesto, llamen a mi esposo al 6123-4567» → '
                   'guardar_quien_recibe(nombre=su esposo, telefono=6123-4567)'],
+        privado=True,
     )
     def _juan_guardar_quien_recibe(self, nombre=None, telefono=None):
         conv = self._j_conversacion()
@@ -114,6 +115,7 @@ class BrianHerramientasCasa(models.AbstractModel):
         requeridos=['cliente'], nivel='construccion', categoria='ventas', grupos=INTERNO,
         ejemplos=['«el pedido de Ana lo recibe su mamá Rosa, 6123-4567» → '
                   'poner_quien_recibe(cliente=Ana, nombre=Rosa (su mamá), telefono=6123-4567)'],
+        privado=True,
     )
     def _brian_poner_quien_recibe(self, cliente, nombre=None, telefono=None):
         partner = self._ubic_cliente(cliente)
@@ -139,6 +141,7 @@ class BrianHerramientasCasa(models.AbstractModel):
         parametros={'cliente': {'type': 'string', 'description': 'Nombre, celular o correo del cliente.'}},
         requeridos=['cliente'], nivel='construccion', categoria='clientes', grupos=INTERNO,
         ejemplos=['«borra la foto de la casa de Ana» → quitar_foto_de_fachada(cliente=Ana)'],
+        privado=True,
     )
     def _brian_quitar_foto_de_fachada(self, cliente):
         partner = self._ubic_cliente(cliente)

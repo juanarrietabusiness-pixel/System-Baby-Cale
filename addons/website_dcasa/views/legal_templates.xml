@@ -82,8 +82,9 @@
                     conversaciones con Juan como lo que el equipo le pide revisar a Brian.</li>
                 <li>Como respaldo podemos usar <strong>Anthropic</strong> (modelos Claude).</li>
             </ul>
-            <p>Tu ubicación exacta no pasa por la inteligencia artificial: Juan solo recibe la zona y el precio del
-                envío.</p>
+            <p>Tu ubicación exacta (el punto en el mapa) no pasa por la inteligencia artificial: Juan solo recibe la
+                zona y el precio del envío. Lo que le escribes, como tu número de casa o tus indicaciones, sí pasa,
+                igual que el resto de la conversación.</p>
             <p>Si no quieres que tus datos pasen por inteligencia artificial, escríbenos y lo anotamos: te
                 atendemos sin usarla con tus datos. Tus derechos (más abajo) también aplican aquí.</p>
 
