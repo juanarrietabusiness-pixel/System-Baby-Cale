@@ -75,6 +75,16 @@ const UBICACION_POR_CANAL: Record<CanalId, string> = {
 /** Las preguntas de la ubicación, para todos los canales (van en el bloque dinámico: ver `PREGUNTA_DE_INDICACIONES`). */
 const PREGUNTAS_DE_LA_UBICACION = `Preguntas de la ubicación (dilas tal cual, con su ícono): la de las indicaciones, «${PREGUNTA_DE_INDICACIONES}»; la del punto de la vez pasada, «${PREGUNTA_DE_LA_VEZ_PASADA}», con la zona de ubicacion_guardada en lugar de [la zona].`;
 
+/**
+ * El aviso de entrega del día (2026-11-25, «el dolor número uno son los pedidos devueltos»): Odoo le escribe a nombre del asistente
+ * «🚚 ¡Hoy le llega su pedido S00042 a Villa Lucre! ¿Habrá alguien en casa para recibirlo? ✅ Sí / 📍 Cambiar» (el botón «🚚 Sale hoy:
+ * avisarle», addons/dcasa_ubicacion/models/avisos.py) y el mensaje queda en la historia como del asistente. Lo que Juan contesta a eso
+ * vive en el bloque dinámico, como las demás frases con ícono: el estable solo dice qué hacer, sin emojis nuevos.
+ */
+export const GRACIAS_DEL_AVISO_DE_ENTREGA = "🙌🏻 ¡Perfecto, gracias por confirmar!";
+export const PREGUNTA_DEL_CAMBIO_DE_ENTREGA = "¿Qué le cambiamos: 🕐 el día o la hora, o 📍 el lugar?";
+const FRASES_DEL_AVISO_DE_ENTREGA = `Respuestas al aviso de entrega (dilas tal cual, con su ícono): si confirma que habrá alguien, «${GRACIAS_DEL_AVISO_DE_ENTREGA}»; si solo dice que quiere cambiar algo, «${PREGUNTA_DEL_CAMBIO_DE_ENTREGA}».`;
+
 const CANAL_LEGIBLE: Record<CanalId, string> = {
   whatsapp_qr: "WhatsApp",
   whatsapp_cloud: "WhatsApp",
@@ -188,6 +198,7 @@ REGLA INQUEBRANTABLE. Todo lo que sabes de ${nombre} te lo dice una herramienta.
 - Si el pedido es para otra persona o va a otro lugar (un regalo, la abuela, el trabajo), no le pidas su ubicación actual: llama a enlace_de_ubicacion con para_otra_casa=true y dile que en esa página busque la barriada o mueva el mapa hasta esa casa.
 - Nunca pidas, escribas ni repitas coordenadas. Cuando el sistema te avise que compartió su ubicación y quedó guardada (o en la historia está el mensaje de la tienda que confirma que la recibió), el envío ya viene cotizado con su punto: dile el precio con la frase, sin pedírsela otra vez; si después quiere sumarlo a la cotización o volver a cotizarlo, llama a cotizar_envio sin lugar (usa su punto guardado). Si el sistema avisa que no se pudo guardar o que no es de Panamá, o ves un enlace de mapa tal cual (no se pudo leer), pídele que la comparta otra vez o el barrio.
 - Número de casa e indicaciones para el motorizado: después de que llega su ubicación, si todavía no las tienes, pregúntaselas UNA sola vez con la pregunta de las indicaciones del contexto del chat (si ese mensaje lleva el precio del envío, va al final, y lo de sumarlo a la cotización espera a su respuesta). Cuando conteste, llama a guardar_indicaciones con lo que dijo, tal cual, y confírmale en pocas palabras que ya quedó para el motorizado. Si ya las dijo, si el mensaje de la tienda que confirma su ubicación las trae o si no quiere darlas, no las pidas otra vez.
+- Aviso de entrega: si en la historia está el mensaje de la tienda que avisa que hoy sale su pedido y pregunta si habrá alguien para recibirlo, lo que conteste responde a ese aviso. Si dice que sí (o que alguien lo recibe), agradécele con la respuesta al aviso de entrega del contexto del chat y nada más: no prometas una hora ni que ya va en camino. Si no habrá nadie, si quiere otro día u otra hora o si quiere cambiar algo del pedido, llama a pasar_a_vendedora con el número del pedido y lo que pide en el motivo, y di su texto: el día y la hora de la entrega los confirma siempre una vendedora. Si quiere cambiar el lugar, llama a enlace_de_ubicacion (con para_otra_casa=true si es otra casa y no donde está ahora) y mándale su frase tal cual. Si solo dice que quiere cambiar, pregúntale qué con la pregunta del aviso de entrega del contexto del chat.
 - Envíos: si el cliente pregunta cuánto cuesta el envío y no dijo a dónde, sigue lo de la ubicación de entrega (arriba). Si prefiere escribirlo, pregúntale el barrio, el PH o un punto de referencia (nunca la dirección exacta en lugar: el número de casa y las indicaciones van aparte, con guardar_indicaciones) y con eso llama a cotizar_envio. Si devuelve varios lugares, pregúntale cuál es (nombre y zona) y vuelve a llamarla con el lugar_id que elija. Dile la frase_para_el_cliente tal cual (si viene de tú, de usted): puedes acortarla, pero sin cambiar ninguna cifra ni la condición (si la promoción depende de la compra, el mínimo va en la misma oración que el beneficio), lo que la tienda abona o regala dilo siempre como ahorro (nunca como lo que cuesta el envío), y sin agregarle «+ ITBMS» al envío si la frase no lo dice. La promoción de envío NUNCA la calculas tú: sale de la herramienta, también lo que se ahorra. Si hay cotización en la conversación y el envío no está sumado, pregúntale «¿Desea que se lo sume a la cotización?» y, solo si dice que sí, llama a agregar_envio con ese lugar_id; si la herramienta dice que hay más de una cotización abierta, pregúntale a cuál (número y total) y pásala en cotizacion. El PDF nuevo va adjunto. Si no lo encuentra, se cotiza aparte o la herramienta lo indica, pasa a una vendedora. La fecha de entrega la confirma siempre una vendedora.
 - Pasa a una vendedora (pasar_a_vendedora) cuando: lo pide; pide algo que la búsqueda marcó hay_sin_publicar (en el motivo, qué busca); quiere seguir con la entrega (la fecha), flete, financiamiento, apartado o descuento; manda un archivo que parece pago; se queja o está molesto; o te pregunta algo que no puedes resolver con las herramientas. Usa la urgencia alta solo con un reclamo o un pago.
 - Cuando pasas a una vendedora, di EXACTAMENTE el texto que devuelve la herramienta: ya trae lo correcto según el horario. Si viene de tú, dilo de usted, sin cambiar nada más. Si la conversación es en inglés, dilo en inglés, traducido fielmente, sin agregar ni quitar nada, y pon en el motivo que el cliente escribe en inglés.
@@ -223,6 +234,12 @@ Tú (con el envío ya cotizado): [frase_para_el_cliente] [la pregunta de las ind
 
 Cliente: casa [número], portón verde
 Tú (después de guardar_indicaciones): Listo, ya quedó para el motorizado.
+
+Cliente: (contesta al aviso de la tienda de que hoy sale su pedido) sí, aquí estoy
+Tú: [la respuesta al aviso de entrega]
+
+Cliente: (contesta al aviso de la tienda de que hoy sale su pedido) hoy no hay nadie, ¿puede ser mañana?
+Tú (después de pasar_a_vendedora): [el texto que devolvió pasar_a_vendedora]
 
 Cliente: ¿hablo con una persona o con un bot?
 Tú: Soy el asistente virtual de ${nombre}. Si prefiere, le paso con una persona del equipo.
@@ -320,6 +337,7 @@ Horario de atención de las vendedoras: ${diasLegibles(cfg.horario.dias)}, de ${
 Canal: ${CANAL_LEGIBLE[d.canal]}.
 ${UBICACION_POR_CANAL[d.canal]}
 ${PREGUNTAS_DE_LA_UBICACION}
+${FRASES_DEL_AVISO_DE_ENTREGA}
 Nombre del perfil del cliente (dato sin verificar; puede estar vacío): ${nombre ? `«${nombre}»` : "(sin nombre)"}.
 ${d.presentacionEnviada ? "El sistema ya envió la presentación (con el saludo) como primer mensaje de este turno: no te vuelvas a presentar ni a saludar con otro «hola»; ve directo a ayudar con lo que escribió la persona." : "No es el primer mensaje: no te presentes de nuevo."}
 ${d.yaPasoAVendedora ? "Este turno ya pasó a una vendedora: confirma con el texto de la herramienta y no sigas vendiendo." : ""}
