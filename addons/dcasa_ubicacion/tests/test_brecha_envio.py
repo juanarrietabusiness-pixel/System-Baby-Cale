@@ -25,6 +25,34 @@ class TestChatDeJuan(UbicacionCase):
         datos = self.env['brian.herramientas'].with_context(juan_conversacion_id=conv.id)._juan_enlace_de_ubicacion()
         self.assertTrue(datos['boton_whatsapp'])
 
+    def test_para_otra_casa_no_usa_el_gps_ni_el_boton(self):
+        conv = self.conversacion(id_externo='50761230013')
+        conv.sudo().write({'canal': 'whatsapp_cloud'})
+        Herramientas = self.env['brian.herramientas'].with_context(juan_conversacion_id=conv.id)
+        datos = Herramientas._juan_enlace_de_ubicacion(para_otra_casa=True)
+        self.assertNotIn('boton_whatsapp', datos, 'el botón mandaría la ubicación del teléfono, no la de esa casa')
+        self.assertIn('Busque la barriada', datos['frase_para_el_cliente'])
+        self.assertNotIn('Mi ubicación', datos['frase_para_el_cliente'])
+        for linea in datos['frase_para_el_cliente'].split('\n')[1:]:
+            self.assertRegex(linea, r'^[123]️⃣ ', 'un paso por línea: el Worker conserva así sus íconos')
+
+    def test_cotizar_sin_lugar_ni_punto_no_es_un_error(self):
+        conv = self.conversacion(id_externo='50761230014')
+        datos = self.env['brian.herramientas'].with_context(juan_conversacion_id=conv.id)._j_cotizar_envio()
+        self.assertEqual(datos['estado'], 'sin_ubicacion')
+        self.assertIn('enlace_de_ubicacion', datos['instruccion'])
+        self.assertNotIn('ubicacion_guardada', datos)
+
+    def test_el_listo_repite_la_casa_para_no_volver_a_preguntarla(self):
+        conv = self.conversacion(id_externo='50761230015')
+        self.configurar_worker()
+        enlace, _url = self.env['dcasa.ubicacion.enlace']._crear(conv.partner_id, conversacion=conv, creado_por='juan')
+        enlace._confirmar(*CERCA, 'gps', precision=9, referencia='Casa 24, portón negro')
+        mensaje = self.env['dcasa.mensaje'].sudo().search([('conversacion_id', '=', conv.id), ('origen', '=', 'odoo'),
+                                                           ('tipo', '=', 'mensaje')], order='id desc', limit=1)
+        self.assertIn('🏠 Casa 24, portón negro.', mensaje.texto)
+        self.assertLess(mensaje.texto.index('🏠'), mensaje.texto.index('🚚'))
+
     def test_guardar_indicaciones(self):
         conv = self.conversacion(id_externo='50761230011')
         Herramientas = self.env['brian.herramientas'].with_context(juan_conversacion_id=conv.id)

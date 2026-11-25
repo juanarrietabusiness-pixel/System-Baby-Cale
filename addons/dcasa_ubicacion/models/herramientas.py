@@ -35,16 +35,25 @@ class BrianHerramientasUbicacion(models.AbstractModel):
         sin_lugar = lugar_id is None and not (isinstance(lugar, str) and lugar.strip())
         conv = self._j_conversacion_opcional() if sin_lugar else None
         destino = conv.partner_id.sudo() if conv else None
-        if not destino or not destino._dcasa_ubic_punto():
+        if not conv:
             return super()._j_cotizar_envio(lugar=lugar, lugar_id=lugar_id)
         apagado = self._j_envios_encendidos()
         if apagado:
             return dict(apagado, por_ubicacion=True)
+        if not destino or not destino._dcasa_ubic_punto():
+            # Sin lugar y sin punto guardado no es un error (Juan lo llama primero para ofrecer «como la vez pasada»):
+            # que le pida su ubicación como dice su guía para el canal.
+            return {
+                'estado': 'sin_ubicacion',
+                'instruccion': 'Todavía no tenemos su ubicación (no es un error): pídesela como dice tu guía para este '
+                               'canal o con enlace_de_ubicacion. Nunca le pidas la dirección exacta escrita.',
+            }
         if not destino.dcasa_ubic_lugar_id:
             return self._j_envio_sin_lugar_cerca()
         datos = super()._j_cotizar_envio(lugar_id=destino.dcasa_ubic_lugar_id.id)
         datos['por_ubicacion'] = True
-        datos['ubicacion_guardada'] = destino.dcasa_ubic_zona or ''
+        if destino.dcasa_ubic_zona:
+            datos['ubicacion_guardada'] = destino.dcasa_ubic_zona
         return datos
 
     # ------------------------------------------------------------------
@@ -57,19 +66,27 @@ class BrianHerramientasUbicacion(models.AbstractModel):
                     'horas). Úsalo en Instagram o Messenger, o si no puede compartir su ubicación por el chat. '
                     'Cuando lo confirme, la tienda le escribe sola con la zona y el precio del envío: no le pidas '
                     'que copie ni pegue nada.',
+        parametros={'para_otra_casa': {'type': 'boolean', 'description': 'true si el pedido va a otra persona u otro '
+                                                                         'lugar (un regalo, la abuela, el trabajo), no '
+                                                                         'a donde está el cliente ahora.'}},
         nivel='construccion', categoria='ventas', grupos=GRUPOS,
-        ejemplos=['«¿cómo le paso mi dirección?» en Instagram → enlace_de_ubicacion()'],
+        ejemplos=['«¿cómo le paso mi dirección?» en Instagram → enlace_de_ubicacion()',
+                  '«es para mi mamá, vive en Arraiján» → enlace_de_ubicacion(para_otra_casa=true)'],
     )
-    def _juan_enlace_de_ubicacion(self):
+    def _juan_enlace_de_ubicacion(self, para_otra_casa=False):
         conv = self._j_conversacion()
         partner = conv.partner_id.sudo()
         if not partner:
             raise BrianError('Esta conversación todavía no tiene ficha de cliente.')
+        otra_casa = para_otra_casa is True or str(para_otra_casa).strip().lower() == 'true'
         _enlace, url = self.env['dcasa.ubicacion.enlace']._crear(partner, conversacion=conv, creado_por='juan')
-        # Tres pasos con íconos (el dueño, 2026-11-25): se entiende sin leer. WhatsApp muestra la vista previa con un
-        # pin en un mapa (og:image de la página).
-        frase = (f'📍 Para llevárselo exacto:\n1️⃣ Abra este enlace: {url}\n2️⃣ Toque «Mi ubicación» y permita\n'
-                 '3️⃣ Escriba su número de casa y toque «Sí, aquí es»')
+        # Tres pasos con íconos (el dueño, 2026-11-25): se entiende sin leer, uno por línea (el Worker conserva así sus
+        # íconos). WhatsApp muestra la vista previa con un pin en un mapa (og:image de la página). Para otra casa, «Mi
+        # ubicación» marcaría donde está el teléfono: se busca la barriada o se mueve el mapa.
+        paso_2 = '2️⃣ Busque la barriada o mueva el mapa hasta esa casa' if otra_casa \
+            else '2️⃣ Toque «Mi ubicación» y permita'
+        frase = (f'📍 Para llevárselo exacto:\n1️⃣ Abra este enlace: {url}\n{paso_2}\n'
+                 '3️⃣ Escriba el número de casa y toque «Sí, aquí es»')
         datos = {
             'enlace': url,
             'vence_en_horas': 24,
@@ -77,8 +94,9 @@ class BrianHerramientasUbicacion(models.AbstractModel):
             'instruccion': 'Mándale la frase tal cual (no cambies el enlace ni los pasos). Cuando marque su punto, la '
                            'tienda le escribe sola con la zona y el precio del envío.',
         }
-        if conv.canal == 'whatsapp_cloud':
-            # El Worker manda además el botón nativo «Enviar ubicación» de WhatsApp (location_request_message).
+        if conv.canal == 'whatsapp_cloud' and not otra_casa:
+            # El Worker manda además el botón nativo «Enviar ubicación» de WhatsApp (location_request_message). Para
+            # otra casa no: mandaría la ubicación del teléfono.
             datos['boton_whatsapp'] = True
         return datos
 

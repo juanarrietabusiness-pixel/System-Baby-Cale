@@ -130,6 +130,10 @@ class UbicacionEnlace(models.Model):
         donde = ', '.join(p for p in (zona.get('barriada') or zona.get('corregimiento'), zona.get('distrito')) if p)
         recibido = (self.env._('✅ ¡Listo! Recibimos su ubicación: %s.', donde) if donde
                     else self.env._('✅ ¡Listo! Recibimos su ubicación.'))
+        # La casa que escribió en la página (el paso 3): así Juan no se la vuelve a preguntar.
+        casa = geo.texto_corto(self.partner_id.sudo().dcasa_referencia, 80)
+        if casa:
+            recibido += ' ' + self.env._('🏠 %s.', casa.rstrip('.'))
         precio = self.env['dcasa.ubicacion']._precio(zona.get('lugar'))
         if precio['con_precio']:
             return recibido + ' ' + self.env._('🚚 Envío %s. ¿Se lo sumamos a su pedido?', precio['total_txt'])
