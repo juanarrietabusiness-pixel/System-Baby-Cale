@@ -3988,7 +3988,7 @@
    "grupo": "Envíos",
    "titulo": "Mandarle a una clienta el enlace para que marque su ubicación",
    "logras": "En Contactos abres la ficha de la clienta y, en la pestaña «Ubicación de entrega», tocas «Crear enlace para que marque su ubicación». Sale un enlace que sirve una sola vez y vence en 24 horas: se lo mandas por WhatsApp, ella marca su punto en el mapa y queda en su ficha con la zona, de dónde salió el punto y cómo reconocer el sitio. En la misma pestaña ves lo que ya marcó.",
-   "nota": "Juan manda este mismo enlace solo cuando la clienta escribe por Instagram o Messenger. Por WhatsApp ella puede compartir su ubicación con el clip.",
+   "nota": "Juan manda este mismo enlace por WhatsApp oficial (con un botón «Enviar ubicación»), Instagram y Messenger, y cuando el pedido es para otra casa. Por WhatsApp con QR y Telegram ella también puede compartir su ubicación con el clip.",
    "destino": {
     "menu": "contacts.res_partner_menu_contacts"
    },
