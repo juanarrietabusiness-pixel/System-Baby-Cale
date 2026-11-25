@@ -4045,6 +4045,48 @@
    ]
  },
   {
+   "id": "envio-pedir-ubicacion-venta",
+   "categoria": "vender",
+   "grupo": "Envíos",
+   "titulo": "Pedirle a la clienta que marque su casa en el mapa para su pedido",
+   "logras": "Cuando confirmas una venta a domicilio y la dirección no tiene su casa marcada en el mapa, el asistente se lo pide solo por el chat, con un enlace para marcarla. Si no le puede escribir (no tiene chat, o pasó más de un día desde su último mensaje en WhatsApp oficial, Instagram o Messenger), te queda el pendiente «📍 Pedirle la ubicación de entrega»: abres la venta y tocas «📲 Pedir ubicación por WhatsApp», y se abre WhatsApp con el mensaje y el enlace listos para mandar. Cuando ella marca su casa, el pendiente se cierra solo.",
+   "nota": "Si la clienta marca su casa con la venta ya cobrada, el envío no se cambia: si la tabla da otro precio para esa zona, queda una nota en la venta para que decidan.",
+   "destino": {
+    "menu": "sale.menu_sale_order"
+   },
+   "palabras": [
+    "pedir ubicacion",
+    "pedirle la ubicacion",
+    "marcar la casa",
+    "casa en el mapa",
+    "direccion escrita",
+    "pedidos devueltos",
+    "no encuentra la casa",
+    "ubicacion por whatsapp"
+   ]
+ },
+  {
+   "id": "envio-aviso-sale-hoy",
+   "categoria": "vender",
+   "grupo": "Envíos",
+   "titulo": "Avisarle a la clienta que su pedido sale hoy",
+   "logras": "El día que sale el pedido, abres la venta (o su entrega) y tocas «🚚 Sale hoy: avisarle». El asistente le escribe por el chat que hoy le llega y le pregunta si habrá alguien en casa; si ella dice que no o quiere cambiar el día, la pasa a una vendedora. Si el asistente no le puede escribir, se abre WhatsApp con el mensaje listo. Para varias a la vez, las marcas en la lista de ventas y eliges en Acciones «🚚 Sale hoy: avisarles».",
+   "nota": "Se le avisa una sola vez por día. Si todavía no tiene su casa en el mapa, el mensaje lleva el enlace para marcarla.",
+   "destino": {
+    "menu": "sale.menu_sale_order"
+   },
+   "palabras": [
+    "sale hoy",
+    "avisar entrega",
+    "avisarle a la clienta",
+    "hay alguien en casa",
+    "despacho",
+    "pedido en camino",
+    "motorizado sale",
+    "aviso de entrega"
+   ]
+ },
+  {
    "id": "envio-enlace-choferes",
    "categoria": "vender",
    "grupo": "Envíos",

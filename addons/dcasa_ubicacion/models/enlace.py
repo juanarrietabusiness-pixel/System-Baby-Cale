@@ -35,8 +35,10 @@ class UbicacionEnlace(models.Model):
     orden_id = fields.Many2one('sale.order', 'Pedido', readonly=True, ondelete='cascade', index='btree_not_null',
                                help='Si vino del link de pago (la página del pedido): al confirmar se recalcula su '
                                     'envío y la clienta vuelve a su pedido.')
-    creado_por = fields.Selection([('juan', 'Juan (el asistente)'), ('equipo', 'El equipo')], readonly=True,
-                                  required=True, default='equipo')
+    creado_por = fields.Selection([('juan', 'Juan (el asistente)'), ('equipo', 'El equipo'),
+                                   ('aviso', 'El aviso de la venta')], readonly=True, required=True, default='equipo',
+                                  help='«El aviso de la venta»: se lo pidió el sistema al confirmar una venta a '
+                                       'domicilio sin su casa en el mapa, o con «🚚 Sale hoy» (models/avisos.py).')
     usuario_id = fields.Many2one('res.users', 'Lo pidió', readonly=True, default=lambda self: self.env.user)
     vence = fields.Datetime(required=True, readonly=True)
     usado_el = fields.Datetime('Usado el', readonly=True)
@@ -61,7 +63,7 @@ class UbicacionEnlace(models.Model):
             'huella': geo.huella(token), 'partner_id': partner.id,
             'conversacion_id': conversacion.id if conversacion else False,
             'orden_id': orden.id if orden else False,
-            'creado_por': 'juan' if creado_por == 'juan' else 'equipo',
+            'creado_por': creado_por if creado_por in ('juan', 'aviso') else 'equipo',
             'vence': fields.Datetime.now() + timedelta(hours=HORAS_VIGENCIA),
         })
         return enlace, enlace._url(token)
@@ -129,12 +131,25 @@ class UbicacionEnlace(models.Model):
     def _texto_para_la_clienta(self, zona):
         """«✅ ¡Listo! Recibimos su ubicación: Brisas del Golf, San Miguelito. 🚚 Envío $5.00. ¿Se lo sumamos a su
         pedido?» Corto y con íconos (el dueño, 2026-11-25: la gente no lee párrafos), de usted y sin coordenadas. Sin
-        precio: se lo confirma la tienda."""
+        precio: se lo confirma la tienda.
+
+        Con la venta ya confirmada (el enlace del aviso al comprar o de «🚚 Sale hoy», models/avisos.py), nada de precio
+        ni de «¿se lo sumamos?»: lo cobrado no se cambia. «✅ ¡Listo! Ya tenemos su casa: Villa Lucre, San Miguelito.
+        🏠 Casa 24. 🛵 Su pedido S00042 va para allá.» Si el envío de la tabla es otro, el equipo lo ve en la venta."""
         donde = ', '.join(p for p in (zona.get('barriada') or zona.get('corregimiento'), zona.get('distrito')) if p)
-        recibido = (self.env._('✅ ¡Listo! Recibimos su ubicación: %s.', donde) if donde
-                    else self.env._('✅ ¡Listo! Recibimos su ubicación.'))
         # La casa que escribió en la página (el paso 3): así Juan no se la vuelve a preguntar.
         casa = geo.texto_corto(self.partner_id.sudo().dcasa_referencia, 80)
+        orden = self.orden_id.sudo()
+        if orden and orden.state not in ('draft', 'sent'):
+            listo = (self.env._('✅ ¡Listo! Ya tenemos su casa: %s.', donde) if donde
+                     else self.env._('✅ ¡Listo! Ya tenemos su casa.'))
+            if casa:
+                listo += ' ' + self.env._('🏠 %s.', casa.rstrip('.'))
+            if orden.state == 'sale':
+                listo += ' ' + self.env._('🛵 Su pedido %s va para allá.', orden.name)
+            return listo
+        recibido = (self.env._('✅ ¡Listo! Recibimos su ubicación: %s.', donde) if donde
+                    else self.env._('✅ ¡Listo! Recibimos su ubicación.'))
         if casa:
             recibido += ' ' + self.env._('🏠 %s.', casa.rstrip('.'))
         precio = self.env['dcasa.ubicacion']._precio(zona.get('lugar'))

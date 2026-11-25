@@ -16,6 +16,7 @@ Las coordenadas nunca salen en lo que ve el modelo de IA: solo la zona y los bot
 from odoo import api, models
 from odoo.addons.dcasa_brian.models.registro import BrianError, herramienta
 from odoo.addons.dcasa_conversaciones.models.herramientas_juan import GRUPOS, PREFIJO
+from odoo.addons.dcasa_conversaciones.models.sale_origen import hoy_en_panama
 
 from ..motor import enlaces_mapa, geo
 from .zona import UbicacionInvalida
@@ -79,7 +80,12 @@ class BrianHerramientasUbicacion(models.AbstractModel):
         if not partner:
             raise BrianError('Esta conversación todavía no tiene ficha de cliente.')
         otra_casa = para_otra_casa is True or str(para_otra_casa).strip().lower() == 'true'
-        _enlace, url = self.env['dcasa.ubicacion.enlace']._crear(partner, conversacion=conv, creado_por='juan')
+        # Si hoy se le avisó por el chat que su pedido sale («🚚 Sale hoy», models/avisos.py) y quiere cambiar el
+        # lugar, el enlace va ligado a esa venta: el punto queda en su dirección de entrega y el equipo lo ve ahí.
+        orden = self._ubic_venta_avisada_hoy(partner)
+        destino = (orden.partner_shipping_id or orden.partner_id).sudo() if orden else partner
+        _enlace, url = self.env['dcasa.ubicacion.enlace']._crear(destino, conversacion=conv, creado_por='juan',
+                                                                  orden=orden or None)
         # Tres pasos con íconos (el dueño, 2026-11-25): se entiende sin leer, uno por línea (el Worker conserva así sus
         # íconos). WhatsApp muestra la vista previa con un pin en un mapa (og:image de la página). Para otra casa, «Mi
         # ubicación» marcaría donde está el teléfono: se busca la barriada o se mueve el mapa.
@@ -99,6 +105,14 @@ class BrianHerramientasUbicacion(models.AbstractModel):
             # otra casa no: mandaría la ubicación del teléfono.
             datos['boton_whatsapp'] = True
         return datos
+
+    @api.model
+    def _ubic_venta_avisada_hoy(self, partner):
+        """La venta confirmada de esta clienta a la que hoy se le avisó por el chat que sale, o un registro vacío."""
+        return self.env['sale.order'].sudo().search([
+            ('state', '=', 'sale'), ('dcasa_aviso_sale_hoy_el', '=', hoy_en_panama()),
+            ('dcasa_aviso_sale_hoy_por', '=', 'chat'),
+            '|', ('partner_id', '=', partner.id), ('partner_shipping_id', '=', partner.id)], order='id desc', limit=1)
 
     # ------------------------------------------------------------------
     # Juan: guardar_indicaciones

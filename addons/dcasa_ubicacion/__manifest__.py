@@ -17,6 +17,9 @@ Pedido del dueño de Baby Caleb (2026-11-25), con la idea de Nébula y sus falla
 * **Para que no vuelva el pedido**: quién recibe y un teléfono de respaldo (checkout, enlace, Juan con
   ``guardar_quien_recibe``, Brian con ``poner_quien_recibe``), la foto de la fachada (sin EXIF; la ve el motorizado
   en ``/entrega/<secreto>/fachada``), «Avisar que llegué» por WhatsApp y la tarjeta «Marcar mi casa» al pagar.
+* **Avisos** (models/avisos.py): al confirmar una venta a domicilio sin la casa en el mapa, el asistente le pide el
+  punto por el chat (o queda un pendiente y «📲 Pedir ubicación por WhatsApp»); el día de la entrega, «🚚 Sale hoy:
+  avisarle» (venta, entrega, lista y Brian: ``pedir_ubicacion_al_cliente`` y ``avisar_que_sale_hoy``).
 * Claves (opcionales, en Cloudflare): ``GOOGLE_MAPS_CLAVE_NAVEGADOR`` (el mapa) y ``GOOGLE_MAPS_CLAVE_SERVIDOR`` (la
   calle). Sin ellas: GPS, búsqueda en la tabla y dirección escrita siguen funcionando.
 """,
@@ -37,6 +40,8 @@ Pedido del dueño de Baby Caleb (2026-11-25), con la idea de Nébula y sus falla
         'views/pedido_templates.xml',
         'views/backend_views.xml',
         'views/casa_views.xml',
+        'data/avisos_data.xml',
+        'views/avisos_views.xml',
     ],
     'assets': {
         'web.assets_frontend': [
