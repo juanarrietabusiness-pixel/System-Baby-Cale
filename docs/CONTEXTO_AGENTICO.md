@@ -2291,12 +2291,24 @@ Un revisor sin mi contexto (con acceso de lectura y bases de prueba) encontró c
   TEXTOS_INICIALES`) los escribe un gancho la primera vez, y seguían siendo los de D'CASA (muebles, colchones, flete,
   «el ITBMS se suma»). Una instalación nueva de producción los habría impreso en cada comprobante. Buscar con
   `grep -rn "mueble\|colch\|flete" addons --include=*.py` lo que no está en las vistas.
-- **Las diferencias de negocio van como interruptor de entorno, no borrando código de la plantilla**: sin ITBMS
+- **Las diferencias de negocio van como interruptor, no borrando código de la plantilla**: sin ITBMS
   (`DCASA_COBRA_ITBMS=0`), sin tienda física (`DCASA_TIENDA_FISICA=0`), conocimiento inicial
-  (`DCASA_CONOCIMIENTO_INICIAL`). Las tres siguen el mismo camino: `edge/wrangler.jsonc` → lista de variables del
-  contenedor (`edge/src/handler.ts`, si falta ahí no llega) → `docker/entrypoint.sh`, una vez por versión con su
-  parámetro `*_version` → una función del módulo con su prueba. Las pruebas corren sin la variable, así que la conducta
-  de D'CASA sigue probada; la del negocio se prueba llamando la función.
+  (`DCASA_CONOCIMIENTO_INICIAL`). Las tres viven en **`docker/negocio.env`, dentro de la imagen**, y mandan sobre el
+  entorno → `docker/entrypoint.sh` («1b» las lee; cada interruptor corre una vez por versión con su parámetro
+  `*_version`) → una función del módulo con su prueba. Las pruebas de Odoo corren sin el archivo, así que la conducta
+  de D'CASA sigue probada; la del negocio se prueba llamando la función, y CI enciende la imagen sin variables y
+  comprueba que quedó sin ITBMS ni pago ni retiro en la tienda.
+- **Incidente 2026-11-25 (staging, 20a754a): la identidad del negocio NO puede viajar como variable del Worker.**
+  Primer despliegue con los tres interruptores: la caja siguió cobrando ITBMS (el pañal de $50 daba $53.50) y
+  ofreciendo «Pago en la tienda» y «Retiro en tienda», con CI en verde y la salud en «ok». Las variables estaban en
+  `edge/wrangler.jsonc` y en la lista del Worker (el registro de `wrangler deploy` las mostraba), pero Cloudflare
+  encendió la imagen nueva **con las variables del arranque anterior** (las de 0526e3f, cuya lista no las pasaba):
+  el arranque nunca las vio. Ya estaba escrito para `APP_VERSION` (incidente #97): lo que la imagen necesita saber
+  al arrancar va en la imagen. Cómo se encontró: comprar en staging con Playwright y leer los `data-*` de los métodos
+  de pago (`providerState: enabled`); copiar una base vieja y repetir aquí `-i/-u` + los tres `odoo shell` del arranque
+  (todo se apagaba bien) descartó el código. Arreglo: `docker/negocio.env` (la imagen manda; el Worker ya no pasa esas
+  tres) y la comprobación en CI. Lección: **verificar en staging el efecto de cada interruptor nuevo (comprar, mirar
+  el precio), no solo que CI y la salud estén en verde**.
 - **Un papel que no es la factura fiscal no se llama «Factura»** (Baby Caleb usa el Facturador Gratuito de la DGI).
   El título sale de un solo método (`account.move._dcasa_titulo_documento`) que usan el PDF y su nombre de archivo;
   el correo y Mi cuenta tienen sus propios textos y hay que cambiarlos aparte.

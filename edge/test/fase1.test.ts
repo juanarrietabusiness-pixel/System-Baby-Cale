@@ -27,6 +27,12 @@ import {
 import { route } from "../src/routing";
 // Vite entrega el archivo como texto (ver test/raw.d.ts).
 import wranglerJsonc from "../wrangler.jsonc?raw";
+import negocioEnv from "../../docker/negocio.env?raw";
+import dockerfile from "../../docker/Dockerfile?raw";
+import entrypoint from "../../docker/entrypoint.sh?raw";
+
+/** La identidad del negocio: viaja en la imagen (docker/negocio.env), nunca en el entorno del Worker. */
+const IDENTIDAD_DEL_NEGOCIO = ["DCASA_COBRA_ITBMS", "DCASA_TIENDA_FISICA", "DCASA_CONOCIMIENTO_INICIAL"] as const;
 
 const TOKEN = "t".repeat(40);
 const SECRETOS = {
@@ -310,14 +316,12 @@ describe("contenedor único con PostgreSQL local", () => {
     expect(variablesDelContenedor({ DCASA_ADJUNTOS: "db" }).DCASA_ADJUNTOS).toBe("db");
     expect(variablesDelContenedor({})).not.toHaveProperty("DCASA_ADJUNTOS");
     expect(variablesDelContenedor({ DCASA_STOCK_PRUEBA: "10" }).DCASA_STOCK_PRUEBA).toBe("10");
-    // Baby Caleb no cobra ITBMS: la variable llega al arranque (docker/entrypoint.sh › aplicar_sin_itbms).
-    expect(variablesDelContenedor({ DCASA_COBRA_ITBMS: "0" }).DCASA_COBRA_ITBMS).toBe("0");
-    expect(variablesDelContenedor({})).not.toHaveProperty("DCASA_COBRA_ITBMS");
-    expect(variablesDelContenedor({ DCASA_CONOCIMIENTO_INICIAL: "baby_caleb" }).DCASA_CONOCIMIENTO_INICIAL).toBe(
-      "baby_caleb");
-    // Sin tienda física: la variable llega al arranque (docker/entrypoint.sh › _dcasa_aplicar_sin_tienda_fisica).
-    expect(variablesDelContenedor({ DCASA_TIENDA_FISICA: "0" }).DCASA_TIENDA_FISICA).toBe("0");
-    expect(variablesDelContenedor({})).not.toHaveProperty("DCASA_TIENDA_FISICA");
+    // La identidad del negocio (ITBMS, tienda física, conocimiento inicial) la trae la imagen (docker/negocio.env):
+    // aunque alguien la pegue en el panel, el Worker no la pasa (y el arranque la ignoraría: manda la imagen).
+    const negocio = variablesDelContenedor({
+      DCASA_COBRA_ITBMS: "1", DCASA_TIENDA_FISICA: "1", DCASA_CONOCIMIENTO_INICIAL: "otro",
+    });
+    for (const nombre of IDENTIDAD_DEL_NEGOCIO) expect(negocio).not.toHaveProperty(nombre);
     // Salidas de emergencia del arranque (#97): sin ellas en la lista, pegarlas en el panel no servía de nada.
     const commit = "0123456789abcdef0123456789abcdef01234567";
     expect(variablesDelContenedor({ DCASA_PERMITIR_BAJAR: commit, DCASA_HUMO: "0" })).toMatchObject({
@@ -486,11 +490,8 @@ describe("wrangler.jsonc (producción y staging)", () => {
     expect(politicaDeSueno(config.vars.ODOO_DORMIR_TRAS).siempreEncendido).toBe(true);
     expect(config.vars.DCASA_ENTORNO).toBe("produccion");
     expect(config.vars.DCASA_STOCK_PRUEBA).toBe("0");
-    // Baby Caleb no cobra ITBMS (decisión del dueño, 2026-11-24).
-    expect(config.vars.DCASA_COBRA_ITBMS).toBe("0");
-    expect(config.vars.DCASA_CONOCIMIENTO_INICIAL).toBe("baby_caleb");
-    // Baby Caleb vende solo en línea (el dueño, 2026-11-24): sin pago ni retiro en la tienda.
-    expect(config.vars.DCASA_TIENDA_FISICA).toBe("0");
+    // Sin ITBMS, sin tienda física y el conocimiento inicial: en la imagen (docker/negocio.env), no aquí.
+    for (const nombre of IDENTIDAD_DEL_NEGOCIO) expect(config.vars).not.toHaveProperty(nombre);
     // Black Weekend en producción: solo dentro de la ventana de la dueña (hora de Panamá).
     expect(config.vars.DCASA_BLACK_WEEKEND).toBe("0");
     expect(config.vars.DCASA_BLACK_WEEKEND_INICIO).toBe("2026-10-02");
@@ -503,9 +504,7 @@ describe("wrangler.jsonc (producción y staging)", () => {
     expect(staging.vars.R2_BUCKET).not.toBe(config.vars.R2_BUCKET);
     expect(staging.vars.DCASA_ENTORNO).toBe("staging");
     expect(staging.vars.DCASA_STOCK_PRUEBA).toBe("10");
-    expect(staging.vars.DCASA_COBRA_ITBMS).toBe("0");
-    expect(staging.vars.DCASA_CONOCIMIENTO_INICIAL).toBe("baby_caleb");
-    expect(staging.vars.DCASA_TIENDA_FISICA).toBe("0");
+    for (const nombre of IDENTIDAD_DEL_NEGOCIO) expect(staging.vars).not.toHaveProperty(nombre);
     // Black Weekend era una campaña de D'CASA: en la instalación de Baby Caleb queda apagado también en staging.
     expect(staging.vars.DCASA_BLACK_WEEKEND).toBe("0");
     // La puerta del equipo arranca apagada en una instalación nueva (incidente 4: "1" sin Access deja a todos afuera).
@@ -546,5 +545,33 @@ describe("wrangler.jsonc (producción y staging)", () => {
 
   it("staging también 24/7 (decisión de la dueña, 2026-10-02): no se duerme", () => {
     expect(politicaDeSueno(config.env.staging.vars.ODOO_DORMIR_TRAS).siempreEncendido).toBe(true);
+  });
+});
+
+// Staging, 2026-11-25: Cloudflare encendió la imagen 20a754a con las variables del arranque anterior (que no traía
+// estas tres) y staging siguió cobrando ITBMS y ofreciendo pago y retiro en la tienda. Desde entonces viajan en la
+// imagen y mandan sobre el entorno.
+describe("identidad del negocio dentro de la imagen (docker/negocio.env)", () => {
+  const valores = Object.fromEntries(
+    negocioEnv.split("\n").map((l) => l.trim()).filter((l) => l && !l.startsWith("#")).map((l) => l.split("=")),
+  );
+
+  it("Baby Caleb: sin ITBMS, sin tienda física y con su conocimiento inicial (decisiones del dueño, 2026-11-24)", () => {
+    expect(valores).toEqual({ DCASA_COBRA_ITBMS: "0", DCASA_TIENDA_FISICA: "0", DCASA_CONOCIMIENTO_INICIAL: "baby_caleb" });
+    for (const linea of negocioEnv.split("\n").filter((l) => l.trim() && !l.startsWith("#"))) {
+      expect(linea).toMatch(/^[A-Z_]+=[a-z0-9_]*$/); // el formato que entiende el arranque
+    }
+  });
+
+  it("la imagen lo copia y el arranque lo lee antes de los interruptores, y manda sobre el entorno", () => {
+    expect(dockerfile).toContain("COPY docker/negocio.env /usr/local/lib/dcasa/negocio.env");
+    const lectura = entrypoint.indexOf("/usr/local/lib/dcasa/negocio.env");
+    expect(lectura).toBeGreaterThan(0);
+    for (const interruptor of ['"${DCASA_COBRA_ITBMS:-1}" == "0"', '"${DCASA_TIENDA_FISICA:-1}" == "0"',
+      '-n "${DCASA_CONOCIMIENTO_INICIAL:-}"']) {
+      expect(entrypoint.indexOf(interruptor)).toBeGreaterThan(lectura);
+    }
+    expect(entrypoint).toContain("manda la imagen");
+    for (const nombre of IDENTIDAD_DEL_NEGOCIO) expect(entrypoint).toContain(nombre);
   });
 });

@@ -9,8 +9,8 @@ conocimiento», y lo tiene que poder configurar, apagar y archivar. Por eso este
 * Una entrada NUEVA en el archivo se crea en el siguiente arranque; una CORRECCIÓN a una que ya existe se hace en el
   panel (cambiar el archivo no la toca).
 * Lo corre el arranque solo si ``DCASA_CONOCIMIENTO_INICIAL`` nombra el negocio (staging y producción de Baby Caleb,
-  edge/wrangler.jsonc). Ningún módulo trae entradas en sus datos: una instalación sin la variable sigue en cero
-  (decisión del 2026-11-18, test_conocimiento.py).
+  docker/negocio.env, dentro de la imagen). Ningún módulo trae entradas en sus datos: una instalación sin la variable
+  sigue en cero (decisión del 2026-11-18, test_conocimiento.py).
 """
 import json
 import logging

@@ -41,7 +41,7 @@ ENTREGAS_ANTES = {'Retiro en tienda (La Chorrera)': 'Retiro en tienda'}
 # Negocio sin tienda física (Baby Caleb: «Venta 100% online con entrega a domicilio», el dueño 2026-11-24). Con
 # este parámetro en «1» el pago no ofrece «Pago en la tienda» (que aparta el pedido para pagarlo en el local) ni la
 # entrega «Retiro en tienda»: quedan apagados, no borrados, y al reinstalar o migrar no se vuelven a encender. Lo
-# pone el arranque con DCASA_TIENDA_FISICA=0 (docker/entrypoint.sh, edge/wrangler.jsonc). Sin él (D'CASA, las
+# pone el arranque con DCASA_TIENDA_FISICA=0 (docker/negocio.env, dentro de la imagen). Sin él (D'CASA, las
 # pruebas), todo como siempre.
 PARAMETRO_SIN_TIENDA = 'website_dcasa.sin_tienda_fisica'
 PAGO_EN_TIENDA = 'delivery.payment_provider_cod'

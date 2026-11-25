@@ -119,6 +119,7 @@ Sacado de cada `addons/*/__manifest__.py` (detalle en [MODULOS.md](MODULOS.md)).
 | Formas de cobro (Yappy) y financieras locales | `addons/dcasa_base/__init__.py:12-24` |
 | Privacidad según la Ley 81 de 2019 (ANTAI) | `addons/website_dcasa/views/legal_templates.xml` |
 | Juan pone «+ ITBMS» a todo precio | `juan/src/dcasa/salvaguardas.ts:101-110` |
+| Si el negocio cobra ITBMS, si tiene tienda física y qué conocimiento inicial lleva el bot | `docker/negocio.env` (viaja en la imagen y manda sobre el entorno; en Baby Caleb: sin ITBMS, sin tienda, `baby_caleb`) |
 
 **Sirve tal cual** (con los datos y la marca del negocio nuevo): la plataforma en Cloudflare (borde, contenedor,
 respaldos, adjuntos en R2, sesiones, seguridad y puerta del equipo), Brian, el motor de Juan y sus canales, Sofía, la

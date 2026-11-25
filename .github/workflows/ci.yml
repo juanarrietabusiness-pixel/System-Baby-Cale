@@ -313,6 +313,26 @@ jobs:
           fi
           curl -fsS -o /dev/null http://localhost:8069/shop
           curl -fsS http://localhost:8069/socios | grep -q "Tus puntos"
+      - name: La identidad del negocio viene en la imagen, sin variables del entorno (docker/negocio.env)
+        # Staging, 2026-11-25: Cloudflare encendió la imagen nueva con las variables del arranque anterior, sin estas
+        # tres, y siguió cobrando ITBMS y ofreciendo pago y retiro en la tienda. Esta imagen arranca SIN ellas en el
+        # entorno (docker run de arriba): igual tiene que quedar sin ITBMS, sin tienda física y con el conocimiento.
+        run: |
+          psql_odoo() { docker exec odoo psql -h /var/lib/odoo/pg/run -U dcasa -d dcasa -tAqc "$1"; }
+          docker logs odoo 2>&1 | grep -F "▶ Negocio (docker/negocio.env): ITBMS=0, tienda física=0, conocimiento=baby_caleb"
+          for clave in dcasa_base.sin_itbms website_dcasa.sin_tienda_fisica; do
+            psql_odoo "SELECT value FROM ir_config_parameter WHERE key = '$clave'" | grep -qx 1 \
+              || { echo "::error::$clave no quedó en 1"; docker logs odoo 2>&1 | grep -E "▶|⚠|✖" | tail -40; exit 1; }
+          done
+          con_itbms="$(psql_odoo "SELECT count(*) FROM product_taxes_rel r JOIN account_tax t ON t.id = r.tax_id
+            WHERE t.type_tax_use = 'sale' AND t.amount <> 0")"
+          [[ "$con_itbms" == 0 ]] || { echo "::error::$con_itbms productos siguen con ITBMS"; exit 1; }
+          pago_tienda="$(psql_odoo "SELECT p.state FROM payment_provider p JOIN ir_model_data d ON d.res_id = p.id
+            AND d.model = 'payment.provider' AND d.module = 'delivery' AND d.name = 'payment_provider_cod'")"
+          [[ "$pago_tienda" == disabled ]] || { echo "::error::«Pago en la tienda» quedó «$pago_tienda»"; exit 1; }
+          retiro="$(psql_odoo "SELECT count(*) FROM delivery_carrier WHERE active AND name::text ILIKE '%Retiro en tienda%'")"
+          [[ "$retiro" == 0 ]] || { echo "::error::«Retiro en tienda» sigue activo"; exit 1; }
+          echo "Sin ITBMS, sin pago ni retiro en la tienda, aunque el entorno no trajo las variables."
       - name: Nunca queda admin/admin (S-04)
         run: |
           entrar() {

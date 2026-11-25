@@ -62,11 +62,13 @@ COPY --from=builder /opt/venv /opt/venv
 COPY --from=source /opt/odoo /opt/odoo
 COPY addons /opt/dcasa/addons
 COPY docker/pg.sh /usr/local/lib/dcasa/pg.sh
+# La identidad del negocio (ITBMS, tienda física, conocimiento del bot) viaja en la imagen: docker/negocio.env.
+COPY docker/negocio.env /usr/local/lib/dcasa/negocio.env
 COPY docker/entrypoint.sh /usr/local/bin/dcasa-entrypoint
 # El Worker lo ejecuta con ctx.container.exec() (edge/CONTRATO_CONTENEDOR.md).
 COPY scripts/respaldo.sh /usr/local/bin/dcasa-respaldo
 RUN chmod 755 /usr/local/bin/dcasa-entrypoint /usr/local/bin/dcasa-respaldo \
-    && chmod 644 /usr/local/lib/dcasa/pg.sh
+    && chmod 644 /usr/local/lib/dcasa/pg.sh /usr/local/lib/dcasa/negocio.env
 
 # La imagen sabe quién es: el commit con que se construyó y la huella de su código (Odoo + addons).
 # El arranque actualiza la base cuando la huella no coincide con la de la base, aunque APP_VERSION

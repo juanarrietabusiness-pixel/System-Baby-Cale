@@ -50,9 +50,8 @@
 #   ODOO_LIMIT_MEMORY_SOFT / ODOO_LIMIT_MEMORY_HARD  bytes de memoria VIRTUAL (ver odoo.conf).
 #   DB_REINTENTOS         intentos de conexión a PostgreSQL al arrancar (por defecto 20, cada 3 s).
 #   ODOO_DESINSTALAR_SOBRANTES  0 para no desinstalar los módulos sobrantes.
-#   DCASA_COBRA_ITBMS     «0» = el negocio no cobra ITBMS (Baby Caleb): empresa y productos sin el 7 %
-#   DCASA_CONOCIMIENTO_INICIAL  negocio cuyo conocimiento se siembra una vez por ficha (p. ej. «baby_caleb»)
-#   DCASA_TIENDA_FISICA   «0» = el negocio vende sin local (Baby Caleb): sin «Pago en la tienda» ni «Retiro en tienda»
+#   (Identidad del negocio: DCASA_COBRA_ITBMS, DCASA_TIENDA_FISICA y DCASA_CONOCIMIENTO_INICIAL NO son variables del
+#   entorno: las trae la imagen en docker/negocio.env, que manda. Ver «1b. Identidad del negocio».)
 #   DCASA_STOCK_PRUEBA    unidades de prueba por producto sin existencias ni movimientos
 #                         (solo con DCASA_ENTORNO=staging; por defecto 10). En producción
 #                         siempre 0: ver «2c. Existencias de prueba».
@@ -94,6 +93,35 @@ if [[ -z "${DB_MODO:-}" ]]; then
 fi
 ENTRYPOINT_T0=$SECONDS
 ODOO_PID=""
+
+# --- 1b. Identidad del negocio (docker/negocio.env, dentro de la imagen) -------
+# Decisiones del dueño que valen igual en staging y producción: ITBMS (DCASA_COBRA_ITBMS), tienda física
+# (DCASA_TIENDA_FISICA) y conocimiento inicial del bot (DCASA_CONOCIMIENTO_INICIAL). Viajan en la imagen y MANDAN
+# sobre el entorno: Cloudflare puede encender una imagen nueva con las variables del arranque anterior, y así fue como
+# staging (20a754a, 2026-11-25) arrancó sin ellas y siguió con ITBMS y con pago y retiro en la tienda. Sin el archivo
+# (p. ej. corriendo el guion fuera de la imagen) quedan las del entorno, como antes.
+NEGOCIO_NOMBRES=" DCASA_COBRA_ITBMS DCASA_TIENDA_FISICA DCASA_CONOCIMIENTO_INICIAL "
+negocio_archivo=""
+for f in "${DCASA_NEGOCIO_ENV:-}" /usr/local/lib/dcasa/negocio.env "$(dirname "$(readlink -f "$0")")/negocio.env"; do
+  if [[ -n "$f" && -r "$f" ]]; then negocio_archivo="$f"; break; fi
+done
+if [[ -n "$negocio_archivo" ]]; then
+  while IFS= read -r linea || [[ -n "$linea" ]]; do
+    [[ -z "$linea" || "$linea" == \#* ]] && continue
+    if [[ ! "$linea" =~ ^([A-Z_]+)=([a-z0-9_]*)$ ]] || [[ "$NEGOCIO_NOMBRES" != *" ${BASH_REMATCH[1]} "* ]]; then
+      echo "⚠ $negocio_archivo: línea que no entiendo, la salto: ${linea:0:80}" >&2
+      continue
+    fi
+    nombre="${BASH_REMATCH[1]}"
+    valor="${BASH_REMATCH[2]}"
+    if [[ -n "${!nombre:-}" && "${!nombre}" != "$valor" ]]; then
+      echo "⚠ $nombre=${!nombre} en el entorno no cuenta: manda la imagen ($nombre=$valor, docker/negocio.env)." >&2
+    fi
+    printf -v "$nombre" '%s' "$valor"
+    export "${nombre?}"
+  done <"$negocio_archivo"
+  echo "▶ Negocio (docker/negocio.env): ITBMS=${DCASA_COBRA_ITBMS:-1}, tienda física=${DCASA_TIENDA_FISICA:-1}, conocimiento=${DCASA_CONOCIMIENTO_INICIAL:-ninguno}"
+fi
 VIG_PID=""
 
 # Adjuntos en R2 (addons/dcasa_adjuntos_r2): variables propias para el proceso de Odoo.
@@ -468,7 +496,7 @@ PY
 fi
 
 # --- 2c'. Sin ITBMS (negocios que no lo cobran, p. ej. Baby Caleb) -------------
-# DCASA_COBRA_ITBMS=0 (staging y producción de Baby Caleb, edge/wrangler.jsonc): la empresa sin impuesto de venta por
+# DCASA_COBRA_ITBMS=0 (Baby Caleb, docker/negocio.env: ver «1b»): la empresa sin impuesto de venta por
 # defecto y los productos sin ITBMS (addons/dcasa_base: aplicar_sin_itbms). Sin la variable (o "1") no se toca nada:
 # así se comporta D'CASA y así corren las pruebas. Una vez por versión, como las existencias de prueba. Volver a
 # cobrarlo no es automático: se ponen los impuestos a mano (docs/BABY_CALEB.md).
@@ -489,7 +517,7 @@ PY
 fi
 
 # --- 2c'''. Sin tienda física (negocios que venden solo en línea, p. ej. Baby Caleb) -------------
-# DCASA_TIENDA_FISICA=0 (staging y producción de Baby Caleb, edge/wrangler.jsonc): el pago no ofrece «Pago en la
+# DCASA_TIENDA_FISICA=0 (Baby Caleb, docker/negocio.env: ver «1b»): el pago no ofrece «Pago en la
 # tienda» y la entrega «Retiro en tienda» queda archivada (addons/website_dcasa/models/tienda.py:
 # _dcasa_aplicar_sin_tienda_fisica). Se apagan, no se borran, y las migraciones no los vuelven a encender. Sin la
 # variable (o "1") no se toca nada: así se comporta D'CASA y así corren las pruebas. Una vez por versión.

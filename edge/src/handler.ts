@@ -522,12 +522,8 @@ export const VARIABLES_DEL_CONTENEDOR = [
   "DCASA_HUMO",
   // Existencias de prueba (solo staging; en producción el entrypoint fuerza 0)
   "DCASA_STOCK_PRUEBA",
-  // «0» = el negocio no cobra ITBMS (Baby Caleb): docker/entrypoint.sh › aplicar_sin_itbms
-  "DCASA_COBRA_ITBMS",
-  // El conocimiento del bot que se siembra una vez por ficha (addons/dcasa_conversaciones/conocimiento_inicial.py)
-  "DCASA_CONOCIMIENTO_INICIAL",
-  // «0» = el negocio vende sin local (Baby Caleb): docker/entrypoint.sh › _dcasa_aplicar_sin_tienda_fisica
-  "DCASA_TIENDA_FISICA",
+  // ITBMS, tienda física y conocimiento inicial del bot NO pasan por aquí: los trae la imagen (docker/negocio.env) y
+  // mandan sobre el entorno, porque Cloudflare puede encender una imagen nueva con las variables del arranque anterior.
   // Black Weekend: "1" = visible sin mirar fechas (staging); ventana AAAA-MM-DD en hora de Panamá
   "DCASA_BLACK_WEEKEND",
   "DCASA_BLACK_WEEKEND_INICIO",
