@@ -34,7 +34,7 @@ del puente. Ya en uso en la cuenta y **no se tocan**: `babycaleb-web`, `babycale
 | 2026-11-18 | Repositorio | Público (los minutos de Actions de uno privado no alcanzan: cada CI + despliegue ronda 1 h 30 – 2 h) |
 | 2026-11-18 | Entornos | Los mismos de D'CASA: pruebas, staging y producción. Staging solo para probar; producción con todos los secretos |
 | 2026-11-18 | Dominio | `babycaleb.com` se mueve **un día aparte**, cuando producción esté revisada: `docs/DOMINIO.md` |
-| 2026-11-18 | ITBMS | Se queda tal cual (7 %, como D'CASA). Baby Caleb hoy no cobra ITBMS: el dueño pone la tasa en cero desde Ajustes; el día que cobre, solo cambia la tasa |
+| 2026-11-18 | ITBMS | Se queda tal cual (7 %, como D'CASA). Baby Caleb hoy no cobra ITBMS: el dueño pone la tasa en cero desde Ajustes; el día que cobre, solo cambia la tasa. **Hecho así desde el 2026-11-24:** el interruptor `DCASA_COBRA_ITBMS=0` (`docker/negocio.env`, dentro de la imagen) deja sin impuesto de venta el catálogo, la web, Juan y las cotizaciones; comprobado en staging el 2026-11-25 |
 | 2026-11-18 | Catálogo | Fuera todo lo de D'CASA. Entran los artículos del inventario del dueño del 2026-11-18 con su precio y su stock, más NAT-L a $45 con 0 en stock. Sin fotos: se suben a mano |
 | 2026-11-18 | Conocimiento de los asistentes | En cero: nada de D'CASA, ni preguntas por responder. Cada negocio carga el suyo (a mano o por MCP). El mecanismo no se toca |
 | 2026-11-18 | Marca del panel | Logo del panel, favicon y colores del panel se cambian desde Ajustes, por empresa. La web pública la programamos nosotros |
@@ -73,6 +73,16 @@ del puente. Ya en uso en la cuenta y **no se tocan**: `babycaleb-web`, `babycale
   babycaleb.com, las fotos de su web en el catálogo y los productos con foto publicados. Auditoría en vivo con axe-core a
   390, 768 y 1440 px: 0 problemas. Quedan para la siguiente subida los arreglos de la ficha en el celular (`cc867fe`) y
   la guía sin muebles (`f42bfef`). Staging sigue 24/7: el dueño no quiere que duerma (2026-11-24).
+- **Staging al día el 2026-11-25** (CI/CD 45538969686, commit `814ce5e`, con el bot Juan; 7.559 pruebas de Odoo y todas
+  las demás en verde). Entró todo lo de la rama: comprobante de pago, razón social, textos del comprobante, pagos en
+  línea apagados, la caja de producción, el WhatsApp QR blindado (sin desplegar su puente) y la promoción de Dany Baby.
+  **Comprobado comprando en la web de staging desde un navegador de celular:** el pañal de $50 sale a $50.00 sin
+  «+ ITBMS» en la ficha, el carrito ni el pago; la entrega es solo «Entrega a domicilio: te cotizamos por WhatsApp»;
+  el pago, solo Yappy y transferencia (sin «Pago en la tienda»); Dany Baby: 1 caja $20.00, 2 cajas $35.00 y 3 cajas
+  $55.00, con el aviso «Promoción 2 cajas por $35» en la ficha. El 2026-11-24 nada de eso se veía en staging aunque las
+  pruebas pasaban: Cloudflare arrancó la imagen nueva con las variables del arranque anterior. Desde `bc086bc` la
+  identidad del negocio va dentro de la imagen (`docker/negocio.env`) y el CI la comprueba en la base
+  (`docs/CONTEXTO_AGENTICO.md`, «Incidente 2026-11-25»).
 - **Producción**: no desplegada. `main` sigue siendo el espejo exacto de D'CASA; todas las adecuaciones viven en la rama
   `claude/nifty-keller-k8rcmz`.
 
@@ -118,7 +128,7 @@ del puente. Ya en uso en la cuenta y **no se tocan**: `babycaleb-web`, `babycale
 - **Water wipes Nateen:** el dueño confirmó (2026-11-24) que se sigue vendiendo, aunque la web vieja lo marque «descatalogado»: queda publicado.
 - Datos de la empresa: RUC y DV (los escribe el dueño en *Ajustes › Empresas*), web y lema de los documentos. La razón
   social ya es «Baby Caleb Panamá» y no hay dirección (vende en línea).
-- **Promoción de Dany Baby (programada el 2026-11-24, falta desplegar):** lo que queda para el dueño: (1) una venta ya **confirmada** a la que le cambian la cantidad no se acomoda sola (3 cajas quedan a $20.00 cada una): se revisa a mano o se cambia antes de confirmar; (2) si quiere que la promoción **sí** se sume a una campaña del sitio, hoy no se suma (gana la más barata); (3) el texto de la ficha dice «Promoción: 2 cajas por $35.00. Va por pares: una caja suelta va a su precio normal.»: si quiere otras palabras, se cambian en el código (no hay cifras en él).
+- **Promoción de Dany Baby (programada el 2026-11-24, en staging desde el 2026-11-25):** lo que queda para el dueño: (1) una venta ya **confirmada** a la que le cambian la cantidad no se acomoda sola (3 cajas quedan a $20.00 cada una): se revisa a mano o se cambia antes de confirmar; (2) si quiere que la promoción **sí** se sume a una campaña del sitio, hoy no se suma (gana la más barata); (3) el texto de la ficha dice «Promoción: 2 cajas por $35.00. Va por pares: una caja suelta va a su precio normal.»: si quiere otras palabras, se cambian en el código (no hay cifras en él).
 - **Cifras de Socios y del programa de vendedores de Baby Caleb**: `addons/dcasa_socios/data/puntos.json` (versión 6)
   está todo en `null` y el catálogo de premios vacío (hecho el 2026-11-18). Qué cifra enciende qué parte:
   `docs/SOCIOS.md` › «Cambiar las reglas». Mientras tanto no se acredita ni se canjea nada y las ventas van igual.

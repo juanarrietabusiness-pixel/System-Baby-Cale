@@ -121,9 +121,9 @@ visitante no ve una categoría vacía en la tienda (regla de Odoo).
    precio normal) y programada como **Precio por par** (arriba, «La promoción por pares»).
 2. **NAT-L**: se cargó a $45.00 y sin existencias, con el texto de la web («Caja L — 15 a 39 lb — 128 uds»). ¿Ese texto
    y ese rango de peso son los correctos (la web dice 15 a 39 lb)?
-3. **ITBMS**: el plan contable de Baby Caleb dice que no cobra ITBMS (`docs/plan/05-contabilidad.md` §6b, 2026-11-11) y
-   la lista dice precios finales; hoy el catálogo lleva el 7 % que se suma. Hasta que se ponga en cero en Ajustes, la
-   clienta pagaría el precio de la lista **más** 7 % (NAT-M: $50.00 + $3.50).
+3. ~~**ITBMS**~~: resuelto. Baby Caleb no cobra ITBMS (`docs/plan/05-contabilidad.md` §6b) y la lista dice precios
+   finales: el interruptor `DCASA_COBRA_ITBMS=0` de `docker/negocio.env` deja el catálogo sin impuesto de venta.
+   Comprobado en staging el 2026-11-25: el pañal de $50.00 se paga $50.00.
 4. **Categorías**: ¿bastan Pañales, Toallitas húmedas y Fulares? ¿Se quitan las de muebles de D'CASA de la portada y de
    la tienda (trabajo de la web)?
 5. **Water wipes Nateen**: la web lo marca «descatalogado» y la lista trae 15 cajas. ¿Se vende? Desde el 2026-11-24
