@@ -26,6 +26,9 @@ MAX_RECIBE = 60                     # «Rosa, mi mamá» cabe; un párrafo no
 MAX_TELEFONO = 30                   # lo que se acepta escrito («+507 6123-4567» con espacios de más)
 MAX_FOTO_BYTES = 8 * 1024 * 1024    # lo que llega (la página la achica antes: casi siempre llega con menos de 1 MB)
 LADO_FOTO = 1280                    # el lado mayor de la foto que se guarda
+# Lo que se llega a decodificar (después del achique de JPEG). Un PNG de 50 MP en ceros pesa 190 KB y abierto ocupa
+# cientos de MB: tumbaba Odoo (auditoría 1). Una foto de teléfono (12 MP) ya llega achicada por la página.
+MAX_PIXELES_FOTO = 12_600_000
 CALIDAD_FOTO = 82
 FORMATOS_FOTO = ('JPEG', 'MPO', 'PNG', 'WEBP', 'HEIF', 'HEIC')   # MPO: el JPEG de varias fotos de algunos teléfonos
 
@@ -129,8 +132,11 @@ def procesar_foto(datos):
             if original.format in ('JPEG', 'MPO'):
                 # Un JPEG de 12 MP se decodifica ya achicado (1/2, 1/4…), sin bajar del tamaño que se guarda.
                 original.draft('RGB', (LADO_FOTO, LADO_FOTO))
+            if original.width * original.height > MAX_PIXELES_FOTO:
+                raise FotoInvalida('pesada')      # antes de decodificar nada
+            # Primero se achica (en su lugar) y después se endereza: enderezar la grande la copiaba entera.
+            original.thumbnail((LADO_FOTO, LADO_FOTO), Image.Resampling.LANCZOS)
             derecha = ImageOps.exif_transpose(original)
-            derecha.thumbnail((LADO_FOTO, LADO_FOTO), Image.Resampling.LANCZOS)
             con_alfa = derecha.convert('RGBA')
     except FotoInvalida:
         raise

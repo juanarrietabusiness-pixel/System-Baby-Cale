@@ -148,3 +148,21 @@ class TestEnlacesDeMapa(BaseCase):
         pedidos.clear()
         self.assertIsNone(enlaces_mapa.coordenadas('https://bit.ly/abc', resolver_cortos=True, pedir=pedir))
         self.assertEqual(pedidos, [])
+
+    def test_un_enlace_disfrazado_no_hace_pedir_a_otra_maquina(self):
+        # Auditoría 1: urlsplit veía «maps.app.goo.gl» y requests se conectaba a 127.0.0.1:9999.
+        pedidos = []
+
+        def pedir(url, espera):
+            pedidos.append(url)
+            return 'https://www.google.com/maps/@8.9012,-79.8012,17z'
+
+        for disfrazado in ('http://127.0.0.1:9999\\@maps.app.goo.gl/x', 'https://usuario@maps.app.goo.gl/x',
+                           'https://maps.app.goo.gl:8443/x', 'https://maps.app.goo.gl/x y', 'ftp://maps.app.goo.gl/x'):
+            with self.subTest(enlace=disfrazado):
+                self.assertIsNone(enlaces_mapa.resolver(disfrazado, pedir=pedir))
+        self.assertEqual(pedidos, [], 'ninguno llega a pedirse')
+        # Un enlace corto en http se pide en https; la «@» del camino de Google sí vale.
+        self.assertEqual(enlaces_mapa.resolver('http://maps.app.goo.gl/x', pedir=pedir),
+                         'https://www.google.com/maps/@8.9012,-79.8012,17z')
+        self.assertEqual(pedidos, ['https://maps.app.goo.gl/x'])

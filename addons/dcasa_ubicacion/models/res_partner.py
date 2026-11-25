@@ -119,10 +119,14 @@ class ResPartner(models.Model):
         return zona
 
     def _dcasa_ubic_al_dia_en_ventas(self):
-        """Las ventas confirmadas que van a esta dirección quedan con su entrega armada (para el QR)."""
+        """Las ventas confirmadas que van a esta dirección y TODAVÍA no se entregan quedan con su entrega armada (para
+        el QR). Las ya entregadas no se tocan: su página se cierra sola (``_dcasa_entrega_sigue_abierta``)."""
         ordenes = self.env['sale.order'].sudo().search([('partner_shipping_id', '=', self.id), ('state', '=', 'sale')],
                                                        limit=20, order='id desc')
         for orden in ordenes:
+            salidas = orden.picking_ids.filtered(lambda p: p.picking_type_code == 'outgoing' and p.state != 'cancel')
+            if salidas and all(p.state == 'done' for p in salidas):
+                continue
             orden._dcasa_entrega_motorizado()
 
     def _dcasa_poner_quien_recibe(self, recibe=None, telefono=None, al_dia=True):

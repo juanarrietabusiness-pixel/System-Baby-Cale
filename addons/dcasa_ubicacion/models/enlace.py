@@ -36,13 +36,15 @@ class UbicacionEnlace(models.Model):
                                help='Si vino del link de pago (la página del pedido): al confirmar se recalcula su '
                                     'envío y la clienta vuelve a su pedido.')
     creado_por = fields.Selection([('juan', 'Juan (el asistente)'), ('equipo', 'El equipo'),
-                                   ('aviso', 'El aviso de la venta')], readonly=True, required=True, default='equipo',
+                                   ('aviso', 'El aviso de la venta'), ('pedido', 'La página del pedido')],
+                                  readonly=True, required=True, default='equipo',
                                   help='«El aviso de la venta»: se lo pidió el sistema al confirmar una venta a '
                                        'domicilio sin su casa en el mapa, o con «🚚 Sale hoy» (models/avisos.py).')
     usuario_id = fields.Many2one('res.users', 'Lo pidió', readonly=True, default=lambda self: self.env.user)
     vence = fields.Datetime(required=True, readonly=True)
     usado_el = fields.Datetime('Usado el', readonly=True)
     zona = fields.Char('Zona marcada', readonly=True)
+    fotos_subidas = fields.Integer('Fotos subidas', readonly=True, default=0)
     estado = fields.Selection([('vigente', 'Esperando a la clienta'), ('usado', 'Ya marcó su punto'),
                                ('vencido', 'Venció')], compute='_compute_estado')
 
@@ -59,12 +61,18 @@ class UbicacionEnlace(models.Model):
     def _crear(self, partner, conversacion=None, creado_por='equipo', orden=None):
         """``(enlace, url)`` nuevo para esa ficha. El secreto solo vive en la URL que se devuelve."""
         token = geo.token_nuevo()
+        ahora = fields.Datetime.now()
+        if orden:
+            # Uno vivo por pedido y ficha: abrir otra vez la página del pedido (o un lector de enlaces del correo)
+            # no deja secretos vigentes regados (auditoría 1). Los anteriores sin usar vencen ya.
+            self.sudo().search([('orden_id', '=', orden.id), ('partner_id', '=', partner.id),
+                                ('usado_el', '=', False), ('vence', '>', ahora)]).write({'vence': ahora})
         enlace = self.sudo().create({
             'huella': geo.huella(token), 'partner_id': partner.id,
             'conversacion_id': conversacion.id if conversacion else False,
             'orden_id': orden.id if orden else False,
-            'creado_por': creado_por if creado_por in ('juan', 'aviso') else 'equipo',
-            'vence': fields.Datetime.now() + timedelta(hours=HORAS_VIGENCIA),
+            'creado_por': creado_por if creado_por in ('juan', 'aviso', 'pedido') else 'equipo',
+            'vence': ahora + timedelta(hours=HORAS_VIGENCIA),
         })
         return enlace, enlace._url(token)
 

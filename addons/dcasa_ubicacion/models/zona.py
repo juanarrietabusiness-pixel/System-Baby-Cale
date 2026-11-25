@@ -5,6 +5,7 @@ import os
 import re
 import threading
 from collections import OrderedDict
+from datetime import date
 
 import requests
 
@@ -21,9 +22,11 @@ FORMA_CLAVE = re.compile(r'^[A-Za-z0-9_-]{20,80}$')
 URL_GEOCODING = 'https://maps.googleapis.com/maps/api/geocode/json'
 ESPERA_GOOGLE_S = 4
 MAX_CACHE = 500
+MAX_CONSULTAS_GOOGLE_DIA = 800     # por proceso y por día; el presupuesto y la cuota se ponen además en Google Cloud
 
 _cache_calles = OrderedDict()       # (lat, lon) redondeados a 5 decimales (≈ 1 m) → calle; para no pagar dos veces
 _candado = threading.Lock()
+_consultas_de_hoy = [None, 0]       # [día, cuántas] — el tope diario de Geocoding
 
 
 class UbicacionInvalida(UserError):
@@ -114,6 +117,14 @@ class DcasaUbicacion(models.AbstractModel):
             if guardada in _cache_calles:
                 _cache_calles.move_to_end(guardada)
                 return _cache_calles[guardada]
+            # Tope diario por proceso (auditoría 1): cada consulta a Google se paga y el checkout no tiene límite
+            # por IP. Pasado el tope no se pide la calle (es una ayuda): el punto, la zona y el precio siguen.
+            hoy = date.today()
+            if _consultas_de_hoy[0] != hoy:
+                _consultas_de_hoy[:] = [hoy, 0]
+            if _consultas_de_hoy[1] >= MAX_CONSULTAS_GOOGLE_DIA:
+                return ''
+            _consultas_de_hoy[1] += 1
         try:
             respuesta = requests.get(URL_GEOCODING, params={
                 'latlng': f'{lat:.7f},{lon:.7f}', 'key': llave, 'language': 'es', 'region': 'pa',

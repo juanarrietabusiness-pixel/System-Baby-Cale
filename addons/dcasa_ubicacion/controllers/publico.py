@@ -11,12 +11,14 @@
 * ``POST /tienda/ubicacion/zona`` (JSON-RPC del sitio): la vista previa del checkout (zona, precio y el aviso si lo
   escrito nombra otro distrito). No guarda nada.
 
-Todas: ``Cache-Control: no-store``, ``X-Robots-Tag: noindex``, ``Referrer-Policy: no-referrer``, CSP con nonce en las
-páginas, cuerpo de a lo sumo 2 KB (la foto, 8 MB) y 60 peticiones por minuto por IP (la red /64 en IPv6). Las
-coordenadas no se escriben en el registro del servidor.
+Todas: ``Cache-Control: no-store``, ``X-Robots-Tag: noindex``, ``Referrer-Policy: strict-origin`` (Google valida la
+clave del mapa por el dominio; el secreto del camino nunca sale), CSP con nonce en las páginas, cuerpo de a lo sumo
+2 KB (la foto, 8 MB) y 60 peticiones por minuto por IP (la red /64 en IPv6). Las coordenadas no se escriben en el
+registro del servidor.
 """
 import json
 import secrets
+import threading
 from datetime import timedelta
 
 from odoo import fields, http
@@ -34,10 +36,12 @@ MAX_BUSQUEDA = 60
 MAX_POR_MINUTO = 60
 ESPERA_S = 60
 FOTO_DESPUES_DE_USAR = timedelta(hours=1)   # la foto puede llegar justo después de «Sí, aquí es»
+MAX_FOTOS_POR_ENLACE = 5                    # cambiar de foto unas veces sí; llenar R2 con un enlace no
+_FOTOS_A_LA_VEZ = threading.BoundedSemaphore(2)
 CABECERAS = {
     'Cache-Control': 'no-store',
     'X-Robots-Tag': 'noindex, nofollow',
-    'Referrer-Policy': 'no-referrer',
+    'Referrer-Policy': 'strict-origin',
     'X-Content-Type-Options': 'nosniff',
 }
 # Google Maps en el navegador (su guía de CSP estricta): el cargador trae más scripts (``strict-dynamic``), imágenes y
@@ -152,7 +156,9 @@ class UbicacionPublica(http.Controller):
         # La vista previa del enlace en WhatsApp, Instagram y Messenger: un pin en un mapa (se entiende sin leer).
         valores = {'empresa': empresa.name, 'token': token, 'estado': 'no_sirve', 'zona': '',
                    'imagen': base + '/dcasa_ubicacion/static/src/img/enlace_mapa.png'}
-        if enlace and enlace.orden_id:
+        if enlace and enlace.orden_id and enlace.creado_por == 'pedido':
+            # «Volver a mi pedido» lleva el permiso del pedido (no vence): solo para quien ya lo tenía, que llegó
+            # desde la página de su pedido. Un enlace del chat puede ir a otra persona (quien recibe): sin él.
             valores['volver'] = enlace.orden_id.sudo().get_portal_url()
         if enlace and enlace.estado == 'usado':
             valores.update(estado='usado', zona=enlace.zona or '')
@@ -181,7 +187,7 @@ class UbicacionPublica(http.Controller):
         if orden.state == 'cancel':
             return request.redirect(orden.get_portal_url())
         destino = (orden.partner_shipping_id or orden.partner_id).sudo()
-        _enlace, url = request.env['dcasa.ubicacion.enlace']._crear(destino, orden=orden.sudo(), creado_por='equipo')
+        _enlace, url = request.env['dcasa.ubicacion.enlace']._crear(destino, orden=orden.sudo(), creado_por='pedido')
         return request.redirect('/u/' + url.rsplit('/u/', 1)[1], code=303, local=True)
 
     @http.route('/u/<string:token>/zona', type='http', auth='public', methods=['POST'], csrf=False,
@@ -249,10 +255,21 @@ class UbicacionPublica(http.Controller):
         if not enlace or (enlace.estado == 'usado'
                           and enlace.usado_el < fields.Datetime.now() - FOTO_DESPUES_DE_USAR):
             return _json({'error': 'Este enlace ya no sirve.'}, 404)
+        if enlace.sudo().fotos_subidas >= MAX_FOTOS_POR_ENLACE:
+            return _demasiado()
+        # A lo sumo dos fotos a la vez por proceso (abrir una cuesta memoria): la tercera espera su turno en el
+        # navegador en vez de tumbar Odoo (auditoría 1).
+        if not _FOTOS_A_LA_VEZ.acquire(blocking=False):
+            return _json({'error': 'Estamos ocupados: intente otra vez en un momento.', 'motivo': 'ocupado'}, 503)
         try:
-            enlace.partner_id._dcasa_poner_fachada(request.httprequest.get_data(cache=False))
+            # get_data() con caché: si la base reintenta la petición, el cuerpo sigue ahí (sin caché llegaba vacío).
+            datos = request.httprequest.get_data()
+            enlace.sudo().fotos_subidas += 1
+            enlace.partner_id._dcasa_poner_fachada(datos)
         except casa.FotoInvalida as error:
             return _json({'error': str(error.args[0]), 'motivo': error.motivo}, 422)
+        finally:
+            _FOTOS_A_LA_VEZ.release()
         return _json({'ok': True})
 
     # --- La página del motorizado (QR) -----------------------------------------------------------------------------
