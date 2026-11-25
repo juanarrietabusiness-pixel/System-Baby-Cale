@@ -66,6 +66,12 @@ export interface ContextoRevision {
    * no es un lugar sin cotizar y «el envío lo paga Baby Caleb» es decir que es gratis. Sin él, solo cuentan «la tienda» y «D'CASA».
    */
   marca?: string;
+  /**
+   * Las frases que Odoo escribió para el cliente EN ESTE TURNO (`frase_para_el_cliente` de una herramienta). Una línea que el modelo
+   * copia tal cual conserva sus íconos aunque pasen de dos (los pasos «1️⃣ 2️⃣ 3️⃣» del enlace de ubicación): los escribió la tienda, no el
+   * modelo. Cuentan para el tope, así que los emojis propios del modelo en ese mensaje se quitan.
+   */
+  frasesDeLaTienda?: readonly string[];
 }
 
 /**
@@ -840,20 +846,36 @@ const PIEZAS_DE_EMOJI = /[\p{Extended_Pictographic}\u{1F1E6}-\u{1F1FF}\u{1F3FB}-
 const PIEZAS_SUELTAS = /[\u{1F3FB}-\u{1F3FF}\u{FE0F}\u{200D}]/gu;
 const GRAFEMAS = new Intl.Segmenter("es", { granularity: "grapheme" });
 
-function emojisConMedida(texto: string): string {
-  let vistos = 0;
-  let salida = "";
-  for (const { segment } of GRAFEMAS.segment(texto.replace(VISTO, ""))) {
-    if (!ES_EMOJI.test(segment)) salida += segment.replace(PIEZAS_SUELTAS, "");
-    else if (++vistos <= MAX_EMOJIS) salida += segment;
-    else salida += segment.replace(PIEZAS_DE_EMOJI, ""); // una tecla que sobra («3️⃣») deja su número, como antes
-  }
-  return salida;
+/** Una línea como se compara con las de una frase de la tienda: sin espacios de más. */
+const lineaComparable = (l: string) => l.replace(/\s+/g, " ").trim();
+const cuantosEmojis = (t: string) => [...GRAFEMAS.segment(t)].filter(({ segment }) => ES_EMOJI.test(segment)).length;
+
+function emojisConMedida(texto: string, frasesDeLaTienda: readonly string[] = []): string {
+  // Las líneas con íconos que la tienda escribió (y el modelo copió tal cual) quedan enteras, pero sus íconos gastan el cupo.
+  const deLaTienda = new Set(frasesDeLaTienda.flatMap((f) => f.replace(VISTO, "").split("\n")).map(lineaComparable).filter((l) => ES_EMOJI.test(l)));
+  const lineas = texto.replace(VISTO, "").split("\n");
+  const intactas = lineas.map((l) => deLaTienda.size > 0 && deLaTienda.has(lineaComparable(l)));
+  let vistos = lineas.reduce((n, l, i) => (intactas[i] ? n + cuantosEmojis(l) : n), 0);
+  return lineas
+    .map((linea, i) => {
+      if (intactas[i]) return linea;
+      let salida = "";
+      for (const { segment } of GRAFEMAS.segment(linea)) {
+        if (!ES_EMOJI.test(segment)) salida += segment.replace(PIEZAS_SUELTAS, "");
+        else if (++vistos <= MAX_EMOJIS) salida += segment;
+        else salida += segment.replace(PIEZAS_DE_EMOJI, ""); // una tecla que sobra («3️⃣») deja su número, como antes
+      }
+      return salida;
+    })
+    .join("\n");
 }
 
-/** Forma: uno o dos emojis como mucho (nunca un «visto»), sin signos dobles, sin markdown de documento. WhatsApp usa *un* asterisco. */
-export function limpiarForma(texto: string): string {
-  return emojisConMedida(texto)
+/**
+ * Forma: uno o dos emojis como mucho (nunca un «visto»), sin signos dobles, sin markdown de documento. WhatsApp usa *un* asterisco.
+ * `frasesDeLaTienda`: las líneas que el modelo copia tal cual de una frase de Odoo conservan sus íconos (ver `ContextoRevision`).
+ */
+export function limpiarForma(texto: string, frasesDeLaTienda?: readonly string[]): string {
+  return emojisConMedida(texto, frasesDeLaTienda)
     .replace(/^#{1,6}\s+/gm, "")
     .replace(/\*\*([^*\n]+)\*\*/g, "*$1*")
     .replace(/__([^_\n]+)__/g, "_$1_")
@@ -940,7 +962,7 @@ export interface Analisis {
 
 export function analizar(borrador: string, ctx: ContextoRevision): Analisis {
   const graves: Problema[] = [];
-  let limpio = limpiarForma(borrador);
+  let limpio = limpiarForma(borrador, ctx.frasesDeLaTienda);
 
   const f = fuga(limpio, ctx);
   if (f) {

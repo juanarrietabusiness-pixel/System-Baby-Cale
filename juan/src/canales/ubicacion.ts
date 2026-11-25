@@ -33,6 +33,14 @@ export const TEXTO_UBICACION_ILEGIBLE = "(la clienta intentó compartir una ubic
 /** Una persona de la tienda compartió una ubicación desde el teléfono: no es el punto de entrega de nadie y no se guarda. */
 export const TEXTO_UBICACION_PROPIA = "(se compartió una ubicación desde el teléfono de la tienda)";
 
+/**
+ * Lo que dice encima del botón nativo «Enviar ubicación» (WhatsApp Cloud, `Saliente.pedirUbicacion`), después del mensaje con el enlace
+ * de `enlace_de_ubicacion`: corto, de usted y con su ícono (el dueño, 2026-11-25: «que un niño de 5 años pueda comprar»).
+ */
+export const TEXTO_BOTON_UBICACION = "📍 O toque «Enviar ubicación» y listo.";
+/** En el mensaje que se registra en Odoo, junto al texto del botón: así la vendedora sabe que salió un botón y no solo un texto. */
+export const MARCA_BOTON_UBICACION = "[Botón «Enviar ubicación»]";
+
 /** Un número de coordenada: número finito, o texto que sea solo un número decimal. Cualquier otra cosa, null. */
 export function coordenada(v: unknown): number | null {
   if (typeof v === "number") return Number.isFinite(v) ? v : null;

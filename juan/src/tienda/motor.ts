@@ -1042,6 +1042,7 @@ export class MotorTienda {
       envio: registro.envio,
       haySinPublicar: registro.haySinPublicar,
       marca: marcaDe(cfg.nombre_publico),
+      frasesDeLaTienda: registro.frases,
     });
 
     let respuesta = salida.respuesta ?? leerRespuestaDelModelo({ texto: salida.texto });

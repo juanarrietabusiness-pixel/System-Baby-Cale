@@ -9,6 +9,8 @@
 //   · se recuerdan las fotos que devolvió `ver_producto`, que son las únicas que `enviar_foto_producto` puede enviar;
 //   · de `cotizar_envio` / `agregar_envio` se toma su `respaldo_envio` (cada lugar con sus cifras y su papel, y el total de la
 //     cotización si se sumó el envío): solo eso deja decir el costo del envío en este turno. El modelo no lo ve.
+//   · de `enlace_de_ubicacion` se toma `boton_whatsapp` (Odoo lo pone en el WhatsApp de la API oficial): con él, la respuesta lleva
+//     al final el botón nativo «Enviar ubicación» (`RegistroDelTurno.pedirUbicacion`). Es una señal para el Worker: el modelo no la ve.
 
 import { jsonSchema, tool, type ToolSet } from "ai";
 import type { DefHerramienta, OdooApi, ResultadoHerramienta } from "../odoo/cliente";
@@ -44,6 +46,27 @@ export class RegistroDelTurno {
   haySinPublicar = false;
   /** Lo que la herramienta de envíos respaldó en este turno: cada lugar con sus cifras y su papel, y el total si sumó el envío. */
   readonly envio: { lugares: LugarDeEnvio[]; total: number | null } = { lugares: [], total: null };
+  /**
+   * `enlace_de_ubicacion` devolvió `boton_whatsapp: true` en este turno: después del texto sale el botón «Enviar ubicación» (si el
+   * canal lo tiene: `Capacidades.pedirUbicacion`).
+   */
+  pedirUbicacion = false;
+  /**
+   * Las `frase_para_el_cliente` que devolvieron las herramientas en este turno: las escribió Odoo para el cliente, así que la guardia de
+   * salida deja sus íconos tal cual cuando el modelo las copia (`ContextoRevision.frasesDeLaTienda`).
+   */
+  readonly frases: string[] = [];
+}
+
+/**
+ * `boton_whatsapp` de `enlace_de_ubicacion`: se anota en el registro del turno y se quita de lo que ve el modelo (el botón lo pone el
+ * Worker; el modelo solo manda el enlace con su frase).
+ */
+export function tomarBotonDeUbicacion(resultado: unknown, reg: RegistroDelTurno): unknown {
+  if (!esObjeto(resultado) || !("boton_whatsapp" in resultado)) return resultado;
+  const { boton_whatsapp: boton, ...resto } = resultado;
+  if (boton === true) reg.pedirUbicacion = true;
+  return resto;
 }
 
 /** Las herramientas de envíos de Odoo: lo que devuelven respalda el costo del envío en la guardia de salida. */
@@ -341,6 +364,7 @@ export function haySinPublicarEn(nombre: string, resultado: unknown): boolean {
 /** Procesa el resultado para el modelo y anota si la consulta sirvió o salió floja. */
 function anotarConsulta(nombre: string, resultado: unknown, reg: RegistroDelTurno, sitio: string | undefined): unknown {
   if (haySinPublicarEn(nombre, resultado)) reg.haySinPublicar = true;
+  if (esObjeto(resultado) && typeof resultado.frase_para_el_cliente === "string" && resultado.frase_para_el_cliente.trim()) reg.frases.push(resultado.frase_para_el_cliente);
   if (nombre === "buscar_conocimiento" && busquedaFlojaDe(resultado)) {
     reg.busquedasFlojas++;
     // Sin respuesta en la base de conocimiento: el modelo recibe la orden de NO improvisar, junto con lo poco que haya salido.
@@ -518,6 +542,7 @@ export function construirHerramientas(op: OpcionesHerramientas): ToolSet {
         let resultado = def.nombre === "cotizar" ? tomarDocumentoDeLaCotizacion(r.resultado, registro) : r.resultado;
         if (HERRAMIENTAS_DE_ENVIO.has(def.nombre)) resultado = tomarRespaldoDeEnvio(resultado, registro);
         if (def.nombre === "agregar_envio") resultado = tomarDocumentoDeLaCotizacion(resultado, registro, true);
+        if (def.nombre === "enlace_de_ubicacion") resultado = tomarBotonDeUbicacion(resultado, registro);
         return { ok: true, resultado: acotar(anotarConsulta(def.nombre, resultado, registro, op.sitio)) };
       }),
     });
