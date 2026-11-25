@@ -3983,6 +3983,48 @@
    ]
   },
   {
+   "id": "envio-ubicacion-cliente",
+   "categoria": "vender",
+   "grupo": "Envíos",
+   "titulo": "Mandarle a una clienta el enlace para que marque su ubicación",
+   "logras": "En Contactos abres la ficha de la clienta y, en la pestaña «Ubicación de entrega», tocas «Crear enlace para que marque su ubicación». Sale un enlace que sirve una sola vez y vence en 24 horas: se lo mandas por WhatsApp, ella marca su punto en el mapa y queda en su ficha con la zona, de dónde salió el punto y cómo reconocer el sitio. En la misma pestaña ves lo que ya marcó.",
+   "nota": "Juan manda este mismo enlace solo cuando la clienta escribe por Instagram o Messenger. Por WhatsApp ella puede compartir su ubicación con el clip.",
+   "destino": {
+    "menu": "contacts.res_partner_menu_contacts"
+   },
+   "palabras": [
+    "ubicacion de la clienta",
+    "enlace de ubicacion",
+    "link de ubicacion",
+    "marcar ubicacion",
+    "direccion exacta",
+    "punto de entrega",
+    "pin de entrega",
+    "google maps de la clienta"
+   ]
+ },
+  {
+   "id": "envio-ruta-motorizado",
+   "categoria": "vender",
+   "grupo": "Envíos",
+   "titulo": "Abrir la ruta del motorizado de una venta",
+   "logras": "Abres la venta confirmada y tocas «Ruta del motorizado»: se abre la misma página que el QR del comprobante y de la nota de entrega, con «Abrir en Waze», «Abrir en Google Maps», la dirección, cómo reconocer el sitio y el botón para llamar. Si la clienta escribió la dirección a mano en vez de marcarla en el mapa, la página avisa que hay que llamarla antes de salir.",
+   "nota": "La página del QR vence a los 30 días y no deja cambiar nada del pedido.",
+   "destino": {
+    "menu": "sale.menu_sale_quotations"
+   },
+   "palabras": [
+    "ruta del motorizado",
+    "qr del motorizado",
+    "waze",
+    "google maps",
+    "como llegar",
+    "direccion de entrega",
+    "entrega a domicilio",
+    "motorizado"
+   ]
+ },
+  {
    "id": "envio-enlace-choferes",
    "categoria": "vender",
    "grupo": "Envíos",

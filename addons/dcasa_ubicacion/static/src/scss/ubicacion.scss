@@ -1,0 +1,131 @@
+// «¿Dónde le entregamos?» en el checkout (views/checkout_templates.xml). Marca Baby Caleb (docs/MARCA_BABY_CALEB.md):
+// crema, letra navy, el naranja de relleno con letra navy, pastillas, plano; 44 px o más en lo táctil y 16 px en los
+// campos (docs/design-system.md del panel aplica igual en la tienda).
+$dcasa-ubic-navy: #1B3246;
+$dcasa-ubic-naranja: #EE924A;
+$dcasa-ubic-naranja-fuerte: #985D2F;
+$dcasa-ubic-superficie: #F2EFE5;
+$dcasa-ubic-linea: #DEDED9;
+
+.o_dcasa_ubicacion {
+    .o_dcasa_ubic_marco {
+        padding: 16px;
+        border: 1px solid $dcasa-ubic-linea;
+        border-radius: 18px;
+        background: $dcasa-ubic-superficie;
+    }
+
+    .o_dcasa_ubic_titulo {
+        font-weight: 700;
+        font-size: 1.1rem;
+        padding-top: 0;
+    }
+
+    .o_dcasa_ubic_modos {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 4px 0 12px;
+    }
+
+    .o_dcasa_ubic_modo {
+        flex: 1 1 140px;
+        min-height: 44px;
+        border-radius: 999px;
+        border: 1.5px solid $dcasa-ubic-navy;
+        color: $dcasa-ubic-navy;
+        font-weight: 600;
+    }
+
+    .btn-check:checked + .o_dcasa_ubic_modo {
+        background: $dcasa-ubic-naranja;
+        border-color: $dcasa-ubic-naranja;
+        color: $dcasa-ubic-navy;
+    }
+
+    .o_dcasa_ubic_gps,
+    .o_dcasa_ubic_si {
+        width: 100%;
+        min-height: 48px;
+        margin-top: 4px;
+        border-radius: 999px;
+        font-weight: 700;
+    }
+
+    .o_dcasa_ubic_mapa_marco {
+        position: relative;
+        margin-top: 12px;
+        border: 1px solid $dcasa-ubic-linea;
+        border-radius: 18px;
+        overflow: hidden;
+        background: #fff;
+
+        &.o_dcasa_sin_mapa {
+            display: none;
+        }
+    }
+
+    .o_dcasa_ubic_mapa {
+        width: 100%;
+        height: 50vh;
+        min-height: 260px;
+        max-height: 460px;
+    }
+
+    .o_dcasa_ubic_pin {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 36px;
+        height: 48px;
+        margin: -48px 0 0 -18px;
+        pointer-events: none;
+        z-index: 2;
+    }
+
+    .o_dcasa_ubic_aviso,
+    .o_dcasa_ubic_cruce {
+        min-height: 1.2em;
+        margin: 8px 0 0;
+        color: $dcasa-ubic-naranja-fuerte;
+        font-weight: 600;
+    }
+
+    .o_dcasa_ubic_buscar,
+    [name=dcasa_referencia] {
+        min-height: 48px;
+        font-size: 16px;
+    }
+
+    .o_dcasa_ubic_opcion {
+        display: block;
+        width: 100%;
+        min-height: 44px;
+        margin-top: 6px;
+        padding: 10px 14px;
+        text-align: left;
+        border: 1px solid $dcasa-ubic-linea;
+        border-radius: 14px;
+        background: #fff;
+        color: $dcasa-ubic-navy;
+
+        small {
+            display: block;
+            color: #5E6D78;
+        }
+    }
+
+    .o_dcasa_ubic_tarjeta {
+        margin-top: 12px;
+        padding: 14px 16px;
+        border: 1px solid $dcasa-ubic-linea;
+        border-radius: 18px;
+        background: #fff;
+    }
+
+    .o_dcasa_ubic_ok {
+        margin-top: 8px;
+        font-weight: 700;
+        color: #4F6B58;
+    }
+}

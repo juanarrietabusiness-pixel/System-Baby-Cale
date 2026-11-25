@@ -10,7 +10,7 @@ corrigen sus fallas (ver «Qué mejora frente a Nébula»).
 ## En palabras sencillas
 
 - **En la web**, al poner la dirección de entrega la clienta elige **«Marcar en el mapa»** (con «Usar mi ubicación» o
-  moviendo el mapa debajo de un pin fijo, con buscador de Google) o **«Escribirla»**. Con el punto, la barriada, el
+  moviendo el mapa debajo de un pin fijo, con un buscador de barriadas, PH y lugares conocidos) o **«Escribirla»**. Con el punto, la barriada, el
   corregimiento, el distrito y la provincia se llenan solos con la tabla de la calculadora de envíos y el **precio del
   envío sale solo**. Antes de seguir ve **«¿Es aquí?»** con el mapa de cerca.
 - **En el chat**:
@@ -65,8 +65,12 @@ entrega **sí se guarda**, porque sin él no hay QR para el motorizado. Reglas:
 
 | Nombre (Cloudflare, Worker `sistemabk` y `sistemabk-staging`) | Para qué | Límites que se le ponen en Google Cloud |
 |---|---|---|
-| `GOOGLE_MAPS_CLAVE_NAVEGADOR` | El mapa y el buscador en el navegador (se ve en la página: es normal) | Sitios: `babycaleb.com/*`, `www.babycaleb.com/*`, `sistemabk-staging.juanarrietabusiness.workers.dev/*` · APIs: Maps JavaScript y Places (New) |
+| `GOOGLE_MAPS_CLAVE_NAVEGADOR` | El mapa en el navegador (se ve en la página: es normal) | Sitios: `babycaleb.com/*`, `www.babycaleb.com/*`, `sistemabk-staging.juanarrietabusiness.workers.dev/*` · APIs: Maps JavaScript |
 | `GOOGLE_MAPS_CLAVE_SERVIDOR` | La dirección de calle a partir del punto (Geocoding), desde Odoo | APIs: solo Geocoding |
+
+El buscador del mapa **no usa Google**: busca en la tabla de lugares de la calculadora (barriadas, PH, lugares
+conocidos, como los dice la gente). Google ya no da su buscador viejo a proyectos nuevos y el nuevo (Places API New)
+no hace falta; si un día se quiere, se activa aparte.
 
 **Sin claves, todo sigue funcionando**: «Usar mi ubicación» (GPS) y la dirección escrita no las necesitan; la zona y
 el precio salen de la tabla de la calculadora, nunca de Google. Sin la clave del navegador no se ve el mapa; sin la del
@@ -103,7 +107,10 @@ mensaje con ubicación (WhatsApp, Telegram, Messenger) o con un enlace de mapa q
 
 Sin parámetros; necesita conversación. Devuelve `{"enlace": "https://…/u/<token>", "vence": "…", "frase_para_el_cliente":
 "…", "instruccion": "…"}`. Cuando la clienta confirma su punto en esa página, **Odoo** le escribe por el mismo canal
-(`POST /odoo/enviar` del Worker, como una vendedora) con la zona y el precio del envío, y deja el punto guardado.
+(`POST /odoo/enviar` del Worker con `"autor": "bot"`) con la zona y el precio del envío, y deja el punto guardado.
+Con `autor: "bot"` el Worker lo manda **como el asistente**: no da la conversación por tomada (sin eso, Juan se callaría
+como cuando escribe una vendedora) y lo guarda en la historia como mensaje del asistente, para que el modelo lo vea en el
+siguiente turno. Cualquier otro valor (o ninguno) es una vendedora, como siempre.
 
 ### 3. `cotizar_envio` sin lugar
 
@@ -129,3 +136,18 @@ leer el cuerpo. Un enlace sin coordenadas (una búsqueda por nombre) no se adivi
 | Nada para el chat | Ubicación de WhatsApp y Telegram, enlaces de mapa y enlace de un solo uso amarrado a la conversación |
 | El QR abre una página **permanente** que deja marcar «entregado» sin iniciar sesión | La página vence a los 30 días y no cambia nada |
 | El precio de la zona no entra en la cotización | El precio del envío del checkout sale del punto |
+
+## Dónde está cada cosa
+
+| Pieza | Archivo |
+|---|---|
+| Motor (punto, zona, avisos, botones, enlaces de mapa) | `addons/dcasa_ubicacion/motor/geo.py`, `motor/enlaces_mapa.py` |
+| Zona, precio y calle de Google | `models/zona.py` (`dcasa.ubicacion`) |
+| El punto en la ficha | `models/res_partner.py` |
+| Enlace de un solo uso | `models/enlace.py` (`dcasa.ubicacion.enlace`), página `/u/<secreto>` en `controllers/publico.py` y `views/paginas_templates.xml` |
+| Entrega y QR del motorizado | `models/entrega.py` (`dcasa.ubicacion.entrega`), `views/reporte_templates.xml`, página `/entrega/<secreto>` |
+| Precio en el checkout | `models/delivery.py`, `controllers/checkout.py`, `views/checkout_templates.xml`, `static/src/interactions/checkout_ubicacion.js` |
+| El mapa (navegador) | `static/src/lib/mapa_entrega.js` |
+| Juan y Brian | `models/herramientas.py`, `controllers/juan.py` |
+| Borde | `edge/src/routing.ts` (sin caché, secreto fuera del registro), `edge/src/handler.ts` (las dos claves) |
+| Para copiarlo a D'CASA | [UBICACION_PARA_DCASA.md](UBICACION_PARA_DCASA.md) |

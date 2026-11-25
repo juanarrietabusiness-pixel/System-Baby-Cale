@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Checkout: «¿Dónde le entregamos?» antes de la calle (docs/UBICACION.md). Dos maneras: «Marcar en el mapa» (GPS o
+         mover el mapa bajo el pin fijo, con buscador de barriadas y «¿Es aquí?») o «Escribirla». El punto viaja en campos
+         ocultos dentro del mismo formulario (Odoo lo manda entero con FormData) y lo guarda
+         controllers/checkout.py. Lo que la clienta escribe en la calle manda: el mapa solo la llena si está vacía.
+         La lógica está en static/src/interactions/checkout_ubicacion.js. -->
+    <template id="checkout_ubicacion" inherit_id="website_sale.address_form_fields" name="Ubicación: ¿dónde le entregamos?">
+        <xpath expr="//div[@id='div_street']" position="before">
+            <t t-set="dcasa_destino" t-value="partner_sudo"/>
+            <t t-set="dcasa_punto" t-value="dcasa_destino and dcasa_destino._dcasa_ubic_punto()"/>
+            <t t-set="dcasa_escrita" t-value="dcasa_destino and dcasa_destino.dcasa_ubic_origen == 'escrita'"/>
+            <div t-if="not only_services" id="div_dcasa_ubicacion" class="col-lg-12 mb-3 o_dcasa_ubicacion"
+                 t-att-data-clave="request.env['dcasa.ubicacion'].sudo()._clave_navegador()"
+                 t-att-data-lat="dcasa_punto and dcasa_punto[0]" t-att-data-lon="dcasa_punto and dcasa_punto[1]"
+                 t-att-data-origen="dcasa_punto and dcasa_destino.dcasa_ubic_origen">
+                <fieldset class="o_dcasa_ubic_marco">
+                    <legend class="col-form-label o_dcasa_ubic_titulo">¿Dónde le entregamos?</legend>
+                    <div class="o_dcasa_ubic_modos" role="radiogroup" aria-label="Cómo quiere darnos la dirección">
+                        <input type="radio" class="btn-check" name="dcasa_ubic_modo" id="o_dcasa_modo_mapa" value="mapa"
+                               t-att-checked="not dcasa_escrita"/>
+                        <label class="btn o_dcasa_ubic_modo" for="o_dcasa_modo_mapa">Marcar en el mapa</label>
+                        <input type="radio" class="btn-check" name="dcasa_ubic_modo" id="o_dcasa_modo_escrita"
+                               value="escrita" t-att-checked="dcasa_escrita"/>
+                        <label class="btn o_dcasa_ubic_modo" for="o_dcasa_modo_escrita">Escribirla</label>
+                    </div>
+                    <div class="o_dcasa_ubic_parte_mapa">
+                        <button type="button" class="btn btn-primary o_dcasa_ubic_gps">Usar mi ubicación</button>
+                        <div class="o_dcasa_ubic_mapa_marco">
+                            <div class="o_dcasa_ubic_mapa" role="application" aria-label="Mapa: muévalo hasta su puerta"/>
+                            <svg class="o_dcasa_ubic_pin" viewBox="0 0 36 48" aria-hidden="true">
+                                <path d="M18 1C8.6 1 1 8.4 1 17.6 1 30 18 47 18 47s17-17 17-29.4C35 8.4 27.4 1 18 1z" fill="#EE924A" stroke="#1B3246" stroke-width="2"/>
+                                <circle cx="18" cy="17" r="6" fill="#1B3246"/>
+                            </svg>
+                        </div>
+                        <p class="o_dcasa_ubic_aviso" aria-live="polite"/>
+                        <label class="col-form-label" for="o_dcasa_ubic_buscar">¿No está en su casa? Busque su barriada, PH o un lugar conocido</label>
+                        <input type="search" id="o_dcasa_ubic_buscar" class="form-control o_dcasa_ubic_buscar"
+                               autocomplete="off" maxlength="60" placeholder="Ej.: Brisas del Golf, PH Ocean Park"/>
+                        <ul class="o_dcasa_ubic_lista list-unstyled"/>
+                        <div class="o_dcasa_ubic_tarjeta d-none" aria-live="polite">
+                            <strong>¿Es aquí?</strong>
+                            <span class="o_dcasa_ubic_zona d-block"/>
+                            <span class="o_dcasa_ubic_precio d-block text-muted"/>
+                            <span class="o_dcasa_ubic_cruce d-block"/>
+                            <button type="button" class="btn btn-primary o_dcasa_ubic_si" disabled="disabled">Sí, aquí es</button>
+                            <span class="o_dcasa_ubic_ok d-none">Punto confirmado</span>
+                        </div>
+                    </div>
+                    <input type="hidden" name="dcasa_ubic_lat"/>
+                    <input type="hidden" name="dcasa_ubic_lon"/>
+                    <input type="hidden" name="dcasa_ubic_origen"/>
+                    <input type="hidden" name="dcasa_ubic_precision"/>
+                    <input type="hidden" name="dcasa_ubic_confirmada" value=""/>
+                    <label class="col-form-label" for="o_dcasa_referencia">¿Cómo reconocemos el sitio?</label>
+                    <input type="text" id="o_dcasa_referencia" name="dcasa_referencia" class="form-control"
+                           maxlength="200" autocomplete="off" t-att-value="dcasa_destino and dcasa_destino.dcasa_referencia"
+                           placeholder="Ej.: casa verde de portón negro, frente al súper"/>
+                </fieldset>
+            </div>
+        </xpath>
+    </template>
+</odoo>

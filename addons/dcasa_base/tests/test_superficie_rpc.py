@@ -1418,6 +1418,19 @@ LISTA_BLANCA = {
     ('dcasa_comision_web', 'dcasa.web.venta', 'write'):
         OVERRIDE + ' Solo NIEGA escribir a quien no es el sistema (las ventas del sitio las anota el sistema); sin '
                    'sudo().',
+    # Ubicación exacta de entrega (docs/UBICACION.md).
+    ('dcasa_ubicacion', 'res.partner', 'action_dcasa_enlace_ubicacion'):
+        'Botón: exige poder escribir en la ficha (check_access) y solo crea, en sudo, el enlace de un solo uso de ESA '
+        'ficha; devuelve la URL para copiarla.',
+    ('dcasa_ubicacion', 'sale.order', 'action_dcasa_abrir_entrega'):
+        'Botón: exige poder leer la venta (check_access); arma (en sudo) la entrega de ESA venta confirmada y devuelve '
+        'la URL de la página del motorizado.',
+    ('dcasa_ubicacion', 'sale.order', 'action_confirm'):
+        OVERRIDE + ' Después de confirmar (con el permiso de Odoo ya revisado) arma, en sudo, la entrega del '
+                   'motorizado de esa venta si va a domicilio.',
+    ('dcasa_ubicacion', 'delivery.carrier', 'fixed_rate_shipment'):
+        OVERRIDE + ' Solo para la entrega a domicilio: el precio sale del punto confirmado de la dirección de entrega '
+                   'del pedido (la tabla de envíos aprobada); no escribe nada.',
 }
 
 # Modelos abstractos sin ACL: por RPC no se puede llamar NINGÚN método suyo (S-09).
