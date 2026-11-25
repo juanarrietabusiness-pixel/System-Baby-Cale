@@ -47,7 +47,8 @@ class UbicacionEnlace(models.Model):
     def _compute_estado(self):
         ahora = fields.Datetime.now()
         for enlace in self:
-            enlace.estado = 'usado' if enlace.usado_el else 'vencido' if enlace.vence < ahora else 'vigente'
+            # Vencido manda (aunque se haya usado): pasadas las 24 horas la página ya no dice ni la zona.
+            enlace.estado = 'vencido' if enlace.vence < ahora else 'usado' if enlace.usado_el else 'vigente'
 
     @api.model
     def _crear(self, partner, conversacion=None, creado_por='equipo'):

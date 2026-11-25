@@ -54,8 +54,10 @@ class UbicacionCheckout(DcasaCheckout):
         respuesta = super().shop_address_submit(partner_id=partner_id, address_type=address_type,
                                                 use_delivery_as_billing=use_delivery_as_billing, callback=callback,
                                                 **form_data)
+        # Llamada con super(), la ruta de Odoo devuelve un Response (``route_wrapper``: ``Response.load``), no texto.
+        texto = respuesta.get_data(as_text=True) if hasattr(respuesta, 'get_data') else respuesta
         try:
-            resultado = json.loads(respuesta) if isinstance(respuesta, str) else None
+            resultado = json.loads(texto) if isinstance(texto, str) else None
         except ValueError:
             resultado = None
         if not isinstance(resultado, dict) or resultado.get('invalid_fields') or resultado.get('redirectUrl') \

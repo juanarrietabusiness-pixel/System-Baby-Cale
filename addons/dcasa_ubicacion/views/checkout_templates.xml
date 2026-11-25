@@ -34,7 +34,7 @@
                             </svg>
                         </div>
                         <p class="o_dcasa_ubic_aviso" aria-live="polite"/>
-                        <label class="col-form-label" for="o_dcasa_ubic_buscar">¿No está en su casa? Busque su barriada, PH o un lugar conocido</label>
+                        <label class="col-form-label label-optional" for="o_dcasa_ubic_buscar">¿No está en su casa? Busque su barriada, PH o un lugar conocido</label>
                         <input type="search" id="o_dcasa_ubic_buscar" class="form-control o_dcasa_ubic_buscar"
                                autocomplete="off" maxlength="60" placeholder="Ej.: Brisas del Golf, PH Ocean Park"/>
                         <ul class="o_dcasa_ubic_lista list-unstyled"/>
@@ -58,6 +58,34 @@
                            placeholder="Ej.: casa verde de portón negro, frente al súper"/>
                 </fieldset>
             </div>
+        </xpath>
+    </template>
+
+    <!-- La entrega a domicilio con precio del punto: se ve el precio (no «Por cotizar»), el nombre dice a dónde y el
+         resumen ya no dice «por cotizar». Sin punto con precio, todo como siempre (website_dcasa). -->
+    <template id="entrega_con_precio_del_punto" inherit_id="website_sale.delivery_method" priority="60"
+              name="Ubicación: entrega a domicilio con el precio del punto">
+        <xpath expr="//div[hasclass('d-flex')]" position="before">
+            <t t-set="dcasa_orden" t-value="website_sale_order or request.cart"/>
+            <t t-set="dcasa_envio_ubic" t-value="dm.dcasa_por_cotizar and dcasa_orden and dcasa_orden._dcasa_envio_por_ubicacion()"/>
+        </xpath>
+        <xpath expr="//span[@name='o_delivery_method_name']" position="replace">
+            <t t-if="dcasa_envio_ubic">
+                <span name="o_delivery_method_name">Entrega a domicilio</span>
+                <small class="d-block text-muted o_dcasa_entrega_destino"
+                       t-esc="'Hasta ' + dcasa_envio_ubic['lugar'].name + (', ' + dcasa_envio_ubic['lugar'].dist if dcasa_envio_ubic['lugar'].dist else '')"/>
+            </t>
+            <span t-else="" name="o_delivery_method_name" t-field="dm.name"/>
+        </xpath>
+        <xpath expr="//span[hasclass('o_wsale_delivery_price_badge')]" position="attributes">
+            <attribute name="t-attf-class">o_wsale_delivery_price_badge text-muted fw-bold text-end {{'o_dcasa_por_cotizar' if dm.dcasa_por_cotizar and not dcasa_envio_ubic else ''}}</attribute>
+        </xpath>
+    </template>
+
+    <template id="resumen_con_precio_del_punto" inherit_id="website_dcasa.resumen_entrega_por_cotizar" priority="60"
+              name="Ubicación: resumen sin «por cotizar» cuando el precio sale del punto">
+        <xpath expr="//small[hasclass('text-muted')]" position="attributes">
+            <attribute name="t-if">website_sale_order.carrier_id.dcasa_por_cotizar and not website_sale_order._dcasa_envio_por_ubicacion()</attribute>
         </xpath>
     </template>
 </odoo>

@@ -224,7 +224,7 @@ class TestHerramientas(UbicacionCase):
         self.assertEqual(datos['origen'], 'De un enlace de Google Maps o Waze')
         self.assertIn('Villa Prueba II', datos['zona'])
         self.assertEqual(self.clienta.dcasa_referencia, 'Casa azul')
-        orden = self.env['sale.order'].create({'partner_id': self.clienta.id})
+        orden = self.env['sale.order'].create({'partner_id': self.clienta.id, 'user_id': vendedora.id})
         leido = Brian._brian_ubicacion_de_entrega(venta=orden.name)
         self.assertTrue(leido['tiene_punto'])
         self.assertIn('google.com/maps/dir', leido['enlaces']['google'])

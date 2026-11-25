@@ -38,7 +38,7 @@
             .mapa.o_dcasa_mapa_sin_mapa { display: none; }
             .pin { position: absolute; left: 50%; top: 50%; width: 36px; height: 48px; margin: -48px 0 0 -18px;
                    pointer-events: none; z-index: 2; }
-            .mapa-marco.sin-mapa .pin { display: none; }
+            .mapa-marco.sin-mapa { display: none; }
             .tarjeta { margin: 16px 0 0; padding: 14px 16px; border: 1px solid var(--linea); border-radius: 18px;
                        background: var(--superficie); }
             .tarjeta strong { display: block; }
@@ -93,7 +93,7 @@
         <t t-if="estado == 'usado'">
             <div class="listo" role="status">
                 <p><strong>Ya recibimos su ubicación.</strong></p>
-                <p t-if="zona">Zona: <t t-esc="zona"/>.</p>
+                <p t-if="zona">Zona: <t t-esc="zona.replace(' · ', ', ')"/>.</p>
                 <p class="sub">Puede volver al chat. Si quiere cambiarla, pídanos otro enlace.</p>
             </div>
         </t>

@@ -129,3 +129,11 @@ $dcasa-ubic-linea: #DEDED9;
         color: #4F6B58;
     }
 }
+
+// El precio de la entrega (sobre todo el que sale del punto: «$ 15.00»): entero, sin cortarlo con «…» en el celular
+// (Odoo lo limita a 130 px pensando en nombres largos de transportistas).
+.o_wsale_delivery_price_badge:not(.o_dcasa_por_cotizar) {
+    flex-shrink: 0;
+    max-width: none;
+    white-space: nowrap;
+}
