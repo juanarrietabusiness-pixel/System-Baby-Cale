@@ -49,7 +49,7 @@
                                 </div>
                                 <div class="row">
                                     <label for="dcasa_correo_responder_a" class="col-lg-4 o_light_label"/>
-                                    <field name="dcasa_correo_responder_a" placeholder="babycalebpanama@gmail.com"/>
+                                    <field name="dcasa_correo_responder_a" placeholder="clientes@babycaleb.com"/>
                                 </div>
                             </div>
                         </setting>

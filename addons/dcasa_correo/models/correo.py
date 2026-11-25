@@ -32,13 +32,13 @@ P_BIENVENIDA = 'dcasa_correo.bienvenida'
 P_BIENVENIDA_DESDE = 'dcasa_correo.bienvenida_desde'
 P_RECORDATORIO = 'dcasa_correo.recordatorio_abono'
 
-# Baby Caleb (decisión del dueño, 2026-11-18): sale con su nombre y se responde a su correo de contacto. El remitente
-# tiene que ser de un dominio verificado en Resend y Baby Caleb todavía no tiene uno (babycaleb.com se mueve un día
-# aparte, docs/DOMINIO.md): queda PENDIENTE, vacío, hasta que el dueño lo ponga en Ajustes › Correo a clientes.
-# Sin él no sale ningún correo (Ajustes lo dice: ``_estado``).
-REMITENTE = ''
+# Baby Caleb (decisión del dueño, 2026-11-25): sale de ventas@babycaleb.com con su nombre y, si la clienta contesta,
+# la respuesta llega a clientes@babycaleb.com. El remitente tiene que ser del dominio verificado en Resend: hasta que
+# babycaleb.com lo esté, Resend rechaza el envío y Ajustes lo dice con sus palabras (docs/BABY_CALEB.md › «Correo»).
+# Las dos se cambian en Ajustes › Correo a clientes; si el remitente queda vacío no sale ningún correo (``_estado``).
+REMITENTE = 'ventas@babycaleb.com'
 NOMBRE = 'Baby Caleb'
-RESPONDER_A = 'babycalebpanama@gmail.com'
+RESPONDER_A = 'clientes@babycaleb.com'
 
 TEXTO_WHATSAPP = 'Hola Baby Caleb, te escribo por el correo que me mandaron.'
 

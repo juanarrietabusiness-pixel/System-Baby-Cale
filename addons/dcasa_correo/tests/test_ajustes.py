@@ -8,8 +8,9 @@ from odoo.addons.website_dcasa.tests.ajustes_navegador import GuardarAjustesComo
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import new_test_user, tagged
 
+from ..models import correo as correo_modelo
 from ..models import resend
-from ..models.correo import P_NOMBRE, P_REMITENTE, REMITENTE
+from ..models.correo import P_NOMBRE, P_REMITENTE, P_RESPONDER_A, REMITENTE, RESPONDER_A
 from .common import CLAVE, CorreoCase, respuesta
 
 # Lugares de la base donde podría colarse un texto: si la clave aparece en alguno, la prueba falla.
@@ -51,9 +52,9 @@ class TestAjustes(CorreoCase):
         self.assertFalse(ajustes.dcasa_correo_a_clientes)
         self.assertTrue(ajustes.dcasa_correo_al_pagar)
         self.assertTrue(ajustes.dcasa_correo_bienvenida)
-        # El remitente de las pruebas (common.py): el de fábrica va vacío (TestRemitentePendiente).
+        # El remitente de las pruebas (common.py); el de fábrica es ventas@babycaleb.com (TestRemitenteDeBabyCaleb).
         self.assertEqual(ajustes.dcasa_correo_remitente, 'ventas@example.com')
-        self.assertEqual(ajustes.dcasa_correo_responder_a, 'babycalebpanama@gmail.com')
+        self.assertEqual(ajustes.dcasa_correo_responder_a, 'clientes@babycaleb.com')
         self.assertEqual(ajustes.dcasa_correo_nombre, 'Baby Caleb')
         # Apagar «al pagar» se queda apagado (Odoo borra el parámetro: no vuelve el valor de fábrica).
         ajustes.dcasa_correo_al_pagar = False
@@ -147,28 +148,38 @@ class TestGuardarDesdeElNavegador(GuardarAjustesComoElNavegador):
 
 
 @tagged('post_install', '-at_install')
-class TestRemitentePendiente(CorreoCase):
-    """Baby Caleb (2026-11-18): el remitente tiene que ser de un dominio verificado en Resend y todavía no tiene uno,
-    así que de fábrica va vacío (PENDIENTE). Sin él no sale ningún correo, ni la prueba, y Ajustes lo dice."""
+class TestRemitenteDeBabyCaleb(CorreoCase):
+    """Baby Caleb (el dueño, 2026-11-25): de fábrica sale de ventas@babycaleb.com y las respuestas llegan a
+    clientes@babycaleb.com. Si alguien deja el remitente vacío (y la fábrica también), no sale ningún correo, ni la
+    prueba, y Ajustes lo dice."""
 
     def setUp(self):
         super().setUp()
         self.ICP.set_param(P_REMITENTE, False)   # como queda al instalar
+        self.ICP.set_param(P_RESPONDER_A, False)
 
-    def test_de_fabrica_sin_remitente_y_con_los_datos_de_baby_caleb(self):
-        self.assertEqual(REMITENTE, '', 'PENDIENTE: no se inventa uno ni se deja el de otra empresa')
+    def sin_remitente_de_fabrica(self):
+        return patch.object(correo_modelo, 'REMITENTE', '')
+
+    def test_de_fabrica_ventas_y_respuestas_a_clientes(self):
+        self.assertEqual((REMITENTE, RESPONDER_A), ('ventas@babycaleb.com', 'clientes@babycaleb.com'))
         config = self.env['dcasa.correo']._config()
         self.assertEqual((config['remitente'], config['nombre'], config['responder_a']),
-                         ('', 'Baby Caleb', 'babycalebpanama@gmail.com'))
+                         ('ventas@babycaleb.com', 'Baby Caleb', 'clientes@babycaleb.com'))
+        self.con_clave()
+        estado = self.env['res.config.settings'].create({}).dcasa_correo_estado
+        self.assertIn('Clave cargada', estado)
+        self.assertNotIn('Falta el remitente', estado)
 
     def test_ajustes_dice_que_falta_el_remitente(self):
         self.con_clave()
-        estado = self.env['res.config.settings'].create({}).dcasa_correo_estado
+        with self.sin_remitente_de_fabrica():
+            estado = self.env['res.config.settings'].create({}).dcasa_correo_estado
         self.assertIn('Falta el remitente', estado)
 
     def test_sin_remitente_no_sale_ni_la_prueba(self):
         self.con_clave()
-        with self.transporte(), self.assertRaises(UserError) as error:
+        with self.sin_remitente_de_fabrica(), self.transporte(), self.assertRaises(UserError) as error:
             self.env['dcasa.correo']._enviar_prueba(self.admin)
         self.assertIn('Falta el remitente', str(error.exception))
         self.post.assert_not_called()

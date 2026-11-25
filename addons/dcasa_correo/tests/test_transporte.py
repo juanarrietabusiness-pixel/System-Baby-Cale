@@ -76,7 +76,7 @@ class TestTransporte(CorreoCase):
         (llamada,) = self.post.call_args_list
         datos = llamada.kwargs['json']
         self.assertEqual(datos['from'], '"Baby Caleb" <ventas@example.com>')
-        self.assertEqual(datos['reply_to'], ['babycalebpanama@gmail.com'])
+        self.assertEqual(datos['reply_to'], ['clientes@babycaleb.com'])
         self.assertEqual(datos['to'], ['ana@example.com'])
         self.assertEqual(llamada.kwargs['headers']['Authorization'], f'Bearer {CLAVE}')
         self.assertEqual(correo.state, 'sent')
