@@ -32,4 +32,21 @@
             </t>
         </xpath>
     </template>
+
+    <!-- «¡Gracias por su compra!» (/shop/confirmation): justo después de pagar es lo más fácil para la clienta. Si va a
+         domicilio y su casa no tiene un punto confiable (o le faltan las indicaciones), la misma tarjeta grande de la
+         página del pedido: «📍 Marcar mi casa en el mapa» (``sale.order._dcasa_ubic_url_para_marcar``). -->
+    <template id="confirmacion_ubicacion" inherit_id="website_sale.confirmation" name="Ubicación: marcar la casa después de pagar">
+        <xpath expr="//div[@id='order_name']" position="after">
+            <t t-set="dcasa_marcar" t-value="order and order._dcasa_ubic_url_para_marcar()"/>
+            <div t-if="dcasa_marcar" class="o_dcasa_pedido_ubic o_dcasa_ubicacion o_dcasa_confirmacion_ubic mb-4">
+                <p class="o_dcasa_ubic_titulo">
+                    <span class="o_dcasa_ubic_burbuja"><t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'pin'"/></t></span>
+                    ¿Dónde le entregamos?
+                </p>
+                <a class="btn btn-primary o_dcasa_ubic_gps" t-att-href="dcasa_marcar">
+                    <t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'pin'"/></t>Marcar mi casa en el mapa</a>
+            </div>
+        </xpath>
+    </template>
 </odoo>

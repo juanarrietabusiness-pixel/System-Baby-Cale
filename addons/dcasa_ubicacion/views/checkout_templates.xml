@@ -73,6 +73,20 @@
                     <input type="text" id="o_dcasa_referencia" name="dcasa_referencia" class="form-control" required="required"
                            maxlength="200" autocomplete="off" t-att-value="(dcasa_destino and dcasa_destino.dcasa_referencia) or (dcasa_pend and dcasa_pend['referencia'])"
                            placeholder="Ej.: casa 24, portón negro"/>
+                    <!-- Opcionales y chicos (que no estorben): quién recibe y otro teléfono de Panamá por si no contesta.
+                         Vienen con lo que ya tiene la ficha; los guarda controllers/checkout.py. -->
+                    <div class="o_dcasa_ubic_con_icono o_dcasa_ubic_opcional">
+                        <t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'persona'"/></t>
+                        <input type="text" name="dcasa_recibe" class="form-control o_dcasa_ubic_chico" maxlength="60"
+                               autocomplete="off" t-att-value="dcasa_destino and dcasa_destino.dcasa_recibe"
+                               placeholder="¿Quién recibe? (opcional)" aria-label="Quién recibe, si no es usted (opcional)"/>
+                    </div>
+                    <div class="o_dcasa_ubic_con_icono o_dcasa_ubic_opcional">
+                        <t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'telefono'"/></t>
+                        <input type="tel" inputmode="tel" name="dcasa_tel_respaldo" class="form-control o_dcasa_ubic_chico"
+                               maxlength="20" autocomplete="off" t-att-value="dcasa_destino and dcasa_destino.dcasa_tel_respaldo"
+                               placeholder="Otro teléfono (opcional)" aria-label="Otro teléfono por si no contesta (opcional)"/>
+                    </div>
                 </fieldset>
             </div>
         </xpath>

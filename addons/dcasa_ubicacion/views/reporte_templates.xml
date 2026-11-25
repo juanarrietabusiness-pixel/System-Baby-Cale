@@ -21,6 +21,9 @@
                             Escanee el código: abre la ruta en Waze o en Google Maps, la dirección y el teléfono.<br/>
                             <t t-if="dcasa_datos['zona']">Zona: <t t-esc="dcasa_datos['zona'].replace(' · ', ', ')"/><br/></t>
                             <t t-if="dcasa_datos['referencia']">Cómo reconocer el sitio: <t t-esc="dcasa_datos['referencia']"/><br/></t>
+                            <t t-if="dcasa_datos.get('recibe')">Recibe: <t t-esc="dcasa_datos['recibe']"/><br/></t>
+                            <t t-if="dcasa_datos.get('respaldo')">Si no contesta: <t t-esc="dcasa_datos['respaldo']"/><br/></t>
+                            <t t-if="dcasa_datos.get('fachada_url')">Con foto de la casa en la página del código.<br/></t>
                             <t t-if="not dcasa_datos['tiene_punto']"><strong>Sin punto en el mapa: llamar a la clienta antes de salir.</strong></t>
                         </td>
                     </tr>
