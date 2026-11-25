@@ -81,7 +81,8 @@ El dueño: «el dolor número uno son los pedidos devueltos». Lo que se agregó
   `/shop/checkout` pregunta arriba «¿Le entregamos ahí?» («Sí» abre su dirección con ese punto; «No» lo olvida).
   «Agregar dirección» no lo trae. Andrés ya no promete «al pagar ya estará marcada», y con un GPS impreciso guarda al
   menos la casa que escribió.
-- **WhatsApp sin «�»**: todos los enlaces son `api.whatsapp.com/send` (`dcasa_base/whatsapp.py`); `wa.me` cambiaba los
+- **WhatsApp sin «�»**: todos los enlaces del sistema son `api.whatsapp.com/send` (`dcasa_base/whatsapp.py`: también
+  los de abonos, «Enviar por WhatsApp» de la cotización, Mi cuenta y Socios); `wa.me` cambiaba los
   emojis en WhatsApp Web y en Instagram.
 - **Sin callejones**: sin permiso de ubicación, lo que falta es buscar la barriada (y una línea de cómo permitirla); si
   la barriada no está en la tabla, «💬 Mándenos su dirección por WhatsApp» con lo que buscó y su casa.

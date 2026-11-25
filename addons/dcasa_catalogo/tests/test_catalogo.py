@@ -285,11 +285,11 @@ class TestCatalogoBabyCaleb(TransactionCase):
             'order_line': [(0, 0, {'product_id': self.variante('DANY-AW600').id})],
         })
         accion = orden.action_dcasa_whatsapp()
-        self.assertTrue(accion['url'].startswith('https://wa.me/50761234567?text='))
+        self.assertTrue(accion['url'].startswith('https://api.whatsapp.com/send?phone=50761234567&text='))
         self.assertIn(orden.name, accion['url'])
         self.assertEqual(orden.state, 'sent')
         # El mensaje dice la empresa (Ajustes › Empresa), nunca el nombre de la plantilla de origen.
-        texto = unquote(accion['url'].split('?text=', 1)[1])
+        texto = unquote(accion['url'].split('&text=', 1)[1])
         self.assertIn(f' de {orden.company_id.name} por ', texto)
         self.assertNotIn("D'CASA", texto)
 

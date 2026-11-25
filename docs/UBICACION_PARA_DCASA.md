@@ -54,6 +54,7 @@ voz o la marca donde se indica en §4.
 | Pieza | Archivos |
 |---|---|
 | El módulo entero (nuevo) | `addons/dcasa_ubicacion/` — motor, modelos, rutas, páginas, checkout, QR, avisos, la casa, herramientas, pruebas, datos, íconos |
+| El enlace de WhatsApp sin «�» (nuevo) | `addons/dcasa_base/whatsapp.py` (`api.whatsapp.com/send`; `wa.me` cambia los emojis en WhatsApp Web y en Instagram) |
 | La auditoría tapada de Brian | `addons/dcasa_brian/models/registro.py` (`privado`, `tapar`) y `accion.py` (`privado`, `_tapado`) |
 | El mensaje como asistente | `addons/dcasa_conversaciones/models/cliente_worker.py` (`autor='bot'`) |
 | El borde (pruebas) | `edge/test/routing.test.ts`, `edge/test/reenvio.test.ts`, `edge/CONTRATO_CONTENEDOR.md` |
@@ -70,6 +71,16 @@ voz o la marca donde se indica en §4.
   `dcasa_conversaciones/tests/{test_api,test_herramientas}.py` (`DE_OTROS_MODULOS`), `dcasa_guia/data/guia.json` (las
   entradas `envio-*` nuevas, de tú), `website_dcasa/views/legal_templates.xml` (§2.1), `docker/entrypoint.sh`
   (`dcasa_ubicacion` al final de `ODOO_MODULES`).
+- Los enlaces de WhatsApp (auditoría 2): `website_dcasa/models/website.py` (`_dcasa_whatsapp_numero` y
+  `_dcasa_whatsapp_url` con `whatsapp.enlace`), `dcasa_brian_tienda/models/website.py` (el número sin `RE_WA`),
+  `dcasa_meta_eventos/static/src/js/meta_pixel.js` (el selector de `Contact` reconoce `api.whatsapp.com/send`), y los
+  que la ubicación no toca pero tenían el mismo «�»: `dcasa_abonos/models/abono_vencimiento.py`,
+  `dcasa_catalogo/models/sale_order.py`, `dcasa_mi_cuenta/models/mi_cuenta.py`, `dcasa_socios/controllers/{main,vendedores}.py`.
+  Las pruebas que buscaban `wa.me` en esos módulos (y en `website_dcasa`, `dcasa_pago_yappy`, `dcasa_correo`,
+  `dcasa_camila`, `dcasa_buscar_foto`) se cambian al enlace nuevo, nunca se saltan.
+- El checkout (auditoría 2): en `dcasa_ubicacion/controllers/checkout.py`, `shop_address` (la invitada que vuelve
+  atrás va a «Editar» su dirección) y `/tienda/ubicacion/olvidar-chat` (la tarjeta «¿Le entregamos ahí?» para
+  quien ya tiene cuenta); hereda de `DcasaCheckout` de `website_dcasa`: comprobar que en D'CASA se llame igual.
 - Borde: `edge/src/{handler,index,routing}.ts` (las dos claves en `VARIABLES_DEL_CONTENEDOR`, `/u/` y `/entrega/` sin
   caché y con el secreto fuera del registro) y `edge/test/fase1.test.ts`.
 - Juan: `juan/src/canales/whatsappCloud.ts` (botón nativo), `juan/src/dcasa/{prompt,salvaguardas}.ts` (las preguntas de
