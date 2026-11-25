@@ -24,10 +24,12 @@ CAMPOS_PLANTILLA = frozenset({
     # El código público (dcasa_base) sale en la ficha y en el mensaje de WhatsApp: si un administrador lo regenera,
     # la página guardada en el borde se vuelve a armar.
     'dcasa_codigo_publico',
+    # La promoción por pares (dcasa_catalogo, precio_par.py) sale en la ficha: «Promoción: 2 cajas por $35.00».
+    'dcasa_precio_par',
 })
 CAMPOS_VARIANTE = frozenset({
     'active', 'default_code', 'image_variant_1920', 'product_template_attribute_value_ids', 'lst_price',
-    'website_published', 'is_published',
+    'website_published', 'is_published', 'dcasa_precio_par',
 })
 CAMPOS_CATEGORIA = frozenset({'name', 'parent_id', 'sequence', 'website_id', 'seo_name', 'image_1920'})
 # Vistas QWeb (plantillas del sitio, ediciones con el constructor de sitios) y páginas/menús: el

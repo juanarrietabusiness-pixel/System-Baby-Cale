@@ -16,8 +16,11 @@ Formato de ``data/catalogo.json``::
         "atributo": "Talla",                          # solo si tiene variantes
         "foto": "producto-nateen-cierre-m.jpg",          # opcional: archivo de data/fotos/ (la foto principal)
         "variantes": [{"valor": "RN", "codigo": "NAT-RN", "precio": 50.0, "existencias": 4, "texto": "…",
-                       "foto": "…", "fotos_extra": ["…"]}]   # opcionales: la de esa talla y las de más
+                       "foto": "…", "fotos_extra": ["…"],   # opcionales: la de esa talla y las de más
+                       "precio_par": 35.0}]   # opcional: la promoción «2 por…» (``poner_precios_par``)
      }]}
+
+Las claves que empiezan por ``origen_`` dicen de dónde salió cada dato (no se cargan).
 
 Las fotos (``data/fotos/``) son las de la web del negocio, pasadas a JPEG o PNG; ``poner_fotos`` las pone solo donde
 no hay ninguna y publica lo que recibe su foto principal. Lo que no tiene foto no se publica en la tienda (la misma
@@ -31,6 +34,7 @@ import re
 from markupsafe import escape
 
 from odoo.addons.dcasa_base import archivar_itbms_incluido, itbms_de_venta
+from odoo.exceptions import ValidationError
 from odoo.tools import float_compare
 from odoo.tools.misc import file_open
 
@@ -327,6 +331,44 @@ def poner_fotos(env, catalogo=None):
                                for orden, archivo in enumerate(datos['fotos_extra'], start=1)])
     _logger.info('Catálogo: fotos puestas; %s productos publicados.', publicados)
     return publicados
+
+
+def poner_precios_par(env, catalogo=None):
+    """El «Precio por par» (la promoción «2 por…», ``models/precio_par.py``) de las variantes que lo traen en
+    ``data/catalogo.json`` (``precio_par``), solo donde está vacío: el que ya puso Gerencia no se pisa. Hoy, DANY-AW600
+    a $35.00 (decisión del dueño, 2026-11-24). Se puede repetir.
+
+    Devuelve ``{código: resultado}``: ``cargado``, ``ya_tenia``, ``no_encontrado``, ``repetido`` o ``no_vale`` (la
+    variante cambió y la cifra ya no es una promoción válida: menor que dos sueltas y partible en dos al centavo; no
+    se adivina otra, la pone Gerencia)."""
+    catalogo = leer_catalogo() if catalogo is None else catalogo
+    Variante = env['product.product'].sudo().with_context(active_test=False)
+    resultado = {}
+    for item in catalogo.get('productos') or []:
+        for datos in item.get('variantes') or []:
+            precio = datos.get('precio_par')
+            if precio is None:
+                continue
+            codigo = datos['codigo']
+            variantes = Variante.search([('default_code', '=', codigo)])
+            if len(variantes) != 1:
+                resultado[codigo] = 'repetido' if variantes else 'no_encontrado'
+                continue
+            if variantes.dcasa_precio_par:
+                resultado[codigo] = 'ya_tenia'
+                continue
+            try:
+                with env.cr.savepoint():
+                    variantes.dcasa_precio_par = precio
+                    variantes.flush_recordset(['dcasa_precio_par'])
+            except ValidationError as error:
+                _logger.warning('Catálogo: el precio por par de %s no se puso: %s', codigo, error)
+                resultado[codigo] = 'no_vale'
+                continue
+            resultado[codigo] = 'cargado'
+    if resultado:
+        _logger.info('Catálogo: precio por par %s.', resultado)
+    return resultado
 
 
 def no_vender_agotados(env):

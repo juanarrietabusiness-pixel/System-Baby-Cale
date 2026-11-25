@@ -1501,6 +1501,44 @@
    ]
   },
   {
+   "id": "promocion-por-pares",
+   "categoria": "productos",
+   "grupo": "Catálogo",
+   "titulo": "Poner una promoción «2 por…» en un producto (por ejemplo, 2 cajas juntas más baratas)",
+   "logras": "Escribes cuánto cuestan 2 juntas y el sistema cobra así cada par: en la tienda en línea, en la cotización que arma Juan y en las ventas del panel. Una suelta va a su precio normal: 3 son un par más una normal.",
+   "destino": {
+    "menu": "sale.menu_product_template_action"
+   },
+   "pasos": [
+    {
+     "texto": "Abre «Productos» y toca el producto.",
+     "destino": {
+      "menu": "sale.menu_product_template_action"
+     }
+    },
+    {
+     "texto": "En «Precio por par» escribe lo que cuestan 2 juntas, sin ITBMS (por ejemplo 35.00), y guarda. Si el producto tiene tallas, se pone en cada talla, desde «Variantes».",
+     "destino": null
+    },
+    {
+     "texto": "Para quitar la promoción, deja «Precio por par» vacío (o en 0) y guarda.",
+     "destino": null
+    }
+   ],
+   "nota": "Solo Gerencia lo cambia. Tiene que ser menor que el precio de 2 sueltas y poder partirse en dos al centavo (35.00 sí, 35.01 no), porque cada una del par se cobra a la mitad. La ficha de la tienda, el carrito y la cotización lo dicen solos («Promoción: 2 cajas por…»). No se suma a otra rebaja: si la campaña del sitio deja la caja más barata, va la campaña. Vale desde que lo guardas; las cotizaciones que ya estaban se ponen al día cuando les cambias la cantidad.",
+   "palabras": [
+    "promocion",
+    "promo",
+    "oferta",
+    "2 por",
+    "dos por",
+    "el par",
+    "precio por par",
+    "2 cajas",
+    "dany baby"
+   ]
+  },
+  {
    "id": "combo-cama-colchon",
    "categoria": "productos",
    "grupo": "Catálogo",

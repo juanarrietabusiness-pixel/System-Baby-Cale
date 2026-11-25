@@ -1184,6 +1184,28 @@ provocan a propósito: ruido). El resultado real está en la línea `✖ Fallaro
   - Las reglas se ordenan por `applied_on`, `min_quantity` desc, `categ_id` desc e `id` desc: una regla nueva de la
     campaña le gana a una vieja del mismo nivel. Por eso no se crea si la tarifa ya trae su propia regla activa para
     el producto.
+- **Cuatro trampas de la promoción por pares (2026-11-25, `dcasa_catalogo/models/precio_par.py`):**
+  - **Un total exacto con «2 por $35» pide partir la línea** (2 a $17.50 + 1 a $20.00): un precio por caja de 3 cajas
+    ($18.333…) o un descuento en % no cuadran al centavo con 2 decimales. Por eso el precio por par tiene que partirse
+    en dos al centavo (35.00 sí, 35.01 no) y una línea con un número impar de cajas va a precio normal.
+  - **Partir o juntar líneas del carrito de la web: nunca se borra la línea que se acaba de tocar.** Después del
+    `write` de la cantidad, `_cart_update_order_line` llama `_check_validity()` sobre ESA línea (y `_cart_add`, sobre
+    la que creó): si el acomodo la borró, revienta. Las demás del mismo producto sí se pueden cambiar o quitar: el
+    carrito se vuelve a pintar entero desde el servidor después de cada cambio (`website_sale.cart_lines`). Si hace
+    falta borrar una línea recién creada (dos nuevas del mismo producto en un mismo guardado), se termina en
+    `sale.order.create`/`write`. Todo lo que suponía «una línea por producto» hay que revisarlo: el carrito del chat de
+    Andrés (`/carrito/cantidad` ponía la cantidad en la primera línea) y la cotización repetida de Juan
+    (`_j_cotizacion_igual` comparaba línea por línea).
+  - **Un precio mandado al CREAR una línea no cuenta como «a mano»**: Odoo 19 copia `price_unit` en
+    `technical_price_unit` (`_add_precomputed_values`) si no viene. La pantalla manda los dos (el tecleado y el que
+    calculó el sistema). Una prueba que simula un precio tecleado manda también `technical_price_unit` (o lo escribe
+    después de crear la línea).
+  - **El aviso «agregaste…» del carrito** es `precio de la línea × cantidad agregada`: con una promoción que cambia el
+    precio de las cajas que ya estaban (de 1 a 2 cajas, las dos bajan) mentía. Se corrige en
+    `Cart._get_cart_notification_information` con lo que de verdad subió el total.
+- **En un worktree aislado, los comandos compuestos (un `cd` con varios `&&`, heredocs y `odoo-bin shell <<EOF`) se
+  rechazan** («too complex to verify that it stays inside the worktree»): el script va a un archivo del scratchpad y se
+  corre en un comando simple, con rutas absolutas.
 - **Pruebas que dependen de la hora:** `freezegun` está en el venv y en el CI (`with freeze_time(...)`), y la campaña se
   programa con `ir.cron._trigger(at=...)` en el inicio y el fin exactos además del cron horario.
 

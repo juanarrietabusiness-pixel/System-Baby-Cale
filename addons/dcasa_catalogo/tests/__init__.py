@@ -16,3 +16,5 @@ from . import test_rv2_combos_campana
 from . import test_rv_combos_campana
 from . import test_marca
 from . import test_ficha_presentacion
+from . import test_promo_par
+from . import test_promo_par_carrito

@@ -30,7 +30,14 @@
     <template id="producto_medidas_y_combo" inherit_id="website_sale.product" name="D'CASA: medidas y combo">
         <xpath expr="//div[hasclass('o_wsale_product_details_content_section_price')]" position="after">
             <t t-set="dcasa_presentaciones" t-value="product._dcasa_presentaciones()"/>
-            <dl t-if="product.dcasa_medidas or product.dcasa_combo or dcasa_presentaciones" class="o_dcasa_ficha_datos mb-4">
+            <t t-set="dcasa_promos_par" t-value="product._dcasa_promos_par()"/>
+            <dl t-if="product.dcasa_medidas or product.dcasa_combo or dcasa_presentaciones or dcasa_promos_par"
+                class="o_dcasa_ficha_datos mb-4">
+                <!-- La promoción «2 por…» (models/precio_par.py): el texto sale del «Precio por par» del producto. -->
+                <t t-if="dcasa_promos_par">
+                    <dt>Promoción</dt>
+                    <dd t-foreach="dcasa_promos_par" t-as="promocion" class="o_dcasa_promo_par" t-out="promocion"/>
+                </t>
                 <t t-if="product.dcasa_medidas">
                     <dt>Medidas</dt>
                     <dd t-out="product.dcasa_medidas"/>
@@ -45,6 +52,30 @@
                     <dd><span t-out="product.dcasa_combo"/>. Pídelo por WhatsApp.</dd>
                 </t>
             </dl>
+        </xpath>
+    </template>
+
+    <!-- La promoción por pares en el carrito, en el resumen del pago y en la página del cliente: la línea del par dice
+         «Promoción: 2 cajas por $35.00» y la caja que sobra, «Caja suelta: precio normal» (models/precio_par.py). -->
+    <template id="carrito_promo_par" inherit_id="website_sale.cart_line_description_following_lines"
+              name="Baby Caleb: promoción por pares en el carrito">
+        <xpath expr="//div[@t-if='description_lines']" position="after">
+            <t t-set="dcasa_promo_par" t-value="line._dcasa_par_etiqueta()"/>
+            <p t-if="dcasa_promo_par" class="o_dcasa_promo_par small mb-0" t-out="dcasa_promo_par"/>
+        </xpath>
+    </template>
+    <template id="resumen_promo_par" inherit_id="website_sale.cart_summary_content"
+              name="Baby Caleb: promoción por pares en el resumen">
+        <xpath expr="//td[@name='website_sale_cart_summary_product_name']/span[1]" position="after">
+            <t t-set="dcasa_promo_par" t-value="line._dcasa_par_etiqueta()"/>
+            <p t-if="dcasa_promo_par" class="o_dcasa_promo_par small mb-0" t-out="dcasa_promo_par"/>
+        </xpath>
+    </template>
+    <template id="portal_promo_par" inherit_id="sale.sale_order_portal_content"
+              name="Baby Caleb: promoción por pares en la página del cliente">
+        <xpath expr="//tr[@name='tr_product']/td[@name='td_product_name']" position="inside">
+            <t t-set="dcasa_promo_par" t-value="line._dcasa_par_etiqueta()"/>
+            <div t-if="dcasa_promo_par" class="small o_dcasa_promo_par" t-out="dcasa_promo_par"/>
         </xpath>
     </template>
 </odoo>

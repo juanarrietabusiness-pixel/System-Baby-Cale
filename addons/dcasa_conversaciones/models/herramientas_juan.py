@@ -224,6 +224,21 @@ class BrianHerramientasJuan(models.AbstractModel):
         return {'texto': combo['texto'], 'precio': combo['precio'], 'precio_texto': P.precio_texto(combo['precio'])}
 
     @api.model
+    def _j_promocion(self, variante, mas_itbms):
+        """La promoción por pares de una variante (dcasa_catalogo, ``precio_par.py``), ya escrita: Juan la copia y no
+        calcula nada. ``None`` sin promoción."""
+        variante = variante.sudo()
+        if not variante or variante.dcasa_precio_par <= 0:
+            return None
+        precio = round(variante._dcasa_par_en_moneda(), 2)
+        return {
+            'texto': variante._dcasa_par_texto(),
+            'precio_par': precio,
+            'precio_par_texto': P.precio_texto(precio, mas_itbms),
+            'nota': variante._dcasa_par_nota() + ' En el carrito y en la cotización ya sale así.',
+        }
+
+    @api.model
     def _j_foto(self, plantilla, base):
         tiene = self.env['ir.attachment'].sudo().search_count([
             ('res_model', '=', 'product.template'), ('res_id', '=', plantilla.id),
@@ -277,6 +292,9 @@ class BrianHerramientasJuan(models.AbstractModel):
             'disponibilidad': self._j_existencias(plantilla),
             'medidas': plantilla.dcasa_medidas or '',
             'combo': self._j_combo(plantilla),
+            # La promoción «2 por…» de un producto de una sola presentación; con tallas, va en cada variante.
+            'promocion': self._j_promocion(plantilla.product_variant_id, mas_itbms)
+            if plantilla.product_variant_count == 1 else None,
             'categorias': plantilla.public_categ_ids.mapped('name'),
             'url': f'{base}{plantilla.website_url}' if plantilla.website_url else None,
             'foto': foto,
@@ -454,6 +472,7 @@ class BrianHerramientasJuan(models.AbstractModel):
                 'precio': round(v.lst_price + rebaja, 2),
                 'precio_texto': P.precio_texto(v.lst_price + rebaja, mas_itbms),
                 'disponibilidad': self._j_existencias(plantilla, v),
+                **({'promocion': promocion} if (promocion := self._j_promocion(v, mas_itbms)) else {}),
             } for v in plantilla.sudo().product_variant_ids[:MAX_VARIANTES]]
         ficha['galeria'] = [f'{base}/web/image/product.image/{i.id}/image_1024'
                             for i in plantilla.product_template_image_ids[:MAX_GALERIA]]

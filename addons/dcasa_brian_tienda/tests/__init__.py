@@ -12,3 +12,4 @@ from . import test_vitrina_cache
 from . import test_ampliado_extremos
 from . import test_origen_venta_online
 from . import test_vitrina_segunda_vuelta
+from . import test_promo_par

@@ -189,18 +189,31 @@ class DcasaBrianTiendaAPI(http.Controller):
         # «algo más económico» por el premio del propio cliente. Va con el envío, en ``extras``, con su menos delante.
         premios = orden.order_line.filtered('dcasa_canje_id') if 'dcasa_canje_id' in orden.order_line._fields \
             else orden.order_line.browse()
+        # Una fila por producto: con la promoción por pares (dcasa_catalogo) un mismo producto puede ir en dos líneas
+        # (los pares y la caja suelta), y la página cambia la cantidad del producto, no la de una línea.
+        por_producto = {}
         for linea in orden.website_order_line - premios:
             producto = linea.product_id
             if not producto:
                 continue
-            lineas.append({
+            if producto.id in por_producto:
+                fila = por_producto[producto.id]
+                fila['cantidad'] += int(linea.product_uom_qty)
+                fila['_subtotal'] += linea.price_subtotal
+                fila['_itbms'] = fila['_itbms'] or bool(linea.tax_ids)
+                continue
+            por_producto[producto.id] = {
                 'producto_id': producto.id,
                 'nombre': producto._dcasa_nombre_cliente(),
                 'cantidad': int(linea.product_uom_qty),
-                'subtotal_texto': P.precio_texto(linea.price_subtotal, bool(linea.tax_ids)),
+                '_subtotal': linea.price_subtotal,
+                '_itbms': bool(linea.tax_ids),
                 'imagen': f'/web/image/product.product/{producto.id}/image_128',
                 'url': producto.product_tmpl_id.website_url or '',
-            })
+            }
+        for fila in por_producto.values():
+            subtotal, itbms = fila.pop('_subtotal'), fila.pop('_itbms')
+            lineas.append({**fila, 'subtotal_texto': P.precio_texto(subtotal, itbms)})
         mas_itbms = orden.amount_tax > 0
         return {
             'lineas': lineas,
@@ -331,12 +344,17 @@ class DcasaBrianTiendaAPI(http.Controller):
             orden = orden or request.website._create_cart()
         elif not orden:
             return _json({'ok': True, 'carrito': self._carrito()})
-        linea = orden.website_order_line.filtered(lambda sol: sol.product_id.id == producto_id)[:1]
-        if linea:
-            actual = int(linea.product_uom_qty)
+        lineas = orden.website_order_line.filtered(lambda sol: sol.product_id.id == producto_id)
+        if lineas:
+            # La cantidad es la del PRODUCTO en el carrito: con la promoción por pares (dcasa_catalogo) un mismo
+            # producto puede ir en dos líneas (los pares y la caja suelta). Se deja todo en la primera y el servidor lo
+            # vuelve a acomodar.
+            actual = int(sum(lineas.mapped('product_uom_qty')))
             # Sumar nunca baja una línea: si ya tenía más de 20 (puestas en /shop/cart), se queda como estaba.
             nueva = max(actual, min(actual + cantidad, MAX_CANTIDAD)) if sumar else cantidad
-            orden._cart_update_line_quantity(line_id=linea.id, quantity=nueva)
+            for otra in lineas[1:]:
+                orden._cart_update_line_quantity(line_id=otra.id, quantity=0)
+            orden._cart_update_line_quantity(line_id=lineas[0].id, quantity=nueva)
         elif sumar:
             orden._cart_add(product_id=producto_id, quantity=cantidad)
         # El carrito queda marcado «pasó por Andrés» (cómo llegó la venta). Es venta online salvo que una vendedora la

@@ -28,10 +28,13 @@ Carga el catálogo del negocio en Odoo: el mismo producto para el inventario, la
 * Combos que se arman en la venta (cama + colchón): botón «Armar combo» en la cotización; cada pieza puede tener su
   «Precio en combo» por medida, que pone Gerencia en Ventas › Productos › Precios en combo. Reglas en el servidor
   (models/combo_armable.py). Ver docs/OPERACION.md.
+* Promoción por pares («2 cajas por $35.00», decisión del dueño de Baby Caleb, 2026-11-24): «Precio por par» de cada
+  variante (solo Gerencia; el de DANY-AW600 entra por data/catalogo.json). Cada par va a ese precio y una suelta a su
+  precio normal, igual en la web, el chat, Juan y el panel (models/precio_par.py). Ver docs/CATALOGO.md.
 * Idempotente: volver a correr la carga solo crea lo que falta; no pisa lo que se cambió en Odoo (precios, fotos,
   textos, existencias).
 """,
-    'version': '19.0.2.3.0',
+    'version': '19.0.2.4.0',
     'category': 'Sales',
     'author': "D'CASA Panamá",
     'website': 'https://dcasapty.com',

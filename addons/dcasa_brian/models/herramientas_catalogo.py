@@ -52,6 +52,12 @@ class BrianHerramientasCatalogo(models.AbstractModel):
         return fila
 
     @api.model
+    def _b_promocion(self, variante):
+        """La promoción por pares de una variante, ya escrita (no se calcula nada)."""
+        return {'precio_por_par': c.moneda(variante.dcasa_precio_par),
+                'texto': f'{variante._dcasa_par_texto()}. {variante._dcasa_par_nota()}'}
+
+    @api.model
     def _b_ficha_producto(self, plantilla):
         ficha = {
             'producto': plantilla.display_name,
@@ -64,6 +70,9 @@ class BrianHerramientasCatalogo(models.AbstractModel):
         }
         if plantilla.dcasa_combo:
             ficha['combo'] = plantilla.dcasa_combo
+        if plantilla.product_variant_count == 1 and plantilla.product_variant_id.dcasa_precio_par > 0:
+            # La promoción «2 por…» (dcasa_catalogo, precio_par.py); con tallas, va en cada variante.
+            ficha['promocion'] = self._b_promocion(plantilla.product_variant_id)
         if plantilla.description_sale:
             ficha['descripcion'] = plantilla.description_sale[:500]
         if plantilla.product_variant_count > 1:
@@ -71,6 +80,7 @@ class BrianHerramientasCatalogo(models.AbstractModel):
                 'variante': v.display_name, 'codigo': v.default_code or '',
                 'precio': c.moneda(v.lst_price),
                 'existencias': c.cantidad(v.qty_available) if plantilla.is_storable else None,
+                **({'promocion': self._b_promocion(v)} if v.dcasa_precio_par > 0 else {}),
             } for v in plantilla.product_variant_ids[:c.MAX_FILAS]]
         if plantilla.is_storable:
             ficha['existencias_total'] = c.cantidad(plantilla.qty_available)
@@ -250,6 +260,42 @@ class BrianHerramientasCatalogo(models.AbstractModel):
             raise BrianError(f'El código «{valor}» ya es de otro producto.')
         plantilla[CAMPOS_EDITABLES[campo]] = valor or False
         return {'mensaje': f'Actualicé {campo} de «{plantilla.display_name}».', **self._b_ficha_producto(plantilla)}
+
+    @herramienta(
+        nombre='poner_precio_por_par',
+        descripcion='Pone o quita (con 0) la promoción «2 por…» de un producto: lo que cuestan 2 juntas, sin ITBMS. '
+                    'Cada par va a ese precio y una suelta a su precio normal (3 = un par + una normal).',
+        parametros={
+            'producto': {'type': 'string',
+                         'description': 'El producto con su talla si tiene varias: nombre o código, p. ej. '
+                                        '«DANY-AW600».'},
+            'precio': {'type': 'number',
+                       'description': 'Lo que cuestan 2 juntas, sin ITBMS, p. ej. 35. Menor que 2 sueltas. 0 la '
+                                      'quita.'},
+        },
+        requeridos=['producto', 'precio'],
+        nivel='construccion', categoria='catalogo', grupos=GERENTE_VENTAS,
+        ejemplos=['2 cajas de DANY-AW600 por $35 → producto=DANY-AW600, precio=35'],
+    )
+    def _h_poner_precio_por_par(self, producto, precio):
+        variante = self._b_resolver('product.product', str(producto or '').strip(), 'producto',
+                                    exactos=('default_code', 'barcode'), dominio=[('sale_ok', '=', True)])
+        try:
+            nuevo = float(str(precio).replace('$', '').replace(',', '').strip())
+        except ValueError as error:
+            raise BrianError(f'«{precio}» no es un precio. Escríbelo como 35.00 (0 para quitarlo).') from error
+        if nuevo < 0:
+            raise BrianError('El precio por par no puede ser negativo (0 quita la promoción).')
+        anterior = variante.dcasa_precio_par
+        variante.dcasa_precio_par = nuevo
+        antes = c.moneda(anterior) if anterior else 'sin promoción'
+        despues = c.moneda(nuevo) if nuevo else 'sin promoción'
+        respuesta = {'mensaje': f'Precio por par de «{variante.display_name}»: {antes} → {despues}.',
+                     'producto': variante.display_name, 'codigo': variante.default_code or '',
+                     'precio_normal': c.moneda(variante.lst_price)}
+        if nuevo:
+            respuesta['promocion'] = self._b_promocion(variante)
+        return respuesta
 
     # ------------------------------------------------------------------
     # Sensibles

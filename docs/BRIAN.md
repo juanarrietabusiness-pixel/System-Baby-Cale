@@ -423,6 +423,7 @@ precio normal. Brian corre como quien le habla (tope de descuento y «solo lo su
 | `armar_combo(cama, colchon, venta? / cliente?, cantidad?)` | Agrega la cama y el colchón de su misma medida a una cotización (o a una nueva para `cliente`); devuelve el resumen con `el_cliente_ahorra_sin_itbms` | construcción | Ventas |
 | `cambiar_combo(venta, cama_nueva? / colchon_nuevo?, cama_actual?)` | Cambia la cama o el colchón del combo (con varios combos, `cama_actual` dice cuál); el precio se vuelve a calcular | construcción | Ventas |
 | `poner_precio_en_combo(colchon, precio)` | El precio en combo de un colchón en una medida (sin ITBMS, menor que el normal; 0 lo quita) | construcción | Gerencia |
+| `poner_precio_por_par(producto, precio)` | La promoción «2 por…» de un producto: lo que cuestan 2 juntas, sin ITBMS (menor que 2 sueltas y partible en dos al centavo; 0 la quita). Cada par va a ese precio y una suelta a su precio normal (`docs/CATALOGO.md` › «La promoción por pares») | construcción | Gerencia |
 
 `crear_cotizacion` con una cama y un colchón de la misma medida ya da el precio en combo, y el resumen de cualquier
 cotización (`ver_venta`, `crear_cotizacion`…) marca las líneas que van en combo (`combo`: «Combo · ahorras $40.00»).

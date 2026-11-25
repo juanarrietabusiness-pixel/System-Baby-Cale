@@ -58,6 +58,54 @@ de la web (`content.json`: «Caja L, 15 a 39 lb, 128 uds»).
     iguales a la principal (Velve-p1, Velve-p9 y MOON-FUL6). Un aviso («Foto próximamente») o el logo no se ponen
     como foto: el producto parecería tenerla y saldría de «fotos que faltan».
   - La lista «Presentación» de la ficha va en el orden de las tallas (RN, P, S, M, L, G, XL, XXL), no en el del código.
+- **Promoción por pares** (decisión del dueño, 2026-11-24, sin fecha de fin): `precio_par` en una variante del JSON
+  (con su `origen_precio_par`) es el **Precio por par**, lo que cuestan 2 juntas sin ITBMS. Hoy solo DANY-AW600: 2
+  cajas por $35.00. Entra al instalar y, en una base ya instalada, con la migración 19.0.2.4.0, **solo donde está
+  vacío** (`poner_precios_par`); si la cifra ya no es una promoción válida para esa variante (por ejemplo, bajaron el
+  precio de lista a menos de $17.50), no se pone y queda en el registro. Cómo se cobra: más abajo.
+
+### La promoción por pares («2 cajas por $35.00»)
+
+Regla del dueño (2026-11-24): «la promoción solamente son 2 cajas… si no, la tercera caja se cobra completa». Cada par
+va al precio del par y una caja suelta, a su precio normal. Con la caja a $20.00 y el par a $35.00:
+
+| Cajas | Cómo va | Total |
+|---|---|---|
+| 1 | 1 a $20.00 | $20.00 |
+| 2 | 2 a $17.50 (el par) | $35.00 |
+| 3 | 2 a $17.50 + 1 a $20.00 | $55.00 |
+| 4 | 4 a $17.50 (dos pares) | $70.00 |
+| 5 | 4 a $17.50 + 1 a $20.00 | $90.00 |
+
+- **Un dato, un dueño**: el **Precio por par** del producto (`product.product.dcasa_precio_par`; en la ficha del
+  producto cuando tiene una sola variante, en cada variante si tiene tallas). Lo cambia solo Gerencia (como los demás
+  precios). Tiene que ser menor que 2 sueltas y partirse en dos al centavo (35.00 sí, 35.01 no), porque cada caja del
+  par se cobra a la mitad: así el total queda exacto. Vacío o 0: sin promoción. En el código no hay ninguna cifra.
+- **Igual en todos lados**, porque todo pasa por las líneas de venta (`addons/dcasa_catalogo/models/precio_par.py`):
+  el carrito de la web y su pago, el chat de la tienda (Andrés), la cotización y el PDF de Juan, Brian y las ventas del
+  panel. Una línea con un número **par** de cajas va a la mitad del par por caja; las cajas de un mismo producto en una
+  venta abierta se acomodan solas en, como mucho, **dos líneas**: la de los pares y la de la caja suelta.
+- **El carrito no se rompe**: la línea que la clienta acaba de tocar («+», «−», la cantidad, «Agregar» desde la ficha)
+  nunca se borra; las demás del mismo producto se juntan con ella o se parten. El carrito se vuelve a pintar desde el
+  servidor después de cada cambio: no se pierden ni se duplican cajas (prueba en el navegador, en celular y
+  computadora). El chat de la tienda enseña una fila por producto con su total. El aviso «agregaste…» dice lo que de
+  verdad subió el carrito (de 1 a 2 cajas: +$15.00).
+- **Rótulos**: la ficha de la tienda dice «Promoción: 2 cajas por $35.00. Va por pares: una caja suelta va a su
+  precio normal.», aparte del precio. En el carrito, el resumen del pago, la página del cliente, el PDF de la cotización
+  y la factura, la línea del par dice «Promoción: 2 cajas por $35.00» y la de la caja que sobra, «Caja suelta: precio
+  normal». El texto dice «cajas» porque la Presentación del producto dice «caja»; si no, «2 por $35.00».
+- **No se suma a otra rebaja**: si la tarifa (la campaña del sitio) deja la caja igual o más barata que la mitad del
+  par, va la tarifa; si la promoción es mejor, va la promoción sin el descuento de la tarifa. La caja suelta sí toma
+  la campaña.
+- **Tope de la vendedora**: se mide sobre el precio de la promoción ($17.50 por caja del par; $20.00 la suelta). El par
+  lo autorizó Gerencia: no cuenta como rebaja de ella.
+- **Lo que no se acomoda solo**: una línea con precio o descuento puesto a mano (como en los combos, no se reparte), lo
+  facturado o entregado y las ventas ya confirmadas. Ahí cada línea se cobra por su número de cajas (par: la
+  promoción; impar: precio normal), así que una venta confirmada a la que le cambian 2 cajas por 3 queda en 3 × $20.00:
+  hay que revisarla a mano.
+- **Juan y Andrés** reciben en la ficha del producto `promocion` (`texto` «2 cajas por $35.00», `precio_par`,
+  `precio_par_texto` y la nota de la caja suelta) y en la cotización cada línea con su rótulo: no calculan nada.
+  **Brian** la dice en `ver_producto` y Gerencia la pone o la quita con `poner_precio_por_par` (también por MCP).
 
 ### Qué muestra la web
 
@@ -69,8 +117,8 @@ visitante no ve una categoría vacía en la tienda (regla de Odoo).
 
 ### Preguntas pendientes para el dueño
 
-1. **Promoción de Dany Baby** («2 cajas (1,200 toallitas) por $35.00», DANY-AW600): **no está programada**. ¿Se arma
-   como regla de precio (tarifa por cantidad), como combo, o solo la dice la vendedora? ¿Desde cuándo y hasta cuándo?
+1. ~~**Promoción de Dany Baby**~~: decidida el 2026-11-24 («2 cajas por $35.00», sin fecha de fin; la caja suelta a
+   precio normal) y programada como **Precio por par** (arriba, «La promoción por pares»).
 2. **NAT-L**: se cargó a $45.00 y sin existencias, con el texto de la web («Caja L — 15 a 39 lb — 128 uds»). ¿Ese texto
    y ese rango de peso son los correctos (la web dice 15 a 39 lb)?
 3. **ITBMS**: el plan contable de Baby Caleb dice que no cobra ITBMS (`docs/plan/05-contabilidad.md` §6b, 2026-11-11) y

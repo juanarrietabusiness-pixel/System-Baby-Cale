@@ -171,8 +171,12 @@ class BrianHerramientasJuanCotizacion(models.AbstractModel):
                 ('partner_id', '=', conv.partner_id.id), ('state', 'in', ('draft', 'sent')),
                 ('create_uid', '=', self.env.uid), ('create_date', '>=', desde)], order='id desc', limit=5):
             # El envío (y su promoción) no cuenta: la misma compra con el envío ya sumado es la misma cotización.
-            hay = sorted((linea.product_id.id, float(linea.product_uom_qty))
-                         for linea in orden.order_line if not linea.display_type and not linea._dcasa_es_envio())
+            # Por producto: la promoción por pares (dcasa_catalogo) parte 3 cajas en dos líneas (2 + 1).
+            cantidades = {}
+            for linea in orden.order_line:
+                if not linea.display_type and not linea._dcasa_es_envio():
+                    cantidades[linea.product_id.id] = cantidades.get(linea.product_id.id, 0.0) + linea.product_uom_qty
+            hay = sorted((producto, float(cantidad)) for producto, cantidad in cantidades.items())
             if hay == quiero:
                 return orden
         return Orden
@@ -231,6 +235,11 @@ class BrianHerramientasJuanCotizacion(models.AbstractModel):
                 fila['combo'] = f'Descuento combo cama + colchón: −{_dinero(papel["descuento"])}'
             elif linea.dcasa_combo_con_precio and linea.dcasa_combo_ahorro > 0:
                 fila['combo'] = 'Combo cama + colchón'
+            promocion = linea._dcasa_par_etiqueta()
+            if promocion:
+                # La promoción por pares (dcasa_catalogo): «Promoción: 2 cajas por $35.00» en la línea del par y «Caja
+                # suelta: precio normal» en la que sobra. Lo mismo que dice el PDF; Juan no calcula nada.
+                fila['promocion'] = promocion
             lineas.append(fila)
         return {
             'numero': orden.name, 'lineas': lineas, 'envio': self._j_envio_como_dict(orden),
@@ -270,8 +279,8 @@ class BrianHerramientasJuanCotizacion(models.AbstractModel):
     @herramienta(
         nombre=PREFIJO + 'cotizar',
         descripcion='Arma la cotización de ESTA conversación con productos de la tienda y deja listo el PDF, que sale '
-                    'junto con tu respuesta. Devuelve subtotal, ITBMS y total (esas cifras sí puedes decirlas). Solo '
-                    'precios de lista, sin descuentos. No confirma ninguna venta.',
+                    'con tu respuesta. Devuelve subtotal, ITBMS y total (esas cifras sí puedes decirlas), con la '
+                    'promoción por pares si la hay. Sin descuentos. No confirma ventas.',
         parametros={
             'lineas': {
                 'type': 'array', 'minItems': 1, 'maxItems': MAX_LINEAS_AUTOMATICAS,

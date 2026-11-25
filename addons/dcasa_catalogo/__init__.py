@@ -1,5 +1,12 @@
-from . import models
-from .catalogo import archivar_variantes, cargar_catalogo, marcar_black_weekend, no_vender_agotados, poner_fotos
+from . import controllers, models
+from .catalogo import (
+    archivar_variantes,
+    cargar_catalogo,
+    marcar_black_weekend,
+    no_vender_agotados,
+    poner_fotos,
+    poner_precios_par,
+)
 from .inventario_anterior import cargar_inventario_anterior, leer_inventario_anterior
 
 
@@ -15,6 +22,7 @@ def _dcasa_catalogo_post_init(env):
             pendiente(env)
             cargar_catalogo(env)
             poner_fotos(env)
+            poner_precios_par(env)
             archivar_variantes(env)
             no_vender_agotados(env)
             marcar_black_weekend(env)
@@ -23,6 +31,7 @@ def _dcasa_catalogo_post_init(env):
     else:
         cargar_catalogo(env)
         poner_fotos(env)
+        poner_precios_par(env)
         archivar_variantes(env)
         no_vender_agotados(env)
         marcar_black_weekend(env)

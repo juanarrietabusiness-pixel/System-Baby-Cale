@@ -37,6 +37,8 @@
             <field name="dcasa_medidas" position="after">
                 <field name="dcasa_presentacion" invisible="product_variant_count > 1"
                        placeholder="Caja de 160 (4–11 lbs / 2–5 kg)"/>
+                <!-- La promoción «2 por…» (models/precio_par.py): con tallas, cada variante tiene la suya. -->
+                <field name="dcasa_precio_par" invisible="product_variant_count > 1"/>
             </field>
         </field>
     </record>
@@ -47,6 +49,7 @@
         <field name="arch" type="xml">
             <field name="dcasa_medidas" position="after">
                 <field name="dcasa_presentacion" placeholder="Caja de 160 (4–11 lbs / 2–5 kg)"/>
+                <field name="dcasa_precio_par"/>
             </field>
         </field>
     </record>
