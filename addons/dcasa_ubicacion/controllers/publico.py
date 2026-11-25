@@ -5,8 +5,10 @@
   ({lat, lon, origen, precision, referencia, recibe?, telefono?}) lo guarda. ``POST …/foto`` (el cuerpo es la foto,
   de a lo sumo 8 MB) guarda la foto de la fachada, sin EXIF (``motor/casa.py``), apenas la toma (y hasta una hora
   después de usar el enlace). El secreto autentica: sin sesión ni cookie (``save_session=False``), sin CSRF.
-  Vencido, usado o inventado: la misma página de «este enlace ya no sirve».
-* ``GET /entrega/<secreto>``: la página del motorizado (el QR del comprobante). Solo lee; vence a los 30 días.
+  Vencido o inventado: la misma página de «este enlace ya no sirve», con «Pedir otro enlace por WhatsApp»; usado,
+  «Ya la tenemos» con «Cambiar» (también por WhatsApp). Con la venta ya confirmada, ``…/zona`` no da precio.
+* ``GET /entrega/<secreto>``: la página del motorizado (el QR del comprobante). Solo lee; vence a los 30 días. Sin
+  punto, primero «Llamar» y «Buscar la dirección en Google Maps» (con lo que escribió la clienta).
   ``GET …/fachada``: la foto de la casa, con el mismo secreto (nunca por ``/web/content``).
 * ``POST /tienda/ubicacion/zona`` (JSON-RPC del sitio): la vista previa del checkout (zona, precio y el aviso si lo
   escrito nombra otro distrito). No guarda nada.
