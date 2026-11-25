@@ -252,6 +252,23 @@ class TestPrecioPorPar(PromoParCommon):
                          ['2 cajas por $35.00. Va por pares: una caja suelta va a su precio normal.'])
         self.assertEqual(self.panal.product_tmpl_id._dcasa_promos_par(), [])
 
+    def test_con_tallas_cada_talla_lleva_la_suya(self):
+        talla = self.env['product.attribute'].create({'name': 'ZZ talla', 'create_variant': 'always', 'value_ids': [
+            Command.create({'name': 'ZZ-M'}), Command.create({'name': 'ZZ-G'})]})
+        plantilla = self.env['product.template'].create({
+            'name': 'ZZPAÑAL CON TALLAS', 'list_price': 50.0, 'taxes_id': [Command.clear()],
+            'attribute_line_ids': [Command.create({'attribute_id': talla.id,
+                                                   'value_ids': [Command.set(talla.value_ids.ids)]})]})
+        mediana = plantilla.product_variant_ids.filtered(lambda v: 'ZZ-M' in v.display_name)
+        mediana.dcasa_precio_par = 90.0
+        self.assertEqual(plantilla.dcasa_precio_par, 0.0, 'con tallas, el de la ficha queda vacío')
+        self.assertEqual(plantilla._dcasa_promos_par(),
+                         ['ZZ-M: 2 por $90.00. Va por pares: una suelta va a su precio normal.'])
+        orden = self.orden(3, producto=mediana)
+        self.assertEqual(self.cajas(orden, mediana), [(1.0, 50.0), (2.0, 45.0)])
+        grande = plantilla.product_variant_ids - mediana
+        self.assertEqual(self.cajas(self.orden(2, producto=grande), grande), [(2.0, 50.0)], 'la otra talla, sin promo')
+
     def test_el_dany_baby_del_catalogo_trae_su_promocion(self):
         dany = self.env['product.product'].search([('default_code', '=', 'DANY-AW600')])
         self.assertEqual((dany.lst_price, dany.dcasa_precio_par), (20.0, 35.0))

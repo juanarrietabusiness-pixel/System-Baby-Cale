@@ -54,6 +54,18 @@ def _aviso_gerencia(env):
     return AccessError(env._('Solo Gerencia cambia el precio por par (la promoción «2 por…»).'))
 
 
+def _sin_pares(ordenes, productos):
+    """¿Ninguna línea de estas ventas (ni ``productos``, los que se van a poner) tiene precio por par? Entonces no hay
+    nada que acomodar ni que medir de más (el tope ya lo mide dcasa_base)."""
+    return not any(producto.dcasa_precio_par > 0 for producto in ordenes.order_line.product_id | productos)
+
+
+def _productos_de(env, valores):
+    """Los productos que traen unos ``vals`` de líneas de venta."""
+    return env['product.product'].browse(
+        [vals['product_id'] for vals in valores if isinstance(vals.get('product_id'), int)])
+
+
 def _entero(cantidad):
     """La cantidad como entero, o ``None`` si no es un número entero de unidades."""
     if float_is_zero(cantidad - round(cantidad), precision_digits=6):
@@ -197,6 +209,10 @@ class SaleOrder(models.Model):
 
     def write(self, vals):
         if 'order_line' not in vals or es_interno(self.env, SIN_ACOMODAR):
+            return super().write(vals)
+        nuevas = [comando[2] for comando in vals['order_line'] if isinstance(comando, (list, tuple))
+                  and len(comando) > 2 and comando[0] in (0, 1) and isinstance(comando[2], dict)]
+        if _sin_pares(self, _productos_de(self.env, nuevas)):
             return super().write(vals)
         antes = self._dcasa_exceso_previo()
         resultado = super().write(vals)
@@ -382,8 +398,10 @@ class SaleOrderLine(models.Model):
     def create(self, vals_list):
         if es_interno(self.env, SIN_ACOMODAR) or es_interno(self.env, SIN_RECALCULAR):
             return super().create(vals_list)
-        antes = self.env['sale.order']._dcasa_exceso_previo_de(
-            [vals.get('order_id') for vals in vals_list if isinstance(vals.get('order_id'), int)])
+        ids = [vals.get('order_id') for vals in vals_list if isinstance(vals.get('order_id'), int)]
+        if _sin_pares(self.env['sale.order'].browse(ids), _productos_de(self.env, vals_list)):
+            return super().create(vals_list)
+        antes = self.env['sale.order']._dcasa_exceso_previo_de(ids)
         lineas = super().create(vals_list)
         ordenes = lineas.order_id
         if ordenes._dcasa_pares_al_dia(protegidas=lineas):
@@ -395,6 +413,10 @@ class SaleOrderLine(models.Model):
                 or es_interno(self.env, SIN_RECALCULAR):
             return super().write(vals)
         ordenes = self.order_id
+        if isinstance(vals.get('order_id'), int):
+            ordenes |= ordenes.browse(vals['order_id'])
+        if _sin_pares(ordenes, _productos_de(self.env, [vals])):
+            return super().write(vals)
         antes = ordenes._dcasa_exceso_previo()
         resultado = super().write(vals)
         ordenes |= self.order_id
@@ -406,6 +428,8 @@ class SaleOrderLine(models.Model):
         if es_interno(self.env, SIN_ACOMODAR) or es_interno(self.env, SIN_RECALCULAR):
             return super().unlink()
         ordenes = self.order_id
+        if _sin_pares(ordenes, self.env['product.product']):
+            return super().unlink()
         antes = ordenes._dcasa_exceso_previo()
         resultado = super().unlink()
         ordenes = ordenes.exists()
