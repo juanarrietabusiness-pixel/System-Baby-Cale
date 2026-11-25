@@ -367,8 +367,9 @@ class TestRutasDeLaCasa(HttpCase):
         enlace, base = self.enlace()
         pagina = self.url_open(base)
         for texto in ('¿Quién recibe? (opcional)', 'Otro teléfono (opcional)', 'Foto de su casa (opcional)',
-                      'accept="image/*"', 'capture="environment"'):
+                      'accept="image/*"'):
             self.assertIn(texto, pagina.text)
+        self.assertNotIn('capture=', pagina.text, 'cámara o galería: puede no estar en su casa al comprar')
         self.assertNotIn(' style="', pagina.text, 'la CSP sin mapa no deja atributos style')
         punto = {'lat': CERCA[0], 'lon': CERCA[1], 'origen': 'pin', 'referencia': 'Casa 5'}
         malo = self.post_json(base + '/guardar', dict(punto, telefono='+1 305 555 1234'))
