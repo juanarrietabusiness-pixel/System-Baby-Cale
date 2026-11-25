@@ -7,18 +7,25 @@
          La lógica está en static/src/interactions/checkout_ubicacion.js. -->
     <template id="checkout_ubicacion" inherit_id="website_sale.address_form_fields" name="Ubicación: ¿dónde le entregamos?">
         <xpath expr="//div[@id='div_street']" position="before">
-            <t t-set="dcasa_destino" t-value="partner_sudo"/>
-            <t t-set="dcasa_punto" t-value="dcasa_destino and dcasa_destino._dcasa_ubic_punto()"/>
-            <t t-set="dcasa_escrita" t-value="dcasa_destino and dcasa_destino.dcasa_ubic_origen == 'escrita'"/>
             <t t-set="dcasa_carrito" t-value="website_sale_order or request.cart"/>
-            <!-- Sin punto en la ficha: el que dio en el chat de la tienda (Andrés), para que solo toque «Sí, aquí es». -->
-            <t t-set="dcasa_pend" t-value="not dcasa_punto and dcasa_carrito and dcasa_carrito._dcasa_ubic_pendiente()"/>
-            <div t-if="not only_services" id="div_dcasa_ubicacion" class="col-lg-12 mb-3 o_dcasa_ubicacion"
+            <!-- Solo en la dirección de ENTREGA (o en la que sirve de las dos, o la primera de una invitada): la de
+                 facturación no lleva mapa ni número de casa (auditoría 1: los exigía y no los guardaba). El servidor
+                 decide igual (controllers/checkout.py: es_la_de_entrega). -->
+            <t t-set="dcasa_es_entrega" t-value="address_type == 'delivery' or use_delivery_as_billing or is_anonymous_cart
+                                                 or (partner_sudo and dcasa_carrito and partner_sudo == dcasa_carrito.partner_shipping_id)"/>
+            <t t-set="dcasa_destino" t-value="partner_sudo"/>
+            <!-- Lo que dio HOY en el chat de la tienda (Andrés) manda sobre lo viejo de la ficha: es lo último que dijo
+                 (auditoría 1). Solo para su dirección de entrega o una nueva (no la de otra casa ya guardada). -->
+            <t t-set="dcasa_pend" t-value="dcasa_es_entrega and dcasa_carrito and (not partner_sudo or partner_sudo == dcasa_carrito.partner_shipping_id)
+                                           and dcasa_carrito._dcasa_ubic_pendiente()"/>
+            <t t-set="dcasa_punto" t-value="not dcasa_pend and dcasa_destino and dcasa_destino._dcasa_ubic_punto()"/>
+            <t t-set="dcasa_escrita" t-value="not dcasa_pend and dcasa_destino and dcasa_destino.dcasa_ubic_origen == 'escrita'"/>
+            <div t-if="not only_services and dcasa_es_entrega" id="div_dcasa_ubicacion" class="col-lg-12 mb-3 o_dcasa_ubicacion"
                  t-att-data-clave="request.env['dcasa.ubicacion'].sudo()._clave_navegador()"
-                 t-att-data-lat="dcasa_punto[0] if dcasa_punto else (dcasa_pend and dcasa_pend['lat'])"
-                 t-att-data-lon="dcasa_punto[1] if dcasa_punto else (dcasa_pend and dcasa_pend['lon'])"
-                 t-att-data-origen="dcasa_destino.dcasa_ubic_origen if dcasa_punto else (dcasa_pend and 'gps')"
-                 t-att-data-precision="dcasa_pend and dcasa_pend['precision']">
+                 t-att-data-lat="dcasa_pend['lat'] if dcasa_pend else (dcasa_punto and dcasa_punto[0])"
+                 t-att-data-lon="dcasa_pend['lon'] if dcasa_pend else (dcasa_punto and dcasa_punto[1])"
+                 t-att-data-origen="'gps' if dcasa_pend else (dcasa_punto and dcasa_destino.dcasa_ubic_origen)"
+                 t-att-data-precision="dcasa_pend['precision'] if dcasa_pend else (dcasa_punto and dcasa_destino.dcasa_ubic_precision_m or None)">
                 <fieldset class="o_dcasa_ubic_marco">
                     <legend class="o_dcasa_ubic_titulo">
                         <span class="o_dcasa_ubic_burbuja"><t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'pin'"/></t></span>
@@ -34,6 +41,10 @@
                         <label class="btn o_dcasa_ubic_modo" for="o_dcasa_modo_escrita">
                             <t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'lapiz'"/></t>Escribir</label>
                     </div>
+                    <!-- Lo que falta del punto cuando toca «Confirmar»: arriba del mapa (abajo lo tapa la barra fija).
+                         Después de los modos, no justo tras el «legend»: Bootstrap hace flotar el «legend» y solo el
+                         hermano siguiente lo despeja; oculto, los modos se corrían a la derecha. -->
+                    <p class="o_dcasa_ubic_falta o_dcasa_ubic_falta_punto d-none" role="alert" tabindex="-1"/>
                     <div class="o_dcasa_ubic_parte_mapa">
                         <button type="button" class="btn btn-primary o_dcasa_ubic_gps">
                             <t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'gps'"/></t>Mi ubicación</button>
@@ -71,8 +82,9 @@
                     <label class="col-form-label o_dcasa_ubic_etiqueta" for="o_dcasa_referencia">
                         <t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'casa'"/></t>Número de casa e indicaciones</label>
                     <input type="text" id="o_dcasa_referencia" name="dcasa_referencia" class="form-control" required="required"
-                           maxlength="200" autocomplete="off" t-att-value="(dcasa_destino and dcasa_destino.dcasa_referencia) or (dcasa_pend and dcasa_pend['referencia'])"
+                           maxlength="200" autocomplete="off" t-att-value="(dcasa_pend and dcasa_pend['referencia']) or (dcasa_destino and dcasa_destino.dcasa_referencia)"
                            placeholder="Ej.: casa 24, portón negro"/>
+                    <p class="o_dcasa_ubic_falta o_dcasa_ubic_falta_casa d-none" role="alert" tabindex="-1"/>
                     <!-- Opcionales y chicos (que no estorben): quién recibe y otro teléfono de Panamá por si no contesta.
                          Vienen con lo que ya tiene la ficha; los guarda controllers/checkout.py. -->
                     <div class="o_dcasa_ubic_con_icono o_dcasa_ubic_opcional">
@@ -110,6 +122,19 @@
         </xpath>
         <xpath expr="//span[hasclass('o_wsale_delivery_price_badge')]" position="attributes">
             <attribute name="t-attf-class">o_wsale_delivery_price_badge text-muted fw-bold text-end {{'o_dcasa_por_cotizar' if dm.dcasa_por_cotizar and not dcasa_envio_ubic else ''}}</attribute>
+        </xpath>
+    </template>
+
+    <!-- La tarjeta de la dirección de entrega del checkout: con el número de casa y las indicaciones debajo (lo que
+         lee el motorizado), para que la clienta vea que quedó (auditoría 1). Solo en la tienda (website_sale). -->
+    <template id="tarjeta_direccion_con_casa" inherit_id="website_sale.address_card" name="Ubicación: la casa en la tarjeta de la dirección">
+        <xpath expr="//t[@t-out='contact']" position="replace">
+            <div class="o_dcasa_tarjeta_dir">
+                <t>$0</t>
+                <p t-if="address_type == 'delivery' and contact.dcasa_referencia" class="o_dcasa_tarjeta_casa mb-0">
+                    <t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'casa'"/></t><span t-esc="contact.dcasa_referencia"/>
+                </p>
+            </div>
         </xpath>
     </template>
 

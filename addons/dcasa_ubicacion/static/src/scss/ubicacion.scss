@@ -247,6 +247,50 @@ $dcasa-ubic-salvia: #4F6B58;
         gap: 8px;
         font-weight: 700;
     }
+
+    // Lo que falta cuando toca «Confirmar» sin el punto o sin el número de casa: en el bloque, a la vista.
+    .o_dcasa_ubic_falta {
+        margin: 0 0 12px;
+        padding: 10px 14px;
+        border: 2px solid $dcasa-ubic-naranja-fuerte;
+        border-radius: 14px;
+        background: #fff;
+        color: $dcasa-ubic-naranja-fuerte;
+        font-weight: 700;
+
+        &:focus {
+            outline: 2px solid $dcasa-ubic-navy;
+            outline-offset: 2px;
+        }
+    }
+
+    .o_dcasa_ubic_falta_casa {
+        margin: 8px 0 0;
+    }
+}
+
+// Al bajar hasta el bloque o el número de casa, que no queden debajo de la cabecera fija del sitio.
+#div_dcasa_ubicacion {
+    scroll-margin-top: 96px;
+
+    [name=dcasa_referencia] {
+        scroll-margin: 120px 0 200px;
+    }
+}
+
+// La tarjeta de la dirección de entrega del checkout: el número de casa debajo de la dirección.
+.o_dcasa_tarjeta_casa {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 6px;
+    font-weight: 600;
+
+    .o_dcasa_icono {
+        width: 1.3em;
+        height: 1.3em;
+        flex-shrink: 0;
+    }
 }
 
 // El sitio pone 44 px a todo campo con `#wrapwrap .form-control` (pesa un id): sin repetirlo aquí, los campos del bloque
@@ -276,6 +320,15 @@ $dcasa-ubic-salvia: #4F6B58;
     border-radius: 18px;
 }
 
+// En el celular el botón flotante de WhatsApp (website_dcasa: 56 px a 24 px del borde) tapaba la punta de «Marcar mi
+// casa en el mapa» (auditoría 1): el botón deja libre esa franja de la derecha.
+@media (max-width: 575.98px) {
+    .o_dcasa_pedido_ubic .o_dcasa_ubic_gps {
+        width: auto;
+        margin-right: 56px;
+    }
+}
+
 // El chat de la tienda (Andrés): «🏠 Número de casa e indicaciones» y «Guardar» (dcasa_brian_tienda, brian_tienda.js).
 .o_dcbt_ind {
     .o_dcbt_ind_campo {
@@ -296,12 +349,24 @@ $dcasa-ubic-salvia: #4F6B58;
         color: $dcasa-ubic-naranja-fuerte;
         font-weight: 600;
     }
+
+    // «Guardar» y «Probar otra vez» (GPS impreciso): 48 px como todo lo táctil de la ubicación.
+    .o_dcbt_btn {
+        min-height: 48px;
+        margin-top: 6px;
+    }
 }
 
 // El precio de la entrega (sobre todo el que sale del punto: «$ 15.00»): entero, sin cortarlo con «…» en el celular
-// (Odoo lo limita a 130 px pensando en nombres largos de transportistas).
-.o_wsale_delivery_price_badge:not(.o_dcasa_por_cotizar) {
+// (Odoo lo limita a 130 px pensando en nombres largos de transportistas). También «Por cotizar» (website_dcasa lo
+// pone con ::after): antes quedaba fuera y salía «Por cotiza» (auditoría 1).
+.o_wsale_delivery_price_badge {
     flex-shrink: 0;
     max-width: none;
     white-space: nowrap;
+
+    &.o_dcasa_por_cotizar {
+        overflow: visible;
+        text-overflow: clip;
+    }
 }

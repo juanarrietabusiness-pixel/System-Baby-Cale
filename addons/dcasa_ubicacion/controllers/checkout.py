@@ -3,12 +3,21 @@
 Los campos ``dcasa_ubic_*`` y ``dcasa_referencia`` se sacan del formulario antes de que Odoo lo procese (no son de su
 dirección) y, si Odoo aceptó la dirección, se guardan en la dirección de entrega del carrito:
 
-* «Marcar en el mapa»: hace falta un punto de Panamá **confirmado** («Sí, aquí es») y la referencia; si no, el
-  formulario vuelve con el aviso, sin guardar nada.
-* «Escribirla»: queda como escrita a mano (el motorizado llama antes) y el envío se cotiza como siempre.
+* Solo cuenta en la dirección de **entrega** (o la que sirve de las dos, o la primera de una invitada:
+  ``es_la_de_entrega``). En la de facturación sola el bloque no sale ni se exige (auditoría 1: pedía el mapa y la casa
+  y no los guardaba).
+* «Marcar en el mapa»: hace falta un punto de Panamá **confirmado** («Sí, aquí es», o «Confirmar» con el punto bueno:
+  la página llena el «sí») y la referencia; si no, el formulario vuelve con el aviso, sin guardar nada. El origen vale
+  si es de la página (GPS, mapa, búsqueda) o el del punto que ya tenía guardado (WhatsApp o un enlace de mapa: el
+  checkout abre con él y ella solo dice «sí»). Si es el mismo punto guardado, se conserva su origen (y su precisión).
+* «Escribirla»: queda como escrita a mano (el motorizado llama antes) y el envío se cotiza como siempre. Pero si ya
+  tenía un punto **confiable** (de WhatsApp, por ejemplo), no se borra porque prefirió escribir (auditoría 1), salvo
+  que lo escrito nombre otro distrito: entonces ese punto ya no es su casa.
 * Opcionales, debajo del número de casa: **quién recibe** y **otro teléfono** de Panamá (``dcasa_recibe`` y
   ``dcasa_tel_respaldo``). Vienen llenos con lo de la ficha: vacíos, se borran. Un teléfono que no es de Panamá
   devuelve el formulario con el aviso, sin guardar nada.
+* Guardado, el punto que dio en el chat de la tienda (el «pendiente» del carrito) se olvida: si no, volvería a ganarle
+  a lo que acaba de confirmar.
 
 Después se vuelve a poner el método de entrega del carrito: así el precio del envío sale del punto nuevo.
 
@@ -19,6 +28,7 @@ import json
 
 from odoo.addons.website_dcasa.controllers.main import DcasaCheckout
 from odoo.http import request, route
+from odoo.tools import str2bool
 
 from ..models.zona import UbicacionInvalida
 from ..motor import casa, geo
@@ -26,9 +36,14 @@ from ..motor import casa, geo
 CAMPOS = ('dcasa_ubic_modo', 'dcasa_ubic_lat', 'dcasa_ubic_lon', 'dcasa_ubic_origen', 'dcasa_ubic_precision',
           'dcasa_ubic_confirmada', 'dcasa_referencia')
 ORIGENES_WEB = ('gps', 'pin', 'busqueda')
+# El punto que ya tenía guardado (lo compartió por el chat o pegó un enlace de mapa): el checkout abre con él.
+ORIGENES_GUARDADOS = ('whatsapp', 'enlace')
+MISMO_PUNTO_GRADOS = 1e-6          # ≈ 10 cm: el mismo punto que está guardado
 FALTA_EL_PUNTO = 'Marque su casa en el mapa y toque «Sí, aquí es» (o elija «Escribir»).'
 FALTAN_INDICACIONES = 'Escriba el número de casa y las indicaciones para el motorizado.'
 CAMPOS_CASA = ('dcasa_recibe', 'dcasa_tel_respaldo')
+SIN_PENDIENTE = {'dcasa_ubic_pend_lat': 0.0, 'dcasa_ubic_pend_lon': 0.0, 'dcasa_ubic_pend_precision': 0,
+                 'dcasa_ubic_pend_referencia': False}
 
 
 def _numero(valor):
@@ -56,6 +71,64 @@ def quien_recibe_del_formulario(formulario):
     return recibe, numero['guardar'], None
 
 
+def es_la_de_entrega(orden, partner_id, address_type, use_delivery_as_billing):
+    """¿Esta dirección es (también) la de entrega del carrito? La de entrega, la que sirve de las dos, la primera de una
+    invitada (Odoo la usa para todo) o la que ya es la de entrega del carrito. La misma regla que la plantilla
+    (``dcasa_es_entrega``). ``use_delivery_as_billing`` llega como texto («True»/«False»)."""
+    if address_type == 'delivery' or str2bool(use_delivery_as_billing or 'false', False):
+        return True
+    if not orden:
+        return False
+    if orden._is_anonymous_cart():
+        return True
+    try:
+        partner = int(partner_id or 0)
+    except (TypeError, ValueError):
+        return False
+    return bool(partner) and partner == orden.partner_shipping_id.id
+
+
+def _mismo_punto(a, b):
+    return bool(a and b) and abs(a[0] - b[0]) < MISMO_PUNTO_GRADOS and abs(a[1] - b[1]) < MISMO_PUNTO_GRADOS
+
+
+def origen_a_guardar(destino, punto, origen, precision):
+    """``(origen, precision)`` con que se guarda el punto confirmado en el checkout. Si es el mismo que ya tenía la
+    ficha, el suyo (un «whatsapp» no se vuelve «pin» por decir «sí»). Un «whatsapp» o «enlace» con otro punto ya no
+    es el del chat: lo confirmó en el mapa («pin»)."""
+    guardado = destino._dcasa_ubic_punto()
+    if _mismo_punto(guardado, punto):
+        return destino.dcasa_ubic_origen, destino.dcasa_ubic_precision_m or None
+    if origen in ORIGENES_GUARDADOS:
+        return 'pin', None
+    return origen, precision
+
+
+def conservar_punto_al_escribir(destino, formulario):
+    """«Escribir» con un punto confiable guardado: ¿se queda? Sí, salvo que lo escrito nombre otro distrito que el del
+    punto (entonces ese punto ya no es su casa)."""
+    if not destino._dcasa_ubic_punto() or not geo.es_confiable(destino.dcasa_ubic_origen,
+                                                                destino.dcasa_ubic_precision_m or None):
+        return False
+    escrito = ', '.join(geo.texto_corto(formulario.get(n) or '') for n in ('street', 'street2', 'city'))
+    cruce = geo.aviso_de_cruce(escrito, {'distrito': destino.dcasa_distrito or ''},
+                               request.env['dcasa.ubicacion']._distritos())
+    return not cruce
+
+
+def _odoo_la_acepto(respuesta):
+    """¿Odoo guardó la dirección? (Sin campos malos y sin mandarla de vuelta al carrito.)"""
+    # Llamada con super(), la ruta de Odoo devuelve un Response (``route_wrapper``: ``Response.load``), no texto.
+    texto = respuesta.get_data(as_text=True) if hasattr(respuesta, 'get_data') else respuesta
+    try:
+        resultado = json.loads(texto) if isinstance(texto, str) else None
+    except ValueError:
+        return False
+    if not isinstance(resultado, dict) or resultado.get('invalid_fields'):
+        return False
+    return '/shop/cart' not in str(resultado.get('redirectUrl') or '')
+
+
 def _lo_que_falta(referencia, error_del_telefono):
     """La respuesta del formulario con lo que falta o está mal (sin guardar nada), o ``None``."""
     if not referencia:
@@ -74,8 +147,10 @@ class UbicacionCheckout(DcasaCheckout):
         ubicacion = {campo: form_data.pop(campo, None) for campo in CAMPOS}
         de_la_casa = {campo: form_data.pop(campo) for campo in CAMPOS_CASA if campo in form_data}
         modo = ubicacion['dcasa_ubic_modo']
-        if modo not in ('mapa', 'escrita'):
-            # Sin el bloque (un formulario viejo o sin productos que entregar): como siempre.
+        de_entrega = es_la_de_entrega(request.cart, partner_id, address_type, use_delivery_as_billing)
+        if modo not in ('mapa', 'escrita') or not de_entrega:
+            # Sin el bloque (un formulario viejo, sin productos que entregar o la dirección de facturación): como
+            # siempre.
             return super().shop_address_submit(partner_id=partner_id, address_type=address_type,
                                                use_delivery_as_billing=use_delivery_as_billing, callback=callback,
                                                **form_data)
@@ -85,41 +160,34 @@ class UbicacionCheckout(DcasaCheckout):
         if problema:
             return problema
         punto = None
+        origen = ubicacion['dcasa_ubic_origen']
         if modo == 'mapa':
             punto = geo.punto(_numero(ubicacion['dcasa_ubic_lat']), _numero(ubicacion['dcasa_ubic_lon']))
-            origen = ubicacion['dcasa_ubic_origen']
-            if not punto or origen not in ORIGENES_WEB or ubicacion['dcasa_ubic_confirmada'] != '1':
+            if not punto or origen not in ORIGENES_WEB + ORIGENES_GUARDADOS \
+                    or ubicacion['dcasa_ubic_confirmada'] != '1':
                 return json.dumps({'invalid_fields': [], 'messages': [FALTA_EL_PUNTO]})
         respuesta = super().shop_address_submit(partner_id=partner_id, address_type=address_type,
                                                 use_delivery_as_billing=use_delivery_as_billing, callback=callback,
                                                 **form_data)
-        # Llamada con super(), la ruta de Odoo devuelve un Response (``route_wrapper``: ``Response.load``), no texto.
-        texto = respuesta.get_data(as_text=True) if hasattr(respuesta, 'get_data') else respuesta
-        try:
-            resultado = json.loads(texto) if isinstance(texto, str) else None
-        except ValueError:
-            resultado = None
-        if not isinstance(resultado, dict) or resultado.get('invalid_fields') or resultado.get('redirectUrl') \
-                and '/shop/cart' in str(resultado.get('redirectUrl')):
-            return respuesta
         orden = request.cart
-        if not orden or not orden.partner_shipping_id:
-            return respuesta
-        es_entrega = address_type == 'delivery' or use_delivery_as_billing or orden._is_anonymous_cart() \
-            or orden.partner_shipping_id == orden.partner_invoice_id
-        if not es_entrega:
+        if not _odoo_la_acepto(respuesta) or not orden or not orden.partner_shipping_id:
             return respuesta
         destino = orden.partner_shipping_id.sudo()
         destino._dcasa_poner_quien_recibe(recibe=recibe, telefono=telefono, al_dia=False)
         if modo == 'mapa':
+            origen, precision = origen_a_guardar(destino, punto, origen, _numero(ubicacion['dcasa_ubic_precision']))
             try:
-                destino._dcasa_poner_ubicacion(punto[0], punto[1], ubicacion['dcasa_ubic_origen'],
-                                               precision=_numero(ubicacion['dcasa_ubic_precision']),
+                destino._dcasa_poner_ubicacion(punto[0], punto[1], origen, precision=precision,
                                                referencia=referencia, confirmada=True)
             except UbicacionInvalida as error:
                 return json.dumps({'invalid_fields': [], 'messages': [str(error.args[0])]})
+        elif conservar_punto_al_escribir(destino, form_data):
+            destino.write({'dcasa_referencia': referencia})
         else:
             destino._dcasa_poner_escrita(referencia=referencia)
+        # Lo que dio en el chat de la tienda ya pasó por aquí: que no le gane a lo que acaba de confirmar.
+        if orden.sudo()._dcasa_ubic_pendiente():
+            orden.sudo().write(SIN_PENDIENTE)
         if orden.carrier_id and orden.carrier_id.dcasa_por_cotizar:
             orden._set_delivery_method(orden.carrier_id)
         return respuesta
