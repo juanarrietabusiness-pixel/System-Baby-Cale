@@ -23,12 +23,12 @@ async function sesionInflada(a: Awaited<ReturnType<typeof montar>>, total: numbe
   await a.almacen.set("creds", '{"nextPreKeyId":' + (total + 1) + ',"firstUnuploadedPreKeyId":' + (total + 1) + "}");
   await a.almacen.lote({ escribir: { "session-50760261919.0": "S", "lid-mapping-1": "L", "identity-key-x": "I" } });
   const vinculo: Record<string, string> = {};
-  for (let i = 1; i <= 812; i++) vinculo[`pre-key-${i}`] = `pk${i}`;
+  for (let i = 1; i <= 812; i++) vinculo[`pre-key-${i}`] = `pk:${i}`;
   await a.almacen.lote({ escribir: vinculo });
   for (let i = 813; i <= total; i += 5) {
     a.reloj.t += 60_000;
     const rafaga: Record<string, string> = {};
-    for (let j = i; j < Math.min(i + 5, total + 1); j++) rafaga[`pre-key-${j}`] = `pk${j}`;
+    for (let j = i; j < Math.min(i + 5, total + 1); j++) rafaga[`pre-key-${j}`] = `pk:${j}`;
     await a.almacen.lote({ escribir: rafaga });
   }
 }
@@ -43,7 +43,7 @@ describe("podarPreKeys: conserva las 1.000 más nuevas, respalda lo demás y NUN
     expect(a.almacen.contarPreKeys()).toBe(PRE_KEYS_A_CONSERVAR);
     // quedaron las más nuevas, por NÚMERO (no por orden de texto: «pre-key-999» > «pre-key-15000» como texto)
     const leidas = (await a.almacen.lote({ leer: ["pre-key-14934", "pre-key-14935", "pre-key-15934", "pre-key-999", "pre-key-1"] })).valores;
-    expect(leidas).toEqual({ "pre-key-14934": null, "pre-key-14935": "pk14935", "pre-key-15934": "pk15934", "pre-key-999": null, "pre-key-1": null });
+    expect(leidas).toEqual({ "pre-key-14934": null, "pre-key-14935": "pk:14935", "pre-key-15934": "pk:15934", "pre-key-999": null, "pre-key-1": null });
     // la credencial y el resto de la sesión, intactos
     expect(await a.almacen.get("creds")).toContain("nextPreKeyId");
     expect((await a.almacen.lote({ leer: ["session-50760261919.0", "lid-mapping-1", "identity-key-x"] })).valores).toEqual({
@@ -59,7 +59,9 @@ describe("podarPreKeys: conserva las 1.000 más nuevas, respalda lo demás y NUN
     await sesionInflada(a, 1100);
     a.almacen.podarPreKeys();
     const volcado = a.bd.volcado("wa_prekeys_podadas");
-    expect(volcado).not.toContain("pk1");
+    // «pk:» lleva «:», que el cifrado (base64url) nunca produce: si aparece, es texto en claro. Antes buscaba «pk1», que
+    // a veces salía por azar dentro de lo cifrado (falló 2 de cada 100 corridas).
+    expect(volcado).not.toContain("pk:");
     expect(a.almacen.respaldoDePoda().llaves).toBe(100);
   });
 
@@ -72,7 +74,7 @@ describe("podarPreKeys: conserva las 1.000 más nuevas, respalda lo demás y NUN
     expect(r.restauradas).toBe(499);
     expect(a.almacen.contarPreKeys()).toBe(1500);
     expect(await a.almacen.get("pre-key-3")).toBe("NUEVA");
-    expect(await a.almacen.get("pre-key-4")).toBe("pk4");
+    expect(await a.almacen.get("pre-key-4")).toBe("pk:4");
     expect(a.almacen.respaldoDePoda().llaves).toBe(0);
     expect(a.almacen.deshacerUltimaPoda()).toEqual({ restauradas: 0, podadaEn: null });
   });
