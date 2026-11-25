@@ -28,7 +28,7 @@
                         </group>
                     </group>
                     <field name="dcasa_ubic_tiene_punto" invisible="1"/>
-                    <div class="d-flex flex-wrap gap-2">
+                    <div name="dcasa_ubic_botones" class="d-flex flex-wrap gap-2">
                         <button name="action_dcasa_abrir_waze" type="object" class="btn-primary" string="Abrir en Waze"
                                 icon="fa-location-arrow" invisible="not dcasa_ubic_tiene_punto"
                                 groups="sales_team.group_sale_salesman"/>
