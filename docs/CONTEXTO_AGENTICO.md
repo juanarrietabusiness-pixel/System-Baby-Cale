@@ -2396,4 +2396,10 @@ dos más sobre los arreglos. Lo que conviene llevarse:
   fallo existe»); al revés, quedaron como pruebas del arreglo (`tests/test_auditoria_datos.py`).
 - **El límite de uso de 5 horas cortó a un auditor a la mitad**: se reanuda con SendMessage cuando se reinicia, sin
   perder lo que llevaba.
+- **El disco de la sesión se llena con worktrees y bases de prueba** (cada base con todos los módulos ≈ 170 MB, cada
+  worktree ≈ 70 MB y hasta 800 MB con `node_modules`): a media auditoría no se pudo crear otro worktree («unable to
+  write file»). Borrar las bases de prueba propias al terminar (`dropdb`) y quitar los worktrees ya unidos; los de
+  sesiones anteriores no se borran sin preguntar.
+- **Los arreglos de una auditoría traen fallos nuevos**: la «otra casa» que arregló la primera auditoría causó tres
+  hallazgos de la segunda. Por eso van dos vueltas.
 

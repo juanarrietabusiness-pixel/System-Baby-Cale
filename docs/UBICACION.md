@@ -39,7 +39,8 @@ El dueño: «el dolor número uno son los pedidos devueltos». Lo que se agregó
 - **El link de pago** (la página del pedido) y **«¡Gracias por su compra!»**: si va a domicilio y falta la casa (sin
   punto confiable o sin número de casa), una tarjeta «📍 Marcar mi casa en el mapa» (`/u/pedido/<id>?access_token=…`,
   con el permiso del pedido). Al confirmar, el envío del pedido se recalcula **solo si es un carrito o una cotización
-  sin pago en curso y sin un envío que puso una persona**; si no, el equipo recibe una nota con el precio de la tabla.
+  sin pago en curso (también uno recién abierto que la pasarela tiene en borrador, como Tilopay) y sin un envío que
+  puso una persona**; si no, el equipo recibe una nota con el precio de la tabla.
   «Volver a mi pedido» solo sale si llegó desde la página del pedido.
 - **El enlace del chat**: el mensaje trae tres pasos (1️⃣ abra, 2️⃣ «Mi ubicación» y permita, 3️⃣ casa y «Sí, aquí es»),
   la vista previa muestra un pin en un mapa y, en WhatsApp de la API oficial, además sale el **botón nativo «Enviar
@@ -52,7 +53,8 @@ El dueño: «el dolor número uno son los pedidos devueltos». Lo que se agregó
   ubicación» en su puerta, o busque su barriada 👇», y no se muestra el precio. Andrés tampoco guarda un GPS impreciso.
 - **En el checkout, «Confirmar» cuenta como el «Sí, aquí es»** si el punto es bueno; si falta algo, la página baja al
   bloque, dice qué falta y lleva el foco. El bloque solo sale (y solo se exige) en la dirección de entrega, no en la de
-  facturación. «Escribir» no borra un punto confiable guardado (salvo que lo escrito nombre otro distrito).
+  facturación. «Escribir» no borra un punto confiable guardado, salvo que lo escrito nombre otro distrito o sea otra
+  calle (se mudó: el punto viejo ya no es su casa).
 
 | Canal | Ubicación fija | En tiempo real | Botón «Enviar ubicación» | Enlace de Maps o Waze | Enlace de un solo uso |
 |---|---|---|---|---|---|
@@ -132,11 +134,13 @@ El dueño: «la gente no lee: íconos y pocas palabras»; «lo que priorizamos e
   Baby Caleb 🛵. Ya llegué con su pedido S00042 📦». Sin punto, primero «Llamar» y «🔎 Buscar la dirección en Google
   Maps» con lo escrito.
 - **«Para otra casa»** (un regalo, la abuela, el trabajo): `enlace_de_ubicacion(para_otra_casa=true)` crea una
-  **dirección de entrega aparte** («Otra casa de Ana», hija de la clienta) y el punto va ahí: su casa no se toca (antes
-  la pisaba y el QR de su venta ya confirmada mandaba al motorizado a la casa de la mamá). Sin botón nativo (mandaría la
-  ubicación del teléfono). Lo que Juan cotiza sin lugar, el clip y el número de casa van a la ficha del enlace más
-  reciente de la conversación en las últimas 24 horas si es otra dirección
-  (`dcasa.conversacion._dcasa_ubic_destino`); el aviso al equipo dice que elijan esa dirección en la venta.
+  **dirección aparte** («Otra casa de Ana», hija de la clienta, **de tipo «otra»** y con `dcasa_otra_casa`) y el punto
+  va ahí: su casa no se toca (antes la pisaba y el QR de su venta ya confirmada mandaba al motorizado a la casa de la
+  mamá). No es de tipo «entrega» a propósito: Odoo la tomaría como la dirección por defecto de toda venta nueva de la
+  clienta. Una por regalo pendiente; al marcarla se llama «Otra casa de Ana (Villa Lucre)». Sin botón nativo (mandaría
+  la ubicación del teléfono). Durante 24 horas, lo que Juan cotiza sin lugar, el número de casa y quién recibe van a esa
+  ficha (`dcasa.conversacion._dcasa_ubic_destino`); un punto nuevo del clip, solo mientras el enlace siga sin usar
+  (después, la ubicación que comparte es la suya). El aviso al equipo dice que elijan esa dirección en la venta.
 
 ## Privacidad (cambia una regla de D'CASA)
 
@@ -149,11 +153,14 @@ entrega **sí se guarda**, porque sin él no hay QR para el motorizado. Reglas:
   enlace de mapa con el punto escrito y las coordenadas escritas a mano dentro de Panamá antes del modelo.
 - **La auditoría de Brian** (`brian.accion`, no se edita ni se borra): las herramientas de la ubicación van marcadas
   `privado=True` (`dcasa_brian/models/registro.py`): al cerrarse la acción, argumentos, resultado, error y resumen se
-  guardan pasados por `tapar` (sin coordenadas, secretos de `/u/` y `/entrega/`, teléfonos ni lo escrito de la casa).
+  guardan pasados por `tapar` (sin coordenadas —también `!3d…!4d…` de Google y el geohash de Waze—, secretos de `/u/` y
+  `/entrega/`, teléfonos ni lo escrito de la casa).
   Mientras espera confirmación los argumentos siguen enteros (con ellos se corre). `ubicacion_de_entrega` no le da al
   modelo los botones de Waze/Maps (llevan el punto) ni la página del motorizado: un «abrir» a la venta.
 - El enlace de un solo uso vence a las 24 horas y hay uno vivo por pedido; la página del motorizado sirve mientras haya
-  una salida sin entregar, se cierra a los 3 días de entregada o al cancelar y, cerrada, no revive (secreto nuevo). Los
+  una salida sin entregar (nunca más de 90 días desde la compra), se cierra a los 3 días de entregada o al cancelar
+  (con secreto nuevo) y, cerrada, no revive. Fotos de la casa: cinco por enlace y diez por ficha y día. El punto que
+  dio en el chat de la tienda se borra de un carrito abandonado a los 30 días. Los
   secretos del enlace se guardan como huella (SHA-256); el de la entrega, en un campo que solo lee ventas y contabilidad.
 - `Referrer-Policy: strict-origin` (Google valida la clave del mapa por el dominio y el secreto del camino nunca sale).
 - **La política de privacidad** (`website_dcasa/views/legal_templates.xml`) lo dice desde el 2026-11-25 (el dueño dio

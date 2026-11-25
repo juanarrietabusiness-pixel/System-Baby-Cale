@@ -94,7 +94,10 @@ voz o la marca donde se indica en §4.
   `motor/casa.py` («Avisar que llegué»), los avisos de `static/src/lib/mapa_entrega.js` y
   `static/src/interactions/checkout_ubicacion.js`, y la Guía. Las pruebas que fijan textos se ajustan (nunca se saltan).
 - **Tienda física**: D'CASA sí tiene «Retiro en tienda». El bloque solo cuenta si la venta va a domicilio
-  (`sale.order._dcasa_va_a_domicilio`); probar que con retiro no se pide el mapa ni sale el QR.
+  (`sale.order._dcasa_va_a_domicilio`); probar que con retiro no se pide el mapa ni sale el QR. **Ojo (visto en la
+  auditoría 2 con la tienda encendida)**: «Retiro en tienda — Gratis» quedaba marcado por defecto aun después de
+  marcar la casa en el mapa (el total salía sin envío). Decidir con Gerencia si, al marcar la casa, se elige sola la
+  entrega a domicilio.
 - **ITBMS**: D'CASA lo cobra; el envío lleva el ITBMS del producto del transportista (lo decide `dcasa_envios`). Probar
   el total del checkout con el punto.
 - **El nombre en «Avisar que llegué»** sale del sitio («Hola Ana, soy el chofer de D'CASA…»: en D'CASA «chofer»).
@@ -142,6 +145,13 @@ voz o la marca donde se indica en §4.
   nada visible; la dirección de facturación pedía el mapa; un GPS de ±800 m se guardaba como bueno.
 - **Odoo 19**: `super()` de una ruta `http` devuelve un `Response` (`get_data(as_text=True)`); `/report` es de solo
   lectura (el QR no crea registros al imprimir); `/odoo/enviar` del Worker calla a Juan salvo `autor: "bot"`.
+- **Segunda auditoría** (sobre los arreglos de la primera): la «otra casa» de tipo «entrega» se volvía la dirección
+  por defecto de todas las ventas de la clienta (ahora tipo «otra»); el clip podía mover un regalo ya marcado; dos
+  regalos pendientes compartían la misma ficha; un pago de Tilopay en borrador no frenaba el recálculo; «Escribir»
+  otra calle dejaba el punto viejo como bueno; el QR podía no cerrarse nunca si no se validan las salidas (tope de 90
+  días); en el navegador, «Confirmar» se saltaba el aviso de «su punto está en otro distrito», un dedo al bajar la
+  página movía el pin, una caída de señal trababa el checkout y los emojis de wa.me salían como «�» en WhatsApp Web
+  (usar `api.whatsapp.com/send`). **Moraleja**: cada arreglo grande merece su propia revisión.
 
 ## 8. Lo que falta del lado de Baby Caleb (no bloquea copiarlo)
 
