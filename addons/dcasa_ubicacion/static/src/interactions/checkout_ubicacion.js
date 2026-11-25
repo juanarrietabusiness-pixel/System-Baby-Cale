@@ -81,6 +81,7 @@ export class CheckoutUbicacion extends Interaction {
         this.ultimo = p;
         this.oculto("confirmada").value = "";
         this.ok.classList.add("d-none");
+        this.botonSi.classList.remove("d-none");
         this.actualizar();
         clearTimeout(this.reloj);
         this.reloj = setTimeout(() => this.previa(), 500);
@@ -99,7 +100,7 @@ export class CheckoutUbicacion extends Interaction {
         if (!this.ultimo || this.ultimo.lat === null) return;
         const n = ++this.pedido;
         this.tarjeta.classList.remove("d-none");
-        this.zona.textContent = "Buscando la zona…";
+        this.zona.textContent = "…";
         this.precio.textContent = "";
         this.cruce.textContent = "";
         this.zonaValida = false;
@@ -118,8 +119,10 @@ export class CheckoutUbicacion extends Interaction {
             return;
         }
         this.zonaValida = true;
-        this.zona.textContent = r.zona ? r.zona.split(" · ").join(", ") : "Un sitio fuera de nuestra lista de lugares.";
-        this.precio.textContent = r.precio ? `Envío hasta ahí: ${r.precio}` : "El costo del envío se lo confirmamos por WhatsApp.";
+        // De un vistazo: la barriada (o el corregimiento) y el distrito; el precio, grande, con el camión al lado.
+        this.zona.textContent = [r.barriada || r.corregimiento, r.distrito].filter(Boolean).join(", ")
+            || "Fuera de nuestra lista";
+        this.precio.textContent = r.precio ? `Envío ${r.precio}` : "Envío: se lo confirmamos";
         this.cruce.textContent = r.aviso || "";
         this.llenarSiVacio("city", r.distrito || "");
         this.llenarSiVacio("street", [r.barriada, r.corregimiento].filter(Boolean).join(", "));
@@ -142,6 +145,7 @@ export class CheckoutUbicacion extends Interaction {
         this.oculto("precision").value = this.ultimo.precision ?? "";
         this.oculto("confirmada").value = "1";
         this.ok.classList.remove("d-none");
+        this.botonSi.classList.add("d-none");
         this.referencia.focus();
     }
 
@@ -164,7 +168,7 @@ export class CheckoutUbicacion extends Interaction {
             if (!lugares.length) {
                 const li = document.createElement("li");
                 li.className = "text-muted";
-                li.textContent = "No lo encontramos: mueva el mapa hasta su casa o pruebe con otro nombre.";
+                li.textContent = "No lo encontramos. Pruebe otro nombre.";
                 this.lista.appendChild(li);
                 return;
             }

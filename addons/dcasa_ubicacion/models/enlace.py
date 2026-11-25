@@ -112,16 +112,16 @@ class UbicacionEnlace(models.Model):
             _logger.exception('Ubicación: no se pudo avisar por el chat a la conversación %s', conv.id)
 
     def _texto_para_la_clienta(self, zona):
-        """«Recibimos su ubicación de entrega: Brisas del Golf, San Miguelito. El envío hasta ahí cuesta $5.00. ¿Desea
-        que se lo sumemos a su pedido?» (de usted, sin coordenadas). Sin precio: se lo confirma la tienda."""
-        donde = zona['texto'].replace(' · ', ', ') if zona.get('texto') else ''
-        recibido = (self.env._('Recibimos su ubicación de entrega: %s.', donde) if donde
-                    else self.env._('Recibimos su ubicación de entrega.'))
+        """«✅ ¡Listo! Recibimos su ubicación: Brisas del Golf, San Miguelito. 🚚 Envío $5.00. ¿Se lo sumamos a su
+        pedido?» Corto y con íconos (el dueño, 2026-11-25: la gente no lee párrafos), de usted y sin coordenadas. Sin
+        precio: se lo confirma la tienda."""
+        donde = ', '.join(p for p in (zona.get('barriada') or zona.get('corregimiento'), zona.get('distrito')) if p)
+        recibido = (self.env._('✅ ¡Listo! Recibimos su ubicación: %s.', donde) if donde
+                    else self.env._('✅ ¡Listo! Recibimos su ubicación.'))
         precio = self.env['dcasa.ubicacion']._precio(zona.get('lugar'))
         if precio['con_precio']:
-            return recibido + ' ' + self.env._('El envío hasta ahí cuesta %s. ¿Desea que se lo sumemos a su pedido?',
-                                               precio['total_txt'])
-        return recibido + ' ' + self.env._('En un momento le confirmamos el costo del envío.')
+            return recibido + ' ' + self.env._('🚚 Envío %s. ¿Se lo sumamos a su pedido?', precio['total_txt'])
+        return recibido + ' ' + self.env._('🚚 El costo del envío se lo confirmamos en un momento.')
 
     @api.autovacuum
     def _gc_enlaces_viejos(self):

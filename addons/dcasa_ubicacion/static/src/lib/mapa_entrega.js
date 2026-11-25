@@ -82,12 +82,11 @@
     function avisar() {
       if (!vivo) return;
       var b = bueno();
-      if (b.motivo === "lejos") texto(op.aviso, "Acérquese más (a nivel de calle) y deje el pin sobre su puerta.");
-      else if (b.motivo === "impreciso")
-        texto(op.aviso, "Su teléfono nos da el punto con un margen de ±" + estado.precision +
-          " m. Mueva el mapa hasta que el pin quede sobre su puerta.");
+      // Avisos cortos: la gente no lee párrafos (el dueño, 2026-11-25).
+      if (b.motivo === "lejos") texto(op.aviso, "🔍 Acérquese más y ponga el pin en su puerta");
+      else if (b.motivo === "impreciso") texto(op.aviso, "👆 Mueva el mapa: ponga el pin en su puerta");
       else if (estado.origen === "gps" && estado.precision > PRECISION_MAX_M)
-        texto(op.aviso, "Su teléfono nos da el punto con un margen de ±" + estado.precision + " m.");
+        texto(op.aviso, "Punto aproximado (±" + estado.precision + " m)");
       else texto(op.aviso, "");
       if (op.alCambiar) {
         op.alCambiar({
@@ -152,7 +151,7 @@
       }).catch(function (error) {
         if (!vivo) return;
         op.mapa.classList.add("o_dcasa_mapa_sin_mapa");
-        texto(op.aviso, "El mapa no cargó. Puede usar «Usar mi ubicación» o escribir la dirección.");
+        texto(op.aviso, "El mapa no cargó. Toque «Mi ubicación» o busque su barriada.");
         if (op.alSinMapa) op.alSinMapa(error && error.message);
       });
     } else if (op.mapa) {
@@ -161,11 +160,10 @@
 
     function usarGps() {
       if (!navigator.geolocation) {
-        texto(op.aviso, "Este navegador no deja leer la ubicación. " +
-          (mapa ? "Mueva el mapa hasta su casa." : "Escríbanos la dirección."));
+        texto(op.aviso, mapa ? "👆 Mueva el mapa hasta su casa" : "Busque su barriada aquí abajo");
         return;
       }
-      texto(op.aviso, "Buscando su ubicación…");
+      texto(op.aviso, "📍 Buscando…");
       if (op.botonGps) op.botonGps.disabled = true;
       navigator.geolocation.getCurrentPosition(
         function (pos) {
@@ -176,11 +174,11 @@
         function (error) {
           if (op.botonGps) op.botonGps.disabled = false;
           if (error && error.code === 1) {
-            texto(op.aviso, "No nos dio permiso de ubicación. " +
-              (mapa ? "Puede mover el mapa hasta su casa o buscar su barriada." : "Escríbanos la dirección."));
+            texto(op.aviso, mapa ? "Sin permiso de ubicación: 👆 mueva el mapa o busque su barriada"
+              : "Sin permiso de ubicación: busque su barriada aquí abajo");
           } else {
-            texto(op.aviso, "No pudimos leer su ubicación ahora. " +
-              (mapa ? "Mueva el mapa hasta su casa o busque su barriada." : "Intente otra vez en un momento."));
+            texto(op.aviso, mapa ? "No la encontramos: 👆 mueva el mapa o busque su barriada"
+              : "No la encontramos: intente otra vez o busque su barriada");
           }
         },
         { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }

@@ -15,36 +15,45 @@
                  t-att-data-lat="dcasa_punto and dcasa_punto[0]" t-att-data-lon="dcasa_punto and dcasa_punto[1]"
                  t-att-data-origen="dcasa_punto and dcasa_destino.dcasa_ubic_origen">
                 <fieldset class="o_dcasa_ubic_marco">
-                    <legend class="col-form-label o_dcasa_ubic_titulo">¿Dónde le entregamos?</legend>
+                    <legend class="o_dcasa_ubic_titulo">
+                        <span class="o_dcasa_ubic_burbuja"><t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'pin'"/></t></span>
+                        ¿Dónde le entregamos?
+                    </legend>
                     <div class="o_dcasa_ubic_modos" role="radiogroup" aria-label="Cómo quiere darnos la dirección">
                         <input type="radio" class="btn-check" name="dcasa_ubic_modo" id="o_dcasa_modo_mapa" value="mapa"
                                t-att-checked="not dcasa_escrita"/>
-                        <label class="btn o_dcasa_ubic_modo" for="o_dcasa_modo_mapa">Marcar en el mapa</label>
+                        <label class="btn o_dcasa_ubic_modo" for="o_dcasa_modo_mapa">
+                            <t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'mapa'"/></t>Mapa</label>
                         <input type="radio" class="btn-check" name="dcasa_ubic_modo" id="o_dcasa_modo_escrita"
                                value="escrita" t-att-checked="dcasa_escrita"/>
-                        <label class="btn o_dcasa_ubic_modo" for="o_dcasa_modo_escrita">Escribirla</label>
+                        <label class="btn o_dcasa_ubic_modo" for="o_dcasa_modo_escrita">
+                            <t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'lapiz'"/></t>Escribir</label>
                     </div>
                     <div class="o_dcasa_ubic_parte_mapa">
-                        <button type="button" class="btn btn-primary o_dcasa_ubic_gps">Usar mi ubicación</button>
+                        <button type="button" class="btn btn-primary o_dcasa_ubic_gps">
+                            <t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'gps'"/></t>Mi ubicación</button>
                         <div class="o_dcasa_ubic_mapa_marco">
                             <div class="o_dcasa_ubic_mapa" role="application" aria-label="Mapa: muévalo hasta su puerta"/>
+                            <span class="o_dcasa_ubic_pista"><t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'mover'"/></t>Mueva el mapa</span>
                             <svg class="o_dcasa_ubic_pin" viewBox="0 0 36 48" aria-hidden="true">
                                 <path d="M18 1C8.6 1 1 8.4 1 17.6 1 30 18 47 18 47s17-17 17-29.4C35 8.4 27.4 1 18 1z" fill="#EE924A" stroke="#1B3246" stroke-width="2"/>
                                 <circle cx="18" cy="17" r="6" fill="#1B3246"/>
                             </svg>
                         </div>
                         <p class="o_dcasa_ubic_aviso" aria-live="polite"/>
-                        <label class="col-form-label label-optional" for="o_dcasa_ubic_buscar">¿No está en su casa? Busque su barriada, PH o un lugar conocido</label>
-                        <input type="search" id="o_dcasa_ubic_buscar" class="form-control o_dcasa_ubic_buscar"
-                               autocomplete="off" maxlength="60" placeholder="Ej.: Brisas del Golf, PH Ocean Park"/>
+                        <div class="o_dcasa_ubic_con_icono">
+                            <t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'buscar'"/></t>
+                            <input type="search" class="form-control o_dcasa_ubic_buscar" autocomplete="off" maxlength="60"
+                                   placeholder="Buscar barriada o lugar" aria-label="Buscar barriada, PH o un lugar conocido"/>
+                        </div>
                         <ul class="o_dcasa_ubic_lista list-unstyled"/>
                         <div class="o_dcasa_ubic_tarjeta d-none" aria-live="polite">
-                            <strong>¿Es aquí?</strong>
-                            <span class="o_dcasa_ubic_zona d-block"/>
-                            <span class="o_dcasa_ubic_precio d-block text-muted"/>
-                            <span class="o_dcasa_ubic_cruce d-block"/>
-                            <button type="button" class="btn btn-primary o_dcasa_ubic_si" disabled="disabled">Sí, aquí es</button>
-                            <span class="o_dcasa_ubic_ok d-none">Punto confirmado</span>
+                            <p class="o_dcasa_ubic_dato"><t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'pin'"/></t><span class="o_dcasa_ubic_zona"/></p>
+                            <p class="o_dcasa_ubic_dato o_dcasa_ubic_dato_precio"><t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'camion'"/></t><span class="o_dcasa_ubic_precio"/></p>
+                            <p class="o_dcasa_ubic_cruce"/>
+                            <button type="button" class="btn btn-primary o_dcasa_ubic_si" disabled="disabled">
+                                <t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'listo'"/></t>Sí, aquí es</button>
+                            <p class="o_dcasa_ubic_ok d-none"><t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'listo'"/></t>Listo</p>
                         </div>
                     </div>
                     <input type="hidden" name="dcasa_ubic_lat"/>
@@ -52,10 +61,11 @@
                     <input type="hidden" name="dcasa_ubic_origen"/>
                     <input type="hidden" name="dcasa_ubic_precision"/>
                     <input type="hidden" name="dcasa_ubic_confirmada" value=""/>
-                    <label class="col-form-label" for="o_dcasa_referencia">¿Cómo reconocemos el sitio?</label>
+                    <label class="col-form-label label-optional o_dcasa_ubic_etiqueta" for="o_dcasa_referencia">
+                        <t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'casa'"/></t>¿Cómo es su casa?</label>
                     <input type="text" id="o_dcasa_referencia" name="dcasa_referencia" class="form-control"
                            maxlength="200" autocomplete="off" t-att-value="dcasa_destino and dcasa_destino.dcasa_referencia"
-                           placeholder="Ej.: casa verde de portón negro, frente al súper"/>
+                           placeholder="Ej.: verde, portón negro"/>
                 </fieldset>
             </div>
         </xpath>

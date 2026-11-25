@@ -69,8 +69,9 @@ class BrianHerramientasUbicacion(models.AbstractModel):
         return {
             'enlace': url,
             'vence_en_horas': 24,
-            'frase_para_el_cliente': 'Para llevárselo exacto, marque su ubicación de entrega en este enlace (se abre '
-                                     f'un mapa; no tiene que copiar nada): {url}',
+            # Corta y con el pin: se entiende sin leer (el dueño, 2026-11-25). WhatsApp muestra la vista previa con un
+            # pin en un mapa (og:image de la página).
+            'frase_para_el_cliente': f'📍 Toque aquí y marque su casa en el mapa: {url}',
             'instruccion': 'Mándale el enlace con la frase (puedes acortarla, sin cambiar el enlace). Cuando marque su '
                            'punto, la tienda le escribe con la zona y el precio del envío.',
         }
@@ -141,7 +142,7 @@ class BrianHerramientasUbicacion(models.AbstractModel):
         partner.check_access('write')
         _enlace, url = self.env['dcasa.ubicacion.enlace']._crear(partner.sudo(), creado_por='equipo')
         return {'cliente': partner.name, 'enlace': url, 'vence_en_horas': 24,
-                'texto_para_mandar': f'Para llevárselo exacto, marque su ubicación de entrega aquí: {url}'}
+                'texto_para_mandar': f'📍 Toque aquí y marque su casa en el mapa: {url}'}
 
     @herramienta(
         nombre='poner_ubicacion_de_entrega',

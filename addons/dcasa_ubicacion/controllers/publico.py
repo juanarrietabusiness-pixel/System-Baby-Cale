@@ -141,7 +141,10 @@ class UbicacionPublica(http.Controller):
             return _demasiado(en_json=False)
         enlace = self._enlace(token)
         empresa = request.env.company.sudo()
-        valores = {'empresa': empresa.name, 'token': token, 'estado': 'no_sirve', 'zona': ''}
+        base = (request.env['ir.config_parameter'].sudo().get_param('web.base.url') or '').rstrip('/')
+        # La vista previa del enlace en WhatsApp, Instagram y Messenger: un pin en un mapa (se entiende sin leer).
+        valores = {'empresa': empresa.name, 'token': token, 'estado': 'no_sirve', 'zona': '',
+                   'imagen': base + '/dcasa_ubicacion/static/src/img/enlace_mapa.png'}
         if enlace and enlace.estado == 'usado':
             valores.update(estado='usado', zona=enlace.zona or '')
         elif enlace:

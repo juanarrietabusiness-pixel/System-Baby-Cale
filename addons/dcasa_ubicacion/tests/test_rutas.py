@@ -49,8 +49,9 @@ class TestRutas(HttpCase):
         ruta = '/u/' + url.rsplit('/u/', 1)[1]
         respuesta = self.url_open(ruta)
         self.assertEqual(respuesta.status_code, 200)
-        self.assertIn('Su punto de entrega', respuesta.text)
-        self.assertIn('Usar mi ubicación', respuesta.text)
+        self.assertIn('¿Dónde le entregamos?', respuesta.text)
+        self.assertIn('Mi ubicación', respuesta.text)
+        self.assertIn('og:image', respuesta.text, 'la vista previa del enlace muestra un pin en un mapa')
         self.assertEqual(respuesta.headers['Cache-Control'], 'no-store')
         self.assertIn('noindex', respuesta.headers['X-Robots-Tag'])
         self.assertIn("default-src 'none'", respuesta.headers['Content-Security-Policy'])
@@ -90,7 +91,7 @@ class TestRutas(HttpCase):
         # Usado: ya no guarda otra vez y la página lo dice.
         self.assertEqual(self.post_json(base + '/guardar', {'lat': 8.95, 'lon': -79.85, 'origen': 'pin',
                                                             'referencia': 'Otra'}).status_code, 404)
-        self.assertIn('Ya recibimos su ubicación', self.url_open(base).text)
+        self.assertIn('Ya la tenemos', self.url_open(base).text)
         enlace.sudo().vence = fields.Datetime.now() - timedelta(days=1)
         self.assertEqual(self.url_open(base).status_code, 404)
 

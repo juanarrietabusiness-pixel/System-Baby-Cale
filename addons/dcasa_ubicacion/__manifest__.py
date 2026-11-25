@@ -26,6 +26,7 @@ Pedido del dueño de Baby Caleb (2026-11-25), con la idea de Nébula y sus falla
                 'delivery', 'sale_stock'],
     'data': [
         'security/ir.model.access.csv',
+        'views/iconos_templates.xml',
         'views/paginas_templates.xml',
         'views/checkout_templates.xml',
         'views/reporte_templates.xml',
