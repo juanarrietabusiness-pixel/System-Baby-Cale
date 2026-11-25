@@ -1,5 +1,6 @@
 """La entrega de una venta para el motorizado: el QR del comprobante y de la nota de entrega abre ``/entrega/<secreto>``
-con «Abrir en Waze», «Abrir en Google Maps», la dirección, la referencia y «Llamar».
+con «Abrir en Waze», «Abrir en Google Maps», la foto de la casa, la dirección, la referencia, quién recibe, «Avisar que
+llegué» (WhatsApp con el mensaje listo), «Llamar» y el teléfono de respaldo.
 
 A diferencia de Nébula, la página **vence** (``DIAS_VIGENCIA`` días desde que se armó o se puso al día) y **no cambia
 nada** (no marca «entregado»): quien encuentre el papel no puede tocar el pedido. El secreto va en el QR, así que se
@@ -10,7 +11,7 @@ from datetime import timedelta
 
 from odoo import api, fields, models
 
-from ..motor import geo
+from ..motor import casa, geo
 
 DIAS_VIGENCIA = 30
 RUTA = '/entrega/'
@@ -61,21 +62,56 @@ class UbicacionEntrega(models.Model):
         return f'{base}{RUTA}{self.sudo().token}'
 
     def _para_el_motorizado(self):
-        """Lo que ve el motorizado: nombre de pila, teléfono, la dirección y el punto (con sus dos botones)."""
+        """Lo que ve el motorizado: nombre de pila, teléfono, la dirección y el punto (con sus dos botones), quién
+        recibe, «Avisar que llegué» (``wa.me`` al celular de la clienta con el mensaje listo), el teléfono de respaldo
+        (llamar y, si es celular, WhatsApp) y la foto de la casa (por su ruta con el mismo secreto). No escribe nada: lo
+        lee también el PDF, que se arma en una transacción de solo lectura."""
         self.ensure_one()
         orden = self.order_id.sudo()
         destino = orden.partner_shipping_id or orden.partner_id
         resumen = destino._dcasa_ubic_resumen()
         nombre = (destino.name or orden.partner_id.name or '').strip()
+        pila = nombre.split()[0] if nombre else ''
         telefono = destino.phone or orden.partner_id.phone or ''
+        tienda = self._nombre_de_la_tienda()
+        respaldo = casa.telefono_de_respaldo(resumen['telefono_respaldo'])
+        if respaldo and casa.mismo_telefono(respaldo['guardar'], telefono):
+            respaldo = None     # el mismo celular de la clienta: un botón de más que confunde
         resumen.update({
             'pedido': orden.name,
-            'nombre': nombre.split()[0] if nombre else '',
+            'nombre': pila,
             'telefono': telefono,
-            'telefono_tel': ''.join(c for c in telefono if c.isdigit() or c == '+'),
+            'telefono_tel': casa.tel(telefono),
             'nota': geo.texto_corto(orden.client_order_ref or '', 120),
+            'avisar_llegue': casa.enlace_whatsapp(casa.numero_whatsapp(telefono),
+                                                  self._texto_llegue(tienda, orden.name, pila)),
+            'respaldo': respaldo['guardar'] if respaldo else '',
+            'respaldo_tel': respaldo['tel'] if respaldo else '',
+            # Al respaldo le escribe a otra persona (la abuela, el guardia): el pedido es «de Ana».
+            'respaldo_whatsapp': casa.enlace_whatsapp(respaldo['wa'], self._texto_llegue(
+                tienda, orden.name, de=pila)) if respaldo else '',
+            'fachada_url': f'{RUTA}{self.sudo().token}/fachada' if resumen['tiene_foto_fachada'] else '',
         })
         return resumen
+
+    def _nombre_de_la_tienda(self):
+        """El nombre con que el motorizado se presenta: el del sitio de la venta (o el de la compañía)."""
+        self.ensure_one()
+        orden = self.order_id.sudo()
+        website = orden.website_id or self.env['website'].sudo().search([('company_id', '=', orden.company_id.id)],
+                                                                        limit=1)
+        return (website.name if website else '') or orden.company_id.name or ''
+
+    def _texto_llegue(self, tienda, pedido, nombre='', de=''):
+        """«Hola Ana, soy el motorizado de Baby Caleb 🛵. Ya llegué con su pedido S00042 📦» (de usted, corto). Para el
+        teléfono de respaldo (otra persona): «Hola, soy el motorizado de Baby Caleb 🛵. Ya llegué con el pedido S00042
+        de Ana 📦»."""
+        saludo = self.env._('Hola %s', nombre) if nombre else self.env._('Hola')
+        if de:
+            return self.env._('%(saludo)s, soy el motorizado de %(tienda)s 🛵. Ya llegué con el pedido %(pedido)s de '
+                              '%(de)s 📦', saludo=saludo, tienda=tienda, pedido=pedido, de=de)
+        return self.env._('%(saludo)s, soy el motorizado de %(tienda)s 🛵. Ya llegué con su pedido %(pedido)s 📦',
+                          saludo=saludo, tienda=tienda, pedido=pedido)
 
     def _qr_src(self):
         """El QR (``data:image/png;base64,…``) con la dirección de la página, incrustado en el PDF."""
@@ -95,6 +131,8 @@ class SaleOrder(models.Model):
     _inherit = 'sale.order'
 
     dcasa_zona_entrega = fields.Char('Zona de entrega', related='partner_shipping_id.dcasa_ubic_zona')
+    dcasa_recibe_entrega = fields.Char('Quién recibe', related='partner_shipping_id.dcasa_recibe')
+    dcasa_tel_respaldo_entrega = fields.Char('Teléfono de respaldo', related='partner_shipping_id.dcasa_tel_respaldo')
 
     def _dcasa_va_a_domicilio(self):
         """¿Esta venta se lleva a domicilio? (El método de entrega «a domicilio» o una línea de envío del sistema.)"""
@@ -103,6 +141,19 @@ class SaleOrder(models.Model):
         if orden.carrier_id and orden.carrier_id.dcasa_por_cotizar:
             return True
         return any(linea.dcasa_envio_lugar_id for linea in orden.order_line)
+
+    def _dcasa_ubic_url_para_marcar(self):
+        """La página «¡Gracias por su compra!» (y lo que la llame): si la venta va a domicilio y su dirección de entrega
+        no tiene un punto confiable o le faltan el número de casa y las indicaciones, la dirección para marcarla en el
+        mapa (``/u/pedido/<id>?access_token=…``, la misma de la página del pedido); si no, ``''``."""
+        self.ensure_one()
+        orden = self.sudo()
+        if orden.state == 'cancel' or not orden._dcasa_va_a_domicilio():
+            return ''
+        resumen = (orden.partner_shipping_id or orden.partner_id)._dcasa_ubic_resumen()
+        if resumen['confiable'] and resumen['referencia']:
+            return ''
+        return f'/u/pedido/{orden.id}?access_token={orden._portal_ensure_token()}'
 
     def _dcasa_entrega_motorizado(self, crear=True):
         """La entrega de esta venta para el QR, o un registro vacío si no va a domicilio o no tiene a dónde. Sin

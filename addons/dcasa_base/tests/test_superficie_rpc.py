@@ -1431,6 +1431,9 @@ LISTA_BLANCA = {
     ('dcasa_ubicacion', 'delivery.carrier', 'fixed_rate_shipment'):
         OVERRIDE + ' Solo para la entrega a domicilio: el precio sale del punto confirmado de la dirección de entrega '
                    'del pedido (la tabla de envíos aprobada); no escribe nada.',
+    ('dcasa_ubicacion', 'res.partner', 'action_dcasa_quitar_fachada'):
+        'Botón: exige poder escribir en la ficha (check_access) y solo quita, en sudo, la foto de la casa de ESA ficha '
+        '(el objeto de R2 lo recoge su limpieza; nunca se borra al momento).',
 }
 
 # Modelos abstractos sin ACL: por RPC no se puede llamar NINGÚN método suyo (S-09).
