@@ -49,3 +49,19 @@ class TestBrianPromoPar(TransactionCase):
         self.assertEqual(sorted((ln.product_uom_qty, ln.price_unit) for ln in orden.order_line),
                          [(1.0, 20.0), (2.0, 17.5)])
         self.assertAlmostEqual(orden.amount_total, 55.0)
+        # Quitar el producto quita sus dos líneas (el par y la caja suelta), sin preguntar «cuál».
+        respuesta = self.ejecutar(self.vendedora, 'quitar_linea_cotizacion',
+                                  {'venta': orden.name, 'producto': 'BRZ-TOA'})
+        self.assertTrue(respuesta['ok'], respuesta)
+        self.assertFalse(orden.order_line)
+        # Con un precio pedido (dentro del tope), la línea queda a mano: no se reparte ni se recalcula.
+        respuesta = self.ejecutar(self.vendedora, 'agregar_linea_cotizacion',
+                                  {'venta': orden.name, 'producto': 'BRZ-TOA', 'cantidad': 3, 'precio': 18})
+        self.assertTrue(respuesta['ok'], respuesta)
+        self.assertEqual([(ln.product_uom_qty, ln.price_unit) for ln in orden.order_line], [(3.0, 18.0)])
+        # Sin precio, la promoción: el par y la caja suelta.
+        respuesta = self.ejecutar(self.vendedora, 'agregar_linea_cotizacion',
+                                  {'venta': orden.name, 'producto': 'BRZ-TOA', 'cantidad': 3})
+        self.assertTrue(respuesta['ok'], respuesta)
+        self.assertEqual(sorted((ln.product_uom_qty, ln.price_unit) for ln in orden.order_line),
+                         [(1.0, 20.0), (2.0, 17.5), (3.0, 18.0)])

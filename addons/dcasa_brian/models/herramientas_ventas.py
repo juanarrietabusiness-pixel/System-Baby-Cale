@@ -91,10 +91,12 @@ class BrianHerramientasVentas(models.AbstractModel):
             except UserError as error:
                 raise BrianError(f'{error} Agrégalo desde Ventas, donde se escogen las piezas.') from error
         valores = {'order_id': orden.id, 'product_id': producto.id, 'product_uom_qty': cantidad or 1}
-        linea = self.env['sale.order.line'].create(valores)
         if precio is not None:
-            linea.price_unit = precio
-        return linea
+            # Como la pantalla: el precio que se pidió y, aparte, el de la ficha. Si se crea solo con el precio, Odoo lo
+            # toma por precio del sistema y la promoción por pares (dcasa_catalogo) lo volvería a calcular al acomodar
+            # las cajas; así queda «a mano» y no se reparte. El tope de la vendedora se mide igual, al crear.
+            valores.update(price_unit=precio, technical_price_unit=producto.lst_price)
+        return self.env['sale.order.line'].create(valores)
 
     @api.model
     def _b_resumen_orden(self, orden):
@@ -544,7 +546,9 @@ class BrianHerramientasVentas(models.AbstractModel):
         if not coinciden:
             raise BrianError(f'{orden.name} no tiene «{producto}». Lleva: '
                              + '; '.join(lineas.mapped('product_id.display_name')) + '.')
-        if len(coinciden) > 1:
+        # Un mismo producto puede ir en dos líneas (la promoción por pares de dcasa_catalogo: el par y la caja suelta):
+        # se quita el producto entero. Solo se pregunta si coinciden productos distintos.
+        if len(coinciden.product_id) > 1:
             raise BrianError(f'En {orden.name} hay varias líneas con «{producto}»: '
                              + '; '.join(coinciden.mapped('product_id.display_name')) + '. Dime cuál.')
         nombre = coinciden.product_id.display_name
