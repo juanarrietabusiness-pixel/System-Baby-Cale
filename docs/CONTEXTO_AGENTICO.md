@@ -2331,6 +2331,12 @@ Un revisor sin mi contexto (con acceso de lectura y bases de prueba) encontró c
   (todo se apagaba bien) descartó el código. Arreglo: `docker/negocio.env` (la imagen manda; el Worker ya no pasa esas
   tres) y la comprobación en CI. Lección: **verificar en staging el efecto de cada interruptor nuevo (comprar, mirar
   el precio), no solo que CI y la salud estén en verde**.
+- **Un `create`/`write` nuevo en cualquier módulo lo vigila una prueba de OTRO módulo**: la promoción por pares
+  (`dcasa_catalogo/models/precio_par.py`) heredó `sale.order.create/write` y el ayudante corrió las pruebas de catálogo,
+  Juan, sitio, chat y Brian (todas en verde), pero no `dcasa_base:TestSuperficieRpc`, que revisa los métodos públicos
+  de TODOS los módulos instalados contra `LISTA_BLANCA` (`dcasa_base/tests/test_superficie_rpc.py`). CI la encontró
+  (1 de 7559). Al heredar un método público, anotarlo ahí con su motivo y correr
+  `TEST_TAGS=/dcasa_base:TestSuperficieRpc scripts/test.sh dcasa_base,<módulo>` antes de entregar.
 - **Un papel que no es la factura fiscal no se llama «Factura»** (Baby Caleb usa el Facturador Gratuito de la DGI).
   El título sale de un solo método (`account.move._dcasa_titulo_documento`) que usan el PDF y su nombre de archivo;
   el correo y Mi cuenta tienen sus propios textos y hay que cambiarlos aparte.

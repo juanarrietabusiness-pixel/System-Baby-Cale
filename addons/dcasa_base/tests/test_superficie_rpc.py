@@ -254,6 +254,16 @@ LISTA_BLANCA = {
         'API del panel: check_access("write"), solo cotizaciones y líneas de esa cotización. ' + SIN_SUDO,
     ('dcasa_catalogo', 'sale.order', 'dcasa_combo_quitar'):
         'API del panel: check_access("write"), solo cotizaciones y líneas de esa cotización. ' + SIN_SUDO,
+    ('dcasa_catalogo', 'sale.order', 'create'):
+        OVERRIDE + ' Promoción por pares (models/precio_par.py): después de crear (con el permiso de Odoo ya '
+        'revisado), acomoda las cajas de los productos con precio por par de ESA venta abierta en la línea de los '
+        'pares y la de la suelta, y mide el tope de la vendedora sobre el pedido entero. El acomodo corre en sudo() '
+        'solo sobre líneas de esa venta, con cantidades y precio del sistema; no se puede pedir desde afuera.',
+    ('dcasa_catalogo', 'sale.order', 'write'):
+        OVERRIDE + ' Promoción por pares (models/precio_par.py): solo si cambian las líneas y alguna tiene precio por '
+        'par; después de super().write (permiso de escribir ya revisado) acomoda las cajas de ESA venta abierta y mide '
+        'el tope sobre el pedido entero. El acomodo corre en sudo() solo sobre líneas de esa venta, con cantidades y '
+        'precio del sistema.',
     ('dcasa_catalogo', 'sale.order.line', 'create'):
         OVERRIDE + ' Solo quita de lo que llega los campos que pone el emparejamiento (CAMPOS_DEL_SISTEMA); '
         'sin sudo().',
@@ -270,9 +280,10 @@ LISTA_BLANCA = {
         OVERRIDE + ' Agrega que cama/colchón y colchones por cama solo los cambia Gerencia y pone el nombre en '
                    'MAYÚSCULAS (F5); sin sudo().',
     ('dcasa_catalogo', 'product.product', 'create'):
-        OVERRIDE + ' Agrega que el precio en combo solo lo pone Gerencia; sin sudo().',
+        OVERRIDE + ' Agrega que el precio en combo y el precio por par solo los pone Gerencia; sin sudo().',
     ('dcasa_catalogo', 'product.product', 'write'):
-        OVERRIDE + ' Agrega que el precio en combo y la medida solo los cambia Gerencia; sin sudo().',
+        OVERRIDE + ' Agrega que el precio en combo, la medida y el precio por par solo los cambia Gerencia; '
+                   'sin sudo().',
     ('dcasa_catalogo', 'product.template', 'action_dcasa_precios_combo'): ACCION_VENTANA,
     # F5: nombres en MAYÚSCULAS y productos repetidos (dcasa_catalogo/models/nombres_productos.py y siguientes).
     ('dcasa_catalogo', 'dcasa.producto.mayusculas', 'default_get'):
