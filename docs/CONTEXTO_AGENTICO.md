@@ -2371,3 +2371,29 @@ Un revisor sin mi contexto (con acceso de lectura y bases de prueba) encontró c
 - **`dcasa_correo` aislado falla dos pruebas** («Ver en Mi cuenta») porque `dcasa_mi_cuenta` no está instalado en esa
   corrida; en CI, con todo instalado, pasan. No es un fallo nuevo.
 
+## Lo que enseñaron las dos auditorías de la ubicación (2026-11-25)
+
+Tres auditores independientes en paralelo (seguridad y privacidad; dinero y datos; la clienta en el navegador) y luego
+dos más sobre los arreglos. Lo que conviene llevarse:
+
+- **Dos ayudantes en paralelo sobre el mismo módulo, unidos sin correr las pruebas de TODOS los módulos, rompen cosas
+  que ninguno ve**: la herencia de `_confirmar` de uno no tenía los parámetros nuevos del otro (500 en «Sí, aquí es»),
+  y un `_dcasa_nota` nuevo en `sale.order` tapó el `_dcasa_nota` del PDF de `dcasa_invoice` (las cotizaciones no se
+  imprimían). Las pruebas de cada ayudante pasaban. Después de unir: `scripts/test.sh` con **todos** los módulos
+  instalados (sin argumentos) y `TEST_TAGS` de lo tocado. Las herencias reciben `**opciones` y los métodos nuevos en
+  modelos de Odoo llevan el prefijo del módulo (`_dcasa_avisos_*`, `_dcasa_ubic_*`).
+- **`_enviar()` de `dcasa.mensaje` hace COMMIT**: dentro de una petición web o de un savepoint rompe la transacción. Lo
+  que el asistente escribe desde Odoo queda «por enviar» y se adelanta el cron (`_dcasa_escribir_como_asistente`).
+- **Leer un campo de la auditoría de Brian como el usuario que conversa falla** (el usuario técnico de Juan no puede leer
+  `brian.accion`): todo lo de la auditoría en `sudo()`.
+- **El dinero se cambia solo donde nadie pagó ni puso nada a mano**: recalcular el envío de una cotización con una
+  transferencia en curso hacía que el pago dejara de confirmar la venta. El «por cotizar» en $0 de la web sí se cambia.
+- **Una vista que hereda de otra por `button[@name=…]` se rompe si se mueve el botón**: anclar a un contenedor con
+  `name` (`div name="dcasa_ubic_botones"`).
+- **Lo que se guarda en una auditoría inmutable se queda para siempre**: coordenadas, secretos de enlaces y lo que la
+  clienta escribe de su casa van tapados (`privado=True` en `@herramienta`).
+- **Las pruebas de un auditor sirven dos veces**: el de datos dejó cada hallazgo reproducido en una prueba («pasa si el
+  fallo existe»); al revés, quedaron como pruebas del arreglo (`tests/test_auditoria_datos.py`).
+- **El límite de uso de 5 horas cortó a un auditor a la mitad**: se reanuda con SendMessage cuando se reinicia, sin
+  perder lo que llevaba.
+
