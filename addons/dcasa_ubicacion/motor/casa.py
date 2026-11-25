@@ -37,7 +37,9 @@ MENSAJES_FOTO = {
     'vacia': 'No nos llegó la foto. Tómela otra vez 📷',
     'pesada': 'La foto pesa mucho. Tómela otra vez 📷',
     'formato': 'No pudimos abrir esa foto. Tómela otra vez 📷',
+    'muchas': 'Ya recibimos varias fotos de su casa hoy. Si quiere cambiarla, escríbanos 💬',
 }
+MAX_FOTOS_POR_DIA = 10      # por ficha: cambiar de foto unas veces sí; llenar R2 acuñando enlaces nuevos, no
 
 
 class TelefonoInvalido(UserError):

@@ -93,8 +93,12 @@ def argumento_demasiado_largo(argumentos):
 # se tapa, porque la auditoría no se borra y la clienta puede pedir que se borren sus datos.
 _CLAVES_PRIVADAS = {'lat', 'lon', 'lng', 'latitud', 'longitud', 'precision', 'telefono', 'telefono_respaldo', 'tel',
                     'enlace', 'url', 'texto_para_mandar', 'frase_para_el_cliente', 'pagina_del_motorizado', 'texto',
-                    'indicaciones', 'referencia', 'recibe', 'nombre', 'direccion', 'direccion_mapa'}
-_PUNTO = re.compile(r'-?\d{1,3}\.\d{3,}\s*(?:,|%2C)\s*-?\d{1,3}\.\d{3,}', re.IGNORECASE)
+                    'indicaciones', 'referencia', 'recibe', 'nombre', 'direccion', 'direccion_mapa', 'enlace_mapa'}
+# Un par de coordenadas («8.9012,-79.8013», «8.9012%2C-79.8013»), el lugar exacto de Google («!3d8.9012!4d-79.8013») y
+# el punto de Waze en geohash («waze.com/ul/hd1u5…»).
+_PUNTO = re.compile(r'-?\d{1,3}\.\d{3,}\s*(?:,|%2C)\s*-?\d{1,3}\.\d{3,}'
+                    r'|!3d-?\d{1,3}\.\d+!4d-?\d{1,3}\.\d+'
+                    r'|(?<=/ul/)h[0-9a-z]{5,}', re.IGNORECASE)
 _SECRETO_EN_RUTA = re.compile(r'/(u|entrega)/(?!pedido/)[A-Za-z0-9_-]{16,}')
 
 

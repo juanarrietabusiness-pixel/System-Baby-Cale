@@ -9,7 +9,7 @@ from datetime import timedelta
 
 from markupsafe import Markup, escape
 
-from odoo import fields, models
+from odoo import api, fields, models
 from odoo.addons.dcasa_envios.motor import tarjeta as motor_tarjeta
 
 from ..motor import geo
@@ -27,6 +27,10 @@ class DeliveryCarrier(models.Model):
         return resultado
 
 
+SIN_PENDIENTE = {'dcasa_ubic_pend_lat': 0, 'dcasa_ubic_pend_lon': 0, 'dcasa_ubic_pend_precision': 0,
+                 'dcasa_ubic_pend_referencia': False}
+
+
 class SaleOrder(models.Model):
     _inherit = 'sale.order'
 
@@ -36,6 +40,14 @@ class SaleOrder(models.Model):
     dcasa_ubic_pend_lon = fields.Float('Longitud (del chat)', digits=(10, 7), readonly=True, copy=False)
     dcasa_ubic_pend_precision = fields.Integer('Precisión del GPS (del chat)', readonly=True, copy=False)
     dcasa_ubic_pend_referencia = fields.Char('Indicaciones (del chat)', readonly=True, copy=False)
+
+    @api.autovacuum
+    def _gc_puntos_pendientes(self):
+        """El punto que dio en el chat de la tienda se queda en el carrito solo para llenar el checkout: en un carrito
+        abandonado (sin tocar en 30 días) se borra (auditoría 2: eran coordenadas exactas sin limpieza)."""
+        limite = fields.Datetime.now() - timedelta(days=30)
+        self.sudo().search([('state', '=', 'draft'), ('write_date', '<', limite),
+                            ('dcasa_ubic_pend_lat', '!=', 0)]).write(SIN_PENDIENTE)
 
     def _dcasa_ubic_pendiente(self):
         """``{'lat', 'lon', 'precision', 'referencia'}`` del punto que dio en el chat de la tienda, o ``None``."""

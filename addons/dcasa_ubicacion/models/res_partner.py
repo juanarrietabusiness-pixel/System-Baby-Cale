@@ -45,7 +45,8 @@ class ResPartner(models.Model):
                                             help='La que da Google para el punto (una ayuda; lo escrito manda).')
     dcasa_ubic_etiqueta = fields.Char('Origen del punto', compute='_compute_dcasa_ubic_etiqueta')
     dcasa_ubic_tiene_punto = fields.Boolean('Tiene punto de entrega', compute='_compute_dcasa_ubic_etiqueta')
-    # Quién recibe y el teléfono de respaldo (opcionales): los ve el motorizado, la venta y el equipo; nunca la IA.
+    # Quién recibe y el teléfono de respaldo (opcionales): los ve el motorizado, la venta y el equipo (también Brian,
+    # que es del equipo: su auditoría los guarda tapados). Juan no los ve: solo los guarda si la clienta los dice.
     dcasa_recibe = fields.Char('Quién recibe', size=casa.MAX_RECIBE,
                                help='Si no es la clienta: «Rosa, su mamá», «el guardia del PH»… Lo lee el motorizado.')
     dcasa_tel_respaldo = fields.Char('Teléfono de respaldo',
@@ -56,6 +57,9 @@ class ResPartner(models.Model):
     dcasa_fachada = fields.Binary('Foto de la casa', attachment=True, readonly=True, copy=False,
                                   groups='base.group_user')
     dcasa_fachada_fecha = fields.Datetime('Foto de la casa puesta el', readonly=True, copy=False)
+    # Cuántas fotos subió hoy (auditoría 2: con enlaces nuevos del pedido se esquivaba el tope de cinco por enlace).
+    dcasa_fachada_dia = fields.Date(readonly=True, copy=False)
+    dcasa_fachada_hoy = fields.Integer(readonly=True, copy=False)
 
     @api.depends('dcasa_ubic_origen', 'dcasa_ubic_precision_m', 'partner_latitude', 'partner_longitude')
     def _compute_dcasa_ubic_etiqueta(self):
@@ -162,9 +166,14 @@ class ResPartner(models.Model):
         el contenido del mismo adjunto; el objeto viejo de R2 lo recoge su limpieza, nunca se borra al momento).
         ``FotoInvalida`` si no es una foto que se pueda abrir o pesa demasiado."""
         self.ensure_one()
-        jpeg = casa.procesar_foto(datos)
         partner = self.sudo()
-        partner.write({'dcasa_fachada': base64.b64encode(jpeg), 'dcasa_fachada_fecha': fields.Datetime.now()})
+        hoy = fields.Date.context_today(partner)
+        subidas = partner.dcasa_fachada_hoy if partner.dcasa_fachada_dia == hoy else 0
+        if subidas >= casa.MAX_FOTOS_POR_DIA:
+            raise casa.FotoInvalida('muchas')
+        jpeg = casa.procesar_foto(datos)
+        partner.write({'dcasa_fachada': base64.b64encode(jpeg), 'dcasa_fachada_fecha': fields.Datetime.now(),
+                       'dcasa_fachada_dia': hoy, 'dcasa_fachada_hoy': subidas + 1})
         partner.message_post(body=Markup('<p>%s</p>') % escape(self.env._(
             '📷 La clienta subió la foto de su casa para el motorizado (en la pestaña «Ubicación de entrega»).')),
             subtype_xmlid='mail.mt_note')

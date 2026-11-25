@@ -228,18 +228,44 @@ const PAR_SUELTO = /(?<=^|[\s(:«"])([-+]?\d{1,2}\.\d{3,})\s*,\s*([-+]?\d{1,3}\.
 /** Panamá con holgura: un par fuera de aquí (un precio, una medida) no se toca. */
 const enPanama = (c: Coordenadas) => c.lat >= 7 && c.lat <= 10 && c.lon >= -83.5 && c.lon <= -77;
 
+/** «lat 8.9012 lon -79.8013» / «latitud: 8.9012, longitud: -79.8013». */
+const PAR_CON_NOMBRE = /\blat(?:itud)?\s*[:=]?\s*([-+]?\d{1,2}\.\d{3,})\s*[,;]?\s*(?:lon|lng|long|longitud)\s*[:=]?\s*([-+]?\d{1,3}\.\d{3,})/gi;
+/** Apple Maps y otros: «8.90119° N, 79.80131° W». */
+const PAR_CON_HEMISFERIO = /(\d{1,2}\.\d{3,})\s*°?\s*([NS])\s*[,;]?\s*(\d{1,3}\.\d{3,})\s*°?\s*([EOW])\b/gi;
+/** Grados, minutos y segundos: «8°54'04.3"N 79°48'04.7"W». */
+const PAR_GMS = /(\d{1,2})\s*°\s*(\d{1,2})\s*['′]\s*(\d{1,2}(?:\.\d+)?)\s*(?:"|″|'')\s*([NS])\s*[,;]?\s*(\d{1,3})\s*°\s*(\d{1,2})\s*['′]\s*(\d{1,2}(?:\.\d+)?)\s*(?:"|″|'')\s*([EOW])/gi;
+/** Un código Plus de Google («7Q2F+3X», «7Q2F+3X La Chorrera»): no se decodifica, pero señala la casa: se tapa. */
+const CODIGO_PLUS = /\b[23456789CFGHJMPQRVWX]{4,8}\+[23456789CFGHJMPQRVWX]{2,3}\b/gi;
+
+const conSigno = (valor: number, hemisferio: string) => (/[SWO]/i.test(hemisferio) ? -valor : valor);
+
 /**
- * Las coordenadas escritas a mano dentro de Panamá se tapan como un enlace (auditoría 1: llegaban tal cual al modelo) y, si ningún
- * enlace dio un punto, son el punto.
+ * Las coordenadas escritas a mano dentro de Panamá (decimales sueltos, con nombre, con hemisferio o en grados-minutos-segundos) se
+ * tapan como un enlace (auditorías 1 y 2: llegaban tal cual al modelo) y, si ningún enlace dio un punto, son el punto. Un código Plus
+ * se tapa también (no se decodifica).
  */
 function taparParesSueltos(r: UbicacionDelTexto): UbicacionDelTexto {
   let primero = r.coordenadas;
   let hubo = false;
-  const texto = r.texto.replace(PAR_SUELTO, (todo: string, a: string, b: string) => {
-    const c = coordenadasValidas(a, b);
+  const tapar = (todo: string, c: Coordenadas | null): string => {
     if (!c || !enPanama(c)) return todo;
     hubo = true;
     primero ??= c;
+    return TEXTO_ENLACE_EN_EL_TEXTO;
+  };
+  let texto = r.texto
+    .replace(PAR_CON_NOMBRE, (todo: string, a: string, b: string) => tapar(todo, coordenadasValidas(a, b)))
+    .replace(PAR_CON_HEMISFERIO, (todo: string, a: string, ns: string, b: string, eo: string) =>
+      tapar(todo, coordenadasValidas(conSigno(Number(a), ns), conSigno(Number(b), eo))),
+    )
+    .replace(PAR_GMS, (todo: string, g1: string, m1: string, s1: string, ns: string, g2: string, m2: string, s2: string, eo: string) => {
+      const lat = conSigno(Number(g1) + Number(m1) / 60 + Number(s1) / 3600, ns);
+      const lon = conSigno(Number(g2) + Number(m2) / 60 + Number(s2) / 3600, eo);
+      return tapar(todo, coordenadasValidas(lat, lon));
+    })
+    .replace(PAR_SUELTO, (todo: string, a: string, b: string) => tapar(todo, coordenadasValidas(a, b)));
+  texto = texto.replace(CODIGO_PLUS, () => {
+    hubo = true;
     return TEXTO_ENLACE_EN_EL_TEXTO;
   });
   if (!hubo) return r;

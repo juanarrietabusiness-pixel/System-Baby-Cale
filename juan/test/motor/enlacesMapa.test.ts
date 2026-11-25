@@ -258,6 +258,24 @@ describe("el texto que queda (lo que se guarda y lo que ve el modelo)", () => {
     expect(quitarCoordenadasDelTexto(`x ${e(1)} ${e(2)} ${e(3)} ${e(4)}`).texto).not.toMatch(/\d\.\d{3,}/);
   });
 
+  it("auditoría 2: con nombre, con hemisferio, en grados-minutos-segundos y los códigos Plus también se tapan", async () => {
+    for (const t of [
+      "lat 9.0012345 lon -79.5123456",
+      "latitud: 9.0012345, longitud: -79.5123456",
+      "9.0012345° N, 79.5123456° W",
+      "9°00'04.4\"N 79°30'44.4\"W",
+    ]) {
+      const r = await ubicacionDelTexto(`mi casa: ${t} gracias`, { fetch: sinRed });
+      expect(r.texto, t).not.toMatch(/9[.°]0|79[.°]/);
+      expect(r.coordenadas, t).not.toBeNull();
+      expect(Math.abs((r.coordenadas?.lat ?? 0) - 9.0012), t).toBeLessThan(0.001);
+      expect(Math.abs((r.coordenadas?.lon ?? 0) + 79.5123), t).toBeLessThan(0.001);
+    }
+    const plus = await ubicacionDelTexto("es aquí 7Q2F+3X La Chorrera", { fetch: sinRed });
+    expect(plus.texto).not.toContain("7Q2F+3X");
+    expect(plus.coordenadas).toBeNull();
+  });
+
   it("auditoría 1: las coordenadas escritas a mano en Panamá se tapan y son el punto; un precio no", async () => {
     for (const t of ["mi casa es 9.0012345, -79.5123456 la verde", "9.0012345,-79.5123456"]) {
       const r = await ubicacionDelTexto(t, { fetch: sinRed });
