@@ -63,10 +63,9 @@ class BrianHerramientasUbicacion(models.AbstractModel):
 
     @herramienta(
         nombre=PREFIJO + 'enlace_de_ubicacion',
-        descripcion='Un enlace de un solo uso para que el cliente marque su punto de entrega en un mapa (vence en 24 '
-                    'horas). Úsalo en Instagram o Messenger, o si no puede compartir su ubicación por el chat. '
-                    'Cuando lo confirme, la tienda le escribe sola con la zona y el precio del envío: no le pidas '
-                    'que copie ni pegue nada.',
+        descripcion='Enlace de un solo uso (24 horas) para que el cliente marque su casa en un mapa. Al confirmarlo, '
+                    'la tienda le escribe sola con la zona y el precio del envío: no le pidas que copie ni pegue '
+                    'nada.',
         parametros={'para_otra_casa': {'type': 'boolean', 'description': 'true si el pedido va a otra persona u otro '
                                                                          'lugar (un regalo, la abuela, el trabajo), no '
                                                                          'a donde está el cliente ahora.'}},

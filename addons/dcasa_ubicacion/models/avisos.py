@@ -131,8 +131,10 @@ class ResPartnerAvisos(models.Model):
 class UbicacionEnlaceAvisos(models.Model):
     _inherit = 'dcasa.ubicacion.enlace'
 
-    def _confirmar(self, lat, lon, origen, precision=None, referencia=None):
-        zona = super()._confirmar(lat, lon, origen, precision=precision, referencia=referencia)
+    def _confirmar(self, lat, lon, origen, **opciones):
+        # Las opciones (precisión, referencia, quién recibe, teléfono…) pasan tal cual: así otra herencia de
+        # ``_confirmar`` puede sumar las suyas sin romper esta (la unión de C/D/E con los avisos lo rompió una vez).
+        zona = super()._confirmar(lat, lon, origen, **opciones)
         orden = self.sudo().orden_id
         if orden and orden.state == 'sale':
             try:
@@ -260,7 +262,7 @@ class SaleOrderAvisos(models.Model):
         lineas.append(self.env._('✅ Sí / 📍 Cambiar'))
         return '\n'.join(lineas)
 
-    def _dcasa_nota(self, texto):
+    def _dcasa_avisos_nota(self, texto):
         self.sudo().message_post(body=Markup('<p>%s</p>') % escape(texto), subtype_xmlid='mail.mt_note')
 
     # ------------------------------------------------------------------
@@ -308,8 +310,8 @@ class SaleOrderAvisos(models.Model):
             conv._aviso(self.env._(
                 '📍 Se le pidió que marque su casa en el mapa para la venta %s: va a domicilio y la dirección no '
                 'tiene un punto confiable.', orden.name))
-            orden._dcasa_nota(self.env._('📲 Se le pidió a la clienta que marque su casa en el mapa, por el chat '
-                                         '(%s).', canal))
+            orden._dcasa_avisos_nota(self.env._(
+                '📲 Se le pidió a la clienta que marque su casa en el mapa, por el chat (%s).', canal))
             return {'como': 'chat', 'canal': canal, 'motivo': ''}
         if automatico:
             orden.write({'dcasa_ubic_pedida_el': fields.Datetime.now()})
@@ -353,12 +355,12 @@ class SaleOrderAvisos(models.Model):
         cobrado = sum(envio.mapped('price_unit'))
         donde = (zona.get('texto') or '').replace(' · ', ', ') or self.env._('sin zona de la tabla')
         if not precio['con_precio']:
-            orden._dcasa_nota(self.env._(
+            orden._dcasa_avisos_nota(self.env._(
                 '📍 La clienta marcó su casa con la venta ya confirmada: %(zona)s. 🚚 La tabla no da precio para esa '
                 'zona (en la venta, el envío quedó en %(cobrado)s): confírmenlo con ella.', zona=donde,
                 cobrado=dinero(cobrado)))
         elif float_compare(cobrado, precio['total'], precision_rounding=orden.currency_id.rounding or 0.01):
-            orden._dcasa_nota(self.env._(
+            orden._dcasa_avisos_nota(self.env._(
                 '📍 La clienta marcó su casa con la venta ya confirmada: %(zona)s. 🚚 Con la tabla, el envío a esa '
                 'zona es %(tabla)s y en la venta quedó en %(cobrado)s. La venta no se cambió: decidan si se ajusta.',
                 zona=donde, tabla=precio['total_txt'], cobrado=dinero(cobrado)))
@@ -427,7 +429,8 @@ class SaleOrderAvisos(models.Model):
             conv._aviso(self.env._(
                 '🚚 Se le avisó que hoy sale su pedido %s. Si dice que no habrá nadie o quiere cambiar el día o la '
                 'hora, el asistente la pasa a una vendedora.', orden.name))
-            orden._dcasa_nota(self.env._('🚚 Se le avisó a la clienta por el chat (%s) que hoy sale su pedido.', canal))
+            orden._dcasa_avisos_nota(self.env._(
+                '🚚 Se le avisó a la clienta por el chat (%s) que hoy sale su pedido.', canal))
             return {'estado': 'chat', 'canal': canal, 'motivo': ''}
         if solo_chat:
             return {'estado': 'a_mano', 'motivo': motivo}
