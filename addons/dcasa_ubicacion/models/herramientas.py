@@ -66,14 +66,51 @@ class BrianHerramientasUbicacion(models.AbstractModel):
         if not partner:
             raise BrianError('Esta conversación todavía no tiene ficha de cliente.')
         _enlace, url = self.env['dcasa.ubicacion.enlace']._crear(partner, conversacion=conv, creado_por='juan')
-        return {
+        # Tres pasos con íconos (el dueño, 2026-11-25): se entiende sin leer. WhatsApp muestra la vista previa con un
+        # pin en un mapa (og:image de la página).
+        frase = (f'📍 Para llevárselo exacto:\n1️⃣ Abra este enlace: {url}\n2️⃣ Toque «Mi ubicación» y permita\n'
+                 '3️⃣ Escriba su número de casa y toque «Sí, aquí es»')
+        datos = {
             'enlace': url,
             'vence_en_horas': 24,
-            # Corta y con el pin: se entiende sin leer (el dueño, 2026-11-25). WhatsApp muestra la vista previa con un
-            # pin en un mapa (og:image de la página).
-            'frase_para_el_cliente': f'📍 Toque aquí y marque su casa en el mapa: {url}',
-            'instruccion': 'Mándale el enlace con la frase (puedes acortarla, sin cambiar el enlace). Cuando marque su '
-                           'punto, la tienda le escribe con la zona y el precio del envío.',
+            'frase_para_el_cliente': frase,
+            'instruccion': 'Mándale la frase tal cual (no cambies el enlace ni los pasos). Cuando marque su punto, la '
+                           'tienda le escribe sola con la zona y el precio del envío.',
+        }
+        if conv.canal == 'whatsapp_cloud':
+            # El Worker manda además el botón nativo «Enviar ubicación» de WhatsApp (location_request_message).
+            datos['boton_whatsapp'] = True
+        return datos
+
+    # ------------------------------------------------------------------
+    # Juan: guardar_indicaciones
+    # ------------------------------------------------------------------
+
+    @herramienta(
+        nombre=PREFIJO + 'guardar_indicaciones',
+        descripcion='Guarda el número de casa y las indicaciones para el motorizado que dio el cliente («casa 24, '
+                    'portón negro, frente al súper»). Úsala apenas las diga, después de tener su ubicación.',
+        parametros={'texto': {'type': 'string', 'description': 'El número de casa y las indicaciones, como las dijo '
+                                                              '(hasta 200 letras).'}},
+        requeridos=['texto'], nivel='construccion', categoria='ventas', grupos=GRUPOS,
+        ejemplos=['«es la casa 24, la del portón negro» → guardar_indicaciones(texto=casa 24, portón negro)'],
+    )
+    def _juan_guardar_indicaciones(self, texto):
+        conv = self._j_conversacion()
+        partner = conv.partner_id.sudo()
+        if not partner:
+            raise BrianError('Esta conversación todavía no tiene ficha de cliente.')
+        limpio = geo.texto_corto(texto, geo.MAX_REFERENCIA)
+        if not limpio:
+            raise BrianError('Pídele al cliente el número de casa y cómo reconocer el sitio.')
+        partner.write({'dcasa_referencia': limpio})
+        partner._dcasa_ubic_al_dia_en_ventas()
+        conv._aviso(self.env._('🏠 Indicaciones para el motorizado: %s.', limpio))
+        return {
+            'guardado': True, 'indicaciones': limpio,
+            'instruccion': 'Confírmale en una línea que quedó anotado (sin repetir coordenadas ni datos de más).'
+                           + ('' if partner._dcasa_ubic_punto() else ' Todavía no tenemos su ubicación: pídesela '
+                              'con enlace_de_ubicacion.'),
         }
 
     # ------------------------------------------------------------------

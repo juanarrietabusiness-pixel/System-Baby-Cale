@@ -46,6 +46,7 @@ class JuanAPIUbicacion(JuanAPI):
                 nombre_lugar=cuerpo.get('nombre_lugar'), direccion=cuerpo.get('direccion'))
         except UbicacionInvalida as error:
             return _respuesta({'ok': False, 'error': str(error.args[0]), 'motivo': error.motivo}, 422)
+        conv._aviso(partner._dcasa_ubic_aviso_para_el_equipo())
         # El precio por el mismo camino que una llamada del modelo: auditado (sin coordenadas) en ESTA conversación,
         # así ``agregar_envio`` reconoce el lugar si la clienta dice «sí, súmelo».
         resultado = entorno['brian.herramientas'].with_context(juan_conversacion_id=conv.id).ejecutar(

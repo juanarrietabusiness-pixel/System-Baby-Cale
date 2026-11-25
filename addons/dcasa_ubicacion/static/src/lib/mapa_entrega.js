@@ -73,8 +73,10 @@
     function bueno() {
       if (estado.lat === null) return { bueno: false, motivo: "sin_punto" };
       if (mapa && (estado.zoom || 0) < ZOOM_MINIMO) return { bueno: false, motivo: "lejos" };
-      if (estado.origen === "gps" && estado.precision !== null && estado.precision > PRECISION_MAX_M && mapa) {
-        return { bueno: false, motivo: "impreciso" };
+      if (estado.origen === "gps" && estado.precision !== null && estado.precision > PRECISION_MAX_M) {
+        // Con mapa se corrige moviéndolo; sin mapa no hay cómo: en una computadora el «GPS» sale de la conexión a
+        // internet y puede errar por kilómetros. Que busque su barriada.
+        return { bueno: false, motivo: mapa ? "impreciso" : "impreciso_sin_mapa" };
       }
       return { bueno: true, motivo: "" };
     }
@@ -85,6 +87,8 @@
       // Avisos cortos: la gente no lee párrafos (el dueño, 2026-11-25).
       if (b.motivo === "lejos") texto(op.aviso, "🔍 Acérquese más y ponga el pin en su puerta");
       else if (b.motivo === "impreciso") texto(op.aviso, "👆 Mueva el mapa: ponga el pin en su puerta");
+      else if (b.motivo === "impreciso_sin_mapa")
+        texto(op.aviso, "Su ubicación no es exacta (±" + estado.precision + " m). Use su celular o busque su barriada 👇");
       else if (estado.origen === "gps" && estado.precision > PRECISION_MAX_M)
         texto(op.aviso, "Punto aproximado (±" + estado.precision + " m)");
       else texto(op.aviso, "");

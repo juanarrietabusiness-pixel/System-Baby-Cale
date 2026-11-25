@@ -10,10 +10,15 @@
             <t t-set="dcasa_destino" t-value="partner_sudo"/>
             <t t-set="dcasa_punto" t-value="dcasa_destino and dcasa_destino._dcasa_ubic_punto()"/>
             <t t-set="dcasa_escrita" t-value="dcasa_destino and dcasa_destino.dcasa_ubic_origen == 'escrita'"/>
+            <t t-set="dcasa_carrito" t-value="website_sale_order or request.cart"/>
+            <!-- Sin punto en la ficha: el que dio en el chat de la tienda (Andrés), para que solo toque «Sí, aquí es». -->
+            <t t-set="dcasa_pend" t-value="not dcasa_punto and dcasa_carrito and dcasa_carrito._dcasa_ubic_pendiente()"/>
             <div t-if="not only_services" id="div_dcasa_ubicacion" class="col-lg-12 mb-3 o_dcasa_ubicacion"
                  t-att-data-clave="request.env['dcasa.ubicacion'].sudo()._clave_navegador()"
-                 t-att-data-lat="dcasa_punto and dcasa_punto[0]" t-att-data-lon="dcasa_punto and dcasa_punto[1]"
-                 t-att-data-origen="dcasa_punto and dcasa_destino.dcasa_ubic_origen">
+                 t-att-data-lat="dcasa_punto[0] if dcasa_punto else (dcasa_pend and dcasa_pend['lat'])"
+                 t-att-data-lon="dcasa_punto[1] if dcasa_punto else (dcasa_pend and dcasa_pend['lon'])"
+                 t-att-data-origen="dcasa_destino.dcasa_ubic_origen if dcasa_punto else (dcasa_pend and 'gps')"
+                 t-att-data-precision="dcasa_pend and dcasa_pend['precision']">
                 <fieldset class="o_dcasa_ubic_marco">
                     <legend class="o_dcasa_ubic_titulo">
                         <span class="o_dcasa_ubic_burbuja"><t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'pin'"/></t></span>
@@ -61,11 +66,13 @@
                     <input type="hidden" name="dcasa_ubic_origen"/>
                     <input type="hidden" name="dcasa_ubic_precision"/>
                     <input type="hidden" name="dcasa_ubic_confirmada" value=""/>
-                    <label class="col-form-label label-optional o_dcasa_ubic_etiqueta" for="o_dcasa_referencia">
-                        <t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'casa'"/></t>¿Cómo es su casa?</label>
-                    <input type="text" id="o_dcasa_referencia" name="dcasa_referencia" class="form-control"
-                           maxlength="200" autocomplete="off" t-att-value="dcasa_destino and dcasa_destino.dcasa_referencia"
-                           placeholder="Ej.: verde, portón negro"/>
+                    <!-- Obligatorio siempre, como en PedidosYa (el dueño, 2026-11-25): sin esto el motorizado no encuentra la
+                         casa aunque el punto esté bien. -->
+                    <label class="col-form-label o_dcasa_ubic_etiqueta" for="o_dcasa_referencia">
+                        <t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'casa'"/></t>Número de casa e indicaciones</label>
+                    <input type="text" id="o_dcasa_referencia" name="dcasa_referencia" class="form-control" required="required"
+                           maxlength="200" autocomplete="off" t-att-value="(dcasa_destino and dcasa_destino.dcasa_referencia) or (dcasa_pend and dcasa_pend['referencia'])"
+                           placeholder="Ej.: casa 24, portón negro"/>
                 </fieldset>
             </div>
         </xpath>

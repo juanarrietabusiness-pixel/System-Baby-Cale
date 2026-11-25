@@ -50,7 +50,9 @@ export class CheckoutUbicacion extends Interaction {
         if (!this.el.dataset.clave) q(".o_dcasa_ubic_mapa_marco").classList.add("o_dcasa_sin_mapa");
         const lat = parseFloat(this.el.dataset.lat), lon = parseFloat(this.el.dataset.lon);
         if (Number.isFinite(lat) && Number.isFinite(lon)) {
-            this.mapa.centrar(lat, lon, 18, this.el.dataset.origen || "pin");
+            // El punto de la ficha o el que dio en el chat de la tienda: solo falta tocar «Sí, aquí es».
+            const precision = parseInt(this.el.dataset.precision, 10);
+            this.mapa.centrar(lat, lon, 18, this.el.dataset.origen || "pin", Number.isFinite(precision) ? precision : null);
         }
         this.addListener(this.botonSi, "click", () => this.confirmar());
         this.addListener(this.referencia, "input", () => this.actualizar());
@@ -74,7 +76,8 @@ export class CheckoutUbicacion extends Interaction {
     modo() {
         const enMapa = this.el.querySelector("#o_dcasa_modo_mapa")?.checked;
         this.el.querySelector(".o_dcasa_ubic_parte_mapa").classList.toggle("d-none", !enMapa);
-        this.referencia.required = !!enMapa;
+        // El número de casa y las indicaciones van siempre (en el mapa o escrita).
+        this.referencia.required = true;
     }
 
     cambio(p) {

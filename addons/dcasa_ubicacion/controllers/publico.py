@@ -18,6 +18,8 @@ import secrets
 from odoo import http
 from odoo.addons.dcasa_base.red import llave_ip
 from odoo.addons.dcasa_envios.controllers.choferes import excede
+from odoo.addons.portal.controllers.portal import CustomerPortal
+from odoo.exceptions import AccessError, MissingError
 from odoo.http import request
 
 from ..models.zona import UbicacionInvalida
@@ -145,14 +147,37 @@ class UbicacionPublica(http.Controller):
         # La vista previa del enlace en WhatsApp, Instagram y Messenger: un pin en un mapa (se entiende sin leer).
         valores = {'empresa': empresa.name, 'token': token, 'estado': 'no_sirve', 'zona': '',
                    'imagen': base + '/dcasa_ubicacion/static/src/img/enlace_mapa.png'}
+        if enlace and enlace.orden_id:
+            valores['volver'] = enlace.orden_id.sudo().get_portal_url()
         if enlace and enlace.estado == 'usado':
             valores.update(estado='usado', zona=enlace.zona or '')
         elif enlace:
             clave = request.env['dcasa.ubicacion']._clave_navegador()
+            website = request.env['website'].sudo().search([], limit=1)
+            wa = website._dcasa_whatsapp_url('x') if website else ''
+            valores['wa_base'] = wa[:-1] if wa.startswith('https://wa.me/') else ''
             valores.update(estado='vigente', clave_google=clave, nombre=(enlace.partner_id.name or '').split()[0]
                            if enlace.partner_id.name else '')
             return _pagina('dcasa_ubicacion.enlace_pagina', valores, con_mapa=bool(clave))
         return _pagina('dcasa_ubicacion.enlace_pagina', valores, status=200 if enlace else 404)
+
+    @http.route('/u/pedido/<int:orden_id>', type='http', auth='public', methods=['GET'], csrf=False,
+                save_session=False)
+    def enlace_del_pedido(self, orden_id, access_token=None, **_parametros):
+        """El botón «Marcar mi casa en el mapa» de la página del pedido (el link de pago): con el permiso del pedido
+        (su token o la sesión de la clienta) arma un enlace de un solo uso para su dirección de entrega y lleva ahí."""
+        if _limite():
+            return _demasiado(en_json=False)
+        try:
+            orden = CustomerPortal()._document_check_access('sale.order', orden_id, access_token=access_token)
+        except (AccessError, MissingError):
+            return request.make_response('Not Found', headers=_cabeceras(**{
+                'Content-Type': 'text/plain; charset=utf-8'}), status=404)
+        if orden.state == 'cancel':
+            return request.redirect(orden.get_portal_url())
+        destino = (orden.partner_shipping_id or orden.partner_id).sudo()
+        _enlace, url = request.env['dcasa.ubicacion.enlace']._crear(destino, orden=orden.sudo(), creado_por='equipo')
+        return request.redirect('/u/' + url.rsplit('/u/', 1)[1], code=303, local=True)
 
     @http.route('/u/<string:token>/zona', type='http', auth='public', methods=['POST'], csrf=False,
                 save_session=False, max_content_length=MAX_CUERPO)

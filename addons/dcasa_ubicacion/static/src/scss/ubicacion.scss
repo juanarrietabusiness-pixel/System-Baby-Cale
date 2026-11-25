@@ -238,6 +238,42 @@ $dcasa-ubic-salvia: #4F6B58;
     }
 }
 
+// La página del pedido (el link de pago): la tarjeta «¿Dónde le entregamos?» o la línea con la zona y la casa.
+.o_dcasa_pedido_ubic {
+    padding: 16px;
+    border: 2px solid $dcasa-ubic-naranja;
+    border-radius: 18px;
+    background: $dcasa-ubic-superficie;
+}
+
+.o_dcasa_pedido_ubic_lista {
+    padding: 12px 16px;
+    border: 1px solid $dcasa-ubic-linea;
+    border-radius: 18px;
+}
+
+// El chat de la tienda (Andrés): «🏠 Número de casa e indicaciones» y «Guardar» (dcasa_brian_tienda, brian_tienda.js).
+.o_dcbt_ind {
+    .o_dcbt_ind_campo {
+        width: 100%;
+        min-height: 48px;
+        margin: 8px 0;
+        padding: 10px 12px;
+        border: 1px solid #7F8A91;
+        border-radius: 12px;
+        background: #fff;
+        color: $dcasa-ubic-navy;
+        font-size: 16px;
+    }
+
+    .o_dcbt_ind_estado {
+        min-height: 1.2em;
+        margin: 6px 0 0;
+        color: $dcasa-ubic-naranja-fuerte;
+        font-weight: 600;
+    }
+}
+
 // El precio de la entrega (sobre todo el que sale del punto: «$ 15.00»): entero, sin cortarlo con «…» en el celular
 // (Odoo lo limita a 130 px pensando en nombres largos de transportistas).
 .o_wsale_delivery_price_badge:not(.o_dcasa_por_cotizar) {

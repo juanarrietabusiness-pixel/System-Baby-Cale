@@ -22,14 +22,15 @@ Pedido del dueño de Baby Caleb (2026-11-25), con la idea de Nébula y sus falla
     'author': "D'CASA Panamá",
     'website': 'https://dcasapty.com',
     'license': 'LGPL-3',
-    'depends': ['dcasa_envios', 'dcasa_conversaciones', 'website_dcasa', 'dcasa_invoice', 'dcasa_brian', 'website_sale',
-                'delivery', 'sale_stock'],
+    'depends': ['dcasa_envios', 'dcasa_conversaciones', 'website_dcasa', 'dcasa_invoice', 'dcasa_brian',
+                'dcasa_brian_tienda', 'website_sale', 'delivery', 'sale_stock'],
     'data': [
         'security/ir.model.access.csv',
         'views/iconos_templates.xml',
         'views/paginas_templates.xml',
         'views/checkout_templates.xml',
         'views/reporte_templates.xml',
+        'views/pedido_templates.xml',
         'views/backend_views.xml',
     ],
     'assets': {

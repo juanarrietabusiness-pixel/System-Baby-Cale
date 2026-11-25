@@ -113,6 +113,24 @@ class ResPartner(models.Model):
             'type': 'info', 'sticky': True, 'title': self.env._('Enlace para marcar la ubicación (vence en 24 horas)'),
             'message': url}}
 
+    def _dcasa_ubic_aviso_para_el_equipo(self):
+        """Lo que ve el equipo en el chat de Odoo cuando llega la ubicación (un aviso del sistema: no sale por el
+        canal). Sin coordenadas: la ruta (Waze y Google Maps) está en la ficha y en la venta."""
+        self.ensure_one()
+        partner = self.sudo()
+        precio = self.env['dcasa.ubicacion']._precio(partner.dcasa_ubic_lugar_id)
+        zona = (partner.dcasa_ubic_zona or self.env._('sin zona de la tabla')).replace(' · ', ', ')
+        partes = [self.env._('📍 Ubicación de entrega: %s.', zona)]
+        if partner.dcasa_ubic_direccion_mapa:
+            partes.append(self.env._('Según el mapa: %s.', partner.dcasa_ubic_direccion_mapa))
+        partes.append(self.env._('🏠 %s.', partner.dcasa_referencia) if partner.dcasa_referencia
+                      else self.env._('🏠 Falta el número de casa y las indicaciones.'))
+        partes.append(self.env._('Punto: %s.', partner.dcasa_ubic_etiqueta or ''))
+        partes.append(self.env._('🚚 Envío %s.', precio['total_txt']) if precio['con_precio']
+                      else self.env._('🚚 Envío por cotizar.'))
+        partes.append(self.env._('La ruta (Waze y Google Maps) está en la ficha › Ubicación de entrega.'))
+        return ' '.join(partes)
+
     def _dcasa_ubic_resumen(self):
         """Lo que se muestra de la entrega (panel, Brian, la página del motorizado): sin ids internos."""
         self.ensure_one()

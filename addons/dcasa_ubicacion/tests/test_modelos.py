@@ -98,8 +98,8 @@ class TestEnlaceDelChat(UbicacionCase):
         enlace._confirmar(*CERCA, 'pin', referencia='Casa verde')
         self.assertEqual(enlace.estado, 'usado')
         self.assertEqual(partner.dcasa_ubic_lugar_id, self.villa)
-        mensaje = self.env['dcasa.mensaje'].sudo().search([('conversacion_id', '=', conv.id), ('origen', '=', 'odoo')],
-                                                          order='id desc', limit=1)
+        mensaje = self.env['dcasa.mensaje'].sudo().search([('conversacion_id', '=', conv.id), ('origen', '=', 'odoo'),
+                                                           ('tipo', '=', 'mensaje')], order='id desc', limit=1)
         self.assertEqual(mensaje.autor, 'bot', 'lo escribe el asistente: Juan sigue atendiendo')
         self.assertIn('Recibimos su ubicación: Villa Prueba II, La Chorrera.', mensaje.texto)
         self.assertIn('🚚 Envío', mensaje.texto)

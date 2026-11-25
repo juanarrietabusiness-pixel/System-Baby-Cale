@@ -136,6 +136,13 @@ del puente. Ya en uso en la cuenta y **no se tocan**: `babycaleb-web`, `babycale
   Socios de la portada —sin cifras, pero con «Suma puntos y gana invitando»—, el producto «Premio del programa Socios
   D'CASA», los tipos de vendedor, la bienvenida por correo que dice «tus puntos»): se cambian con el trabajo de la web
   pública o de nombres configurables.
+- **RECORDARLE AL DUEÑO, EL DÍA DEL DOMINIO, TODO LO DEL CORREO** (lo pidió el 2026-11-25): Resend con `babycaleb.com`
+  verificado (registros DNS en Cloudflare; ya hay un `_dmarc`: no agregar otro), la clave de solo envío como secreto
+  `RESEND_API_KEY` del Worker `sistemabk`, Email Routing de `clientes@babycaleb.com` a su Gmail, Gmail «Enviar como»
+  `clientes@` (servidor `smtp.resend.com`, puerto 465, usuario `resend`, otra clave de Resend) y, en Odoo › Ajustes ›
+  Correo a clientes, «Enviar correo de prueba» y encender «Enviar correos a clientes». El correo es el mismo de D'CASA
+  (sale de `ventas@babycaleb.com`, las respuestas llegan a `clientes@babycaleb.com`); pasos en `docs/CORREO.md` §2-§6.
+  Pendiente su respuesta: ¿el comprobante se emite solo al pagar en línea (Yappy/tarjeta)?
 - **RECORDARLE AL DUEÑO, PASO A PASO, EL DÍA DEL DOMINIO** (lo pidió el 2026-11-18): quitar `babycaleb.com` y
   `www.babycaleb.com/*` de `Baby-caleb/wrangler.jsonc`, porque esa web se despliega sola en cada push a su `main` y se
   volvería a llevar el dominio. Pasos en `docs/DOMINIO.md` (Fase B, paso 2); candado en

@@ -25,6 +25,36 @@ corrigen sus fallas (ver «Qué mejora frente a Nébula»).
 - **El panel y Brian (MCP)**: la venta muestra el punto con sus dos botones; Brian da la ubicación de una venta, crea
   el enlace para mandarlo a mano y guarda un enlace de Google Maps que la clienta mandó por otro lado.
 
+## Cerrar la brecha del envío (2026-11-25, segunda vuelta)
+
+El dueño: «el dolor número uno son los pedidos devueltos». Lo que se agregó:
+
+- **El número de casa y las indicaciones van siempre**, como en PedidosYa: en el checkout (con el mapa o escrita), en la
+  página del enlace y en el chat (Juan las pregunta y las guarda con `guardar_indicaciones`; Andrés muestra un campo
+  «🏠 Número de casa e indicaciones»).
+- **Andrés (chat de la web)**: «Usar mi ubicación actual» ahora es precisa (antes, a propósito, unos 100 m: solo para el
+  precio). Si la clienta escribe el número de casa, el punto y las indicaciones se guardan en SU carrito
+  (`POST /dcasa/brian/v1/carrito/ubicacion`) y el checkout los trae: solo toca «Sí, aquí es».
+- **El link de pago** (la página del pedido): si va a domicilio y falta la casa, una tarjeta «📍 Marcar mi casa en el
+  mapa» (`/u/pedido/<id>?access_token=…`, con el permiso del pedido). Al confirmar, el envío del pedido se recalcula y
+  vuelve al pedido.
+- **El enlace del chat**: el mensaje trae tres pasos (1️⃣ abra, 2️⃣ «Mi ubicación» y permita, 3️⃣ casa y «Sí, aquí es»),
+  la vista previa muestra un pin en un mapa y, en WhatsApp de la API oficial, además sale el **botón nativo «Enviar
+  ubicación»** (`location_request_message`). Si algo falla, la página ofrece **«Copiar mi ubicación»** y **«Mandarla por
+  WhatsApp»** (un enlace de Google Maps que Juan sabe leer).
+- **El equipo lo ve en el chat de Odoo**: cuando llega la ubicación, un aviso interno con la zona, la calle, la casa, el
+  envío y de dónde salió el punto (sin coordenadas: la ruta está en la ficha y en la venta).
+- **Sin mapa no se acepta un GPS impreciso** (más de 100 m: en una computadora el «GPS» sale de la conexión a internet y
+  puede errar por kilómetros): se le pide usar el celular o buscar la barriada.
+
+| Canal | Ubicación fija | En tiempo real | Botón «Enviar ubicación» | Enlace de Maps o Waze | Enlace de un solo uso |
+|---|---|---|---|---|---|
+| WhatsApp (API oficial) | Sí | No (Meta no la entrega) | Sí (nativo) | Sí | Sí |
+| WhatsApp (QR) | Sí | Sí (el primer punto) | No (sin botones) | Sí | Sí |
+| Telegram | Sí | Sí | No | Sí | Sí |
+| Instagram / Messenger | No | No | No | Sí | Sí |
+| Chat de la web (Andrés) | — | — | «Usar mi ubicación actual» | — | — |
+
 ## De dónde sale cada punto (y qué tan fiable es)
 
 | Origen | Cómo se ve | Fiable |

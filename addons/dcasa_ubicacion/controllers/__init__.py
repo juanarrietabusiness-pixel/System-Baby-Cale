@@ -1,1 +1,1 @@
-from . import checkout, juan, publico
+from . import checkout, juan, publico, tienda

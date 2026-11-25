@@ -32,6 +32,9 @@ class UbicacionEnlace(models.Model):
                                  index=True)
     conversacion_id = fields.Many2one('dcasa.conversacion', 'Conversación', readonly=True, ondelete='cascade',
                                       index=True)
+    orden_id = fields.Many2one('sale.order', 'Pedido', readonly=True, ondelete='cascade', index='btree_not_null',
+                               help='Si vino del link de pago (la página del pedido): al confirmar se recalcula su '
+                                    'envío y la clienta vuelve a su pedido.')
     creado_por = fields.Selection([('juan', 'Juan (el asistente)'), ('equipo', 'El equipo')], readonly=True,
                                   required=True, default='equipo')
     usuario_id = fields.Many2one('res.users', 'Lo pidió', readonly=True, default=lambda self: self.env.user)
@@ -51,12 +54,13 @@ class UbicacionEnlace(models.Model):
             enlace.estado = 'vencido' if enlace.vence < ahora else 'usado' if enlace.usado_el else 'vigente'
 
     @api.model
-    def _crear(self, partner, conversacion=None, creado_por='equipo'):
+    def _crear(self, partner, conversacion=None, creado_por='equipo', orden=None):
         """``(enlace, url)`` nuevo para esa ficha. El secreto solo vive en la URL que se devuelve."""
         token = geo.token_nuevo()
         enlace = self.sudo().create({
             'huella': geo.huella(token), 'partner_id': partner.id,
             'conversacion_id': conversacion.id if conversacion else False,
+            'orden_id': orden.id if orden else False,
             'creado_por': 'juan' if creado_por == 'juan' else 'equipo',
             'vence': fields.Datetime.now() + timedelta(hours=HORAS_VIGENCIA),
         })
@@ -91,8 +95,16 @@ class UbicacionEnlace(models.Model):
                 'La clienta marcó su punto de entrega con el enlace del chat: %(zona)s (%(origen)s).',
                 zona=zona['texto'] or self.env._('sin zona en la tabla'), origen=geo.etiqueta(origen))),
             subtype_xmlid='mail.mt_note')
+        orden = enlace.orden_id.sudo()
+        if orden and orden.state in ('draft', 'sent') and orden.carrier_id.dcasa_por_cotizar:
+            orden._set_delivery_method(orden.carrier_id)   # el envío del pedido sale del punto nuevo
+        if orden:
+            orden.message_post(body=Markup('<p>%s</p>') % escape(self.env._(
+                'La clienta marcó su punto de entrega desde la página del pedido: %s.', zona['texto'] or '—')),
+                subtype_xmlid='mail.mt_note')
         if enlace.conversacion_id:
             enlace._avisar_por_el_chat(zona)
+            enlace.conversacion_id.sudo()._aviso(enlace.partner_id._dcasa_ubic_aviso_para_el_equipo())
         return zona
 
     def _avisar_por_el_chat(self, zona):

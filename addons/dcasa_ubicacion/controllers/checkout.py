@@ -20,8 +20,8 @@ from ..motor import geo
 CAMPOS = ('dcasa_ubic_modo', 'dcasa_ubic_lat', 'dcasa_ubic_lon', 'dcasa_ubic_origen', 'dcasa_ubic_precision',
           'dcasa_ubic_confirmada', 'dcasa_referencia')
 ORIGENES_WEB = ('gps', 'pin', 'busqueda')
-FALTA_EL_PUNTO = ('Marque su punto en el mapa y toque «Sí, aquí es» (o elija «Escribirla»), y cuéntenos cómo '
-                  'reconocer el sitio.')
+FALTA_EL_PUNTO = 'Marque su casa en el mapa y toque «Sí, aquí es» (o elija «Escribir»).'
+FALTAN_INDICACIONES = 'Escriba el número de casa y las indicaciones para el motorizado.'
 
 
 def _numero(valor):
@@ -44,13 +44,15 @@ class UbicacionCheckout(DcasaCheckout):
                                                use_delivery_as_billing=use_delivery_as_billing, callback=callback,
                                                **form_data)
         referencia = geo.texto_corto(ubicacion['dcasa_referencia'] or '', geo.MAX_REFERENCIA)
+        if not referencia:
+            # Siempre, en el mapa o escrita (el dueño, 2026-11-25, como en PedidosYa).
+            return json.dumps({'invalid_fields': ['dcasa_referencia'], 'messages': [FALTAN_INDICACIONES]})
         punto = None
         if modo == 'mapa':
             punto = geo.punto(_numero(ubicacion['dcasa_ubic_lat']), _numero(ubicacion['dcasa_ubic_lon']))
             origen = ubicacion['dcasa_ubic_origen']
-            if not punto or origen not in ORIGENES_WEB or ubicacion['dcasa_ubic_confirmada'] != '1' or not referencia:
-                return json.dumps({'invalid_fields': ['dcasa_referencia'] if punto and not referencia else [],
-                                   'messages': [FALTA_EL_PUNTO]})
+            if not punto or origen not in ORIGENES_WEB or ubicacion['dcasa_ubic_confirmada'] != '1':
+                return json.dumps({'invalid_fields': [], 'messages': [FALTA_EL_PUNTO]})
         respuesta = super().shop_address_submit(partner_id=partner_id, address_type=address_type,
                                                 use_delivery_as_billing=use_delivery_as_billing, callback=callback,
                                                 **form_data)

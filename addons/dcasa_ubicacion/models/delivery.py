@@ -5,8 +5,10 @@ entrega tiene un punto confirmado y el lugar de la tabla más cercano tiene prec
 aprobada, lugar revisado, no «se cotiza aparte»). Si no, sigue como hoy: «por cotizar». La línea del envío queda como
 la que pone Juan (``dcasa_envio_lugar_id``) y, si la promoción de envío de hoy aplica, con su línea.
 """
-from odoo import models
+from odoo import fields, models
 from odoo.addons.dcasa_envios.motor import tarjeta as motor_tarjeta
+
+from ..motor import geo
 
 
 class DeliveryCarrier(models.Model):
@@ -23,6 +25,23 @@ class DeliveryCarrier(models.Model):
 
 class SaleOrder(models.Model):
     _inherit = 'sale.order'
+
+    # El punto que la clienta dio en el chat de la tienda (Andrés) antes de pagar: solo para llenar el checkout, donde
+    # lo confirma con «Sí, aquí es» (controllers/tienda.py).
+    dcasa_ubic_pend_lat = fields.Float('Latitud (del chat)', digits=(10, 7), readonly=True, copy=False)
+    dcasa_ubic_pend_lon = fields.Float('Longitud (del chat)', digits=(10, 7), readonly=True, copy=False)
+    dcasa_ubic_pend_precision = fields.Integer('Precisión del GPS (del chat)', readonly=True, copy=False)
+    dcasa_ubic_pend_referencia = fields.Char('Indicaciones (del chat)', readonly=True, copy=False)
+
+    def _dcasa_ubic_pendiente(self):
+        """``{'lat', 'lon', 'precision', 'referencia'}`` del punto que dio en el chat de la tienda, o ``None``."""
+        self.ensure_one()
+        orden = self.sudo()
+        punto = geo.punto(orden.dcasa_ubic_pend_lat, orden.dcasa_ubic_pend_lon)
+        if not punto:
+            return None
+        return {'lat': punto[0], 'lon': punto[1], 'precision': orden.dcasa_ubic_pend_precision or None,
+                'referencia': orden.dcasa_ubic_pend_referencia or ''}
 
     def _dcasa_envio_por_ubicacion(self):
         """``{'lugar', 'total', 'total_txt'}`` si la dirección de entrega tiene un punto confirmado con precio; si no,

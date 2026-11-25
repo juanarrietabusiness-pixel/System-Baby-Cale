@@ -77,6 +77,13 @@
             .dato-mot .o_dcasa_icono { color: var(--naranja-fuerte); margin-top: 2px; }
             .dato-mot b { display: block; font-size: 12px; text-transform: uppercase; letter-spacing: .1em; color: var(--gris); }
             .tarjeta.suave { border: 1px solid var(--linea); background: var(--superficie); }
+            .paso { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px;
+                    border-radius: 50%; background: var(--navy); color: var(--crema); font-size: 15px; font-weight: 700;
+                    flex-shrink: 0; }
+            .mini { margin: 8px 0 0; text-align: center; font-size: 15px; }
+            .respaldo { margin: 14px 0 0; padding: 12px; border: 1px dashed var(--control); border-radius: 14px; }
+            .respaldo p { margin: 0 0 4px; text-align: center; color: var(--gris); font-size: 15px; }
+            .respaldo .boton { min-height: 48px; font-size: 1rem; margin-top: 8px; }
             [hidden] { display: none !important; }
         ]]></style>
     </template>
@@ -120,7 +127,8 @@
                 <span class="check"><t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'listo'"/></t></span>
                 <p class="grande">Ya la tenemos</p>
                 <p t-if="zona" class="dato" t-esc="zona.replace(' · ', ', ')"/>
-                <p class="sub">Vuelva al chat 💬</p>
+                <a t-if="volver" class="boton" t-att-href="volver">Volver a mi pedido</a>
+                <p t-else="" class="sub">Vuelva al chat 💬</p>
             </div>
         </t>
         <t t-elif="estado != 'vigente'">
@@ -137,9 +145,11 @@
                     ¿Dónde le entregamos?
                 </h1>
                 <button type="button" class="boton" id="o_dcasa_gps">
+                    <span class="paso" aria-hidden="true">1</span>
                     <t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'gps'"/></t>
                     Mi ubicación
                 </button>
+                <p class="mini sub">¿Es para otra casa? Búsquela 👇</p>
                 <div t-att-class="'mapa-marco' if clave_google else 'mapa-marco sin-mapa'">
                     <div id="o_dcasa_mapa" class="mapa" role="application" aria-label="Mapa: muévalo hasta su puerta"/>
                     <span class="pista"><t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'mover'"/></t>Mueva el mapa</span>
@@ -156,13 +166,22 @@
                     <p class="dato"><t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'pin'"/></t><span id="o_dcasa_zona"/></p>
                     <p class="dato precio"><t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'camion'"/></t><span id="o_dcasa_precio"/></p>
                 </div>
+                <div class="respaldo" id="o_dcasa_respaldo" hidden="hidden">
+                    <p>¿No le funciona? Mándenos su ubicación:</p>
+                    <button type="button" class="boton contorno" id="o_dcasa_copiar">
+                        <t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'pin'"/></t>Copiar mi ubicación</button>
+                    <a t-if="wa_base" class="boton contorno" id="o_dcasa_wa" t-att-data-base="wa_base" href="#"
+                       rel="noopener noreferrer">💬 Mandarla por WhatsApp</a>
+                </div>
                 <label class="etiqueta" for="o_dcasa_referencia">
-                    <t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'casa'"/></t>¿Cómo es su casa?
+                    <span class="paso" aria-hidden="true">2</span>
+                    <t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'casa'"/></t>Número de casa e indicaciones
                 </label>
                 <input class="campo" id="o_dcasa_referencia" type="text" maxlength="200" autocomplete="off"
-                       placeholder="Ej.: verde, portón negro"/>
+                       placeholder="Ej.: casa 24, portón negro"/>
                 <p class="aviso" id="o_dcasa_error" role="alert"/>
                 <button type="button" class="boton" id="o_dcasa_confirmar" disabled="disabled">
+                    <span class="paso" aria-hidden="true">3</span>
                     <t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'listo'"/></t>
                     Sí, aquí es
                 </button>
@@ -171,7 +190,8 @@
                 <span class="check"><t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'listo'"/></t></span>
                 <p class="grande">¡Listo!</p>
                 <p class="dato" id="o_dcasa_hecho_zona"/>
-                <p class="sub">Vuelva al chat 💬</p>
+                <a t-if="volver" class="boton" t-att-href="volver">Volver a mi pedido</a>
+                <p t-else="" class="sub">Vuelva al chat 💬</p>
             </div>
             <script t-att-nonce="nonce" src="/dcasa_ubicacion/static/src/lib/mapa_entrega.js"/>
             <script t-att-nonce="nonce"><![CDATA[
@@ -184,6 +204,30 @@
   var ref = el("o_dcasa_referencia"), confirmar = el("o_dcasa_confirmar"), error = el("o_dcasa_error");
   var buscar = el("o_dcasa_buscar"), lista = el("o_dcasa_lista");
   var ultimo = null, zonaValida = false, pedido = 0, reloj = null, relojBuscar = null;
+  var respaldo = el("o_dcasa_respaldo"), wa = el("o_dcasa_wa");
+
+  // Respaldo (el dueño, 2026-11-25): si algo falla, la clienta copia su ubicación o la manda por WhatsApp; Juan lee el
+  // enlace de Google Maps y saca el punto.
+  function textoRespaldo() {
+    if (!ultimo || ultimo.lat === null) return "";
+    var partes = ["📍 Mi ubicación: https://www.google.com/maps?q=" + ultimo.lat + "," + ultimo.lon];
+    if (ref.value.trim()) partes.push("🏠 " + ref.value.trim());
+    if (zona.textContent && zona.textContent !== "…") partes.push(zona.textContent);
+    return partes.join("\n");
+  }
+  el("o_dcasa_copiar").addEventListener("click", function () {
+    var t = textoRespaldo(), b = el("o_dcasa_copiar");
+    if (!t) return;
+    function listo() { b.lastChild.textContent = "¡Copiada! Péguela en el chat"; }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(t).then(listo, function () { window.prompt("Copie su ubicación:", t); });
+    } else { window.prompt("Copie su ubicación:", t); }
+  });
+  if (wa) wa.addEventListener("click", function (ev) {
+    var t = textoRespaldo();
+    if (!t) { ev.preventDefault(); return; }
+    wa.href = wa.dataset.base + encodeURIComponent(t);
+  });
 
   function corta(z) {
     // Lo que se lee de un vistazo: la barriada (o el corregimiento) y el distrito.
@@ -211,6 +255,7 @@
       if (n !== pedido) return;
       if (!r.ok) { zona.textContent = r.j.error || "Ese punto no sirve."; return; }
       zonaValida = true;
+      respaldo.hidden = false;
       zona.textContent = corta(r.j) || "Fuera de nuestra lista";
       precio.textContent = r.j.precio ? "Envío " + r.j.precio : "Envío: se lo confirmamos";
       actualizar();
@@ -256,7 +301,10 @@
     error.textContent = "";
     post("/guardar", { lat: ultimo.lat, lon: ultimo.lon, origen: ultimo.origen, precision: ultimo.precision,
       referencia: ref.value.trim() }).then(function (r) {
-      if (!r.ok) { error.textContent = r.j.error || "No se pudo guardar. Intente otra vez."; actualizar(); return; }
+      if (!r.ok) {
+        error.textContent = (r.j.error || "No se pudo guardar.") + " Mándenos su ubicación con el botón de arriba 👆";
+        respaldo.hidden = false; actualizar(); return;
+      }
       el("o_dcasa_formulario").hidden = true;
       el("o_dcasa_hecho_zona").textContent = zona.textContent;
       el("o_dcasa_hecho").hidden = false;
