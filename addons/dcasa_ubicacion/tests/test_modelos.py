@@ -147,8 +147,10 @@ class TestEntregaYCarrito(UbicacionCase):
         self.assertIn('waze.com', datos['enlaces']['waze'])
         self.assertTrue(entrega._qr_src().startswith('data:image/png;base64,'))
         self.assertIn('/entrega/', entrega._url())
-        # Vencida: el mismo «ya no sirve» que un secreto inventado.
-        entrega.sudo().vence = fields.Datetime.now() - timedelta(minutes=1)
+        # Entregada hace días: el mismo «ya no sirve» que un secreto inventado (sin entregar, sigue abriendo aunque
+        # pase la vigencia: test_auditoria_datos).
+        orden.picking_ids.filtered(lambda p: p.picking_type_code == 'outgoing').sudo().write(
+            {'state': 'done', 'date_done': fields.Datetime.now() - timedelta(days=4)})
         self.assertFalse(self.env['dcasa.ubicacion.entrega']._del_secreto(token))
 
     def test_sin_domicilio_o_sin_direccion_no_hay_qr(self):

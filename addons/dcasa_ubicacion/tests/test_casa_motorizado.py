@@ -421,8 +421,9 @@ class TestRutasDeLaCasa(HttpCase):
         self.assertIn('noindex', foto.headers['X-Robots-Tag'])
         sin_datos_ocultos(self, foto.content)
         self.assertEqual(self.url_open('/entrega/' + 'y' * 24 + '/fachada').status_code, 404)
-        entrega.sudo().vence = fields.Datetime.now() - timedelta(minutes=1)
-        self.assertEqual(self.url_open(f'/entrega/{token}/fachada').status_code, 404, 'vence con la página')
+        entrega.order_id.picking_ids.filtered(lambda p: p.picking_type_code == 'outgoing').sudo().write(
+            {'state': 'done', 'date_done': fields.Datetime.now() - timedelta(days=4)})
+        self.assertEqual(self.url_open(f'/entrega/{token}/fachada').status_code, 404, 'se cierra con la página')
 
     def test_al_pagar_sale_la_tarjeta_para_marcar_la_casa(self):
         sesion = self.authenticate(None, None)

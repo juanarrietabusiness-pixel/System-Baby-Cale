@@ -177,7 +177,7 @@ class TestAuditoriaDatos(UbicacionCase):
     def test_el_listo_no_dice_un_precio_que_contradiga_la_promocion(self):
         conv = self.conversacion(id_externo='50761239903')
         enlace, _url = self.Enlace._crear(conv.partner_id, conversacion=conv, creado_por='juan')
-        with patch.object(type(enlace), '_hay_promocion_de_envio', return_value=True):
+        with patch.object(type(enlace), '_promocion_de_envio', return_value='aplica'):
             enlace._confirmar(*CERCA, 'pin', referencia='Casa 9')
         mensaje = self.env['dcasa.mensaje'].sudo().search([('conversacion_id', '=', conv.id), ('origen', '=', 'odoo'),
                                                            ('tipo', '=', 'mensaje')], order='id desc', limit=1)

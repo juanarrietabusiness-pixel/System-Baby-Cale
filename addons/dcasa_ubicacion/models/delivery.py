@@ -63,7 +63,8 @@ class SaleOrder(models.Model):
         orden = self.sudo()
         if orden.transaction_ids.filtered(lambda t: t.state in ('pending', 'authorized', 'done')):
             return 'pago'
-        if any(linea._dcasa_envio_ajeno() for linea in orden.order_line):
+        # El «por cotizar» en $0 que pone la web sin punto no es de una persona: ese sí se reemplaza.
+        if any(linea._dcasa_envio_ajeno() and linea.price_unit > 0 for linea in orden.order_line):
             return 'ajeno'
         return ''
 

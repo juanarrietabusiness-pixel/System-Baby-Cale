@@ -181,26 +181,36 @@ class UbicacionEnlace(models.Model):
         if casa:
             recibido += ' ' + self.env._('🏠 %s.', casa.rstrip('.'))
         precio = self.env['dcasa.ubicacion']._precio(zona.get('lugar'))
-        if precio['con_precio'] and self._hay_promocion_de_envio(zona.get('lugar')):
-            # Con promoción, la cifra la da Juan con su frase (la que calcula la promoción y pasa por su guardia): un
-            # precio sin la promoción contradecía al motor (auditoría 1).
+        if not precio['con_precio']:
+            return recibido + ' ' + self.env._('🚚 El costo del envío se lo confirmamos en un momento.')
+        promocion = self._promocion_de_envio(zona.get('lugar'))
+        if promocion == 'aplica':
+            # La promoción ya le toca: la cifra la da Juan con su frase (la que calcula la promoción y pasa por su
+            # guardia). Un precio sin la promoción contradecía al motor (auditoría 1).
             return recibido + ' ' + self.env._('🚚 Su envío tiene promoción: ¿le confirmo cuánto le queda?')
-        if precio['con_precio']:
-            return recibido + ' ' + self.env._('🚚 Envío %s. ¿Se lo sumamos a su pedido?', precio['total_txt'])
-        return recibido + ' ' + self.env._('🚚 El costo del envío se lo confirmamos en un momento.')
+        if promocion == 'condicional':
+            return recibido + ' ' + self.env._('🚚 Envío %s (precio normal). Tenemos promoción de envío: ¿le cuento?',
+                                               precio['total_txt'])
+        return recibido + ' ' + self.env._('🚚 Envío %s. ¿Se lo sumamos a su pedido?', precio['total_txt'])
 
-    def _hay_promocion_de_envio(self, lugar):
-        """¿La promoción de envío de hoy le da algo a ese lugar (aplicada o con condición)? Si no se puede saber,
-        se toma que sí: mejor no decir una cifra que decir una equivocada."""
+    def _promocion_de_envio(self, lugar):
+        """La promoción de envío de hoy para ese lugar, con la compra de la cotización abierta de la conversación (si
+        hay una sola): ``'aplica'``, ``'condicional'`` o ``''``. Si no se puede saber, ``'aplica'``: mejor no decir
+        una cifra que decir una equivocada."""
         try:
             Herramientas = self.env['brian.herramientas'].sudo()
             tarjeta = Herramientas._j_envio_tarjeta(lugar.sudo())
+            abiertas = Herramientas._j_cotizaciones_de_la_conversacion(self.conversacion_id.sudo(), limite=2) \
+                if self.conversacion_id else self.env['sale.order']
+            compra = abiertas._dcasa_envio_compra() if len(abiertas) == 1 else None
             resultado, _promocion = self.env['dcasa.envio.promocion'].sudo()._aplicar(
-                tarjeta['total'], tarjeta['prov'], tarjeta['dist'], None)
-            return bool(resultado.get('hay_promocion') and (resultado.get('aplica') or resultado.get('condicional')))
+                tarjeta['total'], tarjeta['prov'], tarjeta['dist'], compra)
         except Exception:   # noqa: BLE001 — ante la duda, sin cifra
             _logger.exception('Ubicación: no se pudo saber si hay promoción de envío para el lugar %s', lugar.id)
-            return True
+            return 'aplica'
+        if not resultado.get('hay_promocion'):
+            return ''
+        return 'aplica' if resultado.get('aplica') else 'condicional' if resultado.get('condicional') else ''
 
     @api.autovacuum
     def _gc_enlaces_viejos(self):
