@@ -21,7 +21,8 @@ corrigen sus fallas (ver «Qué mejora frente a Nébula»).
     (`https://babycaleb.com/u/…`) amarrado a esa conversación. La clienta marca su punto en el mapa y Juan le escribe
     solo con el precio: **no copia ni pega nada**.
 - **El comprobante** lleva un **QR para el motorizado**: abre una página con **«Abrir en Waze»**, **«Abrir en Google
-  Maps»**, la dirección, la referencia y «Llamar». La página vence y no deja cambiar nada.
+  Maps»**, la dirección, la referencia, quién recibe, la foto de la casa, «Llamar» y «💬 Avisar que llegué». Sirve
+  mientras el pedido no se entregue, se cierra 3 días después de entregado (o al cancelar) y no deja cambiar nada.
 - **El panel y Brian (MCP)**: la venta muestra el punto con sus dos botones; Brian da la ubicación de una venta, crea
   el enlace para mandarlo a mano y guarda un enlace de Google Maps que la clienta mandó por otro lado.
 
@@ -35,9 +36,11 @@ El dueño: «el dolor número uno son los pedidos devueltos». Lo que se agregó
 - **Andrés (chat de la web)**: «Usar mi ubicación actual» ahora es precisa (antes, a propósito, unos 100 m: solo para el
   precio). Si la clienta escribe el número de casa, el punto y las indicaciones se guardan en SU carrito
   (`POST /dcasa/brian/v1/carrito/ubicacion`) y el checkout los trae: solo toca «Sí, aquí es».
-- **El link de pago** (la página del pedido): si va a domicilio y falta la casa, una tarjeta «📍 Marcar mi casa en el
-  mapa» (`/u/pedido/<id>?access_token=…`, con el permiso del pedido). Al confirmar, el envío del pedido se recalcula y
-  vuelve al pedido.
+- **El link de pago** (la página del pedido) y **«¡Gracias por su compra!»**: si va a domicilio y falta la casa (sin
+  punto confiable o sin número de casa), una tarjeta «📍 Marcar mi casa en el mapa» (`/u/pedido/<id>?access_token=…`,
+  con el permiso del pedido). Al confirmar, el envío del pedido se recalcula **solo si es un carrito o una cotización
+  sin pago en curso y sin un envío que puso una persona**; si no, el equipo recibe una nota con el precio de la tabla.
+  «Volver a mi pedido» solo sale si llegó desde la página del pedido.
 - **El enlace del chat**: el mensaje trae tres pasos (1️⃣ abra, 2️⃣ «Mi ubicación» y permita, 3️⃣ casa y «Sí, aquí es»),
   la vista previa muestra un pin en un mapa y, en WhatsApp de la API oficial, además sale el **botón nativo «Enviar
   ubicación»** (`location_request_message`). Si algo falla, la página ofrece **«Copiar mi ubicación»** y **«Mandarla por
@@ -45,7 +48,11 @@ El dueño: «el dolor número uno son los pedidos devueltos». Lo que se agregó
 - **El equipo lo ve en el chat de Odoo**: cuando llega la ubicación, un aviso interno con la zona, la calle, la casa, el
   envío y de dónde salió el punto (sin coordenadas: la ruta está en la ficha y en la venta).
 - **Sin mapa no se acepta un GPS impreciso** (más de 100 m: en una computadora el «GPS» sale de la conexión a internet y
-  puede errar por kilómetros): se le pide usar el celular o buscar la barriada.
+  puede errar por kilómetros): «📍 Su teléfono no da la ubicación exacta. Active la ubicación precisa y toque «Mi
+  ubicación» en su puerta, o busque su barriada 👇», y no se muestra el precio. Andrés tampoco guarda un GPS impreciso.
+- **En el checkout, «Confirmar» cuenta como el «Sí, aquí es»** si el punto es bueno; si falta algo, la página baja al
+  bloque, dice qué falta y lleva el foco. El bloque solo sale (y solo se exige) en la dirección de entrega, no en la de
+  facturación. «Escribir» no borra un punto confiable guardado (salvo que lo escrito nombre otro distrito).
 
 | Canal | Ubicación fija | En tiempo real | Botón «Enviar ubicación» | Enlace de Maps o Waze | Enlace de un solo uso |
 |---|---|---|---|---|---|
@@ -88,21 +95,48 @@ El dueño: «la gente no lee: íconos y pocas palabras»; «lo que priorizamos e
   «📍 Pedirle la ubicación de entrega» y en la venta tiene **«📲 Pedir ubicación por WhatsApp»** (wa.me con el mismo
   texto). El pendiente se cierra solo cuando la clienta marca un punto confiable. Nunca hace fallar la venta ni el pago.
 - **Con la venta ya confirmada**, el «listo» no habla de precio: «✅ ¡Listo! Ya tenemos su casa: Villa Lucre, San
-  Miguelito. 🏠 Casa 24. 🛵 Su pedido S00042 va para allá.» Lo cobrado no se cambia: si la tabla da otro envío para esa
-  zona, queda una nota en la venta para que el equipo decida.
+  Miguelito. 🏠 Casa 24. 🛵 Su pedido S00042 irá a esa dirección.» Lo cobrado no se cambia: si la tabla da otro envío
+  para esa zona, queda una nota en la venta para que el equipo decida.
+- **Antes de comprar**, el «listo» del enlace dice el precio de la tabla solo si no hay promoción de envío para esa
+  zona; si la promoción ya aplica (con la cotización abierta del chat), no dice cifra («🚚 Su envío tiene promoción:
+  ¿le confirmo cuánto le queda?») y Juan la da con su frase; si depende de la compra, dice «(precio normal)» y que hay
+  promoción.
 - **El día de la entrega**, una persona toca **«🚚 Sale hoy: avisarle»** (en la venta, en la entrega, para varias desde
   Acciones de la lista, o Brian): «🚚 ¡Hoy le llega su pedido S00042 a Villa Lucre! ¿Habrá alguien en casa para
   recibirlo? ✅ Sí / 📍 Cambiar» (sin punto, con el enlace del mapa). Una vez por venta y por día. Juan entiende la
   respuesta: si dice que sí, agradece; si no habrá nadie o quiere otro día u hora, la pasa a una vendedora (la fecha la
   confirma siempre una vendedora); si quiere cambiar el lugar, le manda el enlace, que queda ligado a esa venta, y el
-  equipo recibe un pendiente para que el motorizado abra otra vez la ruta.
+  equipo recibe un pendiente para que el motorizado abra otra vez la ruta. Si el mensaje no se pudo enviar (Worker
+  caído), se puede volver a avisar ese mismo día.
 - **¿Cuándo le escribe sola?** WhatsApp por QR y Telegram, siempre; WhatsApp de la API oficial, Instagram y Messenger,
   solo dentro de las 24 horas desde su último mensaje (fuera de eso Meta pide una plantilla aprobada, que no hay; se
   deja una hora de margen). Además: el canal y el asistente encendidos, el Worker configurado y la clienta sin «No
   contactar». Si no, la persona lo manda por WhatsApp. El mensaje va a nombre del asistente (`autor: "bot"`) y queda «por
-  enviar»: sale con el cron que manda lo pendiente (que se adelanta), nunca dentro de la confirmación de la venta.
+  enviar»: sale con el cron que manda lo pendiente (que se adelanta), nunca dentro de la confirmación de la venta (ni
+  dentro de la petición de la página del enlace: antes hacía COMMIT a mitad). Los avisos le escriben a quien compró,
+  nunca a la persona que recibe un regalo. Cancelar la venta cierra el pendiente «📍 Pedirle la ubicación».
 - **Brian / MCP**: `pedir_ubicacion_al_cliente` y `avisar_que_sale_hoy` (dicen qué pasó: por el chat o el enlace de
   WhatsApp para abrir), sin coordenadas.
+
+## La casa: quién recibe, otro teléfono, la foto y «para otra casa» (2026-11-25)
+
+- **Quién recibe y un teléfono de respaldo** (opcionales, chicos, debajo del número de casa) en el checkout y en
+  `/u/`; Juan los guarda con `guardar_quien_recibe` solo si la clienta los dice (no los pregunta: más preguntas, más
+  fricción); Brian con `poner_quien_recibe`. Los ve el motorizado (con «Llamar» y WhatsApp al respaldo), el
+  comprobante, la venta y la ficha.
+- **La foto de la fachada** (opcional, en `/u/`: cámara o galería). El servidor la abre con PIL, rechaza lo que pase de
+  12,6 MP antes de decodificar (una «foto» de 190 KB podía ocupar cientos de MB), la endereza, la deja en 1280 px y
+  guarda un JPEG nuevo **sin EXIF ni GPS**; dos a la vez por proceso y cinco por enlace. La ve el motorizado por
+  `/entrega/<secreto>/fachada` (sin caché, `noindex`, CSP `sandbox`) y el equipo en la ficha («Quitar la foto»).
+- **«💬 Avisar que llegué»** en la página del motorizado: WhatsApp a la clienta con «Hola Rosa, soy el motorizado de
+  Baby Caleb 🛵. Ya llegué con su pedido S00042 📦». Sin punto, primero «Llamar» y «🔎 Buscar la dirección en Google
+  Maps» con lo escrito.
+- **«Para otra casa»** (un regalo, la abuela, el trabajo): `enlace_de_ubicacion(para_otra_casa=true)` crea una
+  **dirección de entrega aparte** («Otra casa de Ana», hija de la clienta) y el punto va ahí: su casa no se toca (antes
+  la pisaba y el QR de su venta ya confirmada mandaba al motorizado a la casa de la mamá). Sin botón nativo (mandaría la
+  ubicación del teléfono). Lo que Juan cotiza sin lugar, el clip y el número de casa van a la ficha del enlace más
+  reciente de la conversación en las últimas 24 horas si es otra dirección
+  (`dcasa.conversacion._dcasa_ubic_destino`); el aviso al equipo dice que elijan esa dirección en la venta.
 
 ## Privacidad (cambia una regla de D'CASA)
 
@@ -110,13 +144,24 @@ D'CASA, a propósito, **nunca guardaba la dirección exacta** (issue #25: Juan s
 entrega **sí se guarda**, porque sin él no hay QR para el motorizado. Reglas:
 
 - Se guarda solo en la **dirección de entrega** de la clienta (`res.partner`) y en la entrega de esa venta
-  (`dcasa.ubicacion.entrega`). Nunca en el texto de la conversación, en la auditoría de Brian (`brian.accion`), en el
-  registro del servidor ni en lo que ve el modelo de IA: el modelo solo recibe la zona («Brisas del Golf, San
-  Miguelito») y el precio.
-- El enlace de un solo uso vence a las 24 horas; la página del motorizado, a los 30 días. Los secretos se guardan como
-  huella (SHA-256), no como texto.
-- **Pendiente del dueño**: la política de privacidad dice lo mismo que la de D'CASA; conviene agregar una línea sobre la
-  ubicación de entrega (para qué se usa y cuánto se guarda). No se cambia sin su «sí».
+  (`dcasa.ubicacion.entrega`). Nunca en el texto de la conversación, en el registro del servidor ni en lo que ve el
+  modelo de IA: el modelo solo recibe la zona («Brisas del Golf, San Miguelito») y el precio. El Worker tapa **todo**
+  enlace de mapa con el punto escrito y las coordenadas escritas a mano dentro de Panamá antes del modelo.
+- **La auditoría de Brian** (`brian.accion`, no se edita ni se borra): las herramientas de la ubicación van marcadas
+  `privado=True` (`dcasa_brian/models/registro.py`): al cerrarse la acción, argumentos, resultado, error y resumen se
+  guardan pasados por `tapar` (sin coordenadas, secretos de `/u/` y `/entrega/`, teléfonos ni lo escrito de la casa).
+  Mientras espera confirmación los argumentos siguen enteros (con ellos se corre). `ubicacion_de_entrega` no le da al
+  modelo los botones de Waze/Maps (llevan el punto) ni la página del motorizado: un «abrir» a la venta.
+- El enlace de un solo uso vence a las 24 horas y hay uno vivo por pedido; la página del motorizado sirve mientras haya
+  una salida sin entregar, se cierra a los 3 días de entregada o al cancelar y, cerrada, no revive (secreto nuevo). Los
+  secretos del enlace se guardan como huella (SHA-256); el de la entrega, en un campo que solo lee ventas y contabilidad.
+- `Referrer-Policy: strict-origin` (Google valida la clave del mapa por el dominio y el secreto del camino nunca sale).
+- **La política de privacidad** (`website_dcasa/views/legal_templates.xml`) lo dice desde el 2026-11-25 (el dueño dio
+  su «sí»): qué se guarda del punto de entrega, para qué, que el punto no pasa por la IA (lo que la clienta escribe,
+  como el número de casa, sí) y que lo ve Google.
+- **Riesgo aceptado**: los registros de invocación de Cloudflare (Workers Logs, 7 días) guardan la URL de cada visita,
+  con el secreto. Solo los ve el dueño de la cuenta y los secretos vencen solos; apagarlos dejaría sin cómo investigar
+  una caída.
 
 ## Las claves de Google
 
@@ -162,8 +207,10 @@ mensaje con ubicación (WhatsApp, Telegram, Messenger) o con un enlace de mapa q
 
 ### 2. La herramienta `enlace_de_ubicacion` (nueva, la usa el modelo)
 
-Sin parámetros; necesita conversación. Devuelve `{"enlace": "https://…/u/<token>", "vence": "…", "frase_para_el_cliente":
-"…", "instruccion": "…"}`. Cuando la clienta confirma su punto en esa página, **Odoo** le escribe por el mismo canal
+Parámetro opcional `para_otra_casa` (booleano); necesita conversación. Devuelve `{"enlace": "https://…/u/<token>",
+"vence_en_horas": 24, "frase_para_el_cliente": "…", "instruccion": "…"}` (los tres pasos, uno por línea) y, en el
+WhatsApp de la API oficial y si no es para otra casa, `"boton_whatsapp": true`: el Worker manda además el botón nativo
+«Enviar ubicación» (`location_request_message`) y el modelo nunca ve esa clave. Cuando la clienta confirma su punto en esa página, **Odoo** le escribe por el mismo canal
 (`POST /odoo/enviar` del Worker con `"autor": "bot"`) con la zona y el precio del envío, y deja el punto guardado.
 Con `autor: "bot"` el Worker lo manda **como el asistente**: no da la conversación por tomada (sin eso, Juan se callaría
 como cuando escribe una vendedora) y lo guarda en la historia como mensaje del asistente, para que el modelo lo vea en el
@@ -171,8 +218,10 @@ siguiente turno. Cualquier otro valor (o ninguno) es una vendedora, como siempre
 
 ### 3. `cotizar_envio` sin lugar
 
-Si la clienta ya tiene un punto de entrega guardado y confirmado, `cotizar_envio()` sin `lugar` ni `lugar_id` cotiza
-con ese punto (`por_ubicacion: true`). Así, cuando contesta «sí, súmelo» al mensaje del enlace, el modelo vuelve a
+Si la clienta ya tiene un punto de entrega guardado y confirmado (o, en las últimas 24 horas, el de la otra dirección
+que marcó por un enlace de esta conversación), `cotizar_envio()` sin `lugar` ni `lugar_id` cotiza con ese punto
+(`por_ubicacion: true`, y `ubicacion_guardada` con la zona para ofrecer «¿Se lo llevamos a …, como la vez pasada?»).
+Sin punto devuelve `{"estado": "sin_ubicacion"}` (no es un error: que le pida la ubicación según el canal). Así, cuando contesta «sí, súmelo» al mensaje del enlace, el modelo vuelve a
 cotizar sin pedirle nada y llama a `agregar_envio` con el `lugar_id` que sale.
 
 ### 4. Enlaces de mapa en el texto (lo resuelve el Worker)
@@ -180,7 +229,14 @@ cotizar sin pedirle nada y llama a `agregar_envio` con el `lugar_id` que sale.
 Se reconocen: `maps.app.goo.gl/…`, `goo.gl/maps/…`, `google.com/maps/…` (`@lat,lon`, `?q=lat,lon`, `ll=`,
 `!3dLAT!4dLON`), `waze.com/ul?ll=lat,lon` y `maps.apple.com/?ll=` o `?q=`. Los cortos se siguen **solo** a hosts de
 Google (`maps.app.goo.gl`, `goo.gl`, `maps.google.com`, `www.google.com`, `google.com`), como mucho 3 saltos, 5 s y sin
-leer el cuerpo. Un enlace sin coordenadas (una búsqueda por nombre) no se adivina.
+leer el cuerpo; solo 3 cortos por mensaje se siguen por la red, pero **todos** los que traen el punto escrito se tapan.
+Del lado de Odoo (Brian), cada salto se revisa con el mismo analizador que hace la petición (urllib3): https, sin
+usuario, sin puerto raro ni «\\». Un enlace sin coordenadas (una búsqueda por nombre) no se adivina.
+
+### 5. `guardar_indicaciones(texto)` y `guardar_quien_recibe(nombre?, telefono?)`
+
+Las usa el modelo; guardan en la ficha de destino de la conversación. Devuelven `{guardado, indicaciones|recibe,
+instruccion}`; el Worker las trata como escritura (dos llamadas iguales en un turno van a Odoo una vez).
 
 ## Qué mejora frente a Nébula
 
@@ -191,7 +247,7 @@ leer el cuerpo. Un enlace sin coordenadas (una búsqueda por nombre) no se adivi
 | Sin paso de confirmar; la precisión del GPS no se usa | «¿Es aquí?» obligatorio, precisión ≤ 100 m o mover el pin, aviso si lo escrito no cuadra |
 | Un punto fuera de Panamá es solo un aviso | No se acepta |
 | Nada para el chat | Ubicación de WhatsApp y Telegram, enlaces de mapa y enlace de un solo uso amarrado a la conversación |
-| El QR abre una página **permanente** que deja marcar «entregado» sin iniciar sesión | La página vence a los 30 días y no cambia nada |
+| El QR abre una página **permanente** que deja marcar «entregado» sin iniciar sesión | La página se cierra tras la entrega y no cambia nada |
 | El precio de la zona no entra en la cotización | El precio del envío del checkout sale del punto |
 
 ## Dónde está cada cosa
@@ -205,7 +261,9 @@ leer el cuerpo. Un enlace sin coordenadas (una búsqueda por nombre) no se adivi
 | Entrega y QR del motorizado | `models/entrega.py` (`dcasa.ubicacion.entrega`), `views/reporte_templates.xml`, página `/entrega/<secreto>` |
 | Precio en el checkout | `models/delivery.py`, `controllers/checkout.py`, `views/checkout_templates.xml`, `static/src/interactions/checkout_ubicacion.js` |
 | El mapa (navegador) | `static/src/lib/mapa_entrega.js` |
-| Juan y Brian | `models/herramientas.py`, `controllers/juan.py` |
+| Juan y Brian | `models/herramientas.py`, `models/herramientas_casa.py`, `controllers/juan.py`; la auditoría tapada en `dcasa_brian/models/{registro,accion}.py` |
+| Quién recibe, teléfono, foto y «Avisar que llegué» | `motor/casa.py`, `models/res_partner.py`, `views/casa_views.xml`, `views/casa_iconos_templates.xml` |
+| Pruebas | `tests/` (`test_motor`, `test_modelos`, `test_rutas`, `test_brecha_envio`, `test_avisos`, `test_casa_motorizado`, `test_auditoria_datos`, `test_auditoria_clienta` con el checkout por HTTP y el navegador) |
 | Los avisos de la entrega (pedir el punto al comprar, «🚚 Sale hoy») | `models/avisos.py`, `models/herramientas_avisos.py`, `views/avisos_views.xml`, `data/avisos_data.xml`; la respuesta en `juan/src/dcasa/prompt.ts` |
 | Borde | `edge/src/routing.ts` (sin caché, secreto fuera del registro), `edge/src/handler.ts` (las dos claves) |
 | Para copiarlo a D'CASA | [UBICACION_PARA_DCASA.md](UBICACION_PARA_DCASA.md) |
