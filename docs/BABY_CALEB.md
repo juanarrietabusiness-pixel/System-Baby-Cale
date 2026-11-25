@@ -136,6 +136,19 @@ del puente. Ya en uso en la cuenta y **no se tocan**: `babycaleb-web`, `babycale
   Socios de la portada —sin cifras, pero con «Suma puntos y gana invitando»—, el producto «Premio del programa Socios
   D'CASA», los tipos de vendedor, la bienvenida por correo que dice «tus puntos»): se cambian con el trabajo de la web
   pública o de nombres configurables.
+- **Ubicación exacta de la entrega (hecha el 2026-11-25, `dcasa_ubicacion`, detalle en `docs/UBICACION.md`; para
+  copiarla a D'CASA, `docs/UBICACION_PARA_DCASA.md`).** Lo que queda del dueño:
+  - **Las dos claves de Google** (lo más urgente: sin ellas no hay mapa para afinar el pin; el GPS del teléfono, la
+    búsqueda de barriadas y la dirección escrita sí funcionan): Maps JavaScript, restringida a los dominios del sitio,
+    como `GOOGLE_MAPS_CLAVE_NAVEGADOR`, y Geocoding, solo para el servidor, como `GOOGLE_MAPS_CLAVE_SERVIDOR`. Se pegan
+    en Cloudflare › `sistemabk` (y `sistemabk-staging`) › Settings › Variables and Secrets, nunca en el chat.
+  - **Una línea en la política de privacidad** sobre la ubicación de entrega (se guarda solo con el número de casa y
+    solo para entregar). No se toca sin su «sí».
+  - **Qué ideas siguen para bajar las devoluciones:** A (si pagan con la dirección escrita, Juan le escribe con el
+    enlace del mapa), B (el día de la entrega: «¿hay alguien en casa?»), C («Avisar que llegué» en la página del
+    motorizado), D (quién recibe y un teléfono de respaldo), E (foto de la fachada). Se recomendaron A, B y C.
+  - **Lo que dice la web de los pañales «100 % fibras de bambú»** y los textos de las certificaciones («según el
+    fabricante») para el conocimiento de Juan: se cargan cuando el dueño los confirme.
 - **RECORDARLE AL DUEÑO, EL DÍA DEL DOMINIO, TODO LO DEL CORREO** (lo pidió el 2026-11-25): Resend con `babycaleb.com`
   verificado (registros DNS en Cloudflare; ya hay un `_dmarc`: no agregar otro), la clave de solo envío como secreto
   `RESEND_API_KEY` del Worker `sistemabk`, Email Routing de `clientes@babycaleb.com` a su Gmail, Gmail «Enviar como»

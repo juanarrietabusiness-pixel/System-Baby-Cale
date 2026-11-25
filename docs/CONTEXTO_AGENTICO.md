@@ -2343,3 +2343,31 @@ Un revisor sin mi contexto (con acceso de lectura y bases de prueba) encontró c
 - **La rama de un ayudante puede quedar en otro repositorio**: el agente de los pagos trabajó en una copia de
   `D_Casa_new_word` porque la sesión empezó en `/home/user`. Se trae con `git fetch <ruta-local> <rama>` y se une; las
   dos historias comparten el espejo `d2ba8ca`.
+
+## Lo que enseñó la ubicación exacta de la entrega (2026-11-25, `dcasa_ubicacion`)
+
+- **El `super()` de una ruta `http` de Odoo devuelve un `Response`, no el texto.** `route_wrapper` lo envuelve
+  (`Response.load`), así que heredar `shop_address_submit` y buscar en `str(respuesta)` no encuentra nada y el punto
+  del checkout no se guardaba, sin ningún error. Se lee con `respuesta.get_data(as_text=True)`. Se encontró con
+  registros temporales en el controlador (se quitaron después) y una compra en el navegador.
+- **Las rutas `/report/...` son `readonly=True`**: dibujar el PDF no puede crear registros (falla la transacción de
+  solo lectura). La ficha del motorizado se crea al confirmar la venta, al publicar el comprobante y al cambiar el
+  punto de la clienta; el reporte solo la lee (`_de_la_venta(orden, crear=False)`).
+- **`/odoo/enviar` del Worker `juan` calla al bot**: lo toma como que la vendedora se hizo cargo. Un mensaje
+  automático que manda Odoo (el «✅ ¡Listo! Recibimos su ubicación») va con `autor: "bot"`, o Juan deja de contestar
+  esa conversación.
+- **Las coordenadas nunca van al texto del chat, a la auditoría de Brian, a los registros ni al modelo de IA.** El aviso
+  al equipo lleva zona, calle, casa y precio; la ruta está en la ficha. Hay pruebas que buscan la latitud en esos
+  textos: si un cambio la cuela, fallan.
+- **Una prueba que busca un texto corto dentro de base64 al azar falla por azar** (`puente-wa/test/poda.test.ts`:
+  «pk1» apareció dentro de una clave aleatoria, CI 45639471080). Se busca con un separador que base64 no tiene
+  («pk:»): la misma comprobación, sin azar. No se salta ni se apaga la prueba.
+- **Las reglas de registro también corren en las pruebas**: una vendedora no ve la venta que creó el administrador si
+  no es suya. La prueba le pone `user_id`, no `sudo()`, para probar lo mismo que vive la vendedora.
+- **Un enlace vencido gana a «usado»**: si no, uno ya usado y vencido seguía mostrando la zona de la clienta a quien lo
+  abriera después.
+- **El CSS viejo de «Por cotizar» escondía el precio real** del envío a domicilio, y Odoo corta la pastilla del precio a
+  130 px («$ 15....» en el celular). Mirar la caja en un navegador de celular, no solo las pruebas.
+- **`dcasa_correo` aislado falla dos pruebas** («Ver en Mi cuenta») porque `dcasa_mi_cuenta` no está instalado en esa
+  corrida; en CI, con todo instalado, pasan. No es un fallo nuevo.
+
