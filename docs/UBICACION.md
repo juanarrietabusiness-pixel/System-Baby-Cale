@@ -77,6 +77,33 @@ El dueño: «el dolor número uno son los pedidos devueltos». Lo que se agregó
    desde»), se acepta pero el envío se confirma por WhatsApp.
 5. **La referencia** («casa verde de portón negro, frente al chino») es obligatoria con el mapa.
 
+## Los avisos de la entrega (2026-11-25, tercera vuelta: `models/avisos.py`)
+
+El dueño: «la gente no lee: íconos y pocas palabras»; «lo que priorizamos es lo más fácil para el cliente».
+
+- **Al comprar, si su casa no está en el mapa** (escrita a mano, buscada sin mover el pin, GPS de más de 100 m o sin
+  punto) y la venta va a domicilio, al confirmarla se le pide **una vez**: el asistente le escribe «🛍️ ¡Gracias por su
+  compra! 📍 Para que el motorizado llegue directo a su casa, márquela aquí: …» con el enlace de un solo uso ligado a la
+  venta. Si no puede escribirle, la vendedora (o el responsable por defecto de Ajustes de Juan) recibe el pendiente
+  «📍 Pedirle la ubicación de entrega» y en la venta tiene **«📲 Pedir ubicación por WhatsApp»** (wa.me con el mismo
+  texto). El pendiente se cierra solo cuando la clienta marca un punto confiable. Nunca hace fallar la venta ni el pago.
+- **Con la venta ya confirmada**, el «listo» no habla de precio: «✅ ¡Listo! Ya tenemos su casa: Villa Lucre, San
+  Miguelito. 🏠 Casa 24. 🛵 Su pedido S00042 va para allá.» Lo cobrado no se cambia: si la tabla da otro envío para esa
+  zona, queda una nota en la venta para que el equipo decida.
+- **El día de la entrega**, una persona toca **«🚚 Sale hoy: avisarle»** (en la venta, en la entrega, para varias desde
+  Acciones de la lista, o Brian): «🚚 ¡Hoy le llega su pedido S00042 a Villa Lucre! ¿Habrá alguien en casa para
+  recibirlo? ✅ Sí / 📍 Cambiar» (sin punto, con el enlace del mapa). Una vez por venta y por día. Juan entiende la
+  respuesta: si dice que sí, agradece; si no habrá nadie o quiere otro día u hora, la pasa a una vendedora (la fecha la
+  confirma siempre una vendedora); si quiere cambiar el lugar, le manda el enlace, que queda ligado a esa venta, y el
+  equipo recibe un pendiente para que el motorizado abra otra vez la ruta.
+- **¿Cuándo le escribe sola?** WhatsApp por QR y Telegram, siempre; WhatsApp de la API oficial, Instagram y Messenger,
+  solo dentro de las 24 horas desde su último mensaje (fuera de eso Meta pide una plantilla aprobada, que no hay; se
+  deja una hora de margen). Además: el canal y el asistente encendidos, el Worker configurado y la clienta sin «No
+  contactar». Si no, la persona lo manda por WhatsApp. El mensaje va a nombre del asistente (`autor: "bot"`) y queda «por
+  enviar»: sale con el cron que manda lo pendiente (que se adelanta), nunca dentro de la confirmación de la venta.
+- **Brian / MCP**: `pedir_ubicacion_al_cliente` y `avisar_que_sale_hoy` (dicen qué pasó: por el chat o el enlace de
+  WhatsApp para abrir), sin coordenadas.
+
 ## Privacidad (cambia una regla de D'CASA)
 
 D'CASA, a propósito, **nunca guardaba la dirección exacta** (issue #25: Juan solo pide el barrio). Ahora el punto de
@@ -179,5 +206,6 @@ leer el cuerpo. Un enlace sin coordenadas (una búsqueda por nombre) no se adivi
 | Precio en el checkout | `models/delivery.py`, `controllers/checkout.py`, `views/checkout_templates.xml`, `static/src/interactions/checkout_ubicacion.js` |
 | El mapa (navegador) | `static/src/lib/mapa_entrega.js` |
 | Juan y Brian | `models/herramientas.py`, `controllers/juan.py` |
+| Los avisos de la entrega (pedir el punto al comprar, «🚚 Sale hoy») | `models/avisos.py`, `models/herramientas_avisos.py`, `views/avisos_views.xml`, `data/avisos_data.xml`; la respuesta en `juan/src/dcasa/prompt.ts` |
 | Borde | `edge/src/routing.ts` (sin caché, secreto fuera del registro), `edge/src/handler.ts` (las dos claves) |
 | Para copiarlo a D'CASA | [UBICACION_PARA_DCASA.md](UBICACION_PARA_DCASA.md) |
