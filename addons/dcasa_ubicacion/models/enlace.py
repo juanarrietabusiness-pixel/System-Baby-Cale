@@ -58,8 +58,13 @@ class UbicacionEnlace(models.Model):
             enlace.estado = 'vencido' if enlace.vence < ahora else 'usado' if enlace.usado_el else 'vigente'
 
     @api.model
-    def _crear(self, partner, conversacion=None, creado_por='equipo', orden=None):
-        """``(enlace, url)`` nuevo para esa ficha. El secreto solo vive en la URL que se devuelve."""
+    def _crear(self, partner, conversacion=None, creado_por='equipo', orden=None, para_otra_casa=False):
+        """``(enlace, url)`` nuevo para esa ficha. El secreto solo vive en la URL que se devuelve. Con
+        ``para_otra_casa`` (un regalo, la abuela, el trabajo) el punto va a una dirección de entrega aparte de la
+        clienta (``_otra_casa``), nunca a la suya: antes la pisaba, y el QR de su venta ya confirmada mandaba al
+        motorizado a la otra casa (auditoría 1)."""
+        if para_otra_casa:
+            partner = self._otra_casa(partner)
         token = geo.token_nuevo()
         ahora = fields.Datetime.now()
         if orden:
@@ -75,6 +80,18 @@ class UbicacionEnlace(models.Model):
             'vence': ahora + timedelta(hours=HORAS_VIGENCIA),
         })
         return enlace, enlace._url(token)
+
+    @api.model
+    def _otra_casa(self, partner):
+        """La dirección de entrega aparte («Otra casa de Ana») para un pedido que va a otro lugar: la última que se
+        creó y todavía no tiene punto (para no llenar la ficha de direcciones vacías), o una nueva."""
+        partner = partner.sudo()
+        nombre = self.env._('Otra casa de %s', (partner.name or '').strip() or self.env._('la clienta'))
+        vacia = self.env['res.partner'].sudo().search([
+            ('parent_id', '=', partner.id), ('type', '=', 'delivery'), ('name', '=', nombre),
+            ('dcasa_ubic_fecha', '=', False)], order='id desc', limit=1)
+        return vacia or self.env['res.partner'].sudo().create({
+            'parent_id': partner.id, 'type': 'delivery', 'name': nombre})
 
     def _url(self, token):
         base = (self.env['ir.config_parameter'].sudo().get_param('web.base.url') or '').rstrip('/')
@@ -110,7 +127,13 @@ class UbicacionEnlace(models.Model):
             subtype_xmlid='mail.mt_note')
         orden = enlace.orden_id.sudo()
         if orden and orden.state in ('draft', 'sent') and orden.carrier_id.dcasa_por_cotizar:
-            orden._set_delivery_method(orden.carrier_id)   # el envío del pedido sale del punto nuevo
+            motivo = orden._dcasa_ubic_no_recalcular()
+            if motivo:
+                # Auditoría 1: con un pago en curso, cambiar el total hacía que el pago ya no confirmara la venta; y el
+                # envío que puso una persona no se reemplaza solo. El equipo decide con la nota.
+                orden._dcasa_ubic_nota_sin_recalcular(zona, motivo)
+            else:
+                orden._set_delivery_method(orden.carrier_id)   # el envío del pedido sale del punto nuevo
         if orden:
             orden.message_post(body=Markup('<p>%s</p>') % escape(self.env._(
                 'La clienta marcó su punto de entrega desde la página del pedido: %s.', zona['texto'] or '—')),
@@ -126,13 +149,10 @@ class UbicacionEnlace(models.Model):
         self.ensure_one()
         conv = self.conversacion_id.sudo()
         try:
-            texto = self._texto_para_la_clienta(zona)
-            Mensaje = self.env['dcasa.mensaje']
-            mensaje, _creado = Mensaje._crear_si_no_existe({
-                'conversacion_id': conv.id, 'id_mensaje': Mensaje._id_local(), 'direccion': 'saliente',
-                'autor': 'bot', 'texto': texto, 'ts': fields.Datetime.now(), 'origen': 'odoo',
-                'estado_envio': 'por_enviar'})
-            mensaje._enviar()
+            with self.env.cr.savepoint():
+                # Queda «por enviar» y sale por la cola del asistente (como los avisos): mandarlo aquí mismo hacía
+                # COMMIT a mitad de la petición de la página (auditoría 1).
+                conv._dcasa_escribir_como_asistente(self._texto_para_la_clienta(zona))
         except Exception:   # noqa: BLE001 — el punto ya quedó; el aviso es un extra
             _logger.exception('Ubicación: no se pudo avisar por el chat a la conversación %s', conv.id)
 
@@ -154,19 +174,57 @@ class UbicacionEnlace(models.Model):
             if casa:
                 listo += ' ' + self.env._('🏠 %s.', casa.rstrip('.'))
             if orden.state == 'sale':
-                listo += ' ' + self.env._('🛵 Su pedido %s va para allá.', orden.name)
+                listo += ' ' + self.env._('🛵 Su pedido %s irá a esa dirección.', orden.name)
             return listo
         recibido = (self.env._('✅ ¡Listo! Recibimos su ubicación: %s.', donde) if donde
                     else self.env._('✅ ¡Listo! Recibimos su ubicación.'))
         if casa:
             recibido += ' ' + self.env._('🏠 %s.', casa.rstrip('.'))
         precio = self.env['dcasa.ubicacion']._precio(zona.get('lugar'))
+        if precio['con_precio'] and self._hay_promocion_de_envio(zona.get('lugar')):
+            # Con promoción, la cifra la da Juan con su frase (la que calcula la promoción y pasa por su guardia): un
+            # precio sin la promoción contradecía al motor (auditoría 1).
+            return recibido + ' ' + self.env._('🚚 Su envío tiene promoción: ¿le confirmo cuánto le queda?')
         if precio['con_precio']:
             return recibido + ' ' + self.env._('🚚 Envío %s. ¿Se lo sumamos a su pedido?', precio['total_txt'])
         return recibido + ' ' + self.env._('🚚 El costo del envío se lo confirmamos en un momento.')
+
+    def _hay_promocion_de_envio(self, lugar):
+        """¿La promoción de envío de hoy le da algo a ese lugar (aplicada o con condición)? Si no se puede saber,
+        se toma que sí: mejor no decir una cifra que decir una equivocada."""
+        try:
+            Herramientas = self.env['brian.herramientas'].sudo()
+            tarjeta = Herramientas._j_envio_tarjeta(lugar.sudo())
+            resultado, _promocion = self.env['dcasa.envio.promocion'].sudo()._aplicar(
+                tarjeta['total'], tarjeta['prov'], tarjeta['dist'], None)
+            return bool(resultado.get('hay_promocion') and (resultado.get('aplica') or resultado.get('condicional')))
+        except Exception:   # noqa: BLE001 — ante la duda, sin cifra
+            _logger.exception('Ubicación: no se pudo saber si hay promoción de envío para el lugar %s', lugar.id)
+            return True
 
     @api.autovacuum
     def _gc_enlaces_viejos(self):
         """Los enlaces vencidos hace más de 30 días no sirven para nada: se borran."""
         limite = fields.Datetime.now() - timedelta(days=30)
         self.sudo().search([('vence', '<', limite)]).unlink()
+
+
+class Conversacion(models.Model):
+    _inherit = 'dcasa.conversacion'
+
+    def _dcasa_ubic_destino(self):
+        """La ficha a la que va la ubicación de esta conversación (la del clip, la que cotiza Juan sin lugar, el número
+        de casa): la del enlace más reciente de las últimas 24 horas si es OTRA dirección (otra casa, o la dirección
+        de entrega de una venta avisada) y sigue vigente o ya se usó; si no, la de la clienta (auditoría 1: el punto
+        del clip iba a su ficha aunque la venta fuera a otra dirección)."""
+        self.ensure_one()
+        conv = self.sudo()
+        ahora = fields.Datetime.now()
+        reciente = self.env['dcasa.ubicacion.enlace'].sudo().search([
+            ('conversacion_id', '=', conv.id), ('create_date', '>', ahora - timedelta(hours=HORAS_VIGENCIA))],
+            order='id desc', limit=1)
+        if reciente and reciente.partner_id and reciente.partner_id != conv.partner_id \
+                and (reciente.usado_el or reciente.vence > ahora):
+            return reciente.partner_id.sudo()
+        return conv.partner_id.sudo()
+

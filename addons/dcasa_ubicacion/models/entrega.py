@@ -9,6 +9,8 @@ guarda en un campo que solo lee el equipo de ventas.
 import base64
 from datetime import timedelta
 
+import psycopg2
+
 from odoo import api, fields, models
 
 from ..motor import casa, geo
@@ -42,24 +44,44 @@ class UbicacionEntrega(models.Model):
         ahora = fields.Datetime.now()
         vence = ahora + timedelta(days=DIAS_VIGENCIA)
         if entrega:
-            if entrega.vence <= ahora:
-                # Vencida: el QR viejo NO revive (auditoría 1: quien guardó un papel de hace meses veía la casa
-                # nueva de la clienta). Secreto nuevo; el QR nuevo sale al imprimir otra vez.
+            if not entrega._abierta():
+                # Cerrada (vencida o entregada hace días): el QR viejo NO revive (auditoría 1: quien guardó un papel de
+                # hace meses veía la casa nueva de la clienta). Secreto nuevo; el QR nuevo sale al imprimir otra vez.
                 entrega.write({'token': geo.token_nuevo(18), 'vence': vence})
             elif entrega.vence < vence - timedelta(days=1):
                 entrega.write({'vence': vence})
             return entrega
-        return self.sudo().create({'order_id': orden.id, 'token': geo.token_nuevo(18), 'vence': vence})
+        try:
+            with self.env.cr.savepoint():
+                return self.sudo().create({'order_id': orden.id, 'token': geo.token_nuevo(18), 'vence': vence})
+        except psycopg2.IntegrityError:
+            # Otra petición la armó al mismo tiempo (confirmar y publicar la factura a la vez): se usa esa. Nunca hace
+            # fallar la confirmación ni la factura.
+            return self.sudo().search([('order_id', '=', orden.id)], limit=1)
 
     @api.model
     def _del_secreto(self, token):
         """La entrega vigente de ese secreto, o un registro vacío (vencida o inexistente: lo mismo)."""
         if not isinstance(token, str) or not 16 <= len(token) <= 64:
             return self.sudo().browse()
-        entrega = self.sudo().search([('token', '=', token), ('vence', '>', fields.Datetime.now())], limit=1)
-        if not entrega or not entrega.order_id._dcasa_entrega_sigue_abierta():
-            return self.sudo().browse()
-        return entrega
+        entrega = self.sudo().search([('token', '=', token)], limit=1)
+        return entrega if entrega and entrega._abierta() else self.sudo().browse()
+
+    def _abierta(self):
+        """¿Le sirve todavía la página al motorizado? Mientras la venta tenga una salida sin entregar, siempre (un
+        pedido que sale a los 40 días no puede imprimir un QR vencido: auditoría 1); entregada, hasta
+        ``DIAS_TRAS_ENTREGAR`` días después; cancelada, nunca; sin salidas, hasta que vence."""
+        self.ensure_one()
+        orden = self.sudo().order_id
+        if not orden or orden.state == 'cancel':
+            return False
+        salidas = orden.picking_ids.filtered(lambda p: p.picking_type_code == 'outgoing' and p.state != 'cancel')
+        if any(p.state != 'done' for p in salidas):
+            return True
+        if salidas:
+            entregada = max((p.date_done for p in salidas if p.date_done), default=None)
+            return bool(entregada) and entregada > fields.Datetime.now() - timedelta(days=DIAS_TRAS_ENTREGAR)
+        return self.vence > fields.Datetime.now()
 
     def _url(self):
         self.ensure_one()
@@ -163,19 +185,6 @@ class SaleOrder(models.Model):
         if resumen['confiable'] and resumen['referencia']:
             return ''
         return f'/u/pedido/{orden.id}?access_token={orden._portal_ensure_token()}'
-
-    def _dcasa_entrega_sigue_abierta(self):
-        """¿Le sirve todavía la página al motorizado? No si la venta se canceló, ni pasados ``DIAS_TRAS_ENTREGAR``
-        días de entregada (todas sus salidas hechas): el papel con el QR no debe mostrar la casa para siempre."""
-        self.ensure_one()
-        orden = self.sudo()
-        if orden.state == 'cancel':
-            return False
-        salidas = orden.picking_ids.filtered(lambda p: p.picking_type_code == 'outgoing' and p.state != 'cancel')
-        if not salidas or any(p.state != 'done' for p in salidas):
-            return True
-        entregada = max((p.date_done for p in salidas if p.date_done), default=None)
-        return not entregada or entregada > fields.Datetime.now() - timedelta(days=DIAS_TRAS_ENTREGAR)
 
     def _dcasa_entrega_motorizado(self, crear=True):
         """La entrega de esta venta para el QR, o un registro vacío si no va a domicilio o no tiene a dónde. Sin

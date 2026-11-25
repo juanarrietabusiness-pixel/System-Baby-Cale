@@ -37,9 +37,11 @@ class JuanAPIUbicacion(JuanAPI):
         conv = entorno['dcasa.conversacion'].sudo().browse(conversacion_id).exists()
         if not conv:
             raise _Error(404, 'No existe esa conversación.')
-        partner = conv.partner_id.sudo()
-        if not partner:
+        if not conv.partner_id:
             raise _Error(409, 'La conversación todavía no tiene ficha de cliente.')
+        # La ficha de la clienta o, si en las últimas 24 horas se pidió el punto de otra dirección (otra casa, la de
+        # entrega de una venta avisada), esa (auditoría 1).
+        partner = conv._dcasa_ubic_destino()
         try:
             zona = partner._dcasa_poner_ubicacion(
                 cuerpo.get('lat'), cuerpo.get('lon'), origen, confirmada=True,

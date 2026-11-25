@@ -1444,6 +1444,16 @@ LISTA_BLANCA = {
     ('dcasa_ubicacion', 'delivery.carrier', 'fixed_rate_shipment'):
         OVERRIDE + ' Solo para la entrega a domicilio: el precio sale del punto confirmado de la dirección de entrega '
                    'del pedido (la tabla de envíos aprobada); no escribe nada.',
+    ('dcasa_ubicacion', 'sale.order', 'set_delivery_line'):
+        OVERRIDE + ' Después de poner el envío (con el permiso de Odoo ya revisado), si es la entrega a domicilio y el '
+                   'precio salió del punto, marca esa línea como la del sistema (su lugar y la promoción de hoy), '
+                   'igual que el checkout; solo en borrador o enviada.',
+    ('dcasa_ubicacion', 'res.partner', 'action_dcasa_abrir_waze'):
+        'Botón: exige sales_team.group_sale_salesman y poder leer la ficha (check_access) antes de leer el punto en '
+        'sudo; devuelve la ruta de Waze de ESA ficha (no escribe nada).',
+    ('dcasa_ubicacion', 'res.partner', 'action_dcasa_abrir_google_maps'):
+        'Botón: exige sales_team.group_sale_salesman y poder leer la ficha (check_access) antes de leer el punto en '
+        'sudo; devuelve la ruta de Google Maps de ESA ficha (no escribe nada).',
     ('dcasa_ubicacion', 'res.partner', 'action_dcasa_quitar_fachada'):
         'Botón: exige poder escribir en la ficha (check_access) y solo quita, en sudo, la foto de la casa de ESA ficha '
         '(el objeto de R2 lo recoge su limpieza; nunca se borra al momento).',

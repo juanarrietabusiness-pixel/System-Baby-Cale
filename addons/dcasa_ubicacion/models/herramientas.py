@@ -35,7 +35,7 @@ class BrianHerramientasUbicacion(models.AbstractModel):
     def _j_cotizar_envio(self, lugar=None, lugar_id=None):
         sin_lugar = lugar_id is None and not (isinstance(lugar, str) and lugar.strip())
         conv = self._j_conversacion_opcional() if sin_lugar else None
-        destino = conv.partner_id.sudo() if conv else None
+        destino = conv._dcasa_ubic_destino() if conv else None
         if not conv:
             return super()._j_cotizar_envio(lugar=lugar, lugar_id=lugar_id)
         apagado = self._j_envios_encendidos()
@@ -82,10 +82,10 @@ class BrianHerramientasUbicacion(models.AbstractModel):
         otra_casa = para_otra_casa is True or str(para_otra_casa).strip().lower() == 'true'
         # Si hoy se le avisó por el chat que su pedido sale («🚚 Sale hoy», models/avisos.py) y quiere cambiar el
         # lugar, el enlace va ligado a esa venta: el punto queda en su dirección de entrega y el equipo lo ve ahí.
-        orden = self._ubic_venta_avisada_hoy(partner)
+        orden = None if otra_casa else self._ubic_venta_avisada_hoy(partner)
         destino = (orden.partner_shipping_id or orden.partner_id).sudo() if orden else partner
         _enlace, url = self.env['dcasa.ubicacion.enlace']._crear(destino, conversacion=conv, creado_por='juan',
-                                                                  orden=orden or None)
+                                                                  orden=orden or None, para_otra_casa=otra_casa)
         # Tres pasos con íconos (el dueño, 2026-11-25): se entiende sin leer, uno por línea (el Worker conserva así sus
         # íconos). WhatsApp muestra la vista previa con un pin en un mapa (og:image de la página). Para otra casa, «Mi
         # ubicación» marcaría donde está el teléfono: se busca la barriada o se mueve el mapa.
@@ -130,7 +130,7 @@ class BrianHerramientasUbicacion(models.AbstractModel):
     )
     def _juan_guardar_indicaciones(self, texto):
         conv = self._j_conversacion()
-        partner = conv.partner_id.sudo()
+        partner = conv._dcasa_ubic_destino() if conv.partner_id else conv.partner_id.sudo()
         if not partner:
             raise BrianError('Esta conversación todavía no tiene ficha de cliente.')
         limpio = geo.texto_corto(texto, geo.MAX_REFERENCIA)

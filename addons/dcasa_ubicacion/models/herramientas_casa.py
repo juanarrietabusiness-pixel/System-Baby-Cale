@@ -75,7 +75,7 @@ class BrianHerramientasCasa(models.AbstractModel):
     )
     def _juan_guardar_quien_recibe(self, nombre=None, telefono=None):
         conv = self._j_conversacion()
-        partner = conv.partner_id.sudo()
+        partner = conv._dcasa_ubic_destino() if conv.partner_id else conv.partner_id.sudo()
         if not partner:
             raise BrianError('Esta conversación todavía no tiene ficha de cliente.')
         recibe = casa.recibe_limpio(nombre) if isinstance(nombre, str) else ''

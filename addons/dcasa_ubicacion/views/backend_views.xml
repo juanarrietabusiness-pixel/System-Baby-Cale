@@ -17,17 +17,28 @@
                             <field name="dcasa_ubic_confirmada" string="Confirmado por la clienta"/>
                             <field name="dcasa_ubic_fecha" string="Puesto el"/>
                         </group>
+                        <!-- Salen del punto y de la tabla de lugares: a mano no se cambian (la zona y el precio no se
+                             recalcularían). Para cambiarlos, otro punto (el enlace de abajo). -->
                         <group>
-                            <field name="dcasa_barriada"/>
-                            <field name="dcasa_corregimiento"/>
-                            <field name="dcasa_distrito"/>
-                            <field name="dcasa_provincia"/>
-                            <field name="dcasa_ubic_direccion_mapa"/>
+                            <field name="dcasa_barriada" readonly="1"/>
+                            <field name="dcasa_corregimiento" readonly="1"/>
+                            <field name="dcasa_distrito" readonly="1"/>
+                            <field name="dcasa_provincia" readonly="1"/>
+                            <field name="dcasa_ubic_direccion_mapa" readonly="1"/>
                         </group>
                     </group>
-                    <button name="action_dcasa_enlace_ubicacion" type="object" class="btn-secondary"
-                            string="Crear enlace para que marque su ubicación"
-                            help="Un enlace de un solo uso (24 horas): la clienta marca su punto en un mapa y queda aquí."/>
+                    <field name="dcasa_ubic_tiene_punto" invisible="1"/>
+                    <div class="d-flex flex-wrap gap-2">
+                        <button name="action_dcasa_abrir_waze" type="object" class="btn-primary" string="Abrir en Waze"
+                                icon="fa-location-arrow" invisible="not dcasa_ubic_tiene_punto"
+                                groups="sales_team.group_sale_salesman"/>
+                        <button name="action_dcasa_abrir_google_maps" type="object" class="btn-primary"
+                                string="Abrir en Google Maps" icon="fa-map" invisible="not dcasa_ubic_tiene_punto"
+                                groups="sales_team.group_sale_salesman"/>
+                        <button name="action_dcasa_enlace_ubicacion" type="object" class="btn-secondary"
+                                string="Crear enlace para que marque su ubicación"
+                                help="Un enlace de un solo uso (24 horas): la clienta marca su punto en un mapa y queda aquí."/>
+                    </div>
                 </page>
             </xpath>
         </field>

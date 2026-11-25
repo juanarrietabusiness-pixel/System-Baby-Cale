@@ -11,7 +11,7 @@ import base64
 from markupsafe import Markup, escape
 
 from odoo import api, fields, models
-from odoo.exceptions import ValidationError
+from odoo.exceptions import AccessError, UserError, ValidationError
 
 from ..motor import casa, geo
 
@@ -120,7 +120,7 @@ class ResPartner(models.Model):
 
     def _dcasa_ubic_al_dia_en_ventas(self):
         """Las ventas confirmadas que van a esta dirección y TODAVÍA no se entregan quedan con su entrega armada (para
-        el QR). Las ya entregadas no se tocan: su página se cierra sola (``_dcasa_entrega_sigue_abierta``)."""
+        el QR). Las ya entregadas no se tocan: su página se cierra sola (``dcasa.ubicacion.entrega._abierta``)."""
         ordenes = self.env['sale.order'].sudo().search([('partner_shipping_id', '=', self.id), ('state', '=', 'sale')],
                                                        limit=20, order='id desc')
         for orden in ordenes:
@@ -218,6 +218,9 @@ class ResPartner(models.Model):
         precio = self.env['dcasa.ubicacion']._precio(partner.dcasa_ubic_lugar_id)
         zona = (partner.dcasa_ubic_zona or self.env._('sin zona de la tabla')).replace(' · ', ', ')
         partes = [self.env._('📍 Ubicación de entrega: %s.', zona)]
+        if partner.parent_id and partner.type == 'delivery':
+            partes.append(self.env._('📦 Es la dirección «%s»: en la venta, elíjanla como dirección de entrega.',
+                                     partner.name or ''))
         if partner.dcasa_ubic_direccion_mapa:
             partes.append(self.env._('Según el mapa: %s.', partner.dcasa_ubic_direccion_mapa))
         partes.append(self.env._('🏠 %s.', partner.dcasa_referencia) if partner.dcasa_referencia
@@ -229,8 +232,26 @@ class ResPartner(models.Model):
         partes.append(self.env._('Punto: %s.', partner.dcasa_ubic_etiqueta or ''))
         partes.append(self.env._('🚚 Envío %s.', precio['total_txt']) if precio['con_precio']
                       else self.env._('🚚 Envío por cotizar.'))
-        partes.append(self.env._('La ruta (Waze y Google Maps) está en la ficha › Ubicación de entrega.'))
+        partes.append(self.env._('La ruta (Waze y Google Maps): en la ficha › Ubicación de entrega o «Ruta del '
+                                 'motorizado» en la venta.'))
         return ' '.join(partes)
+
+    def _dcasa_abrir_ruta(self, cual):
+        """La ruta de Waze o de Google Maps hasta el punto, en una pestaña nueva (solo el equipo de ventas)."""
+        self.ensure_one()
+        if not self.env.user.has_group('sales_team.group_sale_salesman'):
+            raise AccessError(self.env._('Solo el equipo de ventas abre la ruta de la entrega.'))
+        self.check_access('read')
+        punto = self.sudo()._dcasa_ubic_punto()
+        if not punto:
+            raise UserError(self.env._('Esta ficha todavía no tiene su casa marcada en el mapa.'))
+        return {'type': 'ir.actions.act_url', 'url': geo.enlaces(*punto)[cual], 'target': 'new'}
+
+    def action_dcasa_abrir_waze(self):
+        return self._dcasa_abrir_ruta('waze')
+
+    def action_dcasa_abrir_google_maps(self):
+        return self._dcasa_abrir_ruta('google')
 
     def _dcasa_ubic_resumen(self):
         """Lo que se muestra de la entrega (panel, Brian, la página del motorizado): sin ids internos."""

@@ -96,6 +96,8 @@ class DcasaUbicacion(models.AbstractModel):
         if not Tarifa._estado_publico().get('aprobada'):
             return {'con_precio': False, 'motivo': 'en_revision'}
         lugar = lugar.sudo()
+        if not lugar.exists() or not lugar.active:
+            return {'con_precio': False, 'motivo': 'sin_lugar'}     # un lugar archivado ya no da precio
         if not lugar.revisado:
             return {'con_precio': False, 'motivo': 'sin_revisar'}
         cotizacion = Tarifa.cotizar_lugar(lugar)

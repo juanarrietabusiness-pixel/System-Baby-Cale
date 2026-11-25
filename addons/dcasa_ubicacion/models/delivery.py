@@ -5,6 +5,8 @@ entrega tiene un punto confirmado y el lugar de la tabla más cercano tiene prec
 aprobada, lugar revisado, no «se cotiza aparte»). Si no, sigue como hoy: «por cotizar». La línea del envío queda como
 la que pone Juan (``dcasa_envio_lugar_id``) y, si la promoción de envío de hoy aplica, con su línea.
 """
+from markupsafe import Markup, escape
+
 from odoo import fields, models
 from odoo.addons.dcasa_envios.motor import tarjeta as motor_tarjeta
 
@@ -52,6 +54,40 @@ class SaleOrder(models.Model):
             return None
         precio = self.env['dcasa.ubicacion']._precio(destino.dcasa_ubic_lugar_id)
         return precio if precio['con_precio'] else None
+
+    def _dcasa_ubic_no_recalcular(self):
+        """Por qué NO se recalcula solo el envío de este pedido al marcar el punto (``''`` si se puede): con un pago en
+        curso o hecho (cambiar el total hace que el pago ya no confirme la venta) o con un envío que puso una persona
+        (dcasa_envios: esos no se reemplazan solos)."""
+        self.ensure_one()
+        orden = self.sudo()
+        if orden.transaction_ids.filtered(lambda t: t.state in ('pending', 'authorized', 'done')):
+            return 'pago'
+        if any(linea._dcasa_envio_ajeno() for linea in orden.order_line):
+            return 'ajeno'
+        return ''
+
+    def _dcasa_ubic_nota_sin_recalcular(self, zona, motivo):
+        """La nota al equipo cuando el envío no se recalculó (sin coordenadas)."""
+        self.ensure_one()
+        precio = self.env['dcasa.ubicacion']._precio(zona.get('lugar'))
+        donde = (zona.get('texto') or '').replace(' · ', ', ') or self.env._('sin zona de la tabla')
+        porque = (self.env._('ya tiene un pago en curso') if motivo == 'pago'
+                  else self.env._('el envío lo puso una persona'))
+        tabla = (self.env._('con la tabla sería %s', precio['total_txt']) if precio['con_precio']
+                 else self.env._('la tabla no da precio para esa zona'))
+        self.sudo().message_post(body=Markup('<p>%s</p>') % escape(self.env._(
+            '📍 La clienta marcó su casa: %(zona)s. 🚚 El envío no se cambió porque %(porque)s (%(tabla)s): decidan '
+            'si se ajusta.', zona=donde, porque=porque, tabla=tabla)), subtype_xmlid='mail.mt_note')
+
+    def set_delivery_line(self, carrier, amount):
+        # «Agregar envío» / «Actualizar costo» del panel: con el precio del punto, la línea queda como la del sistema
+        # (con su lugar y la promoción de hoy), igual que en la web (auditoría 1: quedaba sin promoción y «de persona»).
+        resultado = super().set_delivery_line(carrier, amount)
+        if carrier and carrier.dcasa_por_cotizar:
+            for orden in self:
+                orden._dcasa_marcar_envio_por_ubicacion()
+        return resultado
 
     def _set_delivery_method(self, delivery_method, rate=None):
         resultado = super()._set_delivery_method(delivery_method, rate=rate)

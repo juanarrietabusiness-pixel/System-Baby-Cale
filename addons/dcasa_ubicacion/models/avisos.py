@@ -157,6 +157,9 @@ class SaleOrderAvisos(models.Model):
     dcasa_aviso_sale_hoy_por = fields.Selection(
         [('chat', 'Por el chat (el asistente)'), ('whatsapp', 'Por WhatsApp (una persona)')], 'Aviso por',
         readonly=True, copy=False)
+    dcasa_aviso_sale_hoy_mensaje_id = fields.Many2one(
+        'dcasa.mensaje', 'Mensaje del aviso «sale hoy»', readonly=True, copy=False, ondelete='set null',
+        help='El mensaje que escribió el asistente: si no se pudo enviar, se puede volver a avisar ese mismo día.')
     dcasa_va_a_domicilio = fields.Boolean('Va a domicilio', compute='_compute_dcasa_avisos')
     dcasa_falta_punto = fields.Boolean(
         'Falta su casa en el mapa', compute='_compute_dcasa_avisos',
@@ -180,13 +183,25 @@ class SaleOrderAvisos(models.Model):
         self.ensure_one()
         return (self.partner_shipping_id or self.partner_id).sudo()
 
+    def _dcasa_personas_de_la_compra(self):
+        """A quién le escriben los avisos: la clienta que compró (y su empresa) y la dirección de entrega solo si es
+        suya (una dirección hija). Si es un regalo para otra persona, a ella no: «¡Gracias por su compra!» le contaría
+        la sorpresa (auditoría 1)."""
+        self.ensure_one()
+        orden = self.sudo()
+        personas = orden.partner_id | orden.partner_id.commercial_partner_id
+        entrega = orden.partner_shipping_id
+        if entrega and entrega.commercial_partner_id == orden.partner_id.commercial_partner_id:
+            personas |= entrega
+        return personas.exists()
+
     def _dcasa_conversacion_para_avisar(self):
         """``(conversación, motivo)``: la conversación de la clienta por donde el asistente puede escribirle ya (la de
         su último mensaje) o una vacía con el porqué, en palabras sencillas, para quien lo tenga que mandar a mano."""
         self.ensure_one()
         vacia = self.env['dcasa.conversacion']
         orden = self.sudo()
-        personas = (orden.partner_id | orden.partner_shipping_id | orden.partner_id.commercial_partner_id).exists()
+        personas = orden._dcasa_personas_de_la_compra()
         if any(persona.dcasa_no_contactar for persona in personas):
             return vacia, self.env._('pidió que no le escribamos por el chat')
         conversaciones = vacia.sudo().search([('partner_id', 'in', personas.ids)],
@@ -209,13 +224,13 @@ class SaleOrderAvisos(models.Model):
         de WhatsApp por QR pueden serlo) mandaría el mensaje a otra persona."""
         self.ensure_one()
         orden = self.sudo()
-        for persona in (orden.partner_id, orden.partner_shipping_id):
+        for persona in orden._dcasa_personas_de_la_compra():
             for valor in (persona.phone, persona.dcasa_celular):
                 numero = reglas.celular_normal(valor)
                 if reglas.celular_valido(numero):
                     return f'507{numero}'
         conversaciones = self.env['dcasa.conversacion'].sudo().search([
-            ('partner_id', 'in', (orden.partner_id | orden.partner_shipping_id).ids),
+            ('partner_id', 'in', orden._dcasa_personas_de_la_compra().ids),
             ('canal', 'in', tuple(CANALES_CON_CELULAR))], order='ultimo_mensaje_cliente desc nulls last', limit=5)
         for conversacion in conversaciones:
             digitos = reglas.solo_digitos(conversacion.id_externo)
@@ -273,6 +288,16 @@ class SaleOrderAvisos(models.Model):
         resultado = super().action_confirm()
         for orden in self:
             orden._dcasa_pedir_ubicacion_al_confirmar()
+        return resultado
+
+    def _action_cancel(self):
+        resultado = super()._action_cancel()
+        # Una venta cancelada ya no se entrega: el pendiente «📍 Pedirle la ubicación» se cierra (auditoría 1).
+        tipo = self.env.ref(TIPO_PEDIR_UBICACION, raise_if_not_found=False)
+        if tipo:
+            self.env['mail.activity'].sudo().search([
+                ('res_model', '=', 'sale.order'), ('res_id', 'in', self.ids),
+                ('activity_type_id', '=', tipo.id)]).action_feedback(feedback=self.env._('La venta se canceló.'))
         return resultado
 
     def _dcasa_pedir_ubicacion_al_confirmar(self):
@@ -412,16 +437,18 @@ class SaleOrderAvisos(models.Model):
         if not orden._dcasa_va_a_domicilio():
             return {'estado': 'no_va'}
         hoy = hoy_en_panama()
-        if orden.dcasa_aviso_sale_hoy_el == hoy and orden.dcasa_aviso_sale_hoy_por == 'chat':
-            return {'estado': 'ya_avisada'}
+        if orden.dcasa_aviso_sale_hoy_el == hoy and orden.dcasa_aviso_sale_hoy_por == 'chat' \
+                and orden.dcasa_aviso_sale_hoy_mensaje_id.estado_envio != 'fallido':
+            return {'estado': 'ya_avisada'}     # si no se pudo enviar (Worker caído), se puede volver a avisar
         destino = orden._dcasa_destino()
         sin_punto = not destino._dcasa_ubic_confiable()
         Enlace = self.env['dcasa.ubicacion.enlace']
         conv, motivo = orden._dcasa_conversacion_para_avisar()
         if conv:
             url = Enlace._crear(destino, conversacion=conv, creado_por='aviso', orden=orden)[1] if sin_punto else None
-            conv._dcasa_escribir_como_asistente(orden._dcasa_texto_sale_hoy(url))
-            valores = {'dcasa_aviso_sale_hoy_el': hoy, 'dcasa_aviso_sale_hoy_por': 'chat'}
+            mensaje = conv._dcasa_escribir_como_asistente(orden._dcasa_texto_sale_hoy(url))
+            valores = {'dcasa_aviso_sale_hoy_el': hoy, 'dcasa_aviso_sale_hoy_por': 'chat',
+                       'dcasa_aviso_sale_hoy_mensaje_id': mensaje.id}
             if sin_punto and not orden.dcasa_ubic_pedida_el:
                 valores['dcasa_ubic_pedida_el'] = fields.Datetime.now()
             orden.write(valores)
