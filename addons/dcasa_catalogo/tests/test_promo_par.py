@@ -299,3 +299,18 @@ class TestPromoParEnLaFicha(HttpCase):
         self.assertEqual(respuesta.status_code, 200)
         self.assertIn('<dt>Promoción</dt>', respuesta.text)
         self.assertIn('2 cajas por $35.00. Va por pares: una caja suelta va a su precio normal.', respuesta.text)
+
+    def test_la_pagina_de_la_cotizacion_del_cliente_dice_la_promocion(self):
+        variante = self.env['product.product'].create({
+            'name': 'ZZTOALLITAS DEL PORTAL', 'type': 'consu', 'list_price': 20.0, 'taxes_id': [Command.clear()],
+            'dcasa_presentacion': 'Caja de 600 toallitas'})
+        variante.dcasa_precio_par = 35.0
+        cliente = self.env['res.partner'].create({'name': 'CLIENTA DEL PORTAL PROMO PAR'})
+        orden = self.env['sale.order'].create({'partner_id': cliente.id, 'order_line': [
+            Command.create({'product_id': variante.id, 'product_uom_qty': 3})]})
+        self.assertAlmostEqual(orden.amount_total, 55.0)
+        self.env.flush_all()
+        respuesta = self.url_open(orden.get_portal_url())
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertIn(PAR, respuesta.text)
+        self.assertIn(SUELTA, respuesta.text)
