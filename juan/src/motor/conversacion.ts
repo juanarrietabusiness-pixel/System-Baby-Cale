@@ -310,6 +310,12 @@ export interface SolicitudEnviar {
   adjuntos?: { tipo: string; url: string; nombre?: string; mime?: string }[];
   /** «Responder» desde Odoo: el id en el canal del mensaje del cliente que se cita. */
   responde_a?: string;
+  /**
+   * «bot» (2026-11-25, docs/UBICACION.md): Odoo escribe a nombre del asistente (la zona y el precio del envío cuando la clienta confirma su
+   * punto con el enlace de un solo uso). No calla al bot ni corta lo que traiga, y queda en la historia como del asistente (el modelo lo
+   * ve en el siguiente turno). Sin esto, una vendedora.
+   */
+  autor?: "bot";
 }
 
 export interface SolicitudSeguimiento {
@@ -2342,7 +2348,7 @@ export class MotorConversacion {
    * Si el canal se corta a la mitad (`EnvioParcialError`), lo ya enviado no se repite: se reintenta solo lo que falta, y lo que sí
    * salió igual queda anotado. `progreso` permite seguir donde se quedó un envío anterior (el reintento de Odoo con el mismo `id_envio`).
    */
-  private async emitir(o: { burbujas: string[]; medios: MedioSaliente[]; autor: "bot" | "vendedora"; registrar: boolean; modelo?: string; progreso?: ProgresoDeEnvio; alAvanzar?: (p: ProgresoDeEnvio) => void; responderA?: string; alTerminar?: (partes: ParteOdoo[]) => void }): Promise<string[]> {
+  private async emitir(o: { burbujas: string[]; medios: MedioSaliente[]; autor: "bot" | "vendedora"; registrar: boolean; modelo?: string; progreso?: ProgresoDeEnvio; alAvanzar?: (p: ProgresoDeEnvio) => void; responderA?: string; alTerminar?: (partes: ParteOdoo[]) => void; escribiendo?: boolean }): Promise<string[]> {
     const canalId = this.canalId();
     const adaptador = this.deps.canal(canalId);
     if (!adaptador) throw new Error(`no hay adaptador para el canal ${canalId}`);
@@ -2362,7 +2368,7 @@ export class MotorConversacion {
     const inicio = { burbujas: progreso.burbujas, medios: progreso.medios, ids: progreso.ids.length };
     const falta = () => progreso.burbujas < burbujas.length || progreso.medios < medios.length;
     // Antes de enviar (despedidas, seguimientos...) también; si ya se mostró hace poco, no se repite.
-    if (o.autor === "bot") this.mostrarEscribiendo();
+    if (o.autor === "bot" && o.escribiendo !== false) this.mostrarEscribiendo();
 
     let fallo: unknown = null;
     const vuelo = this.anotarEnVuelo(burbujas.slice(progreso.burbujas), medios.slice(progreso.medios));
@@ -2456,7 +2462,8 @@ export class MotorConversacion {
   // ── Odoo → Worker ─────────────────────────────────────────────────────────
 
   /**
-   * `POST /odoo/enviar`: una vendedora escribe desde Odoo. Sin IA, sin ráfaga.
+   * `POST /odoo/enviar`: una vendedora escribe desde Odoo. Sin IA, sin ráfaga. Con `autor: "bot"` es Odoo a nombre del asistente: sale
+   * igual, pero el bot sigue atendiendo y el mensaje queda como suyo.
    *
    * Con `id_envio` es idempotente: Odoo reintenta cuando no oyó la respuesta (se cayó la red, el Worker tardó más de 25 s), y ese
    * reintento NO vuelve a mandar al cliente lo que ya salió. Si ese mismo envío todavía está saliendo, el reintento espera.
@@ -2465,7 +2472,8 @@ export class MotorConversacion {
     const idEnvio = s.id_envio || null;
     const previo = idEnvio ? this.envioRecordado(idEnvio) : null;
     // Repetido: Odoo no oyó la primera respuesta. Se le devuelven otra vez los ids (sin el texto de cada burbuja, que no se guardó).
-    if (previo?.e === "listo") return { ok: true, id_mensaje: previo.id ?? `vendedora-${idEnvio}`, repetido: true, ...(previo.ids.length ? { partes: previo.ids.map((id) => ({ id_canal: id, tipo: "texto" as const })) } : {}) };
+    const autor = s.autor === "bot" ? "bot" : "vendedora";
+    if (previo?.e === "listo") return { ok: true, id_mensaje: previo.id ?? `${autor}-${idEnvio}`, repetido: true, ...(previo.ids.length ? { partes: previo.ids.map((id) => ({ id_canal: id, tipo: "texto" as const })) } : {}) };
     if (previo?.e === "curso" && this.deps.ahora() - previo.ts < ENVIO_EN_CURSO_MS) {
       throw new Error("Ese mensaje ya se está enviando: se reintenta en un momento.");
     }
@@ -2499,12 +2507,14 @@ export class MotorConversacion {
         medios[0] = { ...medios[0], pie: texto };
         burbujas = [];
       }
-      // Primero se corta lo que el bot traiga a medias: una persona está escribiendo.
-      this.humanoIntervino(cfg, ahora);
+      // Primero se corta lo que el bot traiga a medias: una persona está escribiendo. (Odoo a nombre del asistente no corta nada.)
+      if (autor === "vendedora") this.humanoIntervino(cfg, ahora);
       ids = await this.emitir({
         burbujas,
         medios,
-        autor: "vendedora",
+        autor,
+        // Lo manda Odoo, no el modelo: no hay nada que «escribir» en las pantallas ni en el canal.
+        escribiendo: false,
         registrar: false,
         progreso,
         alAvanzar: () => recordar("curso"),
@@ -2516,7 +2526,7 @@ export class MotorConversacion {
       else if (idEnvio) this.kv.poner(`${PREFIJO_ID_ENVIO}${idEnvio}`, null);
       throw err;
     }
-    const idMensaje = ids[0] ?? `vendedora-${this.deps.uuid()}`;
+    const idMensaje = ids[0] ?? `${autor}-${this.deps.uuid()}`;
     recordar("listo", idMensaje);
     await this.programar();
     // `partes` (2026-11-07): el id que el canal dio a cada burbuja o foto, para las palomitas y las citas. Un Odoo viejo lo ignora.
