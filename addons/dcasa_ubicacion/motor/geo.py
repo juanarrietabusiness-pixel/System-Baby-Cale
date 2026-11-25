@@ -150,17 +150,19 @@ def distritos_mencionados(texto, distritos):
     return [d for d in distritos if d and _normalizado(d).strip() and _normalizado(d) in escrito]
 
 
-def aviso_de_cruce(texto_escrito, zona, distritos):
+def aviso_de_cruce(texto_escrito, zona, distritos, con_mapa=True):
     """Si lo que escribió la clienta nombra otro distrito que el del punto, el aviso para que diga cuál es; si no,
-    ``''``. Solo compara distritos (los nombres de barriadas se repiten en todo el país)."""
+    ``''``. Solo compara distritos (los nombres de barriadas se repiten en todo el país). Sin mapa (``con_mapa``
+    falso: sin clave o no cargó) no hay mapa que mover: que busque la barriada (auditoría 2)."""
     del_punto = (zona.get('distrito') or '').strip()
     if not del_punto or not texto_escrito:
         return ''
     nombrados = distritos_mencionados(texto_escrito, distritos)
     if not nombrados or any(_normalizado(d) == _normalizado(del_punto) for d in nombrados):
         return ''
+    arreglo = 'Mueva el mapa o corrija la dirección.' if con_mapa else 'Busque la barriada o corrija la dirección.'
     return (f'Su punto en el mapa está en {del_punto} y en la dirección escribió {nombrados[0]}. '
-            '¿Cuál es el correcto? Mueva el mapa o corrija la dirección.')
+            f'¿Cuál es el correcto? {arreglo}')
 
 
 def token_nuevo(bytes_azar=16):

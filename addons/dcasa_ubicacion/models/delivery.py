@@ -10,9 +10,11 @@ from datetime import timedelta
 from markupsafe import Markup, escape
 
 from odoo import api, fields, models
+from odoo.addons.dcasa_envios.motor import choferes
 from odoo.addons.dcasa_envios.motor import tarjeta as motor_tarjeta
 
 from ..motor import geo
+from .zona import UbicacionInvalida
 
 
 class DeliveryCarrier(models.Model):
@@ -29,6 +31,8 @@ class DeliveryCarrier(models.Model):
 
 SIN_PENDIENTE = {'dcasa_ubic_pend_lat': 0, 'dcasa_ubic_pend_lon': 0, 'dcasa_ubic_pend_precision': 0,
                  'dcasa_ubic_pend_referencia': False}
+MISMO_SITIO_M = 30      # el punto del chat a menos de esto de la dirección de entrega: es la misma casa
+MAX_LUGAR_TARJETA = 60  # lo que cabe en «No, en …» y en «En el chat nos dio: …»
 
 
 class SaleOrder(models.Model):
@@ -47,7 +51,8 @@ class SaleOrder(models.Model):
         abandonado (sin tocar en 30 días) se borra (auditoría 2: eran coordenadas exactas sin limpieza)."""
         limite = fields.Datetime.now() - timedelta(days=30)
         self.sudo().search([('state', '=', 'draft'), ('write_date', '<', limite),
-                            ('dcasa_ubic_pend_lat', '!=', 0)]).write(SIN_PENDIENTE)
+                            '|', ('dcasa_ubic_pend_lat', '!=', 0),
+                            ('dcasa_ubic_pend_referencia', '!=', False)]).write(SIN_PENDIENTE)
 
     def _dcasa_ubic_pendiente(self):
         """``{'lat', 'lon', 'precision', 'referencia'}`` del punto que dio en el chat de la tienda, o ``None``."""
@@ -58,6 +63,49 @@ class SaleOrder(models.Model):
             return None
         return {'lat': punto[0], 'lon': punto[1], 'precision': orden.dcasa_ubic_pend_precision or None,
                 'referencia': orden.dcasa_ubic_pend_referencia or ''}
+
+    def _dcasa_ubic_pend_casa(self):
+        """La casa (número e indicaciones) que escribió en el chat de la tienda, aunque el GPS no sirviera (auditoría 2:
+        con un GPS impreciso no pasaba nada al checkout), o ``''``."""
+        self.ensure_one()
+        return self.sudo().dcasa_ubic_pend_referencia or ''
+
+    def _dcasa_ubic_hay_pendiente(self):
+        """¿Queda algo del chat de la tienda en el carrito (el punto o solo la casa)?"""
+        self.ensure_one()
+        orden = self.sudo()
+        return bool(orden.dcasa_ubic_pend_lat or orden.dcasa_ubic_pend_lon or orden.dcasa_ubic_pend_referencia)
+
+    def _dcasa_ubic_chat_distinto(self):
+        """Para la tarjeta de arriba de ``/shop/checkout`` (auditoría 2): alguien que ya tiene dirección no pasa por el
+        formulario, así que el punto que dio en el chat de la tienda nunca llegaba aunque Andrés dijera «Listo». Si el
+        carrito tiene ese punto y NO es el de la dirección de entrega elegida (a más de 30 m, o ella sin punto),
+        ``{'donde': 'Barriada Nueva Ficción, Oficina 3', 'actual': 'Villa Prueba II', 'url_si': '/shop/address?…'}``;
+        si no, ``None``. Sin coordenadas en lo que devuelve: ``url_si`` abre esa dirección con el punto del chat."""
+        self.ensure_one()
+        orden = self.sudo()
+        pendiente = orden._dcasa_ubic_pendiente()
+        if not pendiente or orden.state not in ('draft', 'sent') or not orden._has_deliverable_products():
+            return None
+        destino = orden.partner_shipping_id
+        # El carrito de una visita que todavía no dio su dirección es del usuario público: ahí no hay qué preguntar.
+        if not destino or destino == orden.website_id.user_id.sudo().partner_id:
+            return None
+        punto = destino._dcasa_ubic_punto()
+        if punto and choferes.distancia_m(punto[0], punto[1], pendiente['lat'], pendiente['lon']) <= MISMO_SITIO_M:
+            return None
+        try:
+            _lat, _lon, zona = self.env['dcasa.ubicacion']._validar(pendiente['lat'], pendiente['lon'])
+        except UbicacionInvalida:
+            return None
+        lugar = zona.get('barriada') or zona.get('corregimiento') or zona.get('distrito') or ''
+        donde = ', '.join(p for p in (lugar, pendiente['referencia']) if p)
+        actual = ((destino.dcasa_ubic_zona or '').split(' · ')[0] or destino.street or destino.city or '').strip()
+        return {
+            'donde': geo.texto_corto(donde, MAX_LUGAR_TARJETA) or self.env._('su ubicación'),
+            'actual': geo.texto_corto(actual, MAX_LUGAR_TARJETA),
+            'url_si': f'/shop/address?partner_id={destino.id}&address_type=delivery&dcasa_chat=1',
+        }
 
     def _dcasa_envio_por_ubicacion(self):
         """``{'lugar', 'total', 'total_txt'}`` si la dirección de entrega tiene un punto confirmado con precio; si no,

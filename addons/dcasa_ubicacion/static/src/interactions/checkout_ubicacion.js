@@ -5,14 +5,25 @@
  * pin fijo, «Usar mi ubicación», buscador de barriadas y lugares de la tienda. Cuando el punto cambia (y es bueno), el
  * servidor dice la zona, el precio del envío y si lo escrito nombra otro distrito (/tienda/ubicacion/zona); con «Sí,
  * aquí es» el punto queda confirmado en los campos ocultos que viajan con el formulario. Mover el mapa después lo
- * des-confirma.
+ * des-confirma; un «idle» sin movimiento (Satélite, el zoom con el botón) no.
  *
  * «Confirmar» (el botón de Odoo, abajo y fijo en el celular) cuenta como el «sí» si el punto es bueno y la zona salió
- * bien. Si falta algo, no se envía: la página baja hasta el bloque, dice ahí qué falta y lleva el foco (auditoría 1:
- * el aviso salía arriba, fuera de la vista, y parecía que «Confirmar» no hacía nada).
+ * bien. NO cuenta (auditoría 2) y en su lugar baja hasta la tarjeta del punto:
+ *   - con el aviso de cruce (escribió San Miguelito y el punto está en La Chorrera): «📍 Es aquí» / «🏠 Es otra casa».
+ *     Solo ese «sí» manda ``dcasa_ubic_cruce_ok`` (y el servidor lo exige: controllers/checkout.py);
+ *   - si el pin se movió más de 30 m después de un «Sí» o de un GPS bueno: «👆 Movió el pin. ¿Es aquí?» (un dedo que
+ *     solo quería bajar la página arrastraba el mapa y cambiaba la casa).
+ * Si falta algo, no se envía: la página baja hasta el bloque, dice ahí qué falta y lleva el foco. Sin señal, la zona
+ * dice «📶 Sin señal. Toque para reintentar»; «Confirmar» (y volver la conexión) la vuelve a pedir. Sin permiso de
+ * ubicación, lo que falta es buscar la barriada (o «Escribir») y el foco va al buscador.
  *
- * Lo escrito manda: la calle y la ciudad solo se llenan si están vacías (o si las llenó el mapa antes), y lo que llenó
- * el mapa no cuenta como «lo que escribió» para el aviso de cruce.
+ * Tras el GPS o una búsqueda, la página se desplaza para que el pin y la tarjeta queden encima de la barra fija de
+ * «Confirmar» (188 px en el celular: tapaba la mitad del mapa).
+ *
+ * Lo escrito manda: la calle y la ciudad solo se llenan si están vacías (o si las llenó el mapa antes, o si llegó con
+ * «Sí» desde la tarjeta del chat: ``data-del-chat``), y lo que llenó el mapa no cuenta como «lo que escribió» para el
+ * aviso de cruce. La calle se llama «Barriada o calle» en los dos modos (el número va en «Número de casa e
+ * indicaciones»); «Departamento, suite» vacío se esconde; al «Escribir», el número de casa va después de la ciudad.
  */
 import { CustomerAddress } from "@portal/interactions/address";
 import { Interaction } from "@web/public/interaction";
@@ -22,12 +33,33 @@ import { patch } from "@web/core/utils/patch";
 
 const CASA = "dcasa_referencia";
 const BOTON_DE_ODOO = '[name="website_sale_main_button"]';
+const MOVIDO_M = 30; // más que esto desde el último «sí» (o GPS bueno) ya es otra casa
+const SIN_SENAL = "📶 Sin señal. Toque para reintentar";
+const ESPERA = "⏳ Un momento: estamos viendo su zona";
 const FALTA_MOTIVO = {
     lejos: "🔍 Acérquese más en el mapa y ponga el pin en su puerta",
     buscado: "👆 Ahora mueva el mapa hasta su puerta",
     impreciso: "👆 Mueva el mapa hasta su puerta",
-    impreciso_sin_mapa: "📍 Su ubicación no es exacta: toque «Mi ubicación» en su puerta o busque su barriada",
 };
+
+const tactil = () => !!window.DcasaMapaEntrega?.tactil();
+
+function faltaImprecisoSinMapa() {
+    return tactil()
+        ? "📍 Su ubicación no es exacta: toque «Mi ubicación» en su puerta o busque su barriada"
+        : "📍 La computadora no da la ubicación exacta: busque su barriada o use su celular";
+}
+
+/** ¿El elemento (o uno de sus padres) va fijo en la pantalla? Devuelve ese padre o ``null``. */
+function fijo(el) {
+    for (let e = el; e && e !== document.body; e = e.parentElement) {
+        const posicion = getComputedStyle(e).position;
+        if (posicion === "fixed" || posicion === "sticky") {
+            return e;
+        }
+    }
+    return null;
+}
 
 // El número de casa va siempre (el dueño, 2026-11-25, como en PedidosYa). Odoo, al cargar y al cambiar el país, le
 // quita «required» a todo campo que no está en su lista (portal/interactions/address.js): aquí no se lo quita.
@@ -47,66 +79,118 @@ export class CheckoutUbicacion extends Interaction {
         this.ultimo = null;
         this.zonaValida = false;
         this.zonaError = false;
+        this.zonaRed = false; // el error es de la red (o del tope de intentos): se puede reintentar
+        this.hayCruce = false;
+        this.cruceOk = false;
+        this.textoPrevia = null;
         this.pedido = 0;
         this.reloj = null;
         this.relojBuscar = null;
+        this.relojTexto = null;
         this.llenadoPorElMapa = new Set();
         this.etiquetaCalle = null;
+        this.ancla = null; // el punto del último «sí», del GPS bueno o el que ya traía: el pin «se movió» desde aquí
+        this.movido = false;
+        this.sinPermiso = false;
+        this.cargando = false;
+        this.alinearTrasPrevia = false;
+        this.alinearAlLlegar = false; // tocó «Mi ubicación» o eligió un lugar: al llegar el punto, a la vista
+        this.reconfirmar = false;
+        this.faltaEspera = false;
     }
 
     start() {
         const q = (s) => this.el.querySelector(s);
         this.tarjeta = q(".o_dcasa_ubic_tarjeta");
         this.zona = q(".o_dcasa_ubic_zona");
+        this.zonaLinea = q(".o_dcasa_ubic_dato_zona");
         this.precio = q(".o_dcasa_ubic_precio");
+        this.precioLinea = q(".o_dcasa_ubic_dato_precio");
         this.cruce = q(".o_dcasa_ubic_cruce");
+        this.cruceBotones = q(".o_dcasa_ubic_cruce_botones");
+        this.cruceSi = q(".o_dcasa_ubic_cruce_si");
+        this.cruceNo = q(".o_dcasa_ubic_cruce_no");
+        this.reintentar = q(".o_dcasa_ubic_reintentar");
         this.botonSi = q(".o_dcasa_ubic_si");
         this.botonGps = q(".o_dcasa_ubic_gps");
         this.ok = q(".o_dcasa_ubic_ok");
+        this.aviso = q(".o_dcasa_ubic_aviso");
         this.referencia = q(`[name=${CASA}]`);
+        this.casa = q(".o_dcasa_ubic_casa");
         this.lista = q(".o_dcasa_ubic_lista");
         this.buscar = q(".o_dcasa_ubic_buscar");
         this.faltaPunto = q(".o_dcasa_ubic_falta_punto");
+        this.faltaTarjeta = q(".o_dcasa_ubic_falta_tarjeta");
         this.faltaCasa = q(".o_dcasa_ubic_falta_casa");
         this.oculto = (n) => this.el.querySelector(`[name=dcasa_ubic_${n}]`);
+        // Donde vive el número de casa en el modo mapa (al «Escribir» se va después de la ciudad).
+        this.lugarCasa = document.createComment("casa");
+        this.casa.before(this.lugarCasa);
         // «Confirmar» de Odoo: se revisa ANTES que Odoo (fase de captura) para llenar el «sí» o frenar el envío.
         this.addListener(document, "click", (ev) => this.alEnviar(ev), { capture: true });
         this.addListener(this.referencia, "input", () => this.quitarFalta(this.faltaCasa));
         for (const radio of this.el.querySelectorAll("[name=dcasa_ubic_modo]")) {
             this.addListener(radio, "change", () => this.modo());
         }
-        for (const nombre of ["street", "city"]) {
+        for (const nombre of ["street", "street2", "city"]) {
             const campo = this.form && this.form.querySelector(`[name=${nombre}]`);
-            if (campo) this.addListener(campo, "input", () => this.llenadoPorElMapa.delete(nombre));
+            if (campo) this.addListener(campo, "input", () => this.alEscribir(nombre));
         }
+        // «Departamento, suite, etc.» sobra: el número y las indicaciones van en el bloque. Solo si está vacío (si
+        // tiene algo, se ve: no se esconde lo que el aviso de cruce podría nombrar).
+        const depto = this.form?.querySelector("[name=street2]");
+        if (depto && !depto.value.trim()) depto.closest("#div_street2")?.classList.add("d-none");
+        if (this.el.dataset.delChat) {
+            // Dijo «Sí» a la ubicación del chat: la calle y la ciudad que tenía se cambian por las del punto.
+            this.llenadoPorElMapa.add("street");
+            this.llenadoPorElMapa.add("city");
+        }
+        this.etiquetarCalle(true);
         this.modo();
         const Mapa = window.DcasaMapaEntrega;
         if (!Mapa) return;
         this.addListener(this.botonSi, "click", () => this.confirmar(true));
+        this.addListener(this.botonGps, "click", () => {
+            this.alinearAlLlegar = true;
+        });
+        this.addListener(this.cruceSi, "click", () => this.esAqui());
+        this.addListener(this.cruceNo, "click", () => this.esOtraCasa());
+        this.addListener(this.reintentar, "click", () => this.previa());
+        this.addListener(window, "online", () => {
+            if (this.zonaError && this.zonaRed) this.previa();
+        });
         this.addListener(this.buscar, "input", () => this.alBuscar());
         this.mapa = Mapa.montar({
             mapa: q(".o_dcasa_ubic_mapa"),
             clave: this.el.dataset.clave || "",
             botonGps: this.botonGps,
-            aviso: q(".o_dcasa_ubic_aviso"),
+            aviso: this.aviso,
+            permiso: q(".o_dcasa_ubic_permiso"),
             alCambiar: (p) => this.cambio(p),
             alSinMapa: () => q(".o_dcasa_ubic_mapa_marco").classList.add("o_dcasa_sin_mapa"),
+            alFallarGps: (codigo) => this.alFallarGps(codigo),
         });
         if (!this.el.dataset.clave) q(".o_dcasa_ubic_mapa_marco").classList.add("o_dcasa_sin_mapa");
         const lat = parseFloat(this.el.dataset.lat), lon = parseFloat(this.el.dataset.lon);
         if (Number.isFinite(lat) && Number.isFinite(lon)) {
             // El punto de la ficha (o el del chat: «whatsapp», «enlace») o el que dio en el chat de la tienda: solo
-            // falta tocar «Sí, aquí es» (o «Confirmar»).
+            // falta tocar «Sí, aquí es» (o «Confirmar»). Cuenta como un «sí» previo: moverlo lejos pide otro.
             const precision = parseInt(this.el.dataset.precision, 10);
+            this.cargando = true;
             this.mapa.centrar(lat, lon, 18, this.el.dataset.origen || "pin", Number.isFinite(precision) ? precision : null);
+            this.cargando = false;
+            this.ancla = { lat: this.ultimo?.lat ?? lat, lon: this.ultimo?.lon ?? lon };
         }
     }
 
     destroy() {
         clearTimeout(this.reloj);
         clearTimeout(this.relojBuscar);
+        clearTimeout(this.relojTexto);
         this.mapa?.destruir();
         this.etiquetarCalle(false);
+        this.ponerCasa(true);
+        this.lugarCasa?.remove();
     }
 
     enMapa() {
@@ -119,40 +203,107 @@ export class CheckoutUbicacion extends Interaction {
         // El número de casa y las indicaciones van siempre (en el mapa o escrita).
         this.referencia.required = true;
         this.quitarFalta(this.faltaPunto);
-        this.etiquetarCalle(enMapa);
+        this.ponerCasa(enMapa);
     }
 
-    /** Con el mapa, el número de casa va abajo («Número de casa e indicaciones»): la calle de Odoo («Calle y número»)
-     *  se llama «Barriada o calle» para no pedir el número dos veces (auditoría 1). Escrita, vuelve a la de Odoo. */
-    etiquetarCalle(enMapa) {
+    /** Con el mapa, el número de casa va en el bloque (debajo de «¿Es aquí?»). Al «Escribir», después de la calle y la
+     *  ciudad (auditoría 2: se pedía antes que la calle). Odoo reordena la ciudad y el código postal entre ellos: el
+     *  número va antes de la línea que abre el país, así queda después de los dos. */
+    ponerCasa(enMapa) {
+        if (!this.casa || !this.lugarCasa?.parentNode) return;
+        const fuera = !enMapa && this.form;
+        const pais = fuera && this.form.querySelector("#div_country");
+        if (fuera && pais) {
+            const antes = pais.previousElementSibling?.classList.contains("w-100") ? pais.previousElementSibling : pais;
+            antes.before(this.casa);
+        } else {
+            this.lugarCasa.after(this.casa);
+        }
+        for (const clase of ["col-lg-12", "mb-2", "o_dcasa_ubicacion", "o_dcasa_ubic_casa_fuera"]) {
+            this.casa.classList.toggle(clase, !!(fuera && pais));
+        }
+    }
+
+    /** La calle de Odoo («Calle y número») se llama «Barriada o calle» en los dos modos: el número de casa va en
+     *  «Número de casa e indicaciones» y se pedía dos veces (auditorías 1 y 2). */
+    etiquetarCalle(nuestra) {
         const campo = this.form?.querySelector("[name=street]");
         const etiqueta = campo?.id && this.form.querySelector(`label[for="${campo.id}"]`);
         if (!etiqueta) return;
         if (this.etiquetaCalle === null) this.etiquetaCalle = etiqueta.textContent.trim();
-        etiqueta.textContent = enMapa ? "Barriada o calle" : this.etiquetaCalle;
+        etiqueta.textContent = nuestra ? "Barriada o calle" : this.etiquetaCalle;
+    }
+
+    confirmado() {
+        return this.oculto("confirmada").value === "1";
     }
 
     cambio(p) {
         this.ultimo = p;
-        this.oculto("confirmada").value = "";
-        this.ok.classList.add("d-none");
-        this.botonSi.classList.remove("d-none");
+        if (p.lat !== null) {
+            this.sinPermiso = false;
+            if (p.origen === "busqueda") {
+                // Buscó otra barriada: es otro lugar a propósito, no un arrastre.
+                this.ancla = null;
+                this.movido = false;
+            } else if (p.origen === "gps" && p.bueno) {
+                this.ancla = { lat: p.lat, lon: p.lon };
+                this.movido = false;
+            } else if (this.ancla) {
+                this.movido = window.DcasaMapaEntrega.distanciaM(p, this.ancla) > MOVIDO_M;
+            }
+        }
+        // El mismo punto ya confirmado (Satélite, el zoom con el botón): el «sí» sigue.
+        if (this.confirmado() && p.bueno && Number(this.oculto("lat").value) === p.lat
+                && Number(this.oculto("lon").value) === p.lon) {
+            this.actualizar();
+            return;
+        }
+        this.desconfirmar();
         this.zonaValida = false;
         this.zonaError = false;
+        this.zonaRed = false;
+        this.hayCruce = false;
+        this.reconfirmar = false;
         this.pedido++; // lo que estaba en camino ya no vale
         clearTimeout(this.reloj);
+        // Lo trajo el GPS o la búsqueda (no un arrastre): que el pin y la tarjeta queden a la vista.
+        const delCodigo = this.alinearAlLlegar && (p.origen === "gps" || p.origen === "busqueda");
+        if (delCodigo) this.alinearAlLlegar = false;
         if (p.bueno) {
             this.quitarFalta(this.faltaPunto);
             this.reloj = setTimeout(() => this.previa(), 500);
+            if (delCodigo && !this.cargando) this.alinearTrasPrevia = true;
         } else {
             // Sin un punto bueno no hay zona ni precio que mostrar (auditoría 1): el aviso del mapa dice qué hacer.
             this.tarjeta.classList.add("d-none");
+            // GPS impreciso o una barriada buscada, con el mapa: que se vea el pin para moverlo.
+            if (delCodigo && !this.cargando && p.lat !== null) this.alinear();
         }
         this.actualizar();
     }
 
+    /** Quita el «sí» (el punto, la zona o lo escrito cambiaron). */
+    desconfirmar() {
+        this.oculto("confirmada").value = "";
+        this.oculto("cruce_ok").value = "";
+        this.cruceOk = false;
+        this.ok.classList.add("d-none");
+        this.quitarFalta(this.faltaTarjeta);
+        this.mostrarBotones();
+    }
+
+    /** Con el aviso de cruce, «📍 Es aquí» / «🏠 Es otra casa» en lugar de «Sí, aquí es». */
+    mostrarBotones() {
+        const listo = this.confirmado();
+        this.botonSi.classList.toggle("d-none", listo || this.hayCruce);
+        this.cruceBotones.classList.toggle("d-none", listo || !this.hayCruce);
+    }
+
     actualizar() {
-        this.botonSi.disabled = !(this.ultimo && this.ultimo.bueno && this.zonaValida);
+        const puede = !!(this.ultimo && this.ultimo.bueno && this.zonaValida);
+        this.botonSi.disabled = !puede;
+        this.cruceSi.disabled = !puede;
     }
 
     /** Lo que escribió la clienta (no lo que llenó el mapa: eso daba un aviso de cruce falso, auditoría 1). */
@@ -162,26 +313,70 @@ export class CheckoutUbicacion extends Interaction {
         return ["street", "street2", "city"].map(valor).filter(Boolean).join(", ");
     }
 
+    /** Escribió en la calle o la ciudad: si cambia lo que se compara con el punto, se vuelve a ver el cruce. */
+    alEscribir(nombre) {
+        this.llenadoPorElMapa.delete(nombre);
+        clearTimeout(this.relojTexto);
+        this.relojTexto = setTimeout(() => {
+            if (this.ultimo?.bueno && this.zonaValida && this.textoEscrito() !== this.textoPrevia) {
+                this.reconfirmar = this.confirmado();
+                this.desconfirmar();
+                this.previa();
+            }
+        }, 700);
+    }
+
     async previa() {
         if (!this.ultimo || !this.ultimo.bueno) return;
+        clearTimeout(this.reloj);
         const n = ++this.pedido;
+        const texto = this.textoEscrito();
+        this.textoPrevia = texto;
+        this.zonaValida = false;
+        this.zonaError = false;
+        this.zonaRed = false;
         this.tarjeta.classList.remove("d-none");
+        this.zonaLinea.classList.remove("d-none");
+        this.precioLinea.classList.remove("d-none");
+        this.reintentar.classList.add("d-none");
         this.zona.textContent = "…";
         this.precio.textContent = "";
-        this.cruce.textContent = "";
         this.actualizar();
         let r;
         try {
             r = await this.waitFor(rpc("/tienda/ubicacion/zona", {
-                lat: this.ultimo.lat, lon: this.ultimo.lon, texto: this.textoEscrito(),
+                lat: this.ultimo.lat, lon: this.ultimo.lon, texto, con_mapa: !!this.mapa?.conMapa(),
             }));
         } catch {
-            r = { error: "Sin conexión: intente otra vez." };
+            // Sin señal (o el servidor no contestó): no es que el punto no sirva (auditoría 2).
+            r = { error: SIN_SENAL, red: true };
         }
         if (n !== this.pedido) return;
         if (r.error) {
             this.zonaError = true;
-            this.zona.textContent = r.error;
+            this.zonaRed = !!r.red || r.motivo === "tope";
+            this.reconfirmar = false;
+            if (this.zonaRed) {
+                this.zonaLinea.classList.add("d-none");
+                this.precioLinea.classList.add("d-none");
+                this.textoRed = r.red ? SIN_SENAL : `⏳ ${r.error} Toque para reintentar`;
+                this.reintentar.querySelector("span").textContent = this.textoRed;
+                this.reintentar.classList.remove("d-none");
+            } else {
+                this.zona.textContent = r.error;
+                this.precioLinea.classList.add("d-none");
+            }
+            if (this.faltaEspera) {
+                // «Confirmar» esperaba la zona: ahora dice qué pasó (sin volver a pedirla sola: sin señal, sería un ciclo).
+                this.faltaPunto.textContent = this.zonaRed ? this.textoRed : `📍 ${r.error}`;
+                this.faltaEspera = false;
+            }
+            this.actualizar();
+            if (this.alinearTrasPrevia) {
+                // Que vea «📶 Sin señal. Toque para reintentar» (o por qué no sirve), no la barra de abajo.
+                this.alinearTrasPrevia = false;
+                this.alinear();
+            }
             return;
         }
         this.zonaValida = true;
@@ -189,10 +384,26 @@ export class CheckoutUbicacion extends Interaction {
         this.zona.textContent = [r.barriada || r.corregimiento, r.distrito].filter(Boolean).join(", ")
             || "Fuera de nuestra lista";
         this.precio.textContent = r.precio ? `Envío ${r.precio}` : "Envío: se lo confirmamos";
+        this.hayCruce = !!r.aviso;
         this.cruce.textContent = r.aviso || "";
         this.llenarSiVacio("city", r.distrito || "");
         this.llenarSiVacio("street", [r.barriada, r.corregimiento].filter(Boolean).join(", "));
+        this.mostrarBotones();
         this.actualizar();
+        if (this.faltaEspera) {
+            // «Confirmar» esperaba la zona: ya está (si falta otra cosa, lo dirá al tocarlo otra vez).
+            this.faltaEspera = false;
+            this.quitarFalta(this.faltaPunto);
+        }
+        if (this.reconfirmar && !this.hayCruce) {
+            // Escribió la calle después del «sí» y no hay cruce: el «sí» sigue.
+            this.confirmar(false);
+        }
+        this.reconfirmar = false;
+        if (this.alinearTrasPrevia) {
+            this.alinearTrasPrevia = false;
+            this.alinear();
+        }
     }
 
     llenarSiVacio(nombre, valor) {
@@ -201,6 +412,7 @@ export class CheckoutUbicacion extends Interaction {
         if (campo.value.trim() && !this.llenadoPorElMapa.has(nombre)) return;
         campo.value = valor;
         this.llenadoPorElMapa.add(nombre);
+        // Lo que compara el aviso de cruce no cambia: lo del mapa no cuenta como escrito.
     }
 
     confirmar(conFoco) {
@@ -209,28 +421,81 @@ export class CheckoutUbicacion extends Interaction {
         this.oculto("lon").value = this.ultimo.lon;
         this.oculto("origen").value = this.ultimo.origen || "pin";
         this.oculto("precision").value = this.ultimo.precision ?? "";
+        this.oculto("cruce_ok").value = this.cruceOk ? "1" : "";
         this.oculto("confirmada").value = "1";
+        this.ancla = { lat: this.ultimo.lat, lon: this.ultimo.lon };
+        this.movido = false;
         this.ok.classList.remove("d-none");
-        this.botonSi.classList.add("d-none");
+        this.mostrarBotones();
         this.quitarFalta(this.faltaPunto);
+        this.quitarFalta(this.faltaTarjeta);
         if (conFoco && !this.referencia.value.trim()) this.referencia.focus();
+    }
+
+    /** «📍 Es aquí»: el punto es el bueno aunque lo escrito nombre otro distrito. */
+    esAqui() {
+        if (this.cruceSi.disabled) return;
+        this.cruceOk = true;
+        this.confirmar(true);
+    }
+
+    /** «🏠 Es otra casa» (un regalo: la dirección de la mamá): a buscar esa barriada, o a «Escribir». */
+    esOtraCasa() {
+        this.desconfirmar();
+        this.aviso.textContent = "🔍 Busque la barriada de esa casa 👇 (o toque «Escribir»)";
+        this.buscar.scrollIntoView({ block: "center", behavior: "smooth" });
+        this.buscar.focus({ preventScroll: true });
+    }
+
+    alFallarGps(codigo) {
+        this.sinPermiso = codigo === 1 && !(this.ultimo && this.ultimo.lat !== null);
+        if (this.faltaPunto.textContent) this.quitarFalta(this.faltaPunto);
+    }
+
+    /** Lo que falta del punto (con el mapa), o ``null`` si ya puede contar como el «sí». */
+    loQueFaltaDelPunto() {
+        const p = this.ultimo;
+        if (!p || p.lat === null) {
+            if (this.sinPermiso) {
+                return { donde: this.faltaPunto, texto: "🔍 Busque su barriada (o toque «Escribir»)", foco: this.buscar };
+            }
+            return { donde: this.faltaPunto, texto: "📍 Toque «Mi ubicación» o busque su barriada", foco: this.botonGps };
+        }
+        if (!p.bueno) {
+            if (p.motivo === "impreciso_sin_mapa") {
+                return { donde: this.faltaPunto, texto: faltaImprecisoSinMapa(),
+                         foco: tactil() ? this.botonGps : this.buscar };
+            }
+            return { donde: this.faltaPunto, texto: FALTA_MOTIVO[p.motivo] || "📍 Falta su ubicación",
+                     foco: this.faltaPunto };
+        }
+        if (this.zonaError && this.zonaRed) {
+            // La señal volvió (o no): se vuelve a pedir la zona en vez de repetir el error (auditoría 2).
+            this.previa();
+            return { donde: this.faltaPunto, texto: ESPERA, foco: this.faltaPunto, espera: true };
+        }
+        if (this.zonaError) return { donde: this.faltaPunto, texto: `📍 ${this.zona.textContent}`, foco: this.faltaPunto };
+        if (!this.zonaValida || this.textoEscrito() !== this.textoPrevia) {
+            // Todavía no está la zona, o escribió la calle o la ciudad recién: se compara otra vez con el punto.
+            if (this.zonaValida) this.previa();
+            return { donde: this.faltaPunto, texto: ESPERA, foco: this.faltaPunto, espera: true };
+        }
+        if (this.hayCruce && !this.cruceOk) {
+            return { donde: null, texto: "", foco: this.cruceSi, destino: this.tarjeta };
+        }
+        if (this.movido) {
+            return { donde: this.faltaTarjeta, texto: "👆 Movió el pin. ¿Es aquí?", foco: this.botonSi,
+                     destino: this.tarjeta };
+        }
+        return null;
     }
 
     /** ¿Qué le falta para poder seguir? ``null`` si nada (y, con el mapa, el «sí» ya quedó en los campos ocultos). */
     loQueFalta() {
-        if (this.enMapa() && this.oculto("confirmada").value !== "1") {
-            const p = this.ultimo;
-            if (p && p.bueno && this.zonaValida) {
-                this.confirmar(false); // «Confirmar» cuenta como «Sí, aquí es»
-            } else {
-                let texto;
-                if (!p || p.lat === null) texto = "📍 Toque «Mi ubicación» o busque su barriada";
-                else if (!p.bueno) texto = FALTA_MOTIVO[p.motivo] || "📍 Falta su ubicación";
-                else if (this.zonaError) texto = `📍 ${this.zona.textContent}`;
-                else texto = "⏳ Un momento: estamos viendo su zona";
-                const alGps = !p || p.lat === null || p.motivo === "impreciso_sin_mapa";
-                return { donde: this.faltaPunto, texto, foco: alGps ? this.botonGps : this.faltaPunto };
-            }
+        if (this.enMapa() && !this.confirmado()) {
+            const falta = this.loQueFaltaDelPunto();
+            if (falta) return falta;
+            this.confirmar(false); // «Confirmar» cuenta como «Sí, aquí es»
         }
         if (!this.referencia.value.trim()) {
             return { donde: this.faltaCasa, texto: "🏠 Escriba su número de casa", foco: this.referencia };
@@ -247,14 +512,24 @@ export class CheckoutUbicacion extends Interaction {
         this.mostrarFalta(falta);
     }
 
-    mostrarFalta({ donde, texto, foco }) {
+    mostrarFalta({ donde, texto, foco, destino, espera }) {
         this.quitarFalta(this.faltaPunto);
         this.quitarFalta(this.faltaCasa);
-        donde.textContent = texto;
-        donde.classList.remove("d-none");
+        this.quitarFalta(this.faltaTarjeta);
+        this.faltaEspera = !!espera;
+        if (donde) {
+            donde.textContent = texto;
+            donde.classList.remove("d-none");
+        }
         if (foco === this.referencia) this.referencia.classList.add("is-invalid");
-        const destino = donde === this.faltaPunto ? this.el : this.referencia;
-        destino.scrollIntoView({ block: donde === this.faltaPunto ? "start" : "center", behavior: "smooth" });
+        if (destino === this.tarjeta) {
+            this.alinear(foco);
+        } else if (foco === this.buscar) {
+            this.buscar.scrollIntoView({ block: "center", behavior: "smooth" });
+        } else if (donde) {
+            const casa = donde === this.faltaCasa;
+            (casa ? this.referencia : this.el).scrollIntoView({ block: casa ? "center" : "start", behavior: "smooth" });
+        }
         foco?.focus({ preventScroll: true });
     }
 
@@ -263,6 +538,44 @@ export class CheckoutUbicacion extends Interaction {
         donde.textContent = "";
         donde.classList.add("d-none");
         if (donde === this.faltaCasa) this.referencia.classList.remove("is-invalid");
+        if (donde === this.faltaPunto) this.faltaEspera = false;
+    }
+
+    /** Lo más alto de la barra fija de abajo (la de «Confirmar» en el celular) o el borde de la pantalla. */
+    techoDeLaBarra() {
+        let techo = window.innerHeight;
+        for (const boton of document.querySelectorAll(BOTON_DE_ODOO)) {
+            const barra = fijo(boton);
+            const r = barra?.getBoundingClientRect();
+            if (r && r.height && r.top > window.innerHeight / 3) techo = Math.min(techo, r.top);
+        }
+        return techo;
+    }
+
+    /** Lo más bajo de la cabecera si va fija arriba (o 0). */
+    pisoDeLaCabecera() {
+        const cabecera = document.querySelector("header#top");
+        const r = cabecera && fijo(cabecera) && cabecera.getBoundingClientRect();
+        return r && r.bottom > 0 && r.top < window.innerHeight / 3 ? r.bottom : 0;
+    }
+
+    /** Que el pin (el centro del mapa) y la tarjeta del punto queden a la vista, encima de la barra fija. Con
+     *  ``boton`` («📍 Es aquí», «Sí, aquí es»), del pin (o la tarjeta) a ese botón. Si no cabe todo (320 × 640:
+     *  la barra se lleva 188 px), manda el botón, o el pin. */
+    alinear(boton = null) {
+        const marco = this.el.querySelector(".o_dcasa_ubic_mapa_marco");
+        const conMapa = this.enMapa() && marco && !marco.classList.contains("o_dcasa_sin_mapa") && marco.offsetHeight;
+        const rm = conMapa ? marco.getBoundingClientRect() : null;
+        const rt = this.tarjeta.classList.contains("d-none") ? null : this.tarjeta.getBoundingClientRect();
+        if (!rm && !rt) return;
+        // El pin mide 54 px y su punta está en el centro del mapa.
+        const arriba = rm ? rm.top + rm.height / 2 - 64 : rt.top;
+        const abajo = boton ? boton.getBoundingClientRect().bottom : rt ? rt.bottom : rm.top + rm.height / 2 + 32;
+        const minimo = abajo - (this.techoDeLaBarra() - 8); // lo menos que hay que bajar: lo de abajo, sobre la barra
+        const maximo = arriba - (this.pisoDeLaCabecera() + 8); // lo más: lo de arriba, bajo la cabecera
+        const delta = minimo <= maximo ? Math.min(Math.max(0, minimo), maximo) : boton ? minimo : maximo;
+        if (Math.abs(delta) < 4) return;
+        window.scrollBy({ top: delta, behavior: "smooth" });
     }
 
     alBuscar() {
@@ -277,14 +590,14 @@ export class CheckoutUbicacion extends Interaction {
             try {
                 r = await this.waitFor(rpc("/tienda/ubicacion/buscar", { texto }));
             } catch {
-                r = { lugares: [] };
+                r = { lugares: [], red: true };
             }
             this.lista.textContent = "";
             const lugares = r.lugares || [];
             if (!lugares.length) {
                 const li = document.createElement("li");
                 li.className = "text-muted";
-                li.textContent = "No lo encontramos. Pruebe otro nombre.";
+                li.textContent = r.red || r.error ? "📶 Sin señal. Pruebe otra vez." : "No lo encontramos. Pruebe otro nombre.";
                 this.lista.appendChild(li);
                 return;
             }
@@ -298,6 +611,7 @@ export class CheckoutUbicacion extends Interaction {
                 s.textContent = lugar.zona;
                 b.appendChild(s);
                 this.addListener(b, "click", () => {
+                    this.alinearAlLlegar = true;
                     this.mapa.centrar(lugar.lat, lugar.lon, 17, "busqueda");
                     this.lista.textContent = "";
                     this.buscar.value = lugar.nombre;

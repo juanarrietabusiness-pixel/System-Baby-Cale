@@ -3,11 +3,17 @@
  * enlace de un solo uso (/u/<secreto>) y el checkout de la tienda.
  *
  * Cómo funciona (la idea de Nébula, con lo que le faltaba):
- *   - El pin está FIJO en el centro y la clienta mueve el mapa debajo (con un dedo: gestureHandling «greedy»). El
- *     centro, cuando el mapa se detiene, es el punto.
+ *   - El pin está FIJO en el centro y la clienta mueve el mapa debajo. El centro, cuando el mapa se detiene, es el
+ *     punto. En el teléfono, con DOS dedos (gestureHandling «cooperative»): con uno baja la página. Con «greedy» un
+ *     dedo que solo quería bajar la página arrastraba el mapa y cambiaba la casa sin que ella lo notara (auditoría 2).
+ *     En la computadora, con el ratón como siempre. Un «idle» sin movimiento (cambiar a Satélite, el teclado, las
+ *     teselas) no avisa nada: no es un punto nuevo.
  *   - «Usar mi ubicación» pide el GPS (alta precisión). Si el error es de más de 100 m, se le pide mover el mapa hasta
- *     su puerta: hasta entonces el punto no cuenta como bueno. Sin mapa, ese GPS no sirve: que lo intente en su puerta
- *     con la ubicación precisa o que busque su barriada (y la página no le muestra precio).
+ *     su puerta (el mapa abre a zoom 16, no 18: se ve el barrio para encontrarla): hasta entonces el punto no cuenta
+ *     como bueno. Sin mapa, ese GPS no sirve: que lo intente en su puerta con la ubicación precisa o que busque su
+ *     barriada (y la página no le muestra precio). En una computadora el «GPS» sale de la conexión a internet: se le
+ *     dice que busque su barriada o use su celular. Sin permiso (o si falla), ``alFallarGps(código)`` (1 = sin permiso)
+ *     y, en ``permiso``, una línea de cómo permitirla.
  *   - Buscar: la tabla de lugares de la tienda (barriadas, PH, lugares conocidos), con «buscar(texto)» que pone quien
  *     monta el mapa. Elegir uno centra el mapa ahí (origen «busqueda»), pero eso es la barriada, no su puerta: con
  *     mapa, el punto no es bueno hasta que lo MUEVA (auditoría 1); sin mapa vale, avisándole que es aproximado.
@@ -18,7 +24,8 @@
  * window.DcasaMapaEntrega.montar(opciones) → { punto(), conMapa(), centrar(lat, lon, zoom, origen, precision),
  *                                              destruir() }
  *   opciones: { mapa: Element|null, clave: string, nonce: string, botonGps: Element, aviso: Element,
- *               alCambiar(estado), alSinMapa(motivo) }
+ *               permiso: Element|null, alCambiar(estado), alSinMapa(motivo), alFallarGps(codigo) }
+ * window.DcasaMapaEntrega.distanciaM(a, b): los metros entre dos puntos {lat, lon}. tactil(): ¿es un teléfono?
  *   estado: { lat, lon, origen, precision, zoom, bueno, motivo, aproximado }
  *   motivo (si no es bueno): sin_punto, lejos, buscado, impreciso, impreciso_sin_mapa.
  */
@@ -29,6 +36,9 @@
   var PRECISION_MAX_M = 100;
   var ZOOM_MINIMO = 16; // con el mapa, para confirmar hay que estar a nivel de calle
   var ESPERA_GOOGLE_MS = 15000;
+  var ZOOM_CASA = 18;
+  var ZOOM_BARRIO = 16; // GPS impreciso con mapa: se ve el barrio para mover el pin hasta la puerta
+  var PERMISO = "🔓 Para usar «Mi ubicación», permita la ubicación en los ajustes de su navegador.";
   var cargando = null;
   var claveRechazada = false;
   var alRechazarClave = [];
@@ -99,6 +109,25 @@
     return Math.round(n * 1e7) / 1e7;
   }
 
+  // ¿Un teléfono o una tableta (el dedo es el puntero principal)? En la computadora el «GPS» sale de la conexión a
+  // internet (no del aparato) y el mapa se mueve con el ratón.
+  function tactil() {
+    try {
+      return !!(window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function distanciaM(a, b) {
+    if (!a || !b || a.lat === null || b.lat === null) return Infinity;
+    var r = 6371000, rad = Math.PI / 180;
+    var dLat = (b.lat - a.lat) * rad, dLon = (b.lon - a.lon) * rad;
+    var h = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(a.lat * rad) * Math.cos(b.lat * rad) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    return 2 * r * Math.asin(Math.min(1, Math.sqrt(h)));
+  }
+
   function montar(op) {
     var estado = { lat: null, lon: null, origen: null, precision: null, zoom: null };
     var mapa = null;
@@ -107,6 +136,7 @@
     var vivo = true;
     var sinMapaYa = false;
     var ultimoPuesto = null; // el último punto que dio el GPS o la búsqueda (por si Google no da el centro)
+    var avisado = null; // lo último que se le avisó a la página (un «idle» igual no es un punto nuevo)
 
     function bueno() {
       if (estado.lat === null) return { bueno: false, motivo: "sin_punto" };
@@ -137,11 +167,14 @@
       else if (p.motivo === "buscado") texto(op.aviso, "👆 Ahora mueva el mapa hasta su puerta");
       else if (p.motivo === "impreciso") texto(op.aviso, "👆 Mueva el mapa: ponga el pin en su puerta");
       else if (p.motivo === "impreciso_sin_mapa")
-        texto(op.aviso, "📍 Su teléfono no da la ubicación exacta. Active la ubicación precisa y toque «Mi ubicación» " +
-          "en su puerta, o busque su barriada 👇");
+        texto(op.aviso, tactil()
+          ? "📍 Su teléfono no da la ubicación exacta. Active la ubicación precisa y toque «Mi ubicación» en su " +
+            "puerta, o busque su barriada 👇"
+          : "📍 La computadora no da la ubicación exacta: busque su barriada 👇 o use su celular");
       else if (p.aproximado)
         texto(op.aviso, "📍 Es aproximado (su barriada). En su puerta, toque «Mi ubicación» para que sea exacto");
       else texto(op.aviso, "");
+      avisado = { lat: estado.lat, lon: estado.lon, zoom: estado.zoom, origen: estado.origen };
       if (op.alCambiar) op.alCambiar(p);
     }
 
@@ -193,11 +226,12 @@
       estado.precision = precision === undefined ? null : precision;
       marcado = true;
       ultimoPuesto = { lat: redondo(lat), lon: redondo(lon) };
+      texto(op.permiso, "");
       if (mapa) {
         porCodigo = true;
         try {
           mapa.setCenter({ lat: lat, lng: lon });
-          mapa.setZoom(zoom || 18);
+          mapa.setZoom(zoom || ZOOM_CASA);
         } catch (e) {
           // el mapa se rompió: tomarCentro (aquí abajo) pasa al modo sin mapa con este mismo punto
         }
@@ -216,7 +250,7 @@
       cargarGoogle(op.clave, op.nonce).then(function (maps) {
         if (!vivo || sinMapaYa) return;
         mapa = new maps.Map(op.mapa, {
-          center: PANAMA, zoom: 12, gestureHandling: "greedy", clickableIcons: false,
+          center: PANAMA, zoom: 12, gestureHandling: tactil() ? "cooperative" : "greedy", clickableIcons: false,
           disableDefaultUI: true, zoomControl: true, mapTypeControl: true,
           mapTypeControlOptions: { mapTypeIds: ["roadmap", "hybrid"] },
         });
@@ -237,13 +271,20 @@
           tomarCentro();
           if (!mapa) return;
           if (!deCodigo && !estado.origen) estado.origen = "pin";
+          // Sin movimiento de verdad (Satélite, el teclado del teléfono, las teselas que terminan de cargar): nada que
+          // avisar. Antes cada «idle» des-confirmaba el «sí» (auditoría 2).
+          if (avisado && avisado.lat === estado.lat && avisado.lon === estado.lon && avisado.zoom === estado.zoom &&
+            avisado.origen === estado.origen) return;
           avisar();
         });
         if (claveRechazada) {
           sinMapa("clave");
           return;
         }
-        if (estado.lat !== null) centrar(estado.lat, estado.lon, 18, estado.origen, estado.precision);
+        if (estado.lat !== null) {
+          var impreciso = estado.origen === "gps" && estado.precision !== null && estado.precision > PRECISION_MAX_M;
+          centrar(estado.lat, estado.lon, impreciso ? ZOOM_BARRIO : ZOOM_CASA, estado.origen, estado.precision);
+        }
       }).catch(function (error) {
         sinMapa((error && error.message) || "libreria");
       });
@@ -251,9 +292,28 @@
       op.mapa.classList.add("o_dcasa_mapa_sin_mapa");
     }
 
+    // En el teléfono el mapa se mueve con dos dedos: la pista lo dice (con un dedo baja la página).
+    var pista = op.mapa && op.mapa.parentElement && op.mapa.parentElement.querySelector(".o_dcasa_ubic_pista, .pista");
+    if (pista && tactil()) {
+      var nodos = pista.childNodes;
+      for (var i = nodos.length - 1; i >= 0; i--) {
+        if (nodos[i].nodeType === 3 && nodos[i].textContent.trim()) {
+          nodos[i].textContent = "Mueva el mapa con dos dedos";
+          break;
+        }
+      }
+    }
+
+    function falloGps(codigo, conMapa, sinMapaTexto) {
+      if (op.botonGps) op.botonGps.disabled = false;
+      texto(op.aviso, mapa ? conMapa : sinMapaTexto);
+      texto(op.permiso, codigo === 1 ? PERMISO : "");
+      if (op.alFallarGps) op.alFallarGps(codigo);
+    }
+
     function usarGps() {
       if (!navigator.geolocation) {
-        texto(op.aviso, mapa ? "👆 Mueva el mapa hasta su casa" : "Busque su barriada aquí abajo 👇");
+        falloGps(0, "👆 Mueva el mapa hasta su casa", "Busque su barriada aquí abajo 👇");
         return;
       }
       texto(op.aviso, "📍 Buscando…");
@@ -263,20 +323,22 @@
           if (op.botonGps) op.botonGps.disabled = false;
           try {
             var precision = Math.round(pos.coords.accuracy || 0);
-            centrar(pos.coords.latitude, pos.coords.longitude, 18, "gps", precision);
+            // Impreciso: zoom 16 (se ve el barrio para mover el pin); bueno: a nivel de la casa.
+            centrar(pos.coords.latitude, pos.coords.longitude, precision > PRECISION_MAX_M ? ZOOM_BARRIO : ZOOM_CASA,
+              "gps", precision);
           } catch (e) {
             // Nunca dejar «Buscando…» colgado.
-            texto(op.aviso, "No la encontramos: intente otra vez o busque su barriada 👇");
+            falloGps(2, "No la encontramos: 👆 mueva el mapa o busque su barriada",
+              "No la encontramos: intente otra vez o busque su barriada 👇");
           }
         },
         function (error) {
-          if (op.botonGps) op.botonGps.disabled = false;
           if (error && error.code === 1) {
-            texto(op.aviso, mapa ? "Sin permiso de ubicación: 👆 mueva el mapa o busque su barriada"
-              : "Sin permiso de ubicación: busque su barriada aquí abajo 👇");
+            falloGps(1, "🔒 Sin permiso de ubicación: 👆 mueva el mapa o busque su barriada",
+              "🔒 Sin permiso de ubicación: busque su barriada aquí abajo 👇");
           } else {
-            texto(op.aviso, mapa ? "No la encontramos: 👆 mueva el mapa o busque su barriada"
-              : "No la encontramos: intente otra vez o busque su barriada 👇");
+            falloGps((error && error.code) || 2, "No la encontramos: 👆 mueva el mapa o busque su barriada",
+              "No la encontramos: intente otra vez o busque su barriada 👇");
           }
         },
         { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
@@ -300,5 +362,7 @@
     };
   }
 
-  window.DcasaMapaEntrega = { montar: montar, cargarGoogle: cargarGoogle, ZOOM_MINIMO: ZOOM_MINIMO };
+  window.DcasaMapaEntrega = {
+    montar: montar, cargarGoogle: cargarGoogle, ZOOM_MINIMO: ZOOM_MINIMO, distanciaM: distanciaM, tactil: tactil,
+  };
 })();
