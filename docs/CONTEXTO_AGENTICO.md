@@ -2402,4 +2402,19 @@ dos más sobre los arreglos. Lo que conviene llevarse:
   sesiones anteriores no se borran sin preguntar.
 - **Los arreglos de una auditoría traen fallos nuevos**: la «otra casa» que arregló la primera auditoría causó tres
   hallazgos de la segunda. Por eso van dos vueltas.
+- **Un arreglo puede contradecir una prueba vieja que nadie corrió**: la regla «escribir otra calle quita el punto»
+  (auditoría 2, datos) chocaba con `test_escribir_no_borra_el_punto_confiable` (auditoría 1), que mandaba otra calle.
+  Solo salió cuando el ayudante de la clienta corrió las pruebas con todo instalado. La prueba vieja se ajustó a lo que
+  quería decir (la misma calle), nunca se saltó.
+- **`wa.me` cambia los emojis por «�»** en WhatsApp Web, la app de la computadora y los navegadores de adentro de
+  Instagram y Messenger (en la redirección a `api.whatsapp.com`). Todo enlace de WhatsApp con mensaje se arma con
+  `dcasa_base/whatsapp.py` (`api.whatsapp.com/send?phone=…&text=…`). Los selectores que reconocen un enlace de WhatsApp
+  (la burbuja de Brian, el `Contact` del píxel de Meta) aceptan los dos.
+- **`main` de Baby Caleb era el espejo de D'CASA con su robot de fotos**: el dueño subió fotos a `up media/` de `main`
+  (2026-11-24) y el robot de D'CASA, que solo conoce el Excel de muebles, las mandó a `descartado/` y dejó otras sueltas
+  en la raíz. Ya estaban cargadas a mano en `addons/dcasa_catalogo/data/fotos/`; al unir `main` a la rama no se
+  trajeron. Desde que `main` tiene el código de Baby Caleb, el robot deja esas fotos en la bandeja («sin_pedido»).
+- **La primera instalación de producción no se traba con el respaldo previo**: `desplegar.yml` solo lo pide si el
+  Worker ya existe (`worker_existe`). Sin secretos en el environment `production` de GitHub, el despliegue se omite con
+  un aviso y el CI queda en verde: mirar el resumen, no solo el color.
 
