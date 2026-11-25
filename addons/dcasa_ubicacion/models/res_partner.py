@@ -262,8 +262,8 @@ class ResPartner(models.Model):
         resumen = {
             'tiene_punto': punto is not None,
             'origen': partner.dcasa_ubic_etiqueta or '',
-            'confiable': bool(punto) and geo.es_confiable(partner.dcasa_ubic_origen,
-                                                          partner.dcasa_ubic_precision_m or None),
+            # Un solo criterio en todo el módulo (auditoría 1): el de los avisos (models/avisos.py).
+            'confiable': partner._dcasa_ubic_confiable(),
             'confirmada': bool(partner.dcasa_ubic_confirmada),
             'zona': partner.dcasa_ubic_zona or geo.zona_texto({
                 'barriada': partner.dcasa_barriada, 'corregimiento': partner.dcasa_corregimiento,

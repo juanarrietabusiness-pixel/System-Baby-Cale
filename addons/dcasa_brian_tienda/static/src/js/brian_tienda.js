@@ -1186,25 +1186,45 @@ export class ChatBrian {
             placeholder: "Ej.: casa 24, portón negro", "aria-label": "Número de casa e indicaciones" });
         const boton = el("button", { type: "button", class: "o_dcbt_btn o_dcbt_btn_azul" }, ico("check"), el("span", { text: "Guardar" }));
         const estado = el("p", { class: "o_dcbt_ind_estado", "aria-live": "polite" });
-        const tarjeta = el("div", { class: "o_dcbt_card o_dcbt_ind" }, el("p", { class: "o_dcbt_envio_eti" }, ico("pin"), el("span", { text: texto })), campo, boton, estado);
+        // Un GPS de más de 100 m no es su casa (dcasa_ubicacion, auditoría 1): Odoo no lo guarda y aquí se le pide
+        // probar otra vez desde su puerta (GPS nuevo, no el guardado), sin volver a escribir el número de casa.
+        const otraVez = el("button", { type: "button", class: "o_dcbt_btn o_dcbt_btn_borde", hidden: "hidden" }, ico("mira"), el("span", { text: "Probar otra vez" }));
+        const tarjeta = el("div", { class: "o_dcbt_card o_dcbt_ind" }, el("p", { class: "o_dcbt_envio_eti" }, ico("pin"), el("span", { text: texto })), campo, boton, estado, otraVez);
         const guardar = async () => {
             const referencia = campo.value.trim();
             if (!referencia) {
-                estado.textContent = "Escriba el número de casa.";
+                estado.textContent = "🏠 Escriba el número de casa.";
                 campo.focus();
                 return;
             }
             boton.disabled = true;
+            otraVez.hidden = true;
             const u = this.ultimaUbicacion;
             const r = await this.odoo("POST", `${RUTA}/carrito/ubicacion`, { lat: u.lat, lon: u.lon, precision: u.precision, referencia });
             boton.disabled = false;
             if (r && r.ok) {
                 tarjeta.replaceChildren(el("p", { class: "o_dcbt_envio_eti" }, ico("check"), el("span", { text: "Listo: al pagar ya estará su casa marcada." })));
                 this.anotar({ tipo: "cliente", texto: referencia });
+            } else if (r && r.motivo === "impreciso") {
+                const metros = Number.isFinite(r.precision) ? ` (±${r.precision} m)` : "";
+                estado.textContent = `📍 Su teléfono no da la ubicación exacta${metros}. Párese en su puerta, active la ubicación precisa y toque «Probar otra vez».`;
+                otraVez.hidden = false;
             } else {
                 estado.textContent = "No se pudo guardar. Al pagar, toque «Mi ubicación» y escríbalo ahí.";
             }
         };
+        otraVez.addEventListener("click", async () => {
+            otraVez.disabled = true;
+            estado.textContent = "📍 Buscando…";
+            const nueva = await this.pedirUbicacion(true);
+            otraVez.disabled = false;
+            if (!nueva) {
+                estado.textContent = "No pude leer su ubicación. Al pagar, márquela en el mapa 📍";
+                return;
+            }
+            this.ultimaUbicacion = nueva;
+            guardar();
+        });
         boton.addEventListener("click", guardar);
         campo.addEventListener("keydown", (ev) => {
             if (ev.key === "Enter") {
@@ -1905,7 +1925,8 @@ export class ChatBrian {
         }
     }
 
-    pedirUbicacion() {
+    /** El GPS del teléfono. ``fresca``: sin la posición guardada del último minuto (para «Probar otra vez»). */
+    pedirUbicacion(fresca = false) {
         return new Promise((resolver) => {
             if (!navigator.geolocation) {
                 resolver(null);
@@ -1929,7 +1950,7 @@ export class ChatBrian {
                         precision: Math.round(p.coords.accuracy || 0),
                     }),
                     () => fin(null),
-                    { enableHighAccuracy: true, timeout: PLAZO_UBICACION_MS - 1000, maximumAge: 60000 });
+                    { enableHighAccuracy: true, timeout: PLAZO_UBICACION_MS - 1000, maximumAge: fresca ? 0 : 60000 });
             } catch {
                 fin(null);
             }
@@ -1942,7 +1963,8 @@ export class ChatBrian {
         this.anotar({ tipo: "cliente", texto: "Usar mi ubicación actual" });
         const ubicacion = await this.pedirUbicacion();
         if (!ubicacion) {
-            const frase = "No pude usar tu ubicación. Escríbeme el barrio, el PH o un punto de referencia que te quede cerca.";
+            // De usted, como el resto de la ubicación (auditoría 1).
+            const frase = "No pude usar su ubicación. Escríbame el barrio, el PH o un punto de referencia cercano.";
             this.globo(frase);
             this.anotar({ tipo: "brian", texto: frase });
             this.campo.placeholder = "Barrio, PH o un punto de referencia";
@@ -1957,7 +1979,8 @@ export class ChatBrian {
     otraDireccion() {
         this.quitarChips();
         this.cliente("Es otra dirección");
-        const frase = "Claro. Escríbeme el barrio, el PH o un punto de referencia que te quede cerca; no necesito la dirección exacta.";
+        // De usted y sin «no necesito la dirección exacta»: la casa sí se pide (al pagar, en el mapa). Auditoría 1.
+        const frase = "Claro. Escríbame el barrio o el PH de esa casa y le digo el envío. Al pagar, la marca en el mapa 📍";
         this.globo(frase);
         this.anotar({ tipo: "cliente", texto: "Es otra dirección" }, { tipo: "brian", texto: frase });
         this.campo.placeholder = "Barrio, PH o un punto de referencia";

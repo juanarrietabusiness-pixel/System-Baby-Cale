@@ -5,8 +5,10 @@
   ({lat, lon, origen, precision, referencia, recibe?, telefono?}) lo guarda. ``POST …/foto`` (el cuerpo es la foto,
   de a lo sumo 8 MB) guarda la foto de la fachada, sin EXIF (``motor/casa.py``), apenas la toma (y hasta una hora
   después de usar el enlace). El secreto autentica: sin sesión ni cookie (``save_session=False``), sin CSRF.
-  Vencido, usado o inventado: la misma página de «este enlace ya no sirve».
-* ``GET /entrega/<secreto>``: la página del motorizado (el QR del comprobante). Solo lee; vence a los 30 días.
+  Vencido o inventado: la misma página de «este enlace ya no sirve», con «Pedir otro enlace por WhatsApp»; usado,
+  «Ya la tenemos» con «Cambiar» (también por WhatsApp). Con la venta ya confirmada, ``…/zona`` no da precio.
+* ``GET /entrega/<secreto>``: la página del motorizado (el QR del comprobante). Solo lee; vence a los 30 días. Sin
+  punto, primero «Llamar» y «Buscar la dirección en Google Maps» (con lo que escribió la clienta).
   ``GET …/fachada``: la foto de la casa, con el mismo secreto (nunca por ``/web/content``).
 * ``POST /tienda/ubicacion/zona`` (JSON-RPC del sitio): la vista previa del checkout (zona, precio y el aviso si lo
   escrito nombra otro distrito). No guarda nada.
@@ -20,6 +22,7 @@ import json
 import secrets
 import threading
 from datetime import timedelta
+from urllib.parse import quote
 
 from odoo import fields, http
 from odoo.addons.dcasa_base.red import llave_ip
@@ -116,6 +119,29 @@ def vista_previa(env, lat, lon, texto=''):
     }
 
 
+def _whatsapp_de_la_tienda(texto):
+    """``https://wa.me/<tienda>?text=…`` con el mensaje listo, o ``''`` si la tienda no tiene WhatsApp."""
+    website = request.env['website'].sudo().search([], limit=1)
+    url = website._dcasa_whatsapp_url(texto) if website else ''
+    return url if url.startswith('https://wa.me/') else ''
+
+
+def _pedido_ya_cobrado(enlace):
+    """¿El enlace va ligado a una venta ya confirmada? Entonces la página no habla de precio: lo cobrado no se cambia
+    (como el «listo» de ``_texto_para_la_clienta``)."""
+    orden = enlace.sudo().orden_id
+    return bool(orden) and orden.state not in ('draft', 'sent')
+
+
+def buscar_en_google_maps(datos):
+    """Para el motorizado sin punto: buscar en Google Maps lo que escribió la clienta (la dirección; si no hay, la
+    zona), o ``''``."""
+    texto = datos.get('direccion') or (datos.get('zona') or '').replace(' · ', ', ')
+    if not texto:
+        return ''
+    return 'https://www.google.com/maps/search/?api=1&query=' + quote(f'{texto}, Panamá', safe='')
+
+
 def buscar_lugares(env, texto):
     """Hasta 6 lugares de la tabla (barriadas, PH, lugares conocidos) con su zona y su punto, para centrar el mapa.
     Sin precios, km ni ids: es lo mismo que se ve en cualquier mapa."""
@@ -160,9 +186,15 @@ class UbicacionPublica(http.Controller):
             # «Volver a mi pedido» lleva el permiso del pedido (no vence): solo para quien ya lo tenía, que llegó
             # desde la página de su pedido. Un enlace del chat puede ir a otra persona (quien recibe): sin él.
             valores['volver'] = enlace.orden_id.sudo().get_portal_url()
-        if enlace and enlace.estado == 'usado':
-            valores.update(estado='usado', zona=enlace.zona or '')
-        elif enlace:
+        # Sin callejones sin salida (auditoría 1): vencido o inventado, «💬 Pedir otro enlace por WhatsApp» (sin decir
+        # de quién ni de qué pedido); ya usado, «📍 Cambiar» pide otro por WhatsApp.
+        if not enlace:
+            valores['wa_otro'] = _whatsapp_de_la_tienda(
+                'Hola 👋 El enlace para marcar mi casa ya no sirve. ¿Me manda otro? 📍')
+        elif enlace.estado == 'usado':
+            valores.update(estado='usado', zona=enlace.zona or '',
+                           wa_otro=_whatsapp_de_la_tienda('Hola 👋 Quiero cambiar mi ubicación de entrega 📍'))
+        else:
             clave = request.env['dcasa.ubicacion']._clave_navegador()
             website = request.env['website'].sudo().search([], limit=1)
             wa = website._dcasa_whatsapp_url('x') if website else ''
@@ -200,7 +232,11 @@ class UbicacionPublica(http.Controller):
             return _json({'error': 'Este enlace ya no sirve.'}, 404)
         cuerpo = _cuerpo() or {}
         try:
-            return _json(vista_previa(request.env, cuerpo.get('lat'), cuerpo.get('lon')))
+            datos = vista_previa(request.env, cuerpo.get('lat'), cuerpo.get('lon'))
+            if _pedido_ya_cobrado(enlace):
+                # La venta ya está confirmada: nada de «Envío $15» (auditoría 1).
+                datos.update(precio=None, mostrar_precio=False)
+            return _json(datos)
         except UbicacionInvalida as error:
             return _json({'error': str(error.args[0]), 'motivo': error.motivo}, 422)
 
@@ -283,8 +319,10 @@ class UbicacionPublica(http.Controller):
         empresa = request.env.company.sudo()
         if not entrega:
             return _pagina('dcasa_ubicacion.entrega_pagina', {'empresa': empresa.name, 'datos': None}, status=404)
-        return _pagina('dcasa_ubicacion.entrega_pagina', {'empresa': empresa.name,
-                                                           'datos': entrega._para_el_motorizado()})
+        datos = entrega._para_el_motorizado()
+        if not datos['tiene_punto']:
+            datos['buscar_en_maps'] = buscar_en_google_maps(datos)
+        return _pagina('dcasa_ubicacion.entrega_pagina', {'empresa': empresa.name, 'datos': datos})
 
     @http.route('/entrega/<string:token>/fachada', type='http', auth='public', methods=['GET'], csrf=False,
                 save_session=False)
