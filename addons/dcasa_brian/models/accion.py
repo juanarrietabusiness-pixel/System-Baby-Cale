@@ -101,11 +101,13 @@ class BrianAccion(models.Model):
             valores['resumen'] = resumen
         if estado in ('hecha', 'error', 'bloqueada', 'rechazada'):
             valores['fecha_cierre'] = fields.Datetime.now()
-        for accion in self:
+        # En sudo, como el resto de la escritura: quien conversa (el usuario técnico de Juan, por ejemplo) no puede
+        # leer la auditoría, y ``privado`` se lee aquí.
+        for accion in self.sudo():
             propios = dict(valores)
             if accion.privado:
                 propios.update(accion._tapado(propios, cerrada=estado in ('hecha', 'error', 'bloqueada', 'rechazada')))
-            accion.sudo().with_context(**{_CLAVE_SISTEMA: True}).write(propios)
+            accion.with_context(**{_CLAVE_SISTEMA: True}).write(propios)
         return True
 
     def _tapado(self, valores, cerrada):
