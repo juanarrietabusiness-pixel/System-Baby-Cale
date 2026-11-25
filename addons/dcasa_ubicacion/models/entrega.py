@@ -159,10 +159,17 @@ class SaleOrder(models.Model):
         orden = self.sudo()
         if orden.state == 'cancel' or not orden._dcasa_va_a_domicilio():
             return ''
-        resumen = (orden.partner_shipping_id or orden.partner_id)._dcasa_ubic_resumen()
-        if resumen['confiable'] and resumen['referencia']:
+        if not orden._dcasa_ubic_falta_la_casa():
             return ''
         return f'/u/pedido/{orden.id}?access_token={orden._portal_ensure_token()}'
+
+    def _dcasa_ubic_falta_la_casa(self):
+        """¿Le falta la casa a la dirección de entrega? Sí si no tiene un punto **confiable** (sin punto, escrita,
+        buscada sin mover el pin o un GPS de más de 100 m) o le faltan el número de casa y las indicaciones. Un solo
+        criterio para «¡Gracias!» y la página del pedido (auditoría 1: el pedido miraba solo «hay punto»)."""
+        self.ensure_one()
+        resumen = (self.sudo().partner_shipping_id or self.sudo().partner_id)._dcasa_ubic_resumen()
+        return not (resumen['confiable'] and resumen['referencia'])
 
     def _dcasa_entrega_sigue_abierta(self):
         """¿Le sirve todavía la página al motorizado? No si la venta se canceló, ni pasados ``DIAS_TRAS_ENTREGAR``

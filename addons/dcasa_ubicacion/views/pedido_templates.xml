@@ -1,14 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <!-- El link de pago (la página del pedido que abre la clienta para pagar): si va a domicilio y todavía no tiene su
-         casa marcada o las indicaciones, una tarjeta grande «📍 Marcar mi casa en el mapa» (el mismo mapa del enlace del
+         casa marcada (con un punto confiable) o las indicaciones, una tarjeta grande «📍 Marcar mi casa en el mapa» (el mismo mapa del enlace del
          chat; al confirmar, el envío del pedido se recalcula y vuelve aquí). Si ya está, una línea con la zona, la casa y
          «Cambiar». Solo en la página (no en el PDF). -->
     <template id="pedido_ubicacion" inherit_id="sale.sale_order_portal_content" name="Ubicación: marcar la casa desde el pedido">
         <xpath expr="//div[@id='informations']" position="before">
             <t t-if="report_type == 'html' and sale_order.state != 'cancel' and sale_order._dcasa_va_a_domicilio()">
                 <t t-set="dcasa_destino" t-value="(sale_order.partner_shipping_id or sale_order.partner_id).sudo()"/>
-                <t t-set="dcasa_falta" t-value="not dcasa_destino._dcasa_ubic_punto() or not dcasa_destino.dcasa_referencia"/>
+                <!-- El mismo criterio que «¡Gracias!»: un punto CONFIABLE y el número de casa (auditoría 1: aquí bastaba
+                     con «hay punto», y una barriada buscada sin mover el pin pasaba como lista). -->
+                <t t-set="dcasa_falta" t-value="sale_order._dcasa_ubic_falta_la_casa()"/>
                 <t t-set="dcasa_url" t-value="'/u/pedido/%s%s' % (sale_order.id, ('?access_token=' + sale_order.access_token) if sale_order.access_token else '')"/>
                 <div t-if="dcasa_falta" class="o_dcasa_pedido_ubic o_dcasa_ubicacion mb-4">
                     <p class="o_dcasa_ubic_titulo">
