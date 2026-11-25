@@ -106,7 +106,7 @@ class TestBaseDeConocimiento(JuanCase):
         self.assertIn('10:00 a. m. a 7:00 p. m.', entrada.contenido_vigente)
         self.env.company.sudo().write({'street': 'Calle Zzprueba', 'city': 'Ciudad de Zzprueba'})
         entrada.invalidate_recordset()
-        self.assertIn('Baby Caleb está en Calle Zzprueba, Ciudad de Zzprueba.', entrada.contenido_vigente)
+        self.assertIn('Baby Caleb Panamá está en Calle Zzprueba, Ciudad de Zzprueba.', entrada.contenido_vigente)
 
     def test_socios_sale_de_puntos_json_y_nunca_se_guarda(self):
         entrada = self.socios()
