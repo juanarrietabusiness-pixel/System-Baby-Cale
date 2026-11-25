@@ -212,7 +212,7 @@
                            autocomplete="off" placeholder="Otro teléfono (opcional)"
                            aria-label="Otro teléfono por si no contesta (opcional)"/>
                 </div>
-                <input class="sr" id="o_dcasa_foto" type="file" accept="image/*" capture="environment"/>
+                <input class="sr" id="o_dcasa_foto" type="file" accept="image/*"/>
                 <label class="boton contorno chico" for="o_dcasa_foto">
                     <t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'camara'"/></t><span id="o_dcasa_foto_texto">Foto de su casa (opcional)</span></label>
                 <canvas class="foto-vista" id="o_dcasa_foto_vista" hidden="hidden" aria-label="La foto de su casa"/>
