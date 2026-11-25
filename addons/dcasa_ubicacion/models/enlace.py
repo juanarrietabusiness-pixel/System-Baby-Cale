@@ -83,15 +83,22 @@ class UbicacionEnlace(models.Model):
 
     @api.model
     def _otra_casa(self, partner):
-        """La dirección de entrega aparte («Otra casa de Ana») para un pedido que va a otro lugar: la última que se
-        creó y todavía no tiene punto (para no llenar la ficha de direcciones vacías), o una nueva."""
+        """La dirección aparte («Otra casa de Ana») para un pedido que va a otro lugar. Tipo «otra», no «entrega»: si
+        no, Odoo la tomaba como la dirección de entrega por defecto de TODA venta nueva de la clienta (auditoría 2).
+        Una por pedido pendiente: se reusa solo una sin punto que no tenga un enlace vigente (si no, la casa de la
+        hermana pisaba la de la mamá). Al marcarla, su nombre lleva la zona (``_confirmar``)."""
         partner = partner.sudo()
         nombre = self.env._('Otra casa de %s', (partner.name or '').strip() or self.env._('la clienta'))
-        vacia = self.env['res.partner'].sudo().search([
-            ('parent_id', '=', partner.id), ('type', '=', 'delivery'), ('name', '=', nombre),
-            ('dcasa_ubic_fecha', '=', False)], order='id desc', limit=1)
-        return vacia or self.env['res.partner'].sudo().create({
-            'parent_id': partner.id, 'type': 'delivery', 'name': nombre})
+        ahora = fields.Datetime.now()
+        vacias = self.env['res.partner'].sudo().search([
+            ('parent_id', '=', partner.id), ('dcasa_otra_casa', '=', True), ('dcasa_ubic_fecha', '=', False)],
+            order='id desc', limit=5)
+        for vacia in vacias:
+            if not self.sudo().search_count([('partner_id', '=', vacia.id), ('usado_el', '=', False),
+                                             ('vence', '>', ahora)]):
+                return vacia
+        return self.env['res.partner'].sudo().create({
+            'parent_id': partner.id, 'type': 'other', 'name': nombre, 'dcasa_otra_casa': True})
 
     def _url(self, token):
         base = (self.env['ir.config_parameter'].sudo().get_param('web.base.url') or '').rstrip('/')
@@ -120,6 +127,11 @@ class UbicacionEnlace(models.Model):
                                                         referencia=referencia, confirmada=True)
         enlace.partner_id._dcasa_poner_quien_recibe(recibe=recibe or None, telefono=telefono or None, al_dia=False)
         enlace.write({'usado_el': fields.Datetime.now(), 'zona': zona['texto'] or False})
+        casa = enlace.partner_id
+        if casa.dcasa_otra_casa and casa.parent_id and (zona.get('barriada') or zona.get('distrito')):
+            # Que el equipo las distinga al elegir la dirección de la venta: «Otra casa de Ana (Villa Lucre)».
+            casa.write({'name': self.env._('Otra casa de %(quien)s (%(donde)s)', quien=casa.parent_id.name or '',
+                                           donde=zona.get('barriada') or zona.get('distrito'))})
         enlace.partner_id.message_post(
             body=Markup('<p>%s</p>') % escape(self.env._(
                 'La clienta marcó su punto de entrega con el enlace del chat: %(zona)s (%(origen)s).',
@@ -222,19 +234,25 @@ class UbicacionEnlace(models.Model):
 class Conversacion(models.Model):
     _inherit = 'dcasa.conversacion'
 
-    def _dcasa_ubic_destino(self):
-        """La ficha a la que va la ubicación de esta conversación (la del clip, la que cotiza Juan sin lugar, el número
-        de casa): la del enlace más reciente de las últimas 24 horas si es OTRA dirección (otra casa, o la dirección
-        de entrega de una venta avisada) y sigue vigente o ya se usó; si no, la de la clienta (auditoría 1: el punto
-        del clip iba a su ficha aunque la venta fuera a otra dirección)."""
+    def _dcasa_ubic_destino(self, para_punto=False):
+        """La ficha de destino de esta conversación: la del enlace más reciente de las últimas 24 horas si es OTRA
+        dirección (otra casa, o la dirección de entrega de una venta avisada); si no, la de la clienta (auditoría 1:
+        el punto del clip iba a su ficha aunque la venta fuera a otra dirección).
+
+        Con ``para_punto`` (un punto nuevo: el clip, un enlace de mapa) solo mientras ese enlace siga **vigente y sin
+        usar**: ya marcada la otra casa, la ubicación que la clienta comparte después es la suya y no puede mover en
+        silencio el regalo (auditoría 2). Lo demás (cotizar sin lugar, el número de casa, quién recibe) sigue yendo a la
+        otra casa durante esas 24 horas."""
         self.ensure_one()
         conv = self.sudo()
         ahora = fields.Datetime.now()
         reciente = self.env['dcasa.ubicacion.enlace'].sudo().search([
             ('conversacion_id', '=', conv.id), ('create_date', '>', ahora - timedelta(hours=HORAS_VIGENCIA))],
             order='id desc', limit=1)
-        if reciente and reciente.partner_id and reciente.partner_id != conv.partner_id \
-                and (reciente.usado_el or reciente.vence > ahora):
+        if not reciente or not reciente.partner_id or reciente.partner_id == conv.partner_id:
+            return conv.partner_id.sudo()
+        vigente = not reciente.usado_el and reciente.vence > ahora
+        if vigente or (not para_punto and reciente.usado_el):
             return reciente.partner_id.sudo()
         return conv.partner_id.sudo()
 

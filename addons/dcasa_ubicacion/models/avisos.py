@@ -292,6 +292,11 @@ class SaleOrderAvisos(models.Model):
 
     def _action_cancel(self):
         resultado = super()._action_cancel()
+        # La página del motorizado se cierra con un secreto nuevo: si la venta vuelve a borrador, el papel viejo no
+        # revive (auditoría 2).
+        entregas = self.env['dcasa.ubicacion.entrega'].sudo().search([('order_id', 'in', self.ids)])
+        for entrega in entregas:
+            entrega.write({'token': geo.token_nuevo(18), 'vence': fields.Datetime.now()})
         # Una venta cancelada ya no se entrega: el pendiente «📍 Pedirle la ubicación» se cierra (auditoría 1).
         tipo = self.env.ref(TIPO_PEDIR_UBICACION, raise_if_not_found=False)
         if tipo:

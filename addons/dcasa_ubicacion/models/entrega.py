@@ -17,6 +17,7 @@ from ..motor import casa, geo
 
 DIAS_VIGENCIA = 30
 DIAS_TRAS_ENTREGAR = 3     # después de entregado, la página se cierra a los 3 días
+DIAS_MAXIMOS = 90          # tope absoluto desde la compra, aunque la salida nunca se valide (auditoría 2)
 RUTA = '/entrega/'
 QR_PIXELES = 240
 
@@ -68,12 +69,16 @@ class UbicacionEntrega(models.Model):
         return entrega if entrega and entrega._abierta() else self.sudo().browse()
 
     def _abierta(self):
-        """¿Le sirve todavía la página al motorizado? Mientras la venta tenga una salida sin entregar, siempre (un
-        pedido que sale a los 40 días no puede imprimir un QR vencido: auditoría 1); entregada, hasta
-        ``DIAS_TRAS_ENTREGAR`` días después; cancelada, nunca; sin salidas, hasta que vence."""
+        """¿Le sirve todavía la página al motorizado? Mientras la venta tenga una salida sin entregar (un pedido que
+        sale a los 40 días no puede imprimir un QR vencido: auditoría 1), pero nunca más de ``DIAS_MAXIMOS`` días
+        desde la compra; entregada, hasta ``DIAS_TRAS_ENTREGAR`` días después; cancelada, nunca; sin salidas, hasta
+        que vence."""
         self.ensure_one()
         orden = self.sudo().order_id
         if not orden or orden.state == 'cancel':
+            return False
+        # Tope absoluto: si en la tienda no se validan las salidas, la página no puede quedar abierta para siempre.
+        if orden.date_order and orden.date_order < fields.Datetime.now() - timedelta(days=DIAS_MAXIMOS):
             return False
         salidas = orden.picking_ids.filtered(lambda p: p.picking_type_code == 'outgoing' and p.state != 'cancel')
         if any(p.state != 'done' for p in salidas):

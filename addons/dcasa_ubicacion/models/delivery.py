@@ -5,6 +5,8 @@ entrega tiene un punto confirmado y el lugar de la tabla más cercano tiene prec
 aprobada, lugar revisado, no «se cotiza aparte»). Si no, sigue como hoy: «por cotizar». La línea del envío queda como
 la que pone Juan (``dcasa_envio_lugar_id``) y, si la promoción de envío de hoy aplica, con su línea.
 """
+from datetime import timedelta
+
 from markupsafe import Markup, escape
 
 from odoo import fields, models
@@ -61,7 +63,12 @@ class SaleOrder(models.Model):
         (dcasa_envios: esos no se reemplazan solos)."""
         self.ensure_one()
         orden = self.sudo()
-        if orden.transaction_ids.filtered(lambda t: t.state in ('pending', 'authorized', 'done')):
+        # También un pago recién abierto que la pasarela todavía tiene en borrador (Tilopay no pasa a «pendiente»
+        # mientras la clienta está en su página): si el total cambia, paga el viejo y la venta no se confirma
+        # (auditoría 2). Uno de hace más de 2 horas ya no cuenta.
+        reciente = fields.Datetime.now() - timedelta(hours=2)
+        if orden.transaction_ids.filtered(lambda t: t.state in ('pending', 'authorized', 'done')
+                                          or (t.state == 'draft' and t.create_date and t.create_date > reciente)):
             return 'pago'
         # El «por cotizar» en $0 que pone la web sin punto no es de una persona: ese sí se reemplaza.
         if any(linea._dcasa_envio_ajeno() and linea.price_unit > 0 for linea in orden.order_line):

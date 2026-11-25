@@ -104,11 +104,20 @@ def origen_a_guardar(destino, punto, origen, precision):
     return origen, precision
 
 
-def conservar_punto_al_escribir(destino, formulario):
+def _calle(partner):
+    """La calle como la tenía guardada (para saber si la cambió al «Escribir»)."""
+    return tuple(' '.join((partner[n] or '').lower().split()) for n in ('street', 'street2', 'city')) if partner \
+        else None
+
+
+def conservar_punto_al_escribir(destino, formulario, calle_antes=None):
     """«Escribir» con un punto confiable guardado: ¿se queda? Sí, salvo que lo escrito nombre otro distrito que el del
-    punto (entonces ese punto ya no es su casa)."""
+    punto, o que haya escrito OTRA calle (se mudó dentro del mismo distrito: el punto viejo ya no es su casa y el
+    motorizado iría a la vieja; auditoría 2)."""
     if not destino._dcasa_ubic_punto() or not geo.es_confiable(destino.dcasa_ubic_origen,
                                                                 destino.dcasa_ubic_precision_m or None):
+        return False
+    if calle_antes is not None and _calle(destino) != calle_antes:
         return False
     escrito = ', '.join(geo.texto_corto(formulario.get(n) or '') for n in ('street', 'street2', 'city'))
     cruce = geo.aviso_de_cruce(escrito, {'distrito': destino.dcasa_distrito or ''},
@@ -166,6 +175,9 @@ class UbicacionCheckout(DcasaCheckout):
             if not punto or origen not in ORIGENES_WEB + ORIGENES_GUARDADOS \
                     or ubicacion['dcasa_ubic_confirmada'] != '1':
                 return json.dumps({'invalid_fields': [], 'messages': [FALTA_EL_PUNTO]})
+        previo = request.env['res.partner'].sudo().browse(int(partner_id)).exists() \
+            if str(partner_id or '').isdigit() else None
+        calle_antes = _calle(previo) if previo else None
         respuesta = super().shop_address_submit(partner_id=partner_id, address_type=address_type,
                                                 use_delivery_as_billing=use_delivery_as_billing, callback=callback,
                                                 **form_data)
@@ -181,7 +193,8 @@ class UbicacionCheckout(DcasaCheckout):
                                                referencia=referencia, confirmada=True)
             except UbicacionInvalida as error:
                 return json.dumps({'invalid_fields': [], 'messages': [str(error.args[0])]})
-        elif conservar_punto_al_escribir(destino, form_data):
+        elif conservar_punto_al_escribir(destino, form_data,
+                                         calle_antes if previo and previo == destino else None):
             destino.write({'dcasa_referencia': referencia})
         else:
             destino._dcasa_poner_escrita(referencia=referencia)

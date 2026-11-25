@@ -41,7 +41,7 @@ class JuanAPIUbicacion(JuanAPI):
             raise _Error(409, 'La conversación todavía no tiene ficha de cliente.')
         # La ficha de la clienta o, si en las últimas 24 horas se pidió el punto de otra dirección (otra casa, la de
         # entrega de una venta avisada), esa (auditoría 1).
-        partner = conv._dcasa_ubic_destino()
+        partner = conv._dcasa_ubic_destino(para_punto=True)
         try:
             zona = partner._dcasa_poner_ubicacion(
                 cuerpo.get('lat'), cuerpo.get('lon'), origen, confirmada=True,

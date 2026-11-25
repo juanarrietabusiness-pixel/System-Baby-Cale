@@ -35,6 +35,10 @@ class ResPartner(models.Model):
     dcasa_corregimiento = fields.Char('Corregimiento')
     dcasa_distrito = fields.Char('Distrito')
     dcasa_provincia = fields.Char('Provincia')
+    dcasa_otra_casa = fields.Boolean(
+        'Otra casa (regalo)', readonly=True, copy=False,
+        help='Dirección aparte que creó «para otra casa» (un regalo, la abuela, el trabajo): nunca es la dirección de '
+             'entrega por defecto; se elige en la venta.')
     dcasa_referencia = fields.Char('Cómo reconocer el sitio', size=geo.MAX_REFERENCIA,
                                    help='Casa verde de portón negro, frente al chino… Lo lee el motorizado.')
     dcasa_ubic_direccion_mapa = fields.Char('Dirección según el mapa', readonly=True,
@@ -218,7 +222,7 @@ class ResPartner(models.Model):
         precio = self.env['dcasa.ubicacion']._precio(partner.dcasa_ubic_lugar_id)
         zona = (partner.dcasa_ubic_zona or self.env._('sin zona de la tabla')).replace(' · ', ', ')
         partes = [self.env._('📍 Ubicación de entrega: %s.', zona)]
-        if partner.parent_id and partner.type == 'delivery':
+        if partner.parent_id and (partner.dcasa_otra_casa or partner.type == 'delivery'):
             partes.append(self.env._('📦 Es la dirección «%s»: en la venta, elíjanla como dirección de entrega.',
                                      partner.name or ''))
         if partner.dcasa_ubic_direccion_mapa:

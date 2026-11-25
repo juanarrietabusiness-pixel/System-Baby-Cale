@@ -58,7 +58,7 @@ class TestAuditoriaDatos(UbicacionCase):
         Herramientas._juan_enlace_de_ubicacion(para_otra_casa=True)
         enlace = self.Enlace.search([('conversacion_id', '=', conv.id)], order='id desc', limit=1)
         self.assertNotEqual(enlace.partner_id, clienta)
-        self.assertEqual((enlace.partner_id.parent_id, enlace.partner_id.type), (clienta, 'delivery'))
+        self.assertEqual((enlace.partner_id.parent_id, enlace.partner_id.type), (clienta, 'other'))
         enlace._confirmar(*self.OTRA, 'pin', referencia='Casa de mamá')
         self.assertEqual(clienta.dcasa_referencia, 'Casa 1, la mía', 'su casa no se toca')
         self.assertIn(f'{CERCA[0]:.7f}', entrega._para_el_motorizado()['enlaces']['google'],
@@ -139,8 +139,8 @@ class TestAuditoriaDatos(UbicacionCase):
         orden.action_confirm()
         # El aviso al comprar (o «Sale hoy») le pidió el punto de ESA dirección por este chat.
         self.Enlace._crear(casa, conversacion=conv, creado_por='aviso', orden=orden)
-        self.assertEqual(conv._dcasa_ubic_destino(), casa)
-        conv._dcasa_ubic_destino()._dcasa_poner_ubicacion(*CERCA, 'whatsapp', confirmada=True)
+        self.assertEqual(conv._dcasa_ubic_destino(para_punto=True), casa)
+        conv._dcasa_ubic_destino(para_punto=True)._dcasa_poner_ubicacion(*CERCA, 'whatsapp', confirmada=True)
         orden.invalidate_recordset(['dcasa_falta_punto'])
         self.assertFalse(orden.dcasa_falta_punto)
         self.assertFalse(clienta._dcasa_ubic_punto(), 'su propia ficha no se toca')
