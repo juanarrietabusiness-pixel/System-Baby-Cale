@@ -359,6 +359,16 @@ function anotarConsulta(nombre: string, resultado: unknown, reg: RegistroDelTurn
 }
 
 /**
+ * Una consulta que hizo el SISTEMA antes de llamar al modelo (el envío que Odoo cotizó con la ubicación que compartió la clienta:
+ * motor/ubicacion.ts). Pasa por el mismo camino que si la hubiera hecho el modelo: el `respaldo_envio` queda en el registro del turno
+ * para la guardia de salida (y se quita de lo que ve el modelo) y las cifras quedan anotadas. Devuelve lo que el modelo puede ver.
+ */
+export function consultaPrevia(nombre: string, resultado: unknown, reg: RegistroDelTurno, sitio: string | undefined): unknown {
+  const sinRespaldo = HERRAMIENTAS_DE_ENVIO.has(nombre) ? tomarRespaldoDeEnvio(resultado, reg) : resultado;
+  return acotar(anotarConsulta(nombre, sinRespaldo, reg, sitio));
+}
+
+/**
  * `cotizar` devuelve el PDF como `documento` (URL firmada de Odoo, de vida corta). Ese enlace NO le llega al modelo —no lo debe
  * pegar en el chat—: pasa a los medios de la respuesta y sale como archivo junto con ella. Solo se acepta una dirección https
  * de un PDF; cualquier otra cosa se ignora y el modelo lo sabe (no dirá que va adjunto algo que no va).

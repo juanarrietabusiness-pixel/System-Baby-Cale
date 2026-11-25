@@ -4,6 +4,8 @@ import {
   OdooError,
   type CuerpoComentario,
   type CuerpoMensaje,
+  type CuerpoUbicacion,
+  type ResultadoUbicacion,
   type RespuestaComentario,
   type CuerpoSeguimientoHecho,
   type DefHerramienta,
@@ -75,6 +77,28 @@ export const ENVIOS = {
     },
   },
 };
+
+/**
+ * El envío que Odoo cotiza con el punto que compartió la clienta (`POST /ubicacion` → `resultado.envio`): la misma forma que el resultado
+ * de `cotizar_envio`, con `por_ubicacion: true` (docs/UBICACION.md, «Contrato…» §1).
+ */
+export const ENVIO_POR_UBICACION = {
+  estado: "precio",
+  por_ubicacion: true,
+  lugar: { lugar_id: 91, nombre: "Brisas del Golf", zona: "Zona: Rufina Alfaro · San Miguelito · Panamá" },
+  envio_normal: 5,
+  envio_normal_texto: "$5",
+  envio_lleva_itbms: false,
+  promocion: null,
+  frase_para_el_cliente: "El envío a Brisas del Golf (Rufina Alfaro, San Miguelito) cuesta $5.",
+  cotizacion: null,
+  instruccion: "Dile al cliente la frase tal cual.",
+  respaldo_envio: {
+    lugares: [{ nombres: ["Brisas del Golf", "Rufina Alfaro", "San Miguelito"], normal: 5, final: 5, ahorro: null, gratis: false, condicional: false, minimo: null, compra: null, cargos: [], lleva_itbms: false }],
+    total: null,
+  },
+};
+export const ZONA_POR_UBICACION = "Brisas del Golf · Rufina Alfaro · San Miguelito";
 
 /** La base de conocimiento de prueba: cada entrada responde a ciertas palabras. */
 export const CONOCIMIENTO = [
@@ -332,6 +356,18 @@ export class OdooFalso implements OdooApi {
     this.comentarios.push(cuerpo);
     this.orden.push(`comentario:${cuerpo.privada}`);
     return { ok: true, conversacion_id: this.conversacionId };
+  }
+
+  /** Los puntos de entrega que el motor le mandó (`POST /ubicacion`), en orden; y lo que contesta (por defecto, guardado con su envío). */
+  ubicaciones: CuerpoUbicacion[] = [];
+  respuestaUbicacion: (c: CuerpoUbicacion) => ResultadoUbicacion = () => ({ ok: true, resultado: { guardada: true, zona: ZONA_POR_UBICACION, envio: ENVIO_POR_UBICACION } });
+
+  async guardarUbicacion(cuerpo: CuerpoUbicacion): Promise<ResultadoUbicacion> {
+    // Como el cliente de verdad: nunca lanza.
+    if (this.caido) return { ok: false, error: "no se pudo hablar con Odoo", estado: 0 };
+    this.ubicaciones.push(cuerpo);
+    this.orden.push("ubicacion");
+    return this.respuestaUbicacion(cuerpo);
   }
 
   /** Brian de la tienda: las herramientas que pidió (sin conversación). También quedan en `llamadas` con `conversacion_id: null`. */
