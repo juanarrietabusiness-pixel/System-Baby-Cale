@@ -81,14 +81,17 @@ class UbicacionEnlace(models.Model):
             return self.sudo().browse()
         return self.sudo().search([('huella', '=', geo.huella(token))], limit=1)
 
-    def _confirmar(self, lat, lon, origen, precision=None, referencia=None):
-        """La clienta confirmó su punto en la página del enlace. Guarda el punto en su ficha, marca el enlace usado y
-        le escribe por el chat (si vino de una conversación). Devuelve la zona; ``UbicacionInvalida`` si el punto no
-        sirve (el enlace sigue vigente para que lo intente otra vez)."""
+    def _confirmar(self, lat, lon, origen, precision=None, referencia=None, recibe=None, telefono=None):
+        """La clienta confirmó su punto en la página del enlace. Guarda el punto en su ficha (y, si los escribió, quién
+        recibe y el teléfono de respaldo: ``None`` o vacío no borra lo que ya había), marca el enlace usado y le
+        escribe por el chat (si vino de una conversación). Devuelve la zona; ``UbicacionInvalida`` si el punto no
+        sirve o ``TelefonoInvalido`` si el teléfono no es de Panamá (el enlace sigue vigente para que lo intente otra
+        vez). La foto de la casa va aparte (``POST /u/<secreto>/foto``), apenas la toma."""
         self.ensure_one()
         enlace = self.sudo()
         zona = enlace.partner_id._dcasa_poner_ubicacion(lat, lon, origen, precision=precision,
                                                         referencia=referencia, confirmada=True)
+        enlace.partner_id._dcasa_poner_quien_recibe(recibe=recibe or None, telefono=telefono or None, al_dia=False)
         enlace.write({'usado_el': fields.Datetime.now(), 'zona': zona['texto'] or False})
         enlace.partner_id.message_post(
             body=Markup('<p>%s</p>') % escape(self.env._(

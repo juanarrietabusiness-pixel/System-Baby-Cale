@@ -84,6 +84,26 @@
             .respaldo { margin: 14px 0 0; padding: 12px; border: 1px dashed var(--control); border-radius: 14px; }
             .respaldo p { margin: 0 0 4px; text-align: center; color: var(--gris); font-size: 15px; }
             .respaldo .boton { min-height: 48px; font-size: 1rem; margin-top: 8px; }
+            /* Lo opcional (quién recibe, otro teléfono, la foto): más chico, que no estorbe. */
+            .con-icono.chico { margin: 10px 0 0; }
+            .campo.chico { min-height: 48px; }
+            .boton.chico { min-height: 48px; font-size: 1rem; font-weight: 600; }
+            .sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden;
+                  clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+            .sr:focus-visible + .boton { outline: 2px solid var(--navy); outline-offset: 2px; }
+            .foto-vista { display: block; width: 100%; height: auto; max-height: 240px; object-fit: contain;
+                          margin: 10px 0 0; border: 1px solid var(--linea); border-radius: 14px;
+                          background: var(--superficie); }
+            .aviso.bien { color: var(--salvia); }
+            /* La página del motorizado: la foto de la casa y los botones del teléfono de respaldo. */
+            .fachada { margin: 16px 0 0; }
+            .fachada img { display: block; width: 100%; height: auto; border: 1px solid var(--linea);
+                           border-radius: 18px; background: var(--superficie); }
+            .fachada figcaption { display: flex; align-items: center; gap: 8px; margin: 6px 0 0; color: var(--gris);
+                                  font-size: 15px; font-weight: 600; }
+            .fila.dos .boton { flex: 1 1 120px; gap: 8px; padding: 0 12px; white-space: nowrap; }
+            .respaldo-mot { margin: 16px 0 0; }
+            .respaldo-mot .dato-mot { margin: 0; }
             [hidden] { display: none !important; }
         ]]></style>
     </template>
@@ -179,6 +199,24 @@
                 </label>
                 <input class="campo" id="o_dcasa_referencia" type="text" maxlength="200" autocomplete="off"
                        placeholder="Ej.: casa 24, portón negro"/>
+                <!-- Opcionales (el dueño, 2026-11-25: «el dolor número uno son los pedidos devueltos»): quién recibe,
+                     otro teléfono y la foto de la casa. Chicos y sin pasos: que no estorben. -->
+                <div class="con-icono chico">
+                    <t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'persona'"/></t>
+                    <input class="campo chico" id="o_dcasa_recibe" type="text" maxlength="60" autocomplete="off"
+                           placeholder="¿Quién recibe? (opcional)" aria-label="Quién recibe, si no es usted (opcional)"/>
+                </div>
+                <div class="con-icono chico">
+                    <t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'telefono'"/></t>
+                    <input class="campo chico" id="o_dcasa_tel" type="tel" inputmode="tel" maxlength="20"
+                           autocomplete="off" placeholder="Otro teléfono (opcional)"
+                           aria-label="Otro teléfono por si no contesta (opcional)"/>
+                </div>
+                <input class="sr" id="o_dcasa_foto" type="file" accept="image/*" capture="environment"/>
+                <label class="boton contorno chico" for="o_dcasa_foto">
+                    <t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'camara'"/></t><span id="o_dcasa_foto_texto">Foto de su casa (opcional)</span></label>
+                <canvas class="foto-vista" id="o_dcasa_foto_vista" hidden="hidden" aria-label="La foto de su casa"/>
+                <p class="aviso" id="o_dcasa_foto_aviso" aria-live="polite"/>
                 <p class="aviso" id="o_dcasa_error" role="alert"/>
                 <button type="button" class="boton" id="o_dcasa_confirmar" disabled="disabled">
                     <span class="paso" aria-hidden="true">3</span>
@@ -205,6 +243,10 @@
   var buscar = el("o_dcasa_buscar"), lista = el("o_dcasa_lista");
   var ultimo = null, zonaValida = false, pedido = 0, reloj = null, relojBuscar = null;
   var respaldo = el("o_dcasa_respaldo"), wa = el("o_dcasa_wa");
+  var recibe = el("o_dcasa_recibe"), tel = el("o_dcasa_tel");
+  var foto = el("o_dcasa_foto"), fotoVista = el("o_dcasa_foto_vista"), fotoAviso = el("o_dcasa_foto_aviso"),
+    fotoTexto = el("o_dcasa_foto_texto");
+  var MAX_FOTO = 8 * 1024 * 1024, LADO_FOTO = 1600;
 
   // Respaldo (el dueño, 2026-11-25): si algo falla, la clienta copia su ubicación o la manda por WhatsApp; Juan lee el
   // enlace de Google Maps y saca el punto.
@@ -295,12 +337,55 @@
       });
     }, 400);
   });
+  // La foto de la casa (opcional): se achica aquí (una del teléfono pesa 3-8 MB y así sube rápido) y sube apenas la
+  // toma. El servidor la vuelve a abrir, le quita el EXIF (lleva el GPS) y guarda un JPEG nuevo.
+  function achicar(archivo) {
+    if (!window.createImageBitmap) return Promise.resolve({ blob: archivo, vista: false });
+    return createImageBitmap(archivo).then(function (bmp) {
+      var escala = Math.min(1, LADO_FOTO / Math.max(bmp.width, bmp.height));
+      fotoVista.width = Math.max(1, Math.round(bmp.width * escala));
+      fotoVista.height = Math.max(1, Math.round(bmp.height * escala));
+      fotoVista.getContext("2d").drawImage(bmp, 0, 0, fotoVista.width, fotoVista.height);
+      if (bmp.close) bmp.close();
+      return new Promise(function (listo) {
+        fotoVista.toBlob(function (b) { listo({ blob: b || archivo, vista: true }); }, "image/jpeg", 0.85);
+      });
+    }, function () { return { blob: archivo, vista: false }; });
+  }
+  function avisoFoto(texto, bien) {
+    fotoAviso.textContent = texto;
+    fotoAviso.className = bien ? "aviso bien" : "aviso";
+  }
+  foto.addEventListener("change", function () {
+    var archivo = foto.files && foto.files[0];
+    if (!archivo) return;
+    avisoFoto("📷 Subiendo la foto…", true);
+    achicar(archivo).then(function (r) {
+      fotoVista.hidden = !r.vista;
+      if (r.blob.size > MAX_FOTO) { avisoFoto("La foto pesa mucho. Tómela otra vez 📷"); return null; }
+      return fetch(base + "/foto", { method: "POST", credentials: "same-origin",
+        headers: { "Content-Type": r.blob.type || "application/octet-stream" }, body: r.blob })
+        .then(function (resp) {
+          return resp.json().catch(function () { return {}; }).then(function (j) {
+            if (resp.ok) { avisoFoto("✓ Foto lista", true); fotoTexto.textContent = "Cambiar la foto"; return; }
+            fotoVista.hidden = true;
+            avisoFoto(resp.status === 413 ? "La foto pesa mucho. Tómela otra vez 📷"
+              : (j.error || "No se pudo subir la foto. Intente otra vez 📷"));
+          });
+        });
+    }).catch(function () { avisoFoto("Sin conexión: la foto no subió. Intente otra vez 📷"); })
+      .then(function () { foto.value = ""; });
+  });
+
   confirmar.addEventListener("click", function () {
     if (confirmar.disabled || !ultimo) return;
     confirmar.disabled = true;
     error.textContent = "";
     post("/guardar", { lat: ultimo.lat, lon: ultimo.lon, origen: ultimo.origen, precision: ultimo.precision,
-      referencia: ref.value.trim() }).then(function (r) {
+      referencia: ref.value.trim(), recibe: recibe.value.trim(), telefono: tel.value.trim() }).then(function (r) {
+      if (!r.ok && r.j.campo === "telefono") {
+        error.textContent = r.j.error; tel.focus(); actualizar(); return;
+      }
       if (!r.ok) {
         error.textContent = (r.j.error || "No se pudo guardar.") + " Mándenos su ubicación con el botón de arriba 👆";
         respaldo.hidden = false; actualizar(); return;
@@ -321,7 +406,8 @@
     </template>
 
     <!-- /entrega/<secreto>: lo que ve el motorizado al escanear el QR del comprobante. Solo lee. Variables: empresa,
-         datos (``dcasa.ubicacion.entrega._para_el_motorizado``) o None, nonce. -->
+         datos (``dcasa.ubicacion.entrega._para_el_motorizado``) o None, nonce. Orden: ir (Waze, Google Maps), reconocer
+         (la foto, quién recibe, la referencia) y, al llegar, «Avisar que llegué», «Llamar» y el teléfono de respaldo. -->
     <template id="entrega_pagina" name="Ubicación: página del motorizado">&lt;!DOCTYPE html&gt;
 <html lang="es">
 <head>
@@ -351,10 +437,15 @@
             </div>
             <p class="ojo" t-if="not datos['tiene_punto']">⚠ Sin punto en el mapa: llama antes de salir.</p>
             <p class="ojo" t-elif="not datos['confiable']">⚠ Punto aproximado (<t t-esc="datos['origen']"/>): confírmalo.</p>
+            <!-- La foto de la casa (la subió la clienta; sin EXIF): con el mismo secreto de esta página. -->
+            <figure class="fachada" t-if="datos.get('fachada_url')">
+                <img t-att-src="datos['fachada_url']" alt="Foto de la casa" decoding="async"/>
+                <figcaption><t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'camara'"/></t>Así se ve la casa</figcaption>
+            </figure>
             <div class="tarjeta suave">
-                <div class="dato-mot" t-if="datos['nombre']">
-                    <t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'casa'"/></t>
-                    <div><b>Recibe</b><t t-esc="datos['nombre']"/></div>
+                <div class="dato-mot" t-if="datos.get('recibe') or datos['nombre']">
+                    <t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'persona'"/></t>
+                    <div><b>Recibe</b><t t-esc="datos.get('recibe') or datos['nombre']"/></div>
                 </div>
                 <div class="dato-mot" t-if="datos['zona']">
                     <t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'pin'"/></t>
@@ -377,8 +468,26 @@
                     <div><b>Punto</b><t t-esc="datos['origen']"/></div>
                 </div>
             </div>
+            <!-- Al llegar: WhatsApp al celular de la clienta con el mensaje listo («Hola Ana, soy el motorizado de… Ya
+                 llegué con su pedido S00042»). Sin celular de WhatsApp, solo «Llamar». -->
+            <a t-if="datos.get('avisar_llegue')" class="boton" t-att-href="datos['avisar_llegue']"
+               rel="noopener noreferrer">
+                <t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'chat'"/></t>Avisar que llegué</a>
             <a t-if="datos['telefono_tel']" class="boton contorno" t-att-href="'tel:' + datos['telefono_tel']">
                 <t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'telefono'"/></t>Llamar a <t t-esc="datos['nombre'] or 'la clienta'"/></a>
+            <div class="respaldo-mot tarjeta suave" t-if="datos.get('respaldo_tel')">
+                <div class="dato-mot">
+                    <t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'telefono'"/></t>
+                    <div><b>Si no contesta</b><t t-esc="datos['respaldo']"/></div>
+                </div>
+                <div class="fila dos">
+                    <a class="boton contorno chico" t-att-href="'tel:' + datos['respaldo_tel']">
+                        <t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'telefono'"/></t>Llamar</a>
+                    <a t-if="datos.get('respaldo_whatsapp')" class="boton contorno chico"
+                       t-att-href="datos['respaldo_whatsapp']" rel="noopener noreferrer">
+                        <t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'chat'"/></t>WhatsApp</a>
+                </div>
+            </div>
         </t>
     </main>
 </body>

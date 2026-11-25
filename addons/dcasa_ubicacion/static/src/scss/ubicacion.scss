@@ -168,7 +168,8 @@ $dcasa-ubic-salvia: #4F6B58;
             pointer-events: none;
         }
 
-        .o_dcasa_ubic_buscar {
+        .o_dcasa_ubic_buscar,
+        .o_dcasa_ubic_chico {
             padding-left: 48px;
         }
     }
@@ -176,6 +177,16 @@ $dcasa-ubic-salvia: #4F6B58;
     .o_dcasa_ubic_buscar,
     [name=dcasa_referencia] {
         min-height: 52px;
+        font-size: 16px;
+    }
+
+    // Quién recibe y otro teléfono (opcionales): más chicos que el número de casa, con su ícono y sin etiqueta grande.
+    .o_dcasa_ubic_opcional {
+        margin-top: 10px;
+    }
+
+    .o_dcasa_ubic_chico {
+        min-height: 48px;
         font-size: 16px;
     }
 
@@ -235,6 +246,19 @@ $dcasa-ubic-salvia: #4F6B58;
         align-items: center;
         gap: 8px;
         font-weight: 700;
+    }
+}
+
+// El sitio pone 44 px a todo campo con `#wrapwrap .form-control` (pesa un id): sin repetirlo aquí, los campos del bloque
+// quedaban en 44 px y no en los 48 px (o 52) del pedido del dueño. Se ve en el navegador, no en las pruebas.
+#wrapwrap .o_dcasa_ubicacion {
+    .o_dcasa_ubic_buscar,
+    [name=dcasa_referencia] {
+        min-height: 52px;
+    }
+
+    .o_dcasa_ubic_chico {
+        min-height: 48px;
     }
 }
 

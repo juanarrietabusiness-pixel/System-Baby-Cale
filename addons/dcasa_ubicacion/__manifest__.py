@@ -14,6 +14,9 @@ Pedido del dueño de Baby Caleb (2026-11-25), con la idea de Nébula y sus falla
 * **Motorizado**: el QR del comprobante y de la nota de entrega abre ``/entrega/<secreto>`` (Waze, Google Maps,
   dirección, referencia, llamar). Vence a los 30 días y no cambia nada.
 * **Brian / MCP**: ``ubicacion_de_entrega``, ``enlace_de_ubicacion_para_cliente`` y ``poner_ubicacion_de_entrega``.
+* **Para que no vuelva el pedido**: quién recibe y un teléfono de respaldo (checkout, enlace, Juan con
+  ``guardar_quien_recibe``, Brian con ``poner_quien_recibe``), la foto de la fachada (sin EXIF; la ve el motorizado
+  en ``/entrega/<secreto>/fachada``), «Avisar que llegué» por WhatsApp y la tarjeta «Marcar mi casa» al pagar.
 * Claves (opcionales, en Cloudflare): ``GOOGLE_MAPS_CLAVE_NAVEGADOR`` (el mapa) y ``GOOGLE_MAPS_CLAVE_SERVIDOR`` (la
   calle). Sin ellas: GPS, búsqueda en la tabla y dirección escrita siguen funcionando.
 """,
@@ -27,11 +30,13 @@ Pedido del dueño de Baby Caleb (2026-11-25), con la idea de Nébula y sus falla
     'data': [
         'security/ir.model.access.csv',
         'views/iconos_templates.xml',
+        'views/casa_iconos_templates.xml',
         'views/paginas_templates.xml',
         'views/checkout_templates.xml',
         'views/reporte_templates.xml',
         'views/pedido_templates.xml',
         'views/backend_views.xml',
+        'views/casa_views.xml',
     ],
     'assets': {
         'web.assets_frontend': [

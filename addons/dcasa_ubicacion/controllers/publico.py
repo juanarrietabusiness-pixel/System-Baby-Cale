@@ -2,20 +2,24 @@
 
 * ``GET /u/<secreto>``: la página donde la clienta marca su punto (el enlace de un solo uso que le manda Juan).
   ``POST …/zona`` ({lat, lon}) dice qué zona y qué precio salen del punto, sin guardar nada; ``POST …/guardar``
-  ({lat, lon, origen, precision, referencia}) lo guarda. El secreto autentica: sin sesión ni cookie
-  (``save_session=False``), sin CSRF. Vencido, usado o inventado: la misma página de «este enlace ya no sirve».
+  ({lat, lon, origen, precision, referencia, recibe?, telefono?}) lo guarda. ``POST …/foto`` (el cuerpo es la foto,
+  de a lo sumo 8 MB) guarda la foto de la fachada, sin EXIF (``motor/casa.py``), apenas la toma (y hasta una hora
+  después de usar el enlace). El secreto autentica: sin sesión ni cookie (``save_session=False``), sin CSRF.
+  Vencido, usado o inventado: la misma página de «este enlace ya no sirve».
 * ``GET /entrega/<secreto>``: la página del motorizado (el QR del comprobante). Solo lee; vence a los 30 días.
+  ``GET …/fachada``: la foto de la casa, con el mismo secreto (nunca por ``/web/content``).
 * ``POST /tienda/ubicacion/zona`` (JSON-RPC del sitio): la vista previa del checkout (zona, precio y el aviso si lo
   escrito nombra otro distrito). No guarda nada.
 
 Todas: ``Cache-Control: no-store``, ``X-Robots-Tag: noindex``, ``Referrer-Policy: no-referrer``, CSP con nonce en las
-páginas, cuerpo de a lo sumo 2 KB y 60 peticiones por minuto por IP (la red /64 en IPv6). Las coordenadas no se
-escriben en el registro del servidor.
+páginas, cuerpo de a lo sumo 2 KB (la foto, 8 MB) y 60 peticiones por minuto por IP (la red /64 en IPv6). Las
+coordenadas no se escriben en el registro del servidor.
 """
 import json
 import secrets
+from datetime import timedelta
 
-from odoo import http
+from odoo import fields, http
 from odoo.addons.dcasa_base.red import llave_ip
 from odoo.addons.dcasa_envios.controllers.choferes import excede
 from odoo.addons.portal.controllers.portal import CustomerPortal
@@ -23,12 +27,13 @@ from odoo.exceptions import AccessError, MissingError
 from odoo.http import request
 
 from ..models.zona import UbicacionInvalida
-from ..motor import geo
+from ..motor import casa, geo
 
 MAX_CUERPO = 2048
 MAX_BUSQUEDA = 60
 MAX_POR_MINUTO = 60
 ESPERA_S = 60
+FOTO_DESPUES_DE_USAR = timedelta(hours=1)   # la foto puede llegar justo después de «Sí, aquí es»
 CABECERAS = {
     'Cache-Control': 'no-store',
     'X-Robots-Tag': 'noindex, nofollow',
@@ -219,12 +224,36 @@ class UbicacionPublica(http.Controller):
         if not referencia:
             return _json({'error': 'Cuéntenos cómo reconocer el sitio (color de la casa, portón, un punto de '
                                    'referencia).', 'campo': 'referencia'}, 400)
+        # Opcionales (que no estorben): quién recibe y otro teléfono de Panamá por si no contesta.
+        recibe = casa.recibe_limpio(cuerpo.get('recibe'))
+        telefono = geo.texto_corto(cuerpo.get('telefono'), casa.MAX_TELEFONO)
+        if telefono and not casa.telefono_de_respaldo(telefono):
+            return _json({'error': casa.MENSAJE_TELEFONO, 'campo': 'telefono'}, 400)
         try:
             zona = enlace._confirmar(cuerpo.get('lat'), cuerpo.get('lon'), origen,
-                                     precision=cuerpo.get('precision'), referencia=referencia)
+                                     precision=cuerpo.get('precision'), referencia=referencia,
+                                     recibe=recibe, telefono=telefono)
         except UbicacionInvalida as error:
             return _json({'error': str(error.args[0]), 'motivo': error.motivo}, 422)
         return _json({'ok': True, 'zona': zona['texto']})
+
+    @http.route('/u/<string:token>/foto', type='http', auth='public', methods=['POST'], csrf=False,
+                save_session=False, max_content_length=casa.MAX_FOTO_BYTES)
+    def enlace_foto(self, token, **_parametros):
+        """La foto de la fachada (opcional). El cuerpo es la imagen tal cual (la página la achica antes); aquí se abre
+        con PIL, se le quita el EXIF y se guarda como JPEG en la ficha. Sirve mientras el enlace esté vigente y hasta
+        una hora después de usarlo («Sí, aquí es» puede llegar antes que la foto)."""
+        if _limite():
+            return _demasiado()
+        enlace = self._enlace(token)
+        if not enlace or (enlace.estado == 'usado'
+                          and enlace.usado_el < fields.Datetime.now() - FOTO_DESPUES_DE_USAR):
+            return _json({'error': 'Este enlace ya no sirve.'}, 404)
+        try:
+            enlace.partner_id._dcasa_poner_fachada(request.httprequest.get_data(cache=False))
+        except casa.FotoInvalida as error:
+            return _json({'error': str(error.args[0]), 'motivo': error.motivo}, 422)
+        return _json({'ok': True})
 
     # --- La página del motorizado (QR) -----------------------------------------------------------------------------
 
@@ -239,6 +268,23 @@ class UbicacionPublica(http.Controller):
             return _pagina('dcasa_ubicacion.entrega_pagina', {'empresa': empresa.name, 'datos': None}, status=404)
         return _pagina('dcasa_ubicacion.entrega_pagina', {'empresa': empresa.name,
                                                            'datos': entrega._para_el_motorizado()})
+
+    @http.route('/entrega/<string:token>/fachada', type='http', auth='public', methods=['GET'], csrf=False,
+                save_session=False)
+    def entrega_fachada(self, token, **_parametros):
+        """La foto de la casa para el motorizado: con el secreto de su página (vence con ella), sin caché y sin que la
+        indexe nadie. Sin foto, vencida o inventada: 404."""
+        if _limite():
+            return _demasiado(en_json=False)
+        entrega = request.env['dcasa.ubicacion.entrega']._del_secreto(token)
+        orden = entrega.order_id.sudo() if entrega else None
+        jpeg = (orden.partner_shipping_id or orden.partner_id)._dcasa_fachada_jpeg() if orden else None
+        if not jpeg:
+            return request.make_response('Not Found', status=404, headers=_cabeceras(**{
+                'Content-Type': 'text/plain; charset=utf-8'}))
+        return request.make_response(jpeg, headers=_cabeceras(**{
+            'Content-Type': 'image/jpeg', 'Content-Disposition': 'inline; filename="casa.jpg"',
+            'Content-Security-Policy': "default-src 'none'; sandbox", 'Cross-Origin-Resource-Policy': 'same-origin'}))
 
     # --- La vista previa del checkout ------------------------------------------------------------------------------
 

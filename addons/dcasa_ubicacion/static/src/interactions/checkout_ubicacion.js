@@ -13,7 +13,9 @@ import { registry } from "@web/core/registry";
 import { rpc } from "@web/core/network/rpc";
 
 export class CheckoutUbicacion extends Interaction {
-    static selector = ".o_dcasa_ubicacion";
+    // Solo el bloque del checkout: la tarjeta «Marcar mi casa» del pedido y de «¡Gracias por su compra!» lleva la misma
+    // clase (para sus estilos) y sin el mapa esto fallaba («classList» de null) en esas páginas.
+    static selector = "#div_dcasa_ubicacion";
 
     setup() {
         this.form = this.el.closest("form");

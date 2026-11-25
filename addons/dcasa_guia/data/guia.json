@@ -4025,6 +4025,26 @@
    ]
  },
   {
+   "id": "envio-quien-recibe",
+   "categoria": "vender",
+   "grupo": "Envíos",
+   "titulo": "Ver o anotar quién recibe, el teléfono de respaldo y la foto de la casa",
+   "logras": "En Contactos abres la ficha de la clienta y, en la pestaña «Ubicación de entrega», ves quién recibe el pedido, otro teléfono por si no contesta y la foto de la casa que ella subió. Los dos primeros los puedes escribir ahí mismo; la foto la puedes quitar con «Quitar la foto». El motorizado ve todo en la página del QR, con el botón «Avisar que llegué» que le abre WhatsApp con el mensaje listo.",
+   "nota": "La clienta los pone, si quiere, al pagar en la tienda o en el enlace para marcar su ubicación. A la foto se le quita la ubicación escondida que traen las fotos del teléfono.",
+   "destino": {
+    "menu": "contacts.res_partner_menu_contacts"
+   },
+   "palabras": [
+    "quien recibe",
+    "telefono de respaldo",
+    "otro telefono",
+    "foto de la casa",
+    "foto de la fachada",
+    "avisar que llegue",
+    "pedido devuelto"
+   ]
+ },
+  {
    "id": "envio-enlace-choferes",
    "categoria": "vender",
    "grupo": "Envíos",

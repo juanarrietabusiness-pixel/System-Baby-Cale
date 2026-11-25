@@ -1,10 +1,19 @@
 """El punto de entrega de una clienta (su dirección de entrega en Odoo: ``res.partner``).
 
 Se guarda solo aquí y en la entrega de cada venta (``dcasa.ubicacion.entrega``): nunca en el texto de una
-conversación, en la auditoría de Brian ni en el registro del servidor (docs/UBICACION.md › «Privacidad»)."""
-from odoo import api, fields, models
+conversación, en la auditoría de Brian ni en el registro del servidor (docs/UBICACION.md › «Privacidad»).
 
-from ..motor import geo
+Junto al punto, para que el motorizado no vuelva con el pedido: **quién recibe** (si no es la clienta), un **teléfono de
+respaldo** de Panamá y la **foto de la fachada** (sin EXIF: ver ``motor/casa.py``). Los tres son opcionales.
+"""
+import base64
+
+from markupsafe import Markup, escape
+
+from odoo import api, fields, models
+from odoo.exceptions import ValidationError
+
+from ..motor import casa, geo
 
 
 class ResPartner(models.Model):
@@ -32,6 +41,17 @@ class ResPartner(models.Model):
                                             help='La que da Google para el punto (una ayuda; lo escrito manda).')
     dcasa_ubic_etiqueta = fields.Char('Origen del punto', compute='_compute_dcasa_ubic_etiqueta')
     dcasa_ubic_tiene_punto = fields.Boolean('Tiene punto de entrega', compute='_compute_dcasa_ubic_etiqueta')
+    # Quién recibe y el teléfono de respaldo (opcionales): los ve el motorizado, la venta y el equipo; nunca la IA.
+    dcasa_recibe = fields.Char('Quién recibe', size=casa.MAX_RECIBE,
+                               help='Si no es la clienta: «Rosa, su mamá», «el guardia del PH»… Lo lee el motorizado.')
+    dcasa_tel_respaldo = fields.Char('Teléfono de respaldo',
+                                     help='Otro celular o fijo de Panamá por si la clienta no contesta.')
+    # La foto de la fachada: un adjunto de la ficha (en R2 con dcasa_adjuntos_r2), uno por clienta. Solo la ve el
+    # equipo (aquí) y el motorizado (con el secreto de su página, /entrega/<secreto>/fachada); nunca /web/content
+    # suelto.
+    dcasa_fachada = fields.Binary('Foto de la casa', attachment=True, readonly=True, copy=False,
+                                  groups='base.group_user')
+    dcasa_fachada_fecha = fields.Datetime('Foto de la casa puesta el', readonly=True, copy=False)
 
     @api.depends('dcasa_ubic_origen', 'dcasa_ubic_precision_m', 'partner_latitude', 'partner_longitude')
     def _compute_dcasa_ubic_etiqueta(self):
@@ -39,6 +59,19 @@ class ResPartner(models.Model):
             partner.dcasa_ubic_tiene_punto = partner._dcasa_ubic_punto() is not None
             partner.dcasa_ubic_etiqueta = geo.etiqueta(
                 partner.dcasa_ubic_origen, partner.dcasa_ubic_precision_m or None) if partner.dcasa_ubic_origen else ''
+
+    @api.constrains('dcasa_tel_respaldo')
+    def _check_dcasa_tel_respaldo(self):
+        for partner in self:
+            if partner.dcasa_tel_respaldo and not casa.telefono_de_respaldo(partner.dcasa_tel_respaldo):
+                raise ValidationError(self.env._(
+                    'El teléfono de respaldo tiene que ser de Panamá: un celular (6123-4567) o un fijo (234-5678).'))
+
+    @api.onchange('dcasa_tel_respaldo')
+    def _onchange_dcasa_tel_respaldo(self):
+        numero = casa.telefono_de_respaldo(self.dcasa_tel_respaldo)
+        if numero:
+            self.dcasa_tel_respaldo = numero['guardar']
 
     def _dcasa_ubic_punto(self):
         """``(lat, lon)`` del punto de entrega, o ``None`` (sin punto, o escrito a mano)."""
@@ -92,6 +125,66 @@ class ResPartner(models.Model):
         for orden in ordenes:
             orden._dcasa_entrega_motorizado()
 
+    def _dcasa_poner_quien_recibe(self, recibe=None, telefono=None, al_dia=True):
+        """Guarda quién recibe y el teléfono de respaldo (con ``sudo``: lo llaman el checkout, la página del enlace,
+        Juan y Brian después de comprobar quién es). ``None`` no toca ese dato; ``''`` lo borra. El teléfono se guarda
+        bien escrito («+507 6123-4567»); si no es de Panamá, ``TelefonoInvalido`` y no se guarda nada.
+
+        Con ``al_dia`` las ventas confirmadas que van a esta dirección quedan con su entrega armada (como la
+        referencia). Devuelve lo que se escribió."""
+        self.ensure_one()
+        valores = {}
+        if recibe is not None:
+            valores['dcasa_recibe'] = casa.recibe_limpio(recibe) or False
+        if telefono is not None:
+            texto = geo.texto_corto(telefono, casa.MAX_TELEFONO)
+            numero = casa.telefono_de_respaldo(texto) if texto else None
+            if texto and not numero:
+                raise casa.TelefonoInvalido(casa.MENSAJE_TELEFONO)
+            valores['dcasa_tel_respaldo'] = numero['guardar'] if numero else False
+        if valores:
+            self.sudo().write(valores)
+            if al_dia:
+                self._dcasa_ubic_al_dia_en_ventas()
+        return valores
+
+    def _dcasa_poner_fachada(self, datos):
+        """Guarda la foto de la fachada que mandó la clienta (``datos``: los bytes tal cual llegaron). Se limpia y se
+        achica antes (``casa.procesar_foto``: sin EXIF, que lleva el GPS); la nueva reemplaza a la anterior (Odoo cambia
+        el contenido del mismo adjunto; el objeto viejo de R2 lo recoge su limpieza, nunca se borra al momento).
+        ``FotoInvalida`` si no es una foto que se pueda abrir o pesa demasiado."""
+        self.ensure_one()
+        jpeg = casa.procesar_foto(datos)
+        partner = self.sudo()
+        partner.write({'dcasa_fachada': base64.b64encode(jpeg), 'dcasa_fachada_fecha': fields.Datetime.now()})
+        partner.message_post(body=Markup('<p>%s</p>') % escape(self.env._(
+            '📷 La clienta subió la foto de su casa para el motorizado (en la pestaña «Ubicación de entrega»).')),
+            subtype_xmlid='mail.mt_note')
+        return len(jpeg)
+
+    def _dcasa_quitar_fachada(self):
+        """Quita la foto de la fachada de la ficha (el objeto de R2 lo recoge su limpieza a los 45 días)."""
+        self.ensure_one()
+        if self.sudo().dcasa_fachada_fecha:
+            self.sudo().write({'dcasa_fachada': False, 'dcasa_fachada_fecha': False})
+            return True
+        return False
+
+    def _dcasa_fachada_jpeg(self):
+        """Los bytes del JPEG de la fachada, o ``None``."""
+        self.ensure_one()
+        partner = self.sudo()
+        if not partner.dcasa_fachada_fecha or not partner.dcasa_fachada:
+            return None
+        return base64.b64decode(partner.dcasa_fachada)
+
+    def action_dcasa_quitar_fachada(self):
+        """Panel: quita la foto de la casa (si la clienta lo pide o la foto no sirve)."""
+        self.ensure_one()
+        self.check_access('write')
+        self._dcasa_quitar_fachada()
+        return True
+
     def _dcasa_poner_escrita(self, referencia=None):
         """La clienta prefirió escribir la dirección: sin punto (el motorizado llama antes)."""
         self.ensure_one()
@@ -125,6 +218,10 @@ class ResPartner(models.Model):
             partes.append(self.env._('Según el mapa: %s.', partner.dcasa_ubic_direccion_mapa))
         partes.append(self.env._('🏠 %s.', partner.dcasa_referencia) if partner.dcasa_referencia
                       else self.env._('🏠 Falta el número de casa y las indicaciones.'))
+        if partner.dcasa_recibe:
+            partes.append(self.env._('👤 Recibe: %s.', partner.dcasa_recibe))
+        if partner.dcasa_tel_respaldo:
+            partes.append(self.env._('📞 Otro teléfono: %s.', partner.dcasa_tel_respaldo))
         partes.append(self.env._('Punto: %s.', partner.dcasa_ubic_etiqueta or ''))
         partes.append(self.env._('🚚 Envío %s.', precio['total_txt']) if precio['con_precio']
                       else self.env._('🚚 Envío por cotizar.'))
@@ -149,6 +246,9 @@ class ResPartner(models.Model):
             'direccion': direccion,
             'direccion_mapa': partner.dcasa_ubic_direccion_mapa or '',
             'referencia': partner.dcasa_referencia or '',
+            'recibe': partner.dcasa_recibe or '',
+            'telefono_respaldo': partner.dcasa_tel_respaldo or '',
+            'tiene_foto_fachada': bool(partner.dcasa_fachada_fecha),
         }
         if punto:
             resumen['enlaces'] = geo.enlaces(*punto)
