@@ -115,6 +115,30 @@ $dcasa-ubic-salvia: #4F6B58;
         height: 50vh;
         min-height: 260px;
         max-height: 460px;
+
+        // En el teléfono, más bajo (auditoría 2): con la barra fija de «Confirmar» (188 px) el centro quedaba tapado y
+        // era una franja grande que se arrastraba sin querer al bajar la página.
+        @media (max-width: 575.98px) {
+            height: #{"min(40vh, 300px)"};
+            min-height: 220px;
+        }
+    }
+
+    // «¿Es para otra casa? Búsquela 👇» bajo «Mi ubicación» (como en /u) y cómo permitir la ubicación.
+    .o_dcasa_ubic_mini,
+    .o_dcasa_ubic_permiso {
+        margin: 6px 0 0;
+        color: $dcasa-ubic-gris;
+        font-size: 15px;
+        text-align: center;
+
+        &:empty {
+            display: none;
+        }
+    }
+
+    .o_dcasa_ubic_permiso {
+        text-align: left;
     }
 
     .o_dcasa_ubic_pin {
@@ -230,6 +254,49 @@ $dcasa-ubic-salvia: #4F6B58;
         font-weight: 700;
     }
 
+    // Con el aviso de cruce: «📍 Es aquí» / «🏠 Es otra casa». Sin señal: «📶 Sin señal. Toque para reintentar».
+    .o_dcasa_ubic_cruce_botones,
+    .o_dcasa_chat_botones {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 10px;
+
+        > *,
+        form > .btn {
+            flex: 1 1 140px;
+        }
+    }
+
+    .o_dcasa_ubic_cruce_si,
+    .o_dcasa_ubic_cruce_no,
+    .o_dcasa_ubic_reintentar,
+    .o_dcasa_chat_si,
+    .o_dcasa_chat_no {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+        min-height: 48px;
+        border-radius: 999px;
+        font-weight: 700;
+    }
+
+    .o_dcasa_ubic_cruce_si,
+    .o_dcasa_ubic_cruce_no {
+        padding: 0 12px;
+        white-space: nowrap;
+    }
+
+    .o_dcasa_ubic_reintentar {
+        margin-top: 6px;
+    }
+
+    .o_dcasa_ubic_falta_tarjeta {
+        margin: 10px 0 0;
+    }
+
     .o_dcasa_ubic_ok {
         display: flex;
         align-items: center;
@@ -269,12 +336,38 @@ $dcasa-ubic-salvia: #4F6B58;
     }
 }
 
-// Al bajar hasta el bloque o el número de casa, que no queden debajo de la cabecera fija del sitio.
+// Al bajar hasta el bloque o el número de casa, que no queden debajo de la cabecera fija del sitio (ni de la barra fija
+// de «Confirmar»: el buscador y la tarjeta del punto, también).
 #div_dcasa_ubicacion {
     scroll-margin-top: 96px;
 
-    [name=dcasa_referencia] {
+    .o_dcasa_ubic_buscar {
         scroll-margin: 120px 0 200px;
+    }
+}
+
+.o_dcasa_ubic_casa [name=dcasa_referencia] {
+    scroll-margin: 120px 0 200px;
+}
+
+// Al «Escribir», el número de casa va después de la ciudad (fuera del recuadro del mapa).
+.o_dcasa_ubic_casa_fuera {
+    .o_dcasa_ubic_etiqueta {
+        padding-top: 0;
+    }
+}
+
+// /shop/checkout: «¿Le entregamos ahí?» con lo que dio en el chat de la tienda (auditoría 2).
+.o_dcasa_chat_pendiente {
+    padding: 16px;
+    border: 2px solid $dcasa-ubic-naranja;
+    border-radius: 18px;
+    background: $dcasa-ubic-superficie;
+
+    .o_dcasa_chat_no_form {
+        display: flex;
+        flex: 1 1 140px;
+        margin: 0;
     }
 }
 
@@ -293,8 +386,10 @@ $dcasa-ubic-salvia: #4F6B58;
     }
 }
 
-// El sitio pone 44 px a todo campo con `#wrapwrap .form-control` (pesa un id): sin repetirlo aquí, los campos del bloque
-// quedaban en 44 px y no en los 48 px (o 52) del pedido del dueño. Se ve en el navegador, no en las pruebas.
+// El sitio pone 44 px a todo campo con `#wrapwrap .form-control` (pesa un id) y a todo botón del checkout con
+// `.o_website_sale_checkout_container .btn:not(.btn-close)` (website_dcasa/static/src/scss/dcasa.scss): sin repetirlo
+// aquí, los campos y botones del bloque quedaban en 44 px y no en los 48 px (o 52 y 56) del pedido del dueño
+// (auditorías 1 y 2). Se ve en el navegador, no en las pruebas de Python.
 #wrapwrap .o_dcasa_ubicacion {
     .o_dcasa_ubic_buscar,
     [name=dcasa_referencia] {
@@ -304,6 +399,34 @@ $dcasa-ubic-salvia: #4F6B58;
     .o_dcasa_ubic_chico {
         min-height: 48px;
     }
+
+    .o_dcasa_ubic_gps,
+    .o_dcasa_ubic_si {
+        min-height: 56px;
+    }
+
+    .o_dcasa_ubic_cruce_si,
+    .o_dcasa_ubic_cruce_no,
+    .o_dcasa_ubic_reintentar,
+    .o_dcasa_ubic_opcion,
+    .o_dcasa_ubic_cambiar,
+    .o_dcasa_chat_si,
+    .o_dcasa_chat_no {
+        min-height: 48px;
+    }
+}
+
+// «Cambiar» de la página del pedido con la casa marcada: un botón de 48 px (era un enlace de 70×26: auditoría 2).
+.o_dcasa_ubic_cambiar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    min-height: 48px;
+    min-width: 48px;
+    padding: 0 18px;
+    border-radius: 999px;
+    font-weight: 700;
 }
 
 // La página del pedido (el link de pago): la tarjeta «¿Dónde le entregamos?» o la línea con la zona y la casa.

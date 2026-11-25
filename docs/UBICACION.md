@@ -64,6 +64,34 @@ El dueño: «el dolor número uno son los pedidos devueltos». Lo que se agregó
 | Instagram / Messenger | No | No | No | Sí | Sí |
 | Chat de la web (Andrés) | — | — | «Usar mi ubicación actual» | — | — |
 
+## Lo que vive la clienta en el navegador (2026-11-25, auditoría 2)
+
+- **El aviso de cruce ya no se salta**: si escribió otro distrito (el regalo para la mamá en San Miguelito) y el punto
+  cae en otro (tocó «Mi ubicación» en La Chorrera), «Confirmar» baja a la tarjeta con **«📍 Es aquí» / «🏠 Es otra
+  casa»** en lugar de «Sí, aquí es». El servidor también lo exige (`dcasa_ubic_cruce_ok`). Bajo «Mi ubicación», «¿Es
+  para otra casa? Búsquela 👇». Sin mapa, el aviso dice «busque la barriada», no «mueva el mapa».
+- **Un arrastre sin querer no cambia la casa**: en el teléfono el mapa se mueve con dos dedos (`cooperative`; con uno
+  baja la página), es más bajo (300 px como mucho) y tras el GPS o una búsqueda la página deja el pin y la tarjeta
+  encima de la barra fija de «Confirmar». Si el pin se movió más de 30 m después de un «Sí» o de un GPS bueno,
+  «Confirmar» pregunta «👆 Movió el pin. ¿Es aquí?». Cambiar a Satélite no quita el «sí».
+- **Sin señal no se traba**: «📶 Sin señal. Toque para reintentar»; «Confirmar» y volver la conexión piden la zona otra
+  vez. En `/u`, «Ese punto no sirve» solo cuando de verdad no sirve. Pasado el tope de visitas, las páginas salen con
+  su plantilla, «Reintentar» y WhatsApp.
+- **Con cuenta, el punto del chat de la tienda llega**: Odoo no pasa por el formulario si ya tiene dirección, así que
+  `/shop/checkout` pregunta arriba «¿Le entregamos ahí?» («Sí» abre su dirección con ese punto; «No» lo olvida).
+  «Agregar dirección» no lo trae. Andrés ya no promete «al pagar ya estará marcada», y con un GPS impreciso guarda al
+  menos la casa que escribió.
+- **WhatsApp sin «�»**: todos los enlaces son `api.whatsapp.com/send` (`dcasa_base/whatsapp.py`); `wa.me` cambiaba los
+  emojis en WhatsApp Web y en Instagram.
+- **Sin callejones**: sin permiso de ubicación, lo que falta es buscar la barriada (y una línea de cómo permitirla); si
+  la barriada no está en la tabla, «💬 Mándenos su dirección por WhatsApp» con lo que buscó y su casa.
+- **La invitada que vuelve atrás** desde «Método de entrega» vuelve a SU dirección (con el punto, la casa y quién
+  recibe), no a una vacía.
+- **El link de pago**: «Marcar mi casa» va antes de «Aceptar y firmar» / «Pagar»; «Cambiar» es un botón de 48 px.
+- **«Escribir»**: la calle se llama «Barriada o calle» (el número va aparte), el número de casa se pide después de la
+  ciudad y «Departamento, suite» vacío no sale.
+- **El motorizado**: con un punto aproximado, «Llamar» arriba como sin punto; de usted y sin «tienda».
+
 ## De dónde sale cada punto (y qué tan fiable es)
 
 | Origen | Cómo se ve | Fiable |
@@ -94,8 +122,8 @@ El dueño: «la gente no lee: íconos y pocas palabras»; «lo que priorizamos e
   punto) y la venta va a domicilio, al confirmarla se le pide **una vez**: el asistente le escribe «🛍️ ¡Gracias por su
   compra! 📍 Para que el motorizado llegue directo a su casa, márquela aquí: …» con el enlace de un solo uso ligado a la
   venta. Si no puede escribirle, la vendedora (o el responsable por defecto de Ajustes de Juan) recibe el pendiente
-  «📍 Pedirle la ubicación de entrega» y en la venta tiene **«📲 Pedir ubicación por WhatsApp»** (wa.me con el mismo
-  texto). El pendiente se cierra solo cuando la clienta marca un punto confiable. Nunca hace fallar la venta ni el pago.
+  «📍 Pedirle la ubicación de entrega» y en la venta tiene **«📲 Pedir ubicación por WhatsApp»** (WhatsApp con el
+  mismo texto). El pendiente se cierra solo cuando la clienta marca un punto confiable. Nunca hace fallar la venta ni el pago.
 - **Con la venta ya confirmada**, el «listo» no habla de precio: «✅ ¡Listo! Ya tenemos su casa: Villa Lucre, San
   Miguelito. 🏠 Casa 24. 🛵 Su pedido S00042 irá a esa dirección.» Lo cobrado no se cambia: si la tabla da otro envío
   para esa zona, queda una nota en la venta para que el equipo decida.

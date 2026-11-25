@@ -35,7 +35,7 @@
  *   · Accesible: foco, Esc para cerrar, aria-*; con movimiento reducido, quieto.
  *
  * Todo el texto que llega del Worker se pinta con textContent (nunca como HTML) y los enlaces e imágenes solo pueden
- * ser de este mismo sitio (o wa.me para WhatsApp).
+ * ser de este mismo sitio (o api.whatsapp.com para WhatsApp).
  *
  * Ojo: nada de plantillas de texto con comillas invertidas dentro de otra; el minificador de Odoo les come los
  * espacios del borde («abramos(atendemos», «2×Colchón»). Se arma con «+» (lo revisa test_ajustes.py).
@@ -81,7 +81,7 @@ const VOZ_MIN_MS = 600;
 const CLAVE_VOZ_PISTA = "dcasa.brian.voz_pista";
 const RUTA = "/dcasa/brian/v1";
 /** Botones de la página que la burbuja nunca tapa (se hace a un lado mientras estén debajo). */
-const NO_TAPAR = '.o_dcasa_wa_producto, #add_to_cart, a.btn[href*="wa.me"], a.btn[href^="/whatsapp"], [name="website_sale_main_button"], .o_dcasa_brian_no_tapar';
+const NO_TAPAR = '.o_dcasa_wa_producto, #add_to_cart, a.btn[href*="wa.me"], a.btn[href*="api.whatsapp.com/send"], a.btn[href^="/whatsapp"], [name="website_sale_main_button"], .o_dcasa_brian_no_tapar';
 
 const TRAZO = 'viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"';
 const ICO = {
@@ -1175,7 +1175,8 @@ export class ChatBrian {
     }
 
     /** «🏠 Número de casa e indicaciones»: un campo y «Guardar». Va al carrito con la ubicación de este turno; al pagar,
-     *  el checkout ya la trae y solo falta tocar «Sí, aquí es» (dcasa_ubicacion, docs/UBICACION.md). */
+     *  el checkout la muestra para confirmarla con un toque (dcasa_ubicacion, docs/UBICACION.md). No promete «ya estará
+     *  marcada»: con cuenta, la confirma en la tarjeta «¿Le entregamos ahí?» de /shop/checkout (auditoría 2). */
     tarjetaIndicaciones(bloque) {
         if (!this.ultimaUbicacion) {
             return;
@@ -1203,11 +1204,13 @@ export class ChatBrian {
             const r = await this.odoo("POST", `${RUTA}/carrito/ubicacion`, { lat: u.lat, lon: u.lon, precision: u.precision, referencia });
             boton.disabled = false;
             if (r && r.ok) {
-                tarjeta.replaceChildren(el("p", { class: "o_dcbt_envio_eti" }, ico("check"), el("span", { text: "Listo: al pagar ya estará su casa marcada." })));
+                tarjeta.replaceChildren(el("p", { class: "o_dcbt_envio_eti" }, ico("check"), el("span", { text: "Guardada. Al pagar, confírmela con un toque 📍" })));
                 this.anotar({ tipo: "cliente", texto: referencia });
             } else if (r && r.motivo === "impreciso") {
                 const metros = Number.isFinite(r.precision) ? ` (±${r.precision} m)` : "";
-                estado.textContent = `📍 Su teléfono no da la ubicación exacta${metros}. Párese en su puerta, active la ubicación precisa y toque «Probar otra vez».`;
+                // La casa que escribió sí quedó (dcasa_ubicacion, auditoría 2): no tiene que volver a escribirla.
+                const casa = r.casa_guardada ? " 🏠 Su casa ya quedó anotada." : "";
+                estado.textContent = `📍 Su teléfono no da la ubicación exacta${metros}. Párese en su puerta, active la ubicación precisa y toque «Probar otra vez».${casa}`;
                 otraVez.hidden = false;
             } else {
                 estado.textContent = "No se pudo guardar. Al pagar, toque «Mi ubicación» y escríbalo ahí.";
@@ -1240,7 +1243,8 @@ export class ChatBrian {
             return "/whatsapp";
         }
         const texto = typeof mensaje === "string" && mensaje.trim() ? mensaje.trim().slice(0, 600) : mensajeWhatsApp(this.estado.carrito, extra);
-        return `https://wa.me/${this.whatsapp}?text=${encodeURIComponent(texto)}`;
+        // api.whatsapp.com y no wa.me: wa.me cambia los emojis por «�» en WhatsApp Web (dcasa_base/whatsapp.py).
+        return `https://api.whatsapp.com/send?phone=${this.whatsapp}&text=${encodeURIComponent(texto)}`;
     }
 
     tarjetaWA(bloque = {}) {

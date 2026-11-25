@@ -2,7 +2,7 @@
 pedidos devueltos»), en puro Python (sin base de datos):
 
 * **Quién recibe** (si no es la clienta) y un **teléfono de respaldo** de Panamá, por si no contesta.
-* **«Avisar que llegué»**: el número para ``wa.me`` del celular de la clienta.
+* **«Avisar que llegué»**: el número de WhatsApp del celular de la clienta.
 * **La foto de la fachada**: se abre con PIL, se endereza, se le quitan TODOS sus datos ocultos (EXIF, XMP, perfiles:
   la foto de un teléfono lleva el GPS de donde se tomó) y se guarda como un JPEG nuevo de hasta ``LADO_FOTO`` px.
 
@@ -10,10 +10,10 @@ Los celulares se leen con las reglas que ya usa el sistema: ``dcasa_socios`` (``
 Panamá, como en la ficha) y ``dcasa_conversaciones`` (``celulares.interpretar``: el número de WhatsApp de un cliente).
 """
 import io
-from urllib.parse import quote
 
 from PIL import Image, ImageOps
 
+from odoo.addons.dcasa_base import whatsapp
 from odoo.addons.dcasa_conversaciones.models import celulares
 from odoo.addons.dcasa_socios.models import bien_escrito
 from odoo.addons.dcasa_socios.models import reglas as R
@@ -92,7 +92,7 @@ def mismo_telefono(uno, otro):
 
 
 def numero_whatsapp(telefono):
-    """El número para ``wa.me`` de un celular (Panamá con su 507; otro país, completo) o ``''`` (un fijo, letras…). Es
+    """El número de WhatsApp de un celular (Panamá con su 507; otro país, completo) o ``''`` (un fijo, letras…). Es
     la misma lectura con que Juan reconoce el celular de un cliente (``celulares.interpretar``)."""
     tipo, valor = celulares.interpretar(telefono or '')
     if tipo == 'pa':
@@ -101,8 +101,9 @@ def numero_whatsapp(telefono):
 
 
 def enlace_whatsapp(numero, texto):
-    """``https://wa.me/<número>?text=<mensaje>`` (el mensaje listo para mandar) o ``''`` sin número."""
-    return f'https://wa.me/{numero}?text={quote(texto or "", safe="")}' if numero else ''
+    """``https://api.whatsapp.com/send?phone=<número>&text=<mensaje>`` (el mensaje listo para mandar) o ``''`` sin
+    número. No ``wa.me``: cambia los emojis por «�» en WhatsApp Web (dcasa_base/whatsapp.py)."""
+    return whatsapp.enlace(numero, texto) if numero else ''
 
 
 def tel(telefono):

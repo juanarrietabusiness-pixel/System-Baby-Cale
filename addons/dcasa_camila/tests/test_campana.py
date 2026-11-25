@@ -113,7 +113,7 @@ class TestArmar(CamilaComun):
             self.assertIn(f'color:#{marca.NARANJA_TEXTO}', estilo(precio))
         (boton,) = [a for a in arbol.iter('a') if 'WhatsApp' in a.text_content()]
         self.assertEqual(boton.text_content().strip(), 'Escríbenos por WhatsApp')
-        self.assertTrue(boton.get('href').startswith('https://wa.me/50760261919?text='))
+        self.assertTrue(boton.get('href').startswith('https://api.whatsapp.com/send?phone=50760261919&text='))
         self.assertIn(campana.marca, boton.get('href').replace('%20', ' ').replace('%2D', '-'))
         (baja,) = arbol.xpath("//a[contains(@class, 'o_camila_baja')]")
         self.assertEqual(baja.get('href'), '{{{RESEND_UNSUBSCRIBE_URL}}}')

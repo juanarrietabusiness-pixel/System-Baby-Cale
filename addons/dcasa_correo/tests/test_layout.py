@@ -59,7 +59,8 @@ class TestLayout(CorreoCase):
         self.assertEqual(cuerpo.count('Escríbenos por WhatsApp'), 1)
         (whatsapp,) = [a for a in arbol.iter('a') if 'WhatsApp' in a.text_content()]
         self.assertEqual(whatsapp.text_content().strip(), '¿Dudas? Escríbenos por WhatsApp')
-        self.assertTrue(whatsapp.get('href').startswith(('https://wa.me/', 'http')), whatsapp.get('href'))
+        self.assertTrue(whatsapp.get('href').startswith(('https://api.whatsapp.com/send?phone=', 'http')),
+                        whatsapp.get('href'))
         self.assertFalse([a for a in whatsapp.iterancestors() if f'bgcolor:#{marca.NARANJA}' in estilo(a)],
                          'Es texto, no botón')
         # El enlace de acción va en el naranja de letra (#985D2F: 4.60 sobre la superficie), subrayado.

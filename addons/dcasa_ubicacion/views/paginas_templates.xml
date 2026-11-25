@@ -31,7 +31,7 @@
             .boton { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%;
                      min-height: 56px; margin: 12px 0 0; padding: 0 20px; border: 0; border-radius: 999px;
                      background: var(--naranja); color: var(--navy); cursor: pointer; text-decoration: none;
-                     font: inherit; font-weight: 700; font-size: 1.15rem; }
+                     font: inherit; font-weight: 700; font-size: 1.15rem; text-align: center; }
             .boton:hover { background: var(--naranja-puntero); }
             .boton:focus-visible, .campo:focus, .opcion:focus-visible { outline: 2px solid var(--navy); outline-offset: 2px; }
             .boton[disabled] { opacity: .4; cursor: not-allowed; }
@@ -68,7 +68,7 @@
             .check { display: inline-flex; align-items: center; justify-content: center; width: 96px; height: 96px;
                      border-radius: 50%; background: var(--salvia); color: #fff; }
             .check .o_dcasa_icono { width: 56px; height: 56px; }
-            .grande { margin: 16px 0 4px; font-size: 1.6rem; font-weight: 700; }
+            .grande { margin: 16px 0 4px; font-size: 1.6rem; font-weight: 700; line-height: 1.2; }
             .sub { color: var(--gris); }
             .fila { display: flex; gap: 12px; flex-wrap: wrap; }
             .fila .boton { flex: 1 1 200px; }
@@ -107,6 +107,9 @@
             .fila.dos .boton { flex: 1 1 120px; gap: 8px; padding: 0 12px; white-space: nowrap; }
             .respaldo-mot { margin: 16px 0 0; }
             .respaldo-mot .dato-mot { margin: 0; }
+            /* Cómo permitir la ubicación (sin permiso) y la salida por WhatsApp de lo que no está en la tabla. */
+            .permiso { margin: 4px 0 0; color: var(--gris); font-size: 15px; }
+            .permiso:empty { display: none; }
             [hidden] { display: none !important; }
         ]]></style>
     </template>
@@ -146,11 +149,22 @@
     <main class="caja" id="o_dcasa_ubic" t-att-data-estado="estado" t-att-data-token="token"
           t-att-data-clave="clave_google or ''" t-att-data-nonce="nonce">
         <!-- Sin callejones sin salida (auditoría 1): usado, «📍 Cambiar» pide otro por WhatsApp; vencido o inventado,
-             «💬 Pedir otro enlace por WhatsApp» (el WhatsApp de la tienda; sin número, el chat). -->
-        <t t-if="estado == 'usado'">
+             «💬 Pedir otro enlace por WhatsApp» (el WhatsApp de la tienda; sin número, el chat). Pasado el tope de
+             visitas, «Un momento» con «Reintentar» y WhatsApp (auditoría 2: era texto plano). Cada una con su h1. -->
+        <t t-if="estado == 'tope'">
+            <div class="listo" role="status">
+                <span class="burbuja"><t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'pin'"/></t></span>
+                <h1 class="grande">⏳ Un momento</h1>
+                <p class="sub">Muchas visitas seguidas. Espere un minuto y toque «Reintentar».</p>
+                <a class="boton" id="o_dcasa_reintentar_pagina" t-att-href="reintentar">🔄 Reintentar</a>
+                <a t-if="wa_otro" class="boton contorno chico" t-att-href="wa_otro" rel="noopener noreferrer">
+                    <t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'chat'"/></t>Escríbanos por WhatsApp</a>
+            </div>
+        </t>
+        <t t-elif="estado == 'usado'">
             <div class="listo" role="status">
                 <span class="check"><t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'listo'"/></t></span>
-                <p class="grande">Ya la tenemos</p>
+                <h1 class="grande">Ya la tenemos</h1>
                 <p t-if="zona" class="dato" t-esc="zona.replace(' · ', ', ')"/>
                 <a t-if="volver" class="boton" t-att-href="volver">Volver a mi pedido</a>
                 <p t-else="" class="sub">Vuelva al chat 💬</p>
@@ -162,7 +176,7 @@
         <t t-elif="estado != 'vigente'">
             <div class="listo" role="status">
                 <span class="burbuja"><t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'pin'"/></t></span>
-                <p class="grande">Este enlace ya no sirve</p>
+                <h1 class="grande">Este enlace ya no sirve</h1>
                 <a t-if="wa_otro" class="boton" id="o_dcasa_pedir_otro" t-att-href="wa_otro" rel="noopener noreferrer">
                     <t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'chat'"/></t>Pedir otro enlace por WhatsApp</a>
                 <p t-else="" class="sub">Pídanos otro por el chat 💬</p>
@@ -188,24 +202,22 @@
                     <t t-call="dcasa_ubicacion.pin_svg"/>
                 </div>
                 <p class="aviso" id="o_dcasa_aviso" aria-live="polite"/>
+                <p class="permiso" id="o_dcasa_permiso"/>
                 <div class="con-icono">
                     <t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'buscar'"/></t>
                     <input class="campo" id="o_dcasa_buscar" type="search" autocomplete="off" maxlength="60"
                            placeholder="Buscar barriada o lugar" aria-label="Buscar barriada, PH o un lugar conocido"/>
                 </div>
                 <ul class="lista" id="o_dcasa_lista"/>
+                <!-- Sin permiso de ubicación y su barriada no está en la tabla (auditoría 2: callejón sin salida): tras un
+                     GPS que falla o una búsqueda vacía, que nos mande la dirección escrita (con lo que buscó y su casa). -->
+                <a t-if="wa_base" class="boton contorno chico" id="o_dcasa_wa_dir" t-att-data-base="wa_base" href="#"
+                   hidden="hidden" rel="noopener noreferrer">💬 Mándenos su dirección por WhatsApp</a>
                 <div class="tarjeta" id="o_dcasa_tarjeta" hidden="hidden" aria-live="polite">
-                    <p class="dato"><t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'pin'"/></t><span id="o_dcasa_zona"/></p>
+                    <p class="dato" id="o_dcasa_zona_linea"><t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'pin'"/></t><span id="o_dcasa_zona"/></p>
                     <p class="dato precio" id="o_dcasa_precio_linea"><t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'camion'"/></t><span id="o_dcasa_precio"/></p>
-                </div>
-                <!-- Solo con un punto bueno y si «guardar» falló o pasó un rato: un GPS de ±800 m mandado así llegaba
-                     al chat como un punto confiable (auditoría 1). -->
-                <div class="respaldo" id="o_dcasa_respaldo" hidden="hidden">
-                    <p>¿No le funciona? Mándenos su ubicación:</p>
-                    <button type="button" class="boton contorno" id="o_dcasa_copiar">
-                        <t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'pin'"/></t>Copiar mi ubicación</button>
-                    <a t-if="wa_base" class="boton contorno" id="o_dcasa_wa" t-att-data-base="wa_base" href="#"
-                       rel="noopener noreferrer">💬 Mandarla por WhatsApp</a>
+                    <!-- Sin señal (o el tope): no es que el punto no sirva (auditoría 2). Un toque la vuelve a pedir. -->
+                    <button type="button" class="boton contorno chico" id="o_dcasa_reintentar" hidden="hidden">📶 Sin señal. Toque para reintentar</button>
                 </div>
                 <label class="etiqueta" for="o_dcasa_referencia">
                     <span class="paso" aria-hidden="true">3</span>
@@ -236,12 +248,22 @@
                 <p class="falta" id="o_dcasa_falta" aria-live="polite">📍 Toque «Mi ubicación» o busque su barriada</p>
                 <button type="button" class="boton" id="o_dcasa_confirmar" disabled="disabled">
                     <t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'listo'"/></t>
-                    Sí, aquí es
+                    <span id="o_dcasa_confirmar_texto">Sí, aquí es</span>
                 </button>
+                <!-- Solo con un punto bueno y si «guardar» falló o pasó un rato: un GPS de ±800 m mandado así llegaba
+                     al chat como un punto confiable (auditoría 1). Debajo de «Sí, aquí es», junto al error (auditoría
+                     2: arriba quedaba lejos del aviso, y al aparecer corría el botón). -->
+                <div class="respaldo" id="o_dcasa_respaldo" hidden="hidden">
+                    <p>¿No le funciona? Mándenos su ubicación:</p>
+                    <button type="button" class="boton contorno" id="o_dcasa_copiar">
+                        <t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'pin'"/></t>Copiar mi ubicación</button>
+                    <a t-if="wa_base" class="boton contorno" id="o_dcasa_wa" t-att-data-base="wa_base" href="#"
+                       rel="noopener noreferrer">💬 Mandarla por WhatsApp</a>
+                </div>
             </div>
             <div class="listo" id="o_dcasa_hecho" hidden="hidden" role="status">
                 <span class="check"><t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'listo'"/></t></span>
-                <p class="grande">¡Listo!</p>
+                <h1 class="grande">¡Listo!</h1>
                 <p class="dato" id="o_dcasa_hecho_zona"/>
                 <a t-if="volver" class="boton" t-att-href="volver">Volver a mi pedido</a>
                 <p t-else="" class="sub">Vuelva al chat 💬</p>
@@ -257,8 +279,11 @@
   var precioLinea = el("o_dcasa_precio_linea"), falta = el("o_dcasa_falta");
   var ref = el("o_dcasa_referencia"), confirmar = el("o_dcasa_confirmar"), error = el("o_dcasa_error");
   var buscar = el("o_dcasa_buscar"), lista = el("o_dcasa_lista");
-  var ultimo = null, zonaValida = false, zonaError = false, pedido = 0, reloj = null, relojBuscar = null;
-  var respaldo = el("o_dcasa_respaldo"), wa = el("o_dcasa_wa");
+  var ultimo = null, zonaValida = false, zonaError = false, zonaRed = false, pedido = 0, reloj = null, relojBuscar = null;
+  var respaldo = el("o_dcasa_respaldo"), wa = el("o_dcasa_wa"), waDir = el("o_dcasa_wa_dir");
+  var zonaLinea = el("o_dcasa_zona_linea"), reintentar = el("o_dcasa_reintentar");
+  var confirmarTexto = el("o_dcasa_confirmar_texto"), sinPermiso = false;
+  var SIN_SENAL = "📶 Sin señal. Toque para reintentar";
   var falloGuardar = false, ratoPasado = false, RATO_MS = 60000;
   var recibe = el("o_dcasa_recibe"), tel = el("o_dcasa_tel");
   var foto = el("o_dcasa_foto"), fotoVista = el("o_dcasa_foto_vista"), fotoAviso = el("o_dcasa_foto_aviso"),
@@ -298,6 +323,15 @@
     if (!t) { ev.preventDefault(); return; }
     wa.href = wa.dataset.base + encodeURIComponent(t);
   });
+  // Lo que no está en la tabla (o sin permiso de ubicación): la dirección escrita, por WhatsApp. Solo texto: lo que
+  // buscó y su casa (sin coordenadas).
+  function verWaDir(si) { if (waDir) waDir.hidden = !si; }
+  if (waDir) waDir.addEventListener("click", function () {
+    var partes = ["Hola 👋 Esta es mi dirección de entrega:"];
+    if (buscar.value.trim()) partes.push("📍 " + buscar.value.trim());
+    if (ref.value.trim()) partes.push("🏠 " + ref.value.trim());
+    waDir.href = waDir.dataset.base + encodeURIComponent(partes.join("\n"));
+  });
 
   function corta(z) {
     // Lo que se lee de un vistazo: la barriada (o el corregimiento) y el distrito.
@@ -307,9 +341,11 @@
     return fetch(base + ruta, { method: "POST", credentials: "same-origin",
       headers: { "Content-Type": "application/json" }, body: JSON.stringify(datos) })
       .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) {
-        return { ok: r.ok, j: j }; }); })
-      .catch(function () { return { ok: false, j: { error: "Sin conexión. Intente otra vez." } }; });
+        return { ok: r.ok, status: r.status, j: j }; }); })
+      .catch(function () { return { ok: false, status: 0, j: { error: "Sin conexión. Intente otra vez." } }; });
   }
+  // Sin señal, el servidor caído o el tope de intentos: se puede reintentar; no es que el punto no sirva (auditoría 2).
+  function deLaRed(r) { return !r.ok && (r.status === 0 || r.status >= 500 || r.status === 429); }
   // Lo que falta para poder tocar «Sí, aquí es» (auditoría 1: apagado sin decir por qué, la clienta no sabía qué
   // hacer). Una línea corta con ícono; vacía cuando ya se puede.
   var FALTA_MOTIVO = {
@@ -317,9 +353,15 @@
     impreciso: "👆 Mueva el mapa hasta su puerta", impreciso_sin_mapa: "📍 Falta su ubicación exacta",
   };
   function loQueFalta() {
-    if (!ultimo || ultimo.lat === null) return "📍 Toque «Mi ubicación» o busque su barriada";
+    if (!ultimo || ultimo.lat === null) {
+      // Sin permiso de ubicación, «Mi ubicación» no va a servir: que busque (auditoría 2: decía las dos cosas).
+      return sinPermiso ? "🔍 Busque su barriada arriba 👆" : "📍 Toque «Mi ubicación» o busque su barriada";
+    }
     if (!ultimo.bueno) return FALTA_MOTIVO[ultimo.motivo] || "📍 Falta su ubicación";
-    if (!zonaValida) return zonaError ? "📍 Ese punto no sirve: elija otro" : "⏳ Un momento…";
+    if (!zonaValida) {
+      if (zonaError) return zonaRed ? SIN_SENAL + " 👆" : "📍 Ese punto no sirve: elija otro";
+      return "⏳ Un momento…";
+    }
     if (!ref.value.trim()) return "🏠 Escriba su número de casa";
     return "";
   }
@@ -328,22 +370,37 @@
     confirmar.disabled = !!texto;
     falta.textContent = texto;
     verRespaldo();
+    if (puntoParaRespaldo()) verWaDir(false);
   }
   function previa() {
     // Sin un punto bueno no hay zona ni precio que mostrar (un GPS de ±800 m sin mapa mostraba el precio como si
     // todo estuviera bien: auditoría 1).
     if (!ultimo || !ultimo.bueno) return;
     var n = ++pedido;
+    clearTimeout(reloj);
+    zonaValida = false;
+    zonaError = false;
+    zonaRed = false;
     tarjeta.hidden = false;
+    zonaLinea.hidden = false;
     precioLinea.hidden = false;
+    reintentar.hidden = true;
     zona.textContent = "…";
     precio.textContent = "";
+    actualizar();
     post("/zona", { lat: ultimo.lat, lon: ultimo.lon }).then(function (r) {
       if (n !== pedido) return;
       if (!r.ok) {
         zonaError = true;
-        zona.textContent = r.j.error || "Ese punto no sirve.";
+        zonaRed = deLaRed(r);
         precioLinea.hidden = true;
+        if (zonaRed) {
+          zonaLinea.hidden = true;
+          reintentar.textContent = r.status === 429 ? "⏳ Espere un minuto y toque para reintentar" : SIN_SENAL;
+          reintentar.hidden = false;
+        } else {
+          zona.textContent = r.j.error || "Ese punto no sirve.";
+        }
         actualizar();
         return;
       }
@@ -369,7 +426,17 @@
       actualizar();
     },
     alSinMapa: function () { var m = document.querySelector(".mapa-marco"); if (m) m.classList.add("sin-mapa"); },
+    permiso: el("o_dcasa_permiso"),
+    alFallarGps: function (codigo) {
+      sinPermiso = codigo === 1 && !(ultimo && ultimo.lat !== null);
+      verWaDir(true);
+      actualizar();
+      if (sinPermiso) { buscar.scrollIntoView({ block: "center", behavior: "smooth" }); buscar.focus({ preventScroll: true }); }
+    },
   });
+  reintentar.addEventListener("click", previa);
+  // Volvió la señal: se vuelve a pedir la zona sola.
+  window.addEventListener("online", function () { if (zonaError && zonaRed) previa(); });
   ref.addEventListener("input", actualizar);
   buscar.addEventListener("input", function () {
     clearTimeout(relojBuscar);
@@ -381,8 +448,10 @@
         var lugares = (r.j && r.j.lugares) || [];
         if (!lugares.length) {
           var li = document.createElement("li"); li.className = "sub";
-          li.textContent = "No lo encontramos. Pruebe otro nombre.";
-          lista.appendChild(li); return;
+          li.textContent = deLaRed(r) ? "📶 Sin señal. Pruebe otra vez." : "No lo encontramos. Pruebe otro nombre.";
+          lista.appendChild(li);
+          verWaDir(true);
+          return;
         }
         lugares.forEach(function (lugar) {
           var li = document.createElement("li"), b = document.createElement("button"), t = document.createElement("span"),
@@ -442,8 +511,11 @@
     if (confirmar.disabled || !ultimo) return;
     confirmar.disabled = true;
     error.textContent = "";
+    // Con la red lenta, que se vea que algo pasa (auditoría 2).
+    confirmarTexto.textContent = "⏳ Guardando…";
     post("/guardar", { lat: ultimo.lat, lon: ultimo.lon, origen: ultimo.origen, precision: ultimo.precision,
       referencia: ref.value.trim(), recibe: recibe.value.trim(), telefono: tel.value.trim() }).then(function (r) {
+      confirmarTexto.textContent = "Sí, aquí es";
       if (!r.ok && r.j.campo === "telefono") {
         error.textContent = r.j.error; tel.focus(); actualizar(); return;
       }
@@ -451,7 +523,9 @@
         falloGuardar = true;
         actualizar();
         error.textContent = (r.j.error || "No se pudo guardar.") +
-          (respaldo.hidden ? "" : " Mándenos su ubicación con el botón de arriba 👆");
+          (respaldo.hidden ? "" : " Mándenos su ubicación aquí abajo 👇");
+        // El respaldo va justo debajo de «Sí, aquí es»: que se vea (auditoría 2).
+        if (!respaldo.hidden) respaldo.scrollIntoView({ block: "nearest", behavior: "smooth" });
         return;
       }
       el("o_dcasa_formulario").hidden = true;
@@ -481,11 +555,19 @@
 <body>
     <header class="cab"><div class="caja"><p class="marca" t-esc="empresa"/></div></header>
     <main class="caja">
-        <t t-if="not datos">
+        <t t-if="estado == 'tope'">
+            <div class="listo" role="status">
+                <span class="burbuja"><t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'camion'"/></t></span>
+                <h1 class="grande">⏳ Un momento</h1>
+                <p class="sub">Muchas visitas seguidas. Espere un minuto y toque «Reintentar».</p>
+                <a class="boton" t-att-href="reintentar">🔄 Reintentar</a>
+            </div>
+        </t>
+        <t t-elif="not datos">
             <div class="listo" role="status">
                 <span class="burbuja"><t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'pin'"/></t></span>
-                <p class="grande">Este código ya no sirve</p>
-                <p class="sub">Venció o la entrega no existe. Pide el comprobante otra vez en la tienda.</p>
+                <h1 class="grande">Este código ya no sirve</h1>
+                <p class="sub">Venció o la entrega no existe. Pida el comprobante otra vez.</p>
             </div>
         </t>
         <t t-else="">
@@ -494,24 +576,27 @@
                 Entrega <t t-esc="datos['pedido']"/>
             </h1>
             <t t-set="sin_punto" t-value="not datos['tiene_punto']"/>
+            <!-- Sin punto o con un punto aproximado (una barriada buscada, un GPS impreciso), lo primero es llamar
+                 (auditorías 1 y 2): «Llamar» arriba como botón principal. Con un punto bueno, Waze y Google Maps. -->
+            <t t-set="llamar_primero" t-value="sin_punto or not datos['confiable']"/>
+            <p class="ojo" t-if="sin_punto">⚠ Sin punto en el mapa: llame antes de salir.</p>
+            <p class="ojo" t-elif="not datos['confiable']">⚠ Punto aproximado (<t t-esc="datos['origen']"/>): llame para confirmarlo.</p>
+            <a t-if="llamar_primero and datos['telefono_tel']" class="boton" id="o_dcasa_llamar"
+               t-att-href="'tel:' + datos['telefono_tel']">
+                <t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'telefono'"/></t>Llamar a <t t-esc="datos['nombre'] or 'la clienta'"/></a>
             <div class="fila" t-if="datos.get('enlaces')">
-                <a class="boton" t-att-href="datos['enlaces']['waze']" rel="noopener noreferrer">
+                <a t-att-class="'boton contorno' if llamar_primero else 'boton'" t-att-href="datos['enlaces']['waze']"
+                   rel="noopener noreferrer">
                     <t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'ir'"/></t>Abrir en Waze</a>
-                <a class="boton" t-att-href="datos['enlaces']['google']" rel="noopener noreferrer">
+                <a t-att-class="'boton contorno' if llamar_primero else 'boton'" t-att-href="datos['enlaces']['google']"
+                   rel="noopener noreferrer">
                     <t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'mapa'"/></t>Abrir en Google Maps</a>
             </div>
-            <p class="ojo" t-if="sin_punto">⚠ Sin punto en el mapa: llama antes de salir.</p>
-            <p class="ojo" t-elif="not datos['confiable']">⚠ Punto aproximado (<t t-esc="datos['origen']"/>): confírmalo.</p>
-            <!-- Sin punto, lo primero es llegar (auditoría 1): «Llamar» arriba y buscar en Google Maps lo que escribió
-                 la clienta. «Avisar que llegué» queda abajo, para cuando ya está en la puerta. -->
-            <t t-if="sin_punto">
-                <a t-if="datos['telefono_tel']" class="boton" id="o_dcasa_llamar"
-                   t-att-href="'tel:' + datos['telefono_tel']">
-                    <t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'telefono'"/></t>Llamar a <t t-esc="datos['nombre'] or 'la clienta'"/></a>
-                <a t-if="datos.get('buscar_en_maps')" class="boton contorno" id="o_dcasa_buscar_maps"
-                   t-att-href="datos['buscar_en_maps']" rel="noopener noreferrer">
-                    <t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'buscar'"/></t>Buscar la dirección en Google Maps</a>
-            </t>
+            <!-- Sin punto: buscar en Google Maps lo que escribió la clienta. «Avisar que llegué» queda abajo, para cuando
+                 ya está en la puerta. -->
+            <a t-if="sin_punto and datos.get('buscar_en_maps')" class="boton contorno" id="o_dcasa_buscar_maps"
+               t-att-href="datos['buscar_en_maps']" rel="noopener noreferrer">
+                <t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'buscar'"/></t>Buscar la dirección en Google Maps</a>
             <!-- La foto de la casa (la subió la clienta; sin EXIF): con el mismo secreto de esta página. -->
             <figure class="fachada" t-if="datos.get('fachada_url')">
                 <img t-att-src="datos['fachada_url']" alt="Foto de la casa" decoding="async"/>
@@ -545,10 +630,10 @@
             </div>
             <!-- Al llegar: WhatsApp al celular de la clienta con el mensaje listo («Hola Ana, soy el motorizado de… Ya
                  llegué con su pedido S00042»). Sin celular de WhatsApp, solo «Llamar». -->
-            <a t-if="datos.get('avisar_llegue')" t-att-class="'boton contorno' if sin_punto else 'boton'"
+            <a t-if="datos.get('avisar_llegue')" t-att-class="'boton contorno' if llamar_primero else 'boton'"
                id="o_dcasa_llegue" t-att-href="datos['avisar_llegue']" rel="noopener noreferrer">
                 <t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'chat'"/></t>Avisar que llegué</a>
-            <a t-if="datos['telefono_tel'] and not sin_punto" class="boton contorno"
+            <a t-if="datos['telefono_tel'] and not llamar_primero" class="boton contorno"
                t-att-href="'tel:' + datos['telefono_tel']">
                 <t t-call="dcasa_ubicacion.icono"><t t-set="icono" t-value="'telefono'"/></t>Llamar a <t t-esc="datos['nombre'] or 'la clienta'"/></a>
             <div class="respaldo-mot tarjeta suave" t-if="datos.get('respaldo_tel')">
