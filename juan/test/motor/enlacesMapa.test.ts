@@ -250,6 +250,25 @@ describe("el texto que queda (lo que se guarda y lo que ve el modelo)", () => {
     }
   });
 
+  it("auditoría 1: un cuarto enlace con el punto escrito también se tapa (antes llegaba al modelo)", async () => {
+    const e = (n: number) => `https://maps.google.com/?q=9.00${n}2345,-79.5123456`;
+    const r = await ubicacionDelTexto(`a ${e(1)} b ${e(2)} c ${e(3)} d ${e(4)} e ${e(5)}`, { fetch: sinRed });
+    expect(r.texto).not.toMatch(/\d\.\d{3,}/);
+    expect(r.coordenadas).toEqual({ lat: 9.0012345, lon: -79.5123456 });
+    expect(quitarCoordenadasDelTexto(`x ${e(1)} ${e(2)} ${e(3)} ${e(4)}`).texto).not.toMatch(/\d\.\d{3,}/);
+  });
+
+  it("auditoría 1: las coordenadas escritas a mano en Panamá se tapan y son el punto; un precio no", async () => {
+    for (const t of ["mi casa es 9.0012345, -79.5123456 la verde", "9.0012345,-79.5123456"]) {
+      const r = await ubicacionDelTexto(t, { fetch: sinRed });
+      expect(r.coordenadas, t).toEqual(PUNTO);
+      expect(r.texto, t).not.toMatch(/9\.0012|79\.5123/);
+      expect(quitarCoordenadasDelTexto(t).texto, t).not.toMatch(/9\.0012|79\.5123/);
+    }
+    const precio = "son 15.000, 20.500 y 1.250";
+    expect(await ubicacionDelTexto(precio, { fetch: sinRed })).toEqual({ texto: precio, coordenadas: null });
+  });
+
   it("dentro de una frase, solo el enlace se cambia; ninguna coordenada queda", async () => {
     const r = await ubicacionDelTexto("Es aquí https://maps.google.com/?q=9.0012345,-79.5123456, la casa verde", { fetch: sinRed });
     expect(r).toEqual({ texto: `Es aquí ${TEXTO_ENLACE_EN_EL_TEXTO}, la casa verde`, coordenadas: PUNTO });
@@ -272,15 +291,22 @@ describe("el texto que queda (lo que se guarda y lo que ve el modelo)", () => {
     expect(r.texto).toBe(`o ${TEXTO_ENLACE_EN_EL_TEXTO} o ${TEXTO_ENLACE_EN_EL_TEXTO}`);
   });
 
-  it("un texto sin enlaces de mapa no se toca (ni se va a la red)", async () => {
-    for (const t of ["hola", "mi casa queda en 9.0012345, -79.5123456", "https://ejemplo.com/maps?q=9.0012345,-79.5123456"]) {
+  it("un texto sin enlaces de mapa ni coordenadas sueltas no se toca (ni se va a la red)", async () => {
+    for (const t of ["hola", "https://ejemplo.com/maps?q=9.0012345,-79.5123456"]) {
       expect(await ubicacionDelTexto(t, { fetch: sinRed }), t).toEqual({ texto: t, coordenadas: null });
     }
   });
 
-  it("como mucho 3 enlaces por mensaje", () => {
+  it("se miran todos los enlaces del mensaje, pero solo 3 cortos se siguen por la red", async () => {
     const t = Array.from({ length: 5 }, (_, i) => `https://maps.google.com/?q=9.00${i}2345,-79.5123456`).join(" ");
-    expect(enlacesDeMapaEn(t)).toHaveLength(3);
+    expect(enlacesDeMapaEn(t)).toHaveLength(5);
+    const pedidos: string[] = [];
+    const red: typeof fetch = async (u) => {
+      pedidos.push(String(u));
+      return new Response(null, { status: 404 });
+    };
+    await ubicacionDelTexto(Array.from({ length: 5 }, (_, i) => `https://maps.app.goo.gl/Abc${i}`).join(" "), { fetch: red });
+    expect(pedidos).toHaveLength(3);
   });
 
   it("sin red (la copia de rescate): quita los que traen el punto escrito; los cortos quedan", () => {

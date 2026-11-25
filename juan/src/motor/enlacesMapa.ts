@@ -23,8 +23,11 @@ export interface Coordenadas {
 export const HOSTS_QUE_SE_SIGUEN: ReadonlySet<string> = new Set(["maps.app.goo.gl", "goo.gl", "maps.google.com", "www.google.com", "google.com"]);
 export const MAX_SALTOS = 3;
 export const PLAZO_RESOLVER_MS = 5000;
-/** Cuántos enlaces de mapa se miran por mensaje (los que sigan, quedan como texto). */
+/** Cuántos enlaces de mapa CORTOS se siguen por la red por mensaje. Los que traen el punto escrito se tapan todos (auditoría 1: el
+ * cuarto quedaba en el texto y sus coordenadas llegaban al modelo). */
 export const MAX_ENLACES_POR_MENSAJE = 3;
+/** Tope de enlaces que se miran en un mensaje (un mensaje de 4.000 letras no trae más). */
+const MAX_ENLACES_MIRADOS = 60;
 
 const HOST_GOOGLE = /^(?:www\.|maps\.)?google\.(?:com?|[a-z]{2})(?:\.[a-z]{2})?$/;
 const HOST_WAZE = /^(?:www\.|ul\.)?waze\.com$/;
@@ -177,7 +180,7 @@ interface EnlaceHallado {
   href: string;
 }
 
-/** Los enlaces de mapa del texto, con su posición (sin los signos de la frase que los rodean). Como mucho `MAX_ENLACES_POR_MENSAJE`. */
+/** Los enlaces de mapa del texto, con su posición (sin los signos de la frase que los rodean). Como mucho `MAX_ENLACES_MIRADOS`. */
 export function enlacesDeMapaEn(texto: string): EnlaceHallado[] {
   const hallados: EnlaceHallado[] = [];
   for (const m of texto.matchAll(/\S+/g)) {
@@ -190,7 +193,7 @@ export function enlacesDeMapaEn(texto: string): EnlaceHallado[] {
     const href = /^https?:\/\//i.test(pedazo) ? pedazo : /^[a-z0-9-]+(?:\.[a-z0-9-]+)+\//i.test(pedazo) ? `https://${pedazo}` : null;
     if (!href || !esEnlaceDeMapa(href)) continue;
     hallados.push({ inicio, fin: inicio + pedazo.length, href });
-    if (hallados.length >= MAX_ENLACES_POR_MENSAJE) break;
+    if (hallados.length >= MAX_ENLACES_MIRADOS) break;
   }
   return hallados;
 }
@@ -220,14 +223,38 @@ function reemplazar(texto: string, hallados: EnlaceHallado[], puntos: (Coordenad
   return { texto: /[\p{L}\p{N}]/u.test(sinFrase) ? salida.trim() : TEXTO_ENLACE_DE_MAPA, coordenadas: primero };
 }
 
+/** Coordenadas escritas a mano («8.9012, -79.8013»), con al menos 3 decimales cada una, sueltas (no dentro de un enlace). */
+const PAR_SUELTO = /(?<=^|[\s(:«"])([-+]?\d{1,2}\.\d{3,})\s*,\s*([-+]?\d{1,3}\.\d{3,})(?![\w.])/g;
+/** Panamá con holgura: un par fuera de aquí (un precio, una medida) no se toca. */
+const enPanama = (c: Coordenadas) => c.lat >= 7 && c.lat <= 10 && c.lon >= -83.5 && c.lon <= -77;
+
 /**
- * Sin ir a la red: quita del texto los enlaces que traen las coordenadas escritas (los cortos quedan: no las traen). Es lo que se
- * guarda en la copia de rescate (canales/preparar.ts → `crudoDe`), que nunca guarda un punto.
+ * Las coordenadas escritas a mano dentro de Panamá se tapan como un enlace (auditoría 1: llegaban tal cual al modelo) y, si ningún
+ * enlace dio un punto, son el punto.
+ */
+function taparParesSueltos(r: UbicacionDelTexto): UbicacionDelTexto {
+  let primero = r.coordenadas;
+  let hubo = false;
+  const texto = r.texto.replace(PAR_SUELTO, (todo: string, a: string, b: string) => {
+    const c = coordenadasValidas(a, b);
+    if (!c || !enPanama(c)) return todo;
+    hubo = true;
+    primero ??= c;
+    return TEXTO_ENLACE_EN_EL_TEXTO;
+  });
+  if (!hubo) return r;
+  const sinFrase = texto.split(TEXTO_ENLACE_EN_EL_TEXTO).join("");
+  return { texto: /[\p{L}\p{N}]/u.test(sinFrase) ? texto.trim() : TEXTO_ENLACE_DE_MAPA, coordenadas: primero };
+}
+
+/**
+ * Sin ir a la red: quita del texto los enlaces que traen las coordenadas escritas (los cortos quedan: no las traen) y las coordenadas
+ * escritas a mano. Es lo que se guarda en la copia de rescate (canales/preparar.ts → `crudoDe`), que nunca guarda un punto.
  */
 export function quitarCoordenadasDelTexto(texto: string): UbicacionDelTexto {
   const hallados = enlacesDeMapaEn(texto);
-  if (hallados.length === 0) return { texto, coordenadas: null };
-  return reemplazar(texto, hallados, hallados.map((h) => coordenadasDeEnlace(h.href)));
+  if (hallados.length === 0) return taparParesSueltos({ texto, coordenadas: null });
+  return taparParesSueltos(reemplazar(texto, hallados, hallados.map((h) => coordenadasDeEnlace(h.href))));
 }
 
 /**
@@ -236,14 +263,23 @@ export function quitarCoordenadasDelTexto(texto: string): UbicacionDelTexto {
  */
 export async function ubicacionDelTexto(texto: string, op: { fetch?: typeof fetch; plazoMs?: number } = {}): Promise<UbicacionDelTexto> {
   const hallados = enlacesDeMapaEn(texto);
-  if (hallados.length === 0) return { texto, coordenadas: null };
+  if (hallados.length === 0) return taparParesSueltos({ texto, coordenadas: null });
   const f: typeof fetch = op.fetch ?? ((...a) => fetch(...a));
   const control = new AbortController();
   const reloj = setTimeout(() => control.abort(), op.plazoMs ?? PLAZO_RESOLVER_MS);
   try {
     const puntos: (Coordenadas | null)[] = [];
-    for (const h of hallados) puntos.push(coordenadasDeEnlace(h.href) ?? (await resolverEnlaceCorto(h.href, f, control.signal)));
-    return reemplazar(texto, hallados, puntos);
+    let seguidos = 0;
+    for (const h of hallados) {
+      const escrito = coordenadasDeEnlace(h.href);
+      if (escrito || seguidos >= MAX_ENLACES_POR_MENSAJE) {
+        puntos.push(escrito);
+        continue;
+      }
+      seguidos += 1;
+      puntos.push(await resolverEnlaceCorto(h.href, f, control.signal));
+    }
+    return taparParesSueltos(reemplazar(texto, hallados, puntos));
   } finally {
     clearTimeout(reloj);
   }
