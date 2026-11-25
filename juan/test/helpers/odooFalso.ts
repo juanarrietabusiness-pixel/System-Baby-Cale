@@ -100,6 +100,24 @@ export const ENVIO_POR_UBICACION = {
 };
 export const ZONA_POR_UBICACION = "Brisas del Golf · Rufina Alfaro · San Miguelito";
 
+/**
+ * Las herramientas de la ubicación (docs/UBICACION.md): `enlace_de_ubicacion` (el enlace de un solo uso; en el WhatsApp de la API oficial
+ * trae `boton_whatsapp: true`) y `guardar_indicaciones` (el número de casa o las indicaciones para el motorizado, en la ficha). No van en
+ * la lista de siempre: la prueba que las usa las agrega.
+ */
+export const DEF_ENLACE_DE_UBICACION: DefHerramienta = {
+  nombre: "enlace_de_ubicacion",
+  descripcion: "Un enlace de un solo uso para que el cliente marque su punto de entrega en un mapa.",
+  parametros: objeto({}),
+};
+export const DEF_GUARDAR_INDICACIONES: DefHerramienta = {
+  nombre: "guardar_indicaciones",
+  descripcion: "Guarda el número de casa o las indicaciones para el motorizado en la ficha de la clienta.",
+  parametros: objeto({ texto: texto("Número de casa o indicaciones, como las dijo la clienta") }, ["texto"]),
+};
+export const ENLACE_DE_UBICACION = "https://babycaleb.com/u/s3cr3t0-de-un-solo-uso";
+export const FRASE_DEL_ENLACE = `📍 Marque su casa en el mapa:\n${ENLACE_DE_UBICACION}\n1️⃣ Abra el enlace\n2️⃣ Toque «Mi ubicación» y permita\n3️⃣ Escriba su número de casa y toque «Sí, aquí es»`;
+
 /** La base de conocimiento de prueba: cada entrada responde a ciertas palabras. */
 export const CONOCIMIENTO = [
   { titulo: "Garantía y cambios", texto: "Los cambios se aceptan dentro de 8 días con la factura y el producto sin uso.", score: 0.82, palabras: ["garantia", "cambio", "cambios", "devolucion", "devolver"] },
@@ -221,6 +239,18 @@ const MANEJADORES: Record<string, Manejador> = {
       instruccion: "Dile al cliente la frase tal cual y que el PDF va adjunto.",
     };
   },
+  enlace_de_ubicacion: (_a, odoo) => ({
+    enlace: ENLACE_DE_UBICACION,
+    vence_en_horas: 24,
+    frase_para_el_cliente: FRASE_DEL_ENLACE,
+    instruccion: "Mándale el enlace con la frase.",
+    ...(odoo.botonWhatsapp === undefined ? {} : { boton_whatsapp: odoo.botonWhatsapp }),
+  }),
+  guardar_indicaciones: (a, odoo) => {
+    const t = String(a.texto ?? "").trim().slice(0, 200);
+    odoo.indicaciones.push(t);
+    return { guardado: true, indicaciones: t, instruccion: "Confírmale en una línea que ya quedó para el motorizado." };
+  },
   registrar_pregunta_sin_respuesta: (a, odoo) => {
     odoo.preguntasSinRespuesta.push(a);
     return { ok: true, id: odoo.preguntasSinRespuesta.length };
@@ -257,6 +287,10 @@ export class OdooFalso implements OdooApi {
   cotizacionesArmadas = 0;
   /** Lo que `agregar_envio` sumó a una cotización. */
   enviosSumados: Record<string, unknown>[] = [];
+  /** Lo que `enlace_de_ubicacion` devuelve en `boton_whatsapp` (undefined = no lo trae, como un Odoo de antes). */
+  botonWhatsapp: unknown = undefined;
+  /** Lo que `guardar_indicaciones` guardó en la ficha. */
+  indicaciones: string[] = [];
   /** Lo que la dueña de Baby Caleb pone en Ajustes de Juan: el saludo y los prompts salen de aquí, nunca escritos a mano. */
   rawConfig: unknown = { nombre_publico: "el equipo de Baby Caleb" };
   defs: DefHerramienta[] = HERRAMIENTAS_DE_PRUEBA;

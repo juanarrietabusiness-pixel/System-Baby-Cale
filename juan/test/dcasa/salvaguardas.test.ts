@@ -366,6 +366,25 @@ describe("regla 11 · voz de la marca", () => {
     expect(limpiarForma("Hola 🏻 amiga")).toBe("Hola amiga");
   });
 
+  it("las líneas que el modelo copia tal cual de una frase de Odoo conservan sus íconos (los pasos 1️⃣ 2️⃣ 3️⃣ del enlace de ubicación)", () => {
+    const frase = "📍 Marque su casa en el mapa:\nhttps://babycaleb.com/u/abc\n1️⃣ Abra el enlace\n2️⃣ Toque «Mi ubicación» y permita\n3️⃣ Escriba su número de casa";
+    expect(limpiarForma(frase, [frase])).toBe(frase);
+    // Copiada con espacios de más también: se compara sin ellos.
+    expect(limpiarForma("📍 Hola 👼🏻\n3️⃣  Escriba su número de casa ", [frase])).toBe("📍 Hola\n3️⃣ Escriba su número de casa");
+    // Sin la frase de Odoo, la regla de siempre: dos como mucho.
+    expect(limpiarForma(frase)).toBe(frase.replace("2️⃣", "2").replace("3️⃣", "3"));
+  });
+
+  it("los íconos de la frase gastan el cupo: los que agrega el modelo de su cuenta se quitan, y una línea cambiada no se salva", () => {
+    const frase = "📍 Marque su casa en el mapa:\n1️⃣ Abra el enlace\n2️⃣ Toque «Mi ubicación»";
+    expect(limpiarForma(`Con gusto 👼🏻\n${frase}\nListo 🙌🏻`, [frase])).toBe(`Con gusto\n${frase}\nListo`);
+    // Una línea que el modelo reescribió ya no es de Odoo: cuenta como suya (y el cupo ya se lo gastó la frase).
+    expect(limpiarForma("📍 Marque su casa en el mapa:\n1️⃣ Abra el enlace ya\n2️⃣ Toque «Mi ubicación»", [frase])).toBe("📍 Marque su casa en el mapa:\n1 Abra el enlace ya\n2️⃣ Toque «Mi ubicación»");
+    // Una frase sin íconos no deja pasar nada de más; el «visto» se quita siempre, también de una frase de Odoo.
+    expect(limpiarForma("Hola 👼🏻 🙌🏻 😁", ["Hola"])).toBe("Hola 👼🏻 🙌🏻");
+    expect(limpiarForma("✅ Listo 📍 1️⃣ 2️⃣", ["✅ Listo 📍 1️⃣ 2️⃣"])).toBe("Listo 📍 1️⃣ 2️⃣");
+  });
+
   it("los signos de «visto» (✓ ✔ ✅ ☑) se quitan siempre, aunque no haya otros emojis", () => {
     expect(limpiarForma("Listo ✅ y gracias")).toBe("Listo y gracias");
     expect(limpiarForma("Talla M ✓ caja ✔️ pago ☑ y ☑️")).toBe("Talla M caja pago y");

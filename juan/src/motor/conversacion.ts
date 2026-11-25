@@ -36,7 +36,7 @@ import { firmarUrlMedio } from "./mediosUrl";
 import { esComprobante, esProductoSeguro, type LectorDeImagenes, type LecturaImagen } from "./vision";
 import type { Sql } from "./sql";
 import { bloqueDeEnvioPorUbicacion, estadoDeUbicacion, notaDeUbicacion } from "./ubicacion";
-import type { UbicacionEntrante } from "../canales/ubicacion";
+import { MARCA_BOTON_UBICACION, TEXTO_BOTON_UBICACION, type UbicacionEntrante } from "../canales/ubicacion";
 
 // ── Constantes ──────────────────────────────────────────────────────────────
 
@@ -2163,6 +2163,7 @@ export class MotorConversacion {
       envio: registro.envio,
       haySinPublicar: registro.haySinPublicar,
       marca: marcaDe(cfg.nombre_publico),
+      frasesDeLaTienda: registro.frases,
     });
     let analisis = analizar(salida.texto, contextoDeRevision());
     const reparables = analisis.graves.filter((g) => g.tipo !== "fuga");
@@ -2222,8 +2223,10 @@ export class MotorConversacion {
 
     for (const [codigo, f] of registro.fotos) this.fotos.guardar(codigo, f.url, f.nombre, ahora);
     const ultimoIdAntes = this.mensajes.ultimos(1)[0]?.id ?? 0;
+    // El botón «Enviar ubicación» acompaña al enlace de `enlace_de_ubicacion` (si Odoo lo pidió); nunca a una respuesta descartada.
+    const pedirUbicacion = registro.pedirUbicacion && texto !== TEXTO_FUGA ? TEXTO_BOTON_UBICACION : undefined;
     try {
-      await this.responder(cfg, texto, registro.medios, modelo);
+      await this.responder(cfg, texto, registro.medios, modelo, pedirUbicacion);
     } catch (e) {
       // La respuesta ya estaba lista (y pagada) pero no salió: no se pierde en silencio.
       await this.alFallarElEnvio(cfg, ids, e, ultimoIdAntes);
@@ -2318,12 +2321,15 @@ export class MotorConversacion {
     return partirEnBurbujas(priv ? `${base}\n${priv}` : base, { objetivo: 520, maxLineas: 6 });
   }
 
-  /** Texto del modelo → burbujas cortas (con la presentación delante si es el primer mensaje) → canal. */
-  private async responder(cfg: Config, texto: string, medios: MedioSaliente[], modelo: string | undefined): Promise<void> {
+  /**
+   * Texto del modelo → burbujas cortas (con la presentación delante si es el primer mensaje) → canal. `pedirUbicacion`: el texto del
+   * botón «Enviar ubicación», que sale al final si el canal lo tiene.
+   */
+  private async responder(cfg: Config, texto: string, medios: MedioSaliente[], modelo: string | undefined, pedirUbicacion?: string): Promise<void> {
     const burbujas = partirEnBurbujas(texto);
     const primera = !this.kv.numero("bienvenida");
     const todas = primera ? [...this.presentacion(cfg), ...burbujas] : burbujas;
-    await this.emitir({ burbujas: todas, medios, autor: "bot", registrar: true, modelo });
+    await this.emitir({ burbujas: todas, medios, autor: "bot", registrar: true, modelo, pedirUbicacion });
     if (primera) this.kv.poner("bienvenida", this.deps.ahora());
   }
 
@@ -2348,11 +2354,14 @@ export class MotorConversacion {
    * Si el canal se corta a la mitad (`EnvioParcialError`), lo ya enviado no se repite: se reintenta solo lo que falta, y lo que sí
    * salió igual queda anotado. `progreso` permite seguir donde se quedó un envío anterior (el reintento de Odoo con el mismo `id_envio`).
    */
-  private async emitir(o: { burbujas: string[]; medios: MedioSaliente[]; autor: "bot" | "vendedora"; registrar: boolean; modelo?: string; progreso?: ProgresoDeEnvio; alAvanzar?: (p: ProgresoDeEnvio) => void; responderA?: string; alTerminar?: (partes: ParteOdoo[]) => void; escribiendo?: boolean }): Promise<string[]> {
+  private async emitir(o: { burbujas: string[]; medios: MedioSaliente[]; autor: "bot" | "vendedora"; registrar: boolean; modelo?: string; progreso?: ProgresoDeEnvio; alAvanzar?: (p: ProgresoDeEnvio) => void; responderA?: string; alTerminar?: (partes: ParteOdoo[]) => void; escribiendo?: boolean; pedirUbicacion?: string }): Promise<string[]> {
     const canalId = this.canalId();
     const adaptador = this.deps.canal(canalId);
     if (!adaptador) throw new Error(`no hay adaptador para el canal ${canalId}`);
     const cap = adaptador.capacidades(canalId, this.deps.env);
+    // El botón «Enviar ubicación» solo en el canal que lo tiene (WhatsApp Cloud); los demás se quedan con el texto y su enlace.
+    const pedirUbicacion = cap.pedirUbicacion && o.pedirUbicacion?.trim() ? o.pedirUbicacion.trim() : undefined;
+    let ubicacionPedida = false;
 
     // Lo que el canal no puede llevar como archivo, sale como enlace en el texto.
     const enlaces: string[] = [];
@@ -2380,12 +2389,15 @@ export class MotorConversacion {
         esperaMs: ESPERA_ENTRE_BURBUJAS_MS,
         // «Responder» desde Odoo: la cita va con lo PRIMERO que sale (si ya salió algo, el resto va sin cita).
         ...(o.responderA && progreso.burbujas + progreso.medios === 0 ? { responderA: o.responderA } : {}),
+        // El canal lo manda al final, solo si todo lo demás salió: va en cada intento hasta que salga lo que falta.
+        ...(pedirUbicacion ? { pedirUbicacion } : {}),
       };
       try {
         const r = await adaptador.enviar(canalId, salida, this.deps.env);
         progreso.burbujas = burbujas.length;
         progreso.medios = medios.length;
         progreso.ids.push(...r.ids);
+        ubicacionPedida = !!pedirUbicacion && r.ubicacionPedida === true;
         fallo = null;
       } catch (e) {
         fallo = e;
@@ -2412,6 +2424,8 @@ export class MotorConversacion {
       ...salieronBurbujas.map((b) => ({ texto: b, tipo: "texto" as const, deLaParte: b })),
       // De una foto o un documento, lo que se ve al citarlo es su pie (sin pie, Odoo dice «Foto» o «Documento»).
       ...salieronMedios.map((m) => ({ texto: `${etiquetaDeMedio(m)}${o.autor === "vendedora" && m.pie ? ` ${m.pie}` : ""}`, tipo: m.tipo, deLaParte: m.pie ?? "" })),
+      // El botón «Enviar ubicación», si salió: en la historia queda su texto (el modelo sabe que ya se lo ofreció) y Odoo lo registra.
+      ...(ubicacionPedida && pedirUbicacion ? [{ texto: pedirUbicacion, tipo: "texto" as const, deLaParte: pedirUbicacion }] : []),
     ];
     const alineados = idsNuevos.length === cosas.length;
     const idDe = (i: number) => (alineados && !this.mensajes.existe(idsNuevos[i]) ? idsNuevos[i] : null);
@@ -2431,7 +2445,7 @@ export class MotorConversacion {
         {
           ...this.cuerpoDeMensaje(
             { canal: canalId, id_externo: this.idExterno(), id_mensaje: "" },
-            [...salieronBurbujas, ...salieronMedios.map(etiquetaDeMedio)].join("\n"),
+            [...salieronBurbujas, ...salieronMedios.map(etiquetaDeMedio), ...(ubicacionPedida && pedirUbicacion ? [`${pedirUbicacion} ${MARCA_BOTON_UBICACION}`] : [])].join("\n"),
             o.autor,
             "saliente",
             // Lo que ya vive en Odoo (la cotización en PDF) no se baja otra vez: solo queda la línea de texto.

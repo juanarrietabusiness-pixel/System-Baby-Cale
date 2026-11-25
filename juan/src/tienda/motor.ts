@@ -47,6 +47,7 @@ import {
   productosDelResultado,
   sinPresentacion,
   tarjetaDe,
+  TEXTO_DE_INDICACIONES,
   TEXTO_DE_UBICACION,
   TEXTO_DEL_BOTON_DE_WHATSAPP,
   tituloDelGrupo,
@@ -938,7 +939,7 @@ export class MotorTienda {
       execute: async () => "ok",
     });
 
-    // ── La ubicación: el Worker consulta el envío con ella; el modelo solo ve el resultado, sin coordenadas ──
+    // ── La ubicación: el Worker consulta el envío con ella; el modelo solo ve el resultado, sin coordenadas (ni la precisión) ──
     let envioPorUbicacion: unknown = null;
     const consultasPrevias: ConsultaDelTurno[] = [];
     if (p.ubicacion && odoo.herramientaTienda) {
@@ -1042,6 +1043,7 @@ export class MotorTienda {
       envio: registro.envio,
       haySinPublicar: registro.haySinPublicar,
       marca: marcaDe(cfg.nombre_publico),
+      frasesDeLaTienda: registro.frases,
     });
 
     let respuesta = salida.respuesta ?? leerRespuestaDelModelo({ texto: salida.texto });
@@ -1186,6 +1188,9 @@ export class MotorTienda {
       bloques.push({ tipo: "calificar" });
       this.poner("calificar_ofrecido", 1);
     }
+    // Acaba de dar su ubicación y el envío salió con precio: al final, el número de casa o las indicaciones para el motorizado (la
+    // página pinta el campo). Lo decide el resultado de Odoo, no el modelo.
+    if (p.ubicacion && esObjeto(envioPorUbicacion) && envioPorUbicacion.estado === "precio") bloques.push({ tipo: "indicaciones", texto: TEXTO_DE_INDICACIONES });
     return this.salidaDelModelo(bloques, chips, op, p, noche, respuesta, herramientasUsadas, elegidas);
   }
 
@@ -1392,6 +1397,7 @@ function resumenDeLaRespuesta(bloques: readonly Bloque[]): string {
     else if (b.tipo === "sugerencias") partes.push(`${b.texto} (${b.opciones.join(" / ")})`);
     else if (b.tipo === "envio") partes.push(`[Envío a ${b.lugar || "un lugar"}: ${b.texto}]`);
     else if (b.tipo === "ubicacion") partes.push(`[Pedí a dónde se lleva]`);
+    else if (b.tipo === "indicaciones") partes.push("[La página le pidió el número de casa o las indicaciones para el motorizado]");
     else if (b.tipo === "whatsapp") partes.push("[Ofrecí WhatsApp]");
     else if (b.tipo === "calificar") partes.push("[Ofrecí calificar la atención]");
   }

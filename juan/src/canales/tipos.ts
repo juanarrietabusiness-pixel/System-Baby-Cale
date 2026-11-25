@@ -157,14 +157,22 @@ export interface Saliente {
    * `context.message_id`; Telegram: `reply_parameters`). Un canal que no sabe citar lo ignora.
    */
   responderA?: string;
+  /**
+   * El botón nativo «Enviar ubicación» (docs/UBICACION.md): con este texto corto encima, sale DESPUÉS de las burbujas y los archivos,
+   * solo si todo lo demás salió. Lo manda el canal que tiene `Capacidades.pedirUbicacion` (WhatsApp Cloud: `location_request_message`);
+   * los demás lo ignoran. Si el canal lo rechaza, no es un error del envío: el texto con el enlace ya salió.
+   */
+  pedirUbicacion?: string;
 }
 
 export interface ResultadoEnvio {
   /**
-   * Ids que el canal dio a lo enviado, si los da, EN EL ORDEN de `Saliente` (burbujas y después archivos). Sirven para reconocer el
-   * eco del propio bot, las palomitas y las citas del cliente.
+   * Ids que el canal dio a lo enviado, si los da, EN EL ORDEN de `Saliente` (burbujas, después archivos y al final el botón de
+   * `pedirUbicacion`, si salió). Sirven para reconocer el eco del propio bot, las palomitas y las citas del cliente.
    */
   ids: string[];
+  /** Salió el botón «Enviar ubicación» de `Saliente.pedirUbicacion` (su id, si el canal da ids, es el último de `ids`). */
+  ubicacionPedida?: boolean;
 }
 
 /**
@@ -211,6 +219,8 @@ export interface Capacidades {
   maxBytesTexto?: number;
   /** El canal deja mandar un texto junto a la foto o el documento, en el mismo mensaje (pie de foto). */
   pie?: boolean;
+  /** El canal tiene un botón nativo para que la clienta comparta su ubicación con un toque (`Saliente.pedirUbicacion`). */
+  pedirUbicacion?: boolean;
 }
 
 /** Una foto de perfil de más de esto no se guarda (las de los canales pesan ~10-60 KB). */
