@@ -99,7 +99,7 @@ class UbicacionEntrega(models.Model):
 
     def _para_el_motorizado(self):
         """Lo que ve el motorizado: nombre de pila, teléfono, la dirección y el punto (con sus dos botones), quién
-        recibe, «Avisar que llegué» (``wa.me`` al celular de la clienta con el mensaje listo), el teléfono de respaldo
+        recibe, «Avisar que llegué» (WhatsApp al celular de la clienta con el mensaje listo), el teléfono de respaldo
         (llamar y, si es celular, WhatsApp) y la foto de la casa (por su ruta con el mismo secreto). No escribe nada: lo
         lee también el PDF, que se arma en una transacción de solo lectura."""
         self.ensure_one()

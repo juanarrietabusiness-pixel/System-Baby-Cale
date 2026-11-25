@@ -91,7 +91,8 @@ class TestPedirUbicacionAlComprar(AvisosCase):
         # El botón: WhatsApp con el mismo texto y un enlace nuevo de un solo uso, ligado a la venta.
         accion = orden.with_user(self.vendedora_avisos).action_dcasa_pedir_ubicacion_whatsapp()
         self.assertEqual(accion['type'], 'ir.actions.act_url')
-        self.assertTrue(accion['url'].startswith('https://wa.me/50761239001?text='), accion['url'])
+        self.assertTrue(accion['url'].startswith('https://api.whatsapp.com/send?phone=50761239001&text='),
+                        accion['url'])
         texto = unquote(accion['url'].split('text=', 1)[1])
         self.assertTrue(texto.startswith('🛍️ ¡Gracias por su compra!\n📍 Para que el motorizado llegue directo a su '
                                          'casa, márquela aquí: '), texto)
@@ -295,7 +296,7 @@ class TestSaleHoy(AvisosCase):
         orden.action_confirm()
         accion = venta.action_dcasa_avisar_sale_hoy()
         self.assertEqual(accion['type'], 'ir.actions.act_url')
-        self.assertTrue(accion['url'].startswith('https://wa.me/50761239002?text='))
+        self.assertTrue(accion['url'].startswith('https://api.whatsapp.com/send?phone=50761239002&text='))
         self.assertIn('¿Habrá alguien en casa para recibirlo?', unquote(accion['url']))
         self.assertEqual(orden.dcasa_aviso_sale_hoy_por, 'whatsapp')
 
@@ -344,7 +345,7 @@ class TestBrianAvisos(AvisosCase):
         sin_chat.action_confirm()
         datos = Brian.ejecutar('pedir_ubicacion_al_cliente', {'venta': sin_chat.name})['datos']
         self.assertEqual(datos['hecho'], 'enlace_whatsapp')
-        self.assertTrue(datos['abrir']['url'].startswith('https://wa.me/50761239007?text='))
+        self.assertTrue(datos['abrir']['url'].startswith('https://api.whatsapp.com/send?phone=50761239007&text='))
         sin_chat.partner_id._dcasa_poner_ubicacion(*CERCA, 'pin', referencia='Casa 5')
         datos = Brian.ejecutar('pedir_ubicacion_al_cliente', {'venta': sin_chat.name})['datos']
         self.assertEqual(datos['hecho'], 'no_hace_falta')

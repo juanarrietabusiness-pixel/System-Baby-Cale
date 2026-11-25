@@ -18,14 +18,14 @@ class TestWhatsappLink(TransactionCase):
     def test_whatsapp_url_uses_configured_number(self):
         self.website.dcasa_whatsapp_number = '+507 6757-5065'
         url = self.website._dcasa_whatsapp_url('Hola Baby Caleb')
-        self.assertTrue(url.startswith('https://wa.me/50767575065?text='))
+        self.assertTrue(url.startswith('https://api.whatsapp.com/send?phone=50767575065&text='))
         self.assertIn('Hola%20Baby%20Caleb', url)
 
     def test_whatsapp_de_fabrica_es_el_de_baby_caleb(self):
         """El número de ventas y el saludo que trae el sitio al instalarse (decisión del dueño, 2026-11-18)."""
         self.assertEqual(self.website.dcasa_whatsapp_number, '+507 6757-5065')
         url = self.website._dcasa_whatsapp_url()
-        self.assertTrue(url.startswith('https://wa.me/50767575065?text='), url)
+        self.assertTrue(url.startswith('https://api.whatsapp.com/send?phone=50767575065&text='), url)
         self.assertIn('Hola%20Baby%20Caleb', url)
         self.assertEqual(self.website.name, 'Baby Caleb')
         self.assertEqual(self.website.social_instagram, 'https://www.instagram.com/babycalebpanama')
@@ -34,7 +34,7 @@ class TestWhatsappLink(TransactionCase):
     def test_whatsapp_url_falls_back_to_company_phone(self):
         self.website.dcasa_whatsapp_number = False
         self.website.company_id.phone = '+507 6000-1111'
-        self.assertTrue(self.website._dcasa_whatsapp_url().startswith('https://wa.me/50760001111'))
+        self.assertTrue(self.website._dcasa_whatsapp_url().startswith('https://api.whatsapp.com/send?phone=50760001111&'))
 
     def test_whatsapp_url_without_number_goes_to_contact(self):
         self.website.dcasa_whatsapp_number = False
@@ -53,7 +53,7 @@ class TestWebsitePages(HttpCase):
         self.assertEqual(response.status_code, 200)
         html = response.text
         self.assertIn('Cuidado hipoalergénico para la piel de tu bebé', html)
-        self.assertIn('https://wa.me/50767575065', html)
+        self.assertIn('https://api.whatsapp.com/send?phone=50767575065', html)
         self.assertIn('o_dcasa_wa_float', html)
         self.assertIn('babycalebpanama@gmail.com', html, 'El pie de página muestra los datos reales')
         for de_la_tienda_de_origen in ("D'CASA", 'D&#39;CASA', 'dcasapty', 'La Chorrera', 'Libertadores', '6026',
@@ -163,7 +163,7 @@ class TestPortadaDinamica(HttpCase):
         publicados.is_published = False
         sin = tarjeta('Colchones')
         self.assertTrue(sin['whatsapp'])
-        self.assertTrue(sin['url'].startswith('https://wa.me/50767575065?text='), sin['url'])
+        self.assertTrue(sin['url'].startswith('https://api.whatsapp.com/send?phone=50767575065&text='), sin['url'])
         self.assertIn('colchones', sin['url'])
         self.assertFalse(tarjeta('Salas')['whatsapp'], 'las que tienen productos siguen a su página')
         self.assertNotIn('imagen', tarjeta('Salas'), 'sin fotos de muebles')
@@ -355,7 +355,8 @@ class TestPortadaDinamica(HttpCase):
         self.website.dcasa_whatsapp_number = '+507 6757-5065'
         respuesta = self.url_open('/whatsapp?texto=Hola', allow_redirects=False)
         self.assertEqual(respuesta.status_code, 302)
-        self.assertTrue(respuesta.headers['Location'].startswith('https://wa.me/50767575065?text=Hola'))
+        self.assertTrue(respuesta.headers['Location'].startswith(
+            'https://api.whatsapp.com/send?phone=50767575065&text=Hola'))
         self.website.dcasa_whatsapp_number = False
         self.website.company_id.phone = False
         respuesta = self.url_open('/whatsapp', allow_redirects=False)
@@ -481,7 +482,8 @@ class TestMarcaYMovimiento(HttpCase):
         html = respuesta.text
         self.assertIn('Venta 100% online con entrega a domicilio — Ciudad de Panamá', html)
         self.assertIn('Vendemos online y te lo llevamos.', html)
-        self.assertRegex(html, r'<a [^>]*href="https://wa\.me/50767575065\?text=[^"]*"[^>]*>\+507 6757-5065 ')
+        self.assertRegex(html, r'<a [^>]*href="https://api\.whatsapp\.com/send\?phone=50767575065&amp;text=[^"]*"'
+                               r'[^>]*>\+507 6757-5065 ')
         self.assertIn('href="mailto:babycalebpanama@gmail.com"', html)
         self.assertIn('href="https://www.instagram.com/babycalebpanama"', html)
         self.assertIn('Escríbenos por WhatsApp', html)
@@ -538,7 +540,7 @@ class TestMarcaYMovimiento(HttpCase):
         portada = self.url_open('/').text
         seccion = re.search(r'<section id="visitanos".*?</section>', portada, re.S)
         self.assertTrue(seccion, 'la portada trae la cobertura')
-        self.assertIn('https://wa.me/50767575065', seccion.group(0))
+        self.assertIn('https://api.whatsapp.com/send?phone=50767575065', seccion.group(0))
         self.assertIn('+507 6757-5065', seccion.group(0))
         self.assertIn('Venta 100% online con entrega a domicilio — Ciudad de Panamá', seccion.group(0))
         pie = re.search(r'<footer.*?</footer>', portada, re.S).group(0)

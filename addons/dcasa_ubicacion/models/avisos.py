@@ -5,7 +5,7 @@ A. **Al comprar, pedirle su punto en el mapa.** Al confirmar una venta que va a 
    no tiene un punto confiable (escrita a mano, buscada sin mover el pin, GPS impreciso o sin punto), UNA vez por venta
    (``dcasa_ubic_pedida_el``): si el asistente puede escribirle ya, le escribe a nombre del asistente con el enlace de
    un solo uso ligado a la venta; si no, una actividad para la vendedora y el botón «📲 Pedir ubicación por WhatsApp»
-   (abre wa.me con el mismo texto y un enlace nuevo).
+   (abre WhatsApp con el mismo texto y un enlace nuevo).
 B. **El día de la entrega: «¿hay alguien en casa?».** En el sistema no hay un despacho fiable (la fecha programada de la
    entrega no dice que sale hoy): lo dispara una persona con «🚚 Sale hoy: avisarle» (la venta, la entrega, la acción de
    la lista para varias o Brian). Una vez por venta y por día. Sin punto confiable, el mensaje lleva el enlace del mapa.
@@ -29,11 +29,11 @@ venta). Las coordenadas no salen nunca: ni en los textos, ni en las notas, ni en
 """
 import logging
 from datetime import timedelta
-from urllib.parse import quote
 
 from markupsafe import Markup, escape
 
 from odoo import api, fields, models
+from odoo.addons.dcasa_base import whatsapp
 from odoo.addons.dcasa_conversaciones.models.ajustes import CANALES, CANALES_CON_CELULAR
 from odoo.addons.dcasa_conversaciones.models.sale_origen import hoy_en_panama
 from odoo.addons.dcasa_envios.motor.texto import dinero
@@ -58,8 +58,9 @@ MAX_ZONA = 60
 
 
 def url_whatsapp(numero, texto):
-    """wa.me con el mensaje ya escrito (como ``sale.order.action_dcasa_whatsapp``)."""
-    return f'https://wa.me/{numero}?text={quote(texto)}'
+    """El enlace de WhatsApp con el mensaje ya escrito (``api.whatsapp.com/send``: con ``wa.me`` los emojis llegaban
+    como «�» en WhatsApp Web y en Instagram; dcasa_base/whatsapp.py)."""
+    return whatsapp.enlace(numero, texto)
 
 
 class DcasaConversacionAvisos(models.Model):
@@ -219,7 +220,7 @@ class SaleOrderAvisos(models.Model):
                                  'dentro de las 24 horas desde su último mensaje, o el asistente está apagado)')
 
     def _dcasa_celular_para_whatsapp(self):
-        """El número para wa.me (507 y el celular), o ``''``: el celular de Panamá de la ficha o, si no, el de su chat
+        """El número de WhatsApp (507 y el celular), o ``''``: el celular de Panamá de la ficha o, si no, el de su chat
         de WhatsApp. Solo de Panamá, como «Enviar por WhatsApp» de la venta: un id del chat que no es un celular (los
         de WhatsApp por QR pueden serlo) mandaría el mensaje a otra persona."""
         self.ensure_one()
@@ -325,7 +326,7 @@ class SaleOrderAvisos(models.Model):
 
         * ``chat``: el asistente se lo escribe (con el enlace de un solo uso ligado a esta venta y a su chat).
         * ``persona`` (``automatico``): sin un chat donde escribirle, una actividad para la vendedora.
-        * ``whatsapp``: sin chat, el enlace de wa.me para que una persona lo mande (Brian).
+        * ``whatsapp``: sin chat, el enlace de WhatsApp para que una persona lo mande (Brian).
         * ``sin_celular``: sin chat ni celular."""
         self.ensure_one()
         orden = self.sudo()
@@ -433,7 +434,7 @@ class SaleOrderAvisos(models.Model):
         """Le avisa que su pedido sale hoy. Devuelve ``{'estado', 'canal', 'motivo', 'url_whatsapp'}`` con estado:
 
         * ``chat``: el asistente se lo escribe; ``ya_avisada``: ya se le escribió hoy (no se repite);
-        * ``whatsapp``: sin chat, el enlace de wa.me para una persona (``a_mano`` con ``solo_chat``: no arma nada);
+        * ``whatsapp``: sin chat, el enlace de WhatsApp para una persona (``a_mano`` con ``solo_chat``: no arma nada);
         * ``sin_celular``, ``no_confirmada``, ``no_va`` (no va a domicilio)."""
         self.ensure_one()
         orden = self.sudo()

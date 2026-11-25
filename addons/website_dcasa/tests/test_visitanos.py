@@ -144,7 +144,8 @@ class TestVisitanosMapa(HttpCase):
         """Pedido de la dueña (2026-11-15): tocar el número en Visítanos abre WhatsApp (no una llamada)."""
         html = self.url_open('/visitanos').text
         self.assertNotIn('href="tel:', html)
-        enlace = re.search(r'<a[^>]*href="(https://wa\.me/50767575065[^"]*)"[^>]*>\s*\+507 6757-5065', html)
+        enlace = re.search(r'<a[^>]*href="(https://api\.whatsapp\.com/send\?phone=50767575065[^"]*)"[^>]*>'
+                           r'\s*\+507 6757-5065', html)
         self.assertTrue(enlace, 'el número lleva a WhatsApp')
 
     def test_sin_permiso_no_hay_mapa_ni_google(self):

@@ -8,7 +8,8 @@ from odoo import models
 RUTAS_SIN_BURBUJA = ('/shop/checkout', '/shop/address', '/shop/payment', '/shop/confirm', '/shop/extra_info',
                      '/shop/confirmation', '/payment/status', '/web', '/odoo', '/my', '/mi-cuenta', '/brian',
                      '/envios/choferes')
-RE_WA = re.compile(r'^https://wa\.me/(\d{8,15})\?')
+# El número del WhatsApp de ventas (con el 507): la burbuja arma ahí su enlace (api.whatsapp.com/send).
+RE_NUMERO = re.compile(r'^\d{8,15}$')
 
 
 class Website(models.Model):
@@ -26,9 +27,9 @@ class Website(models.Model):
         borde): el WhatsApp del sitio, el nombre de la tienda (la empresa del sitio: el título del chat) y la clave
         pública de Turnstile si el sitio lo tiene. Nada de la sesión."""
         self.ensure_one()
-        coincide = RE_WA.match(self._dcasa_whatsapp_url('') or '')
+        numero = self._dcasa_whatsapp_numero()
         return {
-            'whatsapp': coincide.group(1) if coincide else '',
+            'whatsapp': numero if RE_NUMERO.match(numero) else '',
             'marca': (self.company_id.name or self.name or '').strip(),
             'turnstile': self.env['dcasa.brian.tienda'].sudo()._turnstile_clave_publica(),
         }

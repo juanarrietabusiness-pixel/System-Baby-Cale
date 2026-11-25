@@ -80,8 +80,8 @@ class TestMotorCasa(BaseCase):
         self.assertEqual(casa.numero_whatsapp(''), '')
         texto = 'Hola Ana, ya llegué con su pedido S00042 📦'
         enlace = casa.enlace_whatsapp('50761234567', texto)
-        self.assertTrue(enlace.startswith('https://wa.me/50761234567?text='))
-        self.assertEqual(unquote(enlace.split('?text=', 1)[1]), texto)
+        self.assertTrue(enlace.startswith('https://api.whatsapp.com/send?phone=50761234567&text='))
+        self.assertEqual(unquote(enlace.split('&text=', 1)[1]), texto)
         self.assertEqual(casa.enlace_whatsapp('', texto), '')
 
     def test_la_foto_sale_sin_exif_derecha_y_chica(self):
@@ -203,13 +203,13 @@ class TestQuienRecibeYFoto(UbicacionCase):
         tienda = entrega._nombre_de_la_tienda()
         self.assertTrue(tienda, 'el nombre sale del sitio o de la compañía, no escrito a mano')
         datos = entrega._para_el_motorizado()
-        self.assertTrue(datos['avisar_llegue'].startswith('https://wa.me/50761234567?text='))
-        self.assertEqual(unquote(datos['avisar_llegue'].split('?text=', 1)[1]),
+        self.assertTrue(datos['avisar_llegue'].startswith('https://api.whatsapp.com/send?phone=50761234567&text='))
+        self.assertEqual(unquote(datos['avisar_llegue'].split('&text=', 1)[1]),
                          f'Hola Ana, soy el motorizado de {tienda} 🛵. Ya llegué con su pedido {orden.name} 📦')
         self.assertEqual((datos['recibe'], datos['respaldo'], datos['respaldo_tel']),
                          ('Rosa, su mamá', '+507 6999-8888', '+50769998888'))
-        self.assertTrue(datos['respaldo_whatsapp'].startswith('https://wa.me/50769998888?text='))
-        self.assertEqual(unquote(datos['respaldo_whatsapp'].split('?text=', 1)[1]),
+        self.assertTrue(datos['respaldo_whatsapp'].startswith('https://api.whatsapp.com/send?phone=50769998888&text='))
+        self.assertEqual(unquote(datos['respaldo_whatsapp'].split('&text=', 1)[1]),
                          f'Hola, soy el motorizado de {tienda} 🛵. Ya llegué con el pedido {orden.name} de Ana 📦',
                          'al respaldo le escribe a otra persona: el pedido es «de Ana»')
         self.assertFalse(datos['fachada_url'])
@@ -409,8 +409,9 @@ class TestRutasDeLaCasa(HttpCase):
         self.clienta._dcasa_poner_fachada(foto_de_prueba(orientacion=6))
         pagina = self.url_open(f'/entrega/{token}')
         self.assertEqual(pagina.status_code, 200)
-        for texto in ('Avisar que llegué', 'https://wa.me/50765550101?text=', 'Rosa, su mamá', 'Si no contesta',
-                      '+507 6999-8888', 'tel:+50769998888', 'https://wa.me/50769998888?text=',
+        for texto in ('Avisar que llegué', 'https://api.whatsapp.com/send?phone=50765550101&amp;text=', 'Rosa, su mamá',
+                      'Si no contesta', '+507 6999-8888', 'tel:+50769998888',
+                      'https://api.whatsapp.com/send?phone=50769998888&amp;text=',
                       f'src="/entrega/{token}/fachada"', 'Así se ve la casa'):
             self.assertIn(texto, pagina.text)
         self.assertNotIn(' style="', pagina.text, 'la CSP sin mapa no deja atributos style')
