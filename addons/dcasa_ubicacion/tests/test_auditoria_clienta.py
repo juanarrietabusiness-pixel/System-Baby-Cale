@@ -148,7 +148,9 @@ class TestCheckoutHttp(_SinClaves, HttpCase):
         """La otra auditoría (A): con el punto de WhatsApp, «Escribir» lo borraba."""
         self.partner._dcasa_poner_ubicacion(*CERCA, 'whatsapp', confirmada=True, referencia='Casa 1')
         _html, token = self.formulario(self.url_entrega())
-        r = self.entrega(token, dcasa_ubic_modo='escrita', dcasa_referencia='Casa 1, portón azul')
+        # La MISMA calle que tiene guardada: si escribe otra, se mudó y el punto viejo se va (auditoría 2 de datos,
+        # test_auditoria_2.py: test_h9). Antes esta prueba mandaba otra calle y chocaba con esa regla.
+        r = self.entrega(token, dcasa_ubic_modo='escrita', dcasa_referencia='Casa 1, portón azul', street='Calle 1')
         self.assertFalse(r.get('invalid_fields'), r)
         self.partner.invalidate_recordset()
         self.assertEqual(self.partner.dcasa_ubic_origen, 'whatsapp')
@@ -186,8 +188,10 @@ class TestCheckoutHttp(_SinClaves, HttpCase):
         self.assertIn('data-origen="gps"', html)
         self.assertIn('Casa nueva 7', html)
         self.assertNotIn('Casa vieja', html)
+        # Lo escrito (La Chorrera) no es el distrito de ese lugar: en la página sale el aviso de cruce y ella toca
+        # «📍 Es aquí» (auditoría 2: sin eso, el servidor no lo guarda).
         r = self.mapa(token, pendiente['lat'], pendiente['lon'], 'gps', referencia='Casa nueva 7',
-                      dcasa_ubic_precision='8')
+                      dcasa_ubic_precision='8', dcasa_ubic_cruce_ok='1')
         self.assertFalse(r.get('invalid_fields') or r.get('messages'), r)
         self.orden.invalidate_recordset()
         self.assertIsNone(self.orden._dcasa_ubic_pendiente(), 'guardado, el pendiente no vuelve a ganar')
@@ -247,12 +251,12 @@ class TestPaginasDeLaClienta(_SinClaves, HttpCase):
         usado = self.url_open(self.ruta(url))
         self.assertIn('Ya la tenemos', usado.text)
         self.assertIn('id="o_dcasa_cambiar"', usado.text)
-        self.assertIn('href="https://wa.me/50760261919?text=', usado.text)
+        self.assertIn('href="https://api.whatsapp.com/send?phone=50760261919&amp;text=', usado.text)
         enlace.sudo().vence = enlace.create_date.replace(year=2000)
         vencido = self.url_open(self.ruta(url))
         self.assertEqual(vencido.status_code, 404)
         self.assertIn('Pedir otro enlace por WhatsApp', vencido.text)
-        self.assertIn('href="https://wa.me/50760261919?text=', vencido.text)
+        self.assertIn('href="https://api.whatsapp.com/send?phone=50760261919&amp;text=', vencido.text)
         self.assertNotIn('Dora', vencido.text, 'vencido no dice de quién es')
         self.assertNotIn(' style="', vencido.text + usado.text, 'la CSP sin mapa no deja atributos style')
 
@@ -332,7 +336,10 @@ class TestAndresUbicacion(TiendaCase):
         malo = self.post('carrito/ubicacion', {'lat': CERCA[0], 'lon': CERCA[1], 'precision': 800,
                                                'referencia': 'Casa 24'})
         self.assertEqual((malo.status_code, malo.json()['motivo'], malo.json()['precision']), (422, 'impreciso', 800))
-        self.assertFalse(self.env['sale.order'].sudo().search([('dcasa_ubic_pend_referencia', '=', 'Casa 24')]))
+        # El punto no se guarda; la casa que escribió, sí (auditoría 2, punto 17: test_auditoria_2_clienta.py).
+        orden = self.env['sale.order'].sudo().search([('dcasa_ubic_pend_referencia', '=', 'Casa 24')])
+        self.assertEqual(len(orden), 1)
+        self.assertIsNone(orden._dcasa_ubic_pendiente(), 'sin el punto de ±800 m')
         bueno = self.post('carrito/ubicacion', {'lat': CERCA[0], 'lon': CERCA[1], 'precision': 100,
                                                 'referencia': 'Casa 24'})
         self.assertTrue(bueno.json()['ok'], bueno.text)
