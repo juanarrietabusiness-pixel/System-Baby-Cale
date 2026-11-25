@@ -269,6 +269,13 @@ Heredado del CRM de Baby Caleb y **ampliado con medios**. Service binding `PUENT
    guardia del Worker solo deja pasar una cifra o un «gratis» del envío que respalde `cotizar_envio`/`agregar_envio` **en
    ese turno**, con su papel (normal, final, ahorro, mínimo, compra, total) y su lugar, cláusula por cláusula
    ([ENVIOS.md](ENVIOS.md) › Juan cotiza el envío).
+   **La ubicación exacta (2026-11-25, [UBICACION.md](UBICACION.md))**: `cotizar_envio` sin lugar usa el punto guardado
+   (y ofrece «¿Se lo llevamos a …, como la vez pasada?»); sin punto devuelve `estado: sin_ubicacion` y Juan pide la
+   ubicación según el canal (clip en WhatsApp por QR y Telegram; `enlace_de_ubicacion` en la API oficial —con el botón
+   nativo «Enviar ubicación»—, Instagram y Messenger; `para_otra_casa=true` para un regalo). Después de la ubicación
+   pregunta UNA vez el número de casa (`guardar_indicaciones`); `guardar_quien_recibe` solo si el cliente lo dice. Entiende
+   la respuesta a «🚚 Sale hoy». Las coordenadas nunca llegan al modelo (el Worker tapa enlaces de mapa y coordenadas
+   escritas en cualquier formato).
 4. Socios: explica con `reglas_socios`; saldo solo con PIN; **nunca** «acredita» ni promete puntos
    de una compra no facturada.
 5. Fotos de comprobantes de pago o de documentos de identidad **no se le envían al modelo**: se
