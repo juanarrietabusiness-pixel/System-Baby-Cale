@@ -116,7 +116,8 @@ del puente. Ya en uso en la cuenta y **no se tocan**: `babycaleb-web`, `babycale
   para otro punto de salida»): 403 corregimientos con Google (clave temporal de Routes API como secreto de red del
   entorno de la sesión), los otros 10 817 lugares con OSRM ajustado. Salen **dos versiones** del archivo
   (`envios-babycaleb.html`, fuera del repositorio, entregado al dueño): **en moto** (ruta sin corredores; es la que se
-  parece más a sus precios por zona de hoy) y **en carro** (por los corredores, como D'CASA). La tarifa del archivo es
+  parece más a sus precios por zona de hoy) y **en carro** (por los corredores, como D'CASA). **El dueño eligió la de
+  moto: sus motorizados van sin corredor** (2026-11-26). La tarifa del archivo es
   una **propuesta en revisión**: el mínimo es del dueño; los dos puntos de la recta, el redondeo y la distancia máxima
   los propuse para parecerse a sus tarifas por zona del sistema (`ver_zonas`), y Gerencia los cambia o aprueba en
   Odoo. Panamá Oeste y el interior hoy se cotizan a mano; con la propuesta, Arraiján queda dentro de la distancia
