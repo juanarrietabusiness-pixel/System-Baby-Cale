@@ -552,13 +552,15 @@ class TestNavegadorDeLaClienta(_SinClaves, ChromeMovilCase):
         self.assertEqual(r['con_casa'], ['', False])
 
     def checkout(self, punto, casa, avanza):
+        # Leído antes de abrir el navegador: con él abierto, el servidor de la prueba usa el mismo cursor y leer la base
+        # a la vez fallaba al azar («no results to fetch», un AccessError raro).
+        carrito = json.dumps({'product_template_id': self.producto.product_tmpl_id.id,
+                              'product_id': self.producto.id, 'quantity': 1})
         with self._chrome_movil(390) as browser:
             browser.navigate_to(self.base_url() + '/shop/cart', wait_stop=True)
             self.assertTrue(browser._wait_ready())
-            params = json.dumps({'product_template_id': self.producto.product_tmpl_id.id,
-                                 'product_id': self.producto.id, 'quantity': 1})
             self._evaluar(browser, f"""fetch('/shop/cart/add', {{method: 'POST', headers: {{'Content-Type':
-                'application/json'}}, body: JSON.stringify({{jsonrpc: '2.0', method: 'call', params: {params}}})}})
+                'application/json'}}, body: JSON.stringify({{jsonrpc: '2.0', method: 'call', params: {carrito}}})}})
                 .then((r) => r.status)""")
             browser.navigate_to(self.base_url() + '/shop/checkout', wait_stop=True)
             self.assertTrue(browser._wait_ready())

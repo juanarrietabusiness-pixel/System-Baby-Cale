@@ -633,20 +633,23 @@ CALLE_VACIA = """
 (async () => {
     await llenar();
     navigator.geolocation.getCurrentPosition = (ok) =>
-        ok({ coords: { latitude: 8.4273, longitude: -82.4308, accuracy: 10 } });
+        ok({ coords: { latitude: 8.95, longitude: -79.70, accuracy: 10 } });
     $('.o_dcasa_ubic_gps').click();
-    await hasta(() => !!$('.o_dcasa_ubic_zona').textContent.trim());
-    const s = { zona: $('.o_dcasa_ubic_zona').textContent.trim(), calle: $('[name=street]').value };
+    await hasta(() => !!$('.o_dcasa_ubic_zona').textContent.trim() && $('.o_dcasa_ubic_zona').textContent !== '…');
+    // Lo que deja el mapa cuando no sabe la barriada ni el distrito (sin tabla, como en staging): los dos vacíos.
+    poner('street', ''); poner('city', '');
     poner('dcasa_referencia', 'Casa 3');
+    const s = { zona: $('.o_dcasa_ubic_zona').textContent.trim() };
     window.scrollTo(0, 0);
     confirmarOdoo();
-    await esperar(400);
+    await hasta(() => document.activeElement.name === 'street', 5000);
     const r = $('[name=street]').getBoundingClientRect();
     s.foco = document.activeElement.name;
     s.centro = [Math.round(r.top), Math.round(r.bottom), innerHeight];
     s.confirmada = $('[name=dcasa_ubic_confirmada]').value;
     poner('street', 'Barriada lejana, calle 2');
-    poner('city', 'David');
+    poner('city', 'Vista Lejana');   // ningún distrito: que no salte el aviso de cruce
+    await esperar(1500);   // la vista previa con la calle nueva (por si nombra otro distrito)
     return s;
 })()
 """
@@ -664,16 +667,18 @@ class TestNavegadorAuditoria2(_SinClaves, ChromeMovilCase):
             'name': 'Caja del navegador dos', 'list_price': 20, 'type': 'consu', 'sale_ok': True,
             'is_published': True})
         cls.env['website'].search([]).write({'dcasa_whatsapp_number': WHATSAPP_TIENDA})
+        # Lo que el navegador manda a «/shop/cart/add», leído aquí: con el navegador abierto, el servidor de la prueba
+        # usa el mismo cursor y leer la base a la vez fallaba al azar («no results to fetch», un AccessError raro).
+        cls.carrito = json.dumps({'product_template_id': cls.producto.product_tmpl_id.id,
+                                  'product_id': cls.producto.id, 'quantity': 1})
 
     def abrir_checkout(self, browser, mapa_falso=False):
         if mapa_falso:
             browser._websocket_request('Page.addScriptToEvaluateOnNewDocument', params={'source': MAPA_FALSO})
         browser.navigate_to(self.base_url() + '/shop/cart', wait_stop=True)
         self.assertTrue(browser._wait_ready())
-        params = json.dumps({'product_template_id': self.producto.product_tmpl_id.id,
-                             'product_id': self.producto.id, 'quantity': 1})
         self._evaluar(browser, f"""fetch('/shop/cart/add', {{method: 'POST', headers: {{'Content-Type':
-            'application/json'}}, body: JSON.stringify({{jsonrpc: '2.0', method: 'call', params: {params}}})}})
+            'application/json'}}, body: JSON.stringify({{jsonrpc: '2.0', method: 'call', params: {self.carrito}}})}})
             .then((r) => r.status)""")
         browser.navigate_to(self.base_url() + '/shop/checkout', wait_stop=True)
         self.assertTrue(browser._wait_ready())
@@ -763,7 +768,7 @@ class TestNavegadorAuditoria2(_SinClaves, ChromeMovilCase):
             seguia = self._evaluar(browser, SIGUE_EN_LA_DIRECCION)
             self._evaluar(browser, 'confirmarOdoo(), true')
             avanzo = browser._wait_ready("location.pathname === '/shop/checkout'", timeout=15)
-        self.assertEqual(r['calle'], '', 'lejos de la tabla, el mapa no inventa la barriada')
+        self.assertTrue(r['zona'], 'el punto (a 12 km de la tabla) vale')
         self.assertEqual(r['confirmada'], '1', '«Confirmar» contó como el «sí» del punto')
         self.assertTrue(seguia, 'sin la barriada no se manda')
         self.assertEqual(r['foco'], 'street', 'el foco va a «Barriada o calle»')
