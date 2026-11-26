@@ -94,8 +94,12 @@ del puente. Ya en uso en la cuenta y **no se tocan**: `babycaleb-web`, `babycale
   «Barriada o calle» con el foco. Detalle menor visto: «Código postal» lleva un «*» aunque Panamá no lo pide (la
   compra pasa sin él). **Staging no tiene la
   tabla de lugares ni las claves de Google**: todo punto sale «Fuera de nuestra lista» y el envío «se lo confirmamos».
-- **Producción**: no desplegada. `main` sigue siendo el espejo exacto de D'CASA; todas las adecuaciones viven en la rama
-  `claude/nifty-keller-k8rcmz`.
+- **Producción (2026-11-26)**: `main` ya tiene el código de Baby Caleb (avanzado a `900d7f3`, la versión probada en
+  staging; las fotos que el dueño subió a `main` el 2026-11-24 ya estaban en el catálogo). CI/CD #33 desde `main` con
+  «produccion»: **todas las pruebas en verde, pero el despliegue se omitió** porque el entorno `production` de GitHub
+  todavía no tiene sus claves (`docs/PASO_A_PASO_CLAVES.md`, paso 7.4). El Worker `sistemabk` no existe aún; nace con
+  el primer despliegue. Cuando estén las claves, se despliega sin repetir las pruebas: «Desplegar» a mano con la imagen
+  ya probada en staging (CI/CD #32), o CI/CD desde `main` con «produccion».
 
 ## Pendiente (preguntas abiertas y trabajo por hacer)
 
