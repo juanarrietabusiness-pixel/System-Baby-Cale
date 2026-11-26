@@ -104,14 +104,18 @@ class TestRemitenteDeLasCampanas(ComunRemitente):
         self.assertEqual(post.call_args.kwargs['json']['from'], '"Tienda de Prueba" <ventas@tienda.example.com>')
 
     def test_sin_ningun_remitente_la_prueba_avisa_claro_y_no_sale(self):
-        """Instalación nueva (Baby Caleb, 2026-11-18): ni remitente de las campañas ni el de los correos de siempre,
-        que queda vacío hasta tener un dominio verificado en Resend. Antes la prueba salía con «From: Nombre <>» y
-        reventaba con «Malformed 'Return-Path' or 'From' address»; ahora avisa qué falta y no manda nada."""
+        """Sin remitente de las campañas ni el de los correos de siempre (una instalación sin dominio verificado en
+        Resend: así nació Baby Caleb el 2026-11-18; desde el 2026-11-25 su fábrica es ventas@babycaleb.com, así que
+        aquí se quita la de fábrica). Antes la prueba salía con «From: Nombre <>» y reventaba con «Malformed
+        'Return-Path' or 'From' address»; ahora avisa qué falta y no manda nada."""
+        from odoo.addons.dcasa_correo.models import correo as CORREO
+
         campana = self.armar()['campana']
         self.ICP.set_param('dcasa_correo.remitente', '')
-        self.assertEqual(self.env['dcasa.correo']._config()['remitente'], '', 'De fábrica no hay remitente')
-        with self.correo_transaccional() as post, self.assertRaises(UserError) as error:
-            self.Camila.with_user(self.marketing).enviar_prueba(campana['id'])
+        with patch.object(CORREO, 'REMITENTE', ''):
+            self.assertEqual(self.env['dcasa.correo']._config()['remitente'], '', 'Sin ningún remitente')
+            with self.correo_transaccional() as post, self.assertRaises(UserError) as error:
+                self.Camila.with_user(self.marketing).enviar_prueba(campana['id'])
         self.assertIn('Falta el remitente', str(error.exception))
         self.assertNotIn('Malformed', str(error.exception))
         post.assert_not_called()
