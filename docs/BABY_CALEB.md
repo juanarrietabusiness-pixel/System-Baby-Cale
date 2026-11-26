@@ -89,7 +89,10 @@ del puente. Ya en uso en la cuenta y **no se tocan**: `babycaleb-web`, `babycale
   dirección («Casa 12, portón verde»), la entrega «por cotizar», el pago por transferencia y «¡Gracias por tu compra!»
   (S00059), sin errores en la consola. La compra encontró dos fallos que las pruebas no veían (con un punto «Fuera de
   nuestra lista» «Confirmar» se quedaba quieto, y tras escribir la calle había que tocarlo dos veces): arreglados en
-  `4524798`/`ebfa000` con sus pruebas (ubicación: 135, 0 fallos) y vueltos a subir a staging. **Staging no tiene la
+  `4524798`/`ebfa000` con sus pruebas (ubicación: 135, 0 fallos) y vueltos a subir a staging (CI/CD #32, sano con
+  `ebfa000`): dos compras más desde el teléfono con **un solo «Confirmar»**, y sin barriada «Confirmar» lleva a
+  «Barriada o calle» con el foco. Detalle menor visto: «Código postal» lleva un «*» aunque Panamá no lo pide (la
+  compra pasa sin él). **Staging no tiene la
   tabla de lugares ni las claves de Google**: todo punto sale «Fuera de nuestra lista» y el envío «se lo confirmamos».
 - **Producción**: no desplegada. `main` sigue siendo el espejo exacto de D'CASA; todas las adecuaciones viven en la rama
   `claude/nifty-keller-k8rcmz`.
