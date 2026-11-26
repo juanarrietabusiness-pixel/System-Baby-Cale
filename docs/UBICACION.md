@@ -92,6 +92,13 @@ El dueño: «el dolor número uno son los pedidos devueltos». Lo que se agregó
 - **«Escribir»**: la calle se llama «Barriada o calle» (el número va aparte), el número de casa se pide después de la
   ciudad y «Departamento, suite» vacío no sale.
 - **El motorizado**: con un punto aproximado, «Llamar» arriba como sin punto; de usted y sin «tienda».
+- **Lo que encontró la compra en staging (2026-11-26)**: (1) con un punto «Fuera de nuestra lista» (lejos de todos
+  los lugares, o sin tabla de lugares) el mapa no llena «Barriada o calle» ni «Ciudad»; «Confirmar» no avanzaba y el
+  aviso del navegador quedaba detrás de la barra fija. Ahora la página trae ese campo al centro con el foco. (2) Si
+  escribía la calle justo antes de «Confirmar», la página volvía a mirar la zona («⏳ Un momento») y había que tocar
+  «Confirmar» otra vez; ahora sigue sola cuando llega la zona. **Sin la tabla de lugares cargada, todo punto sale
+  «Fuera de nuestra lista» y el envío «se lo confirmamos»**: se carga en Envíos › Tarifa › «Cargar lugares y tarifa
+  desde el archivo» (`docs/ENVIOS.md`).
 
 ## De dónde sale cada punto (y qué tan fiable es)
 

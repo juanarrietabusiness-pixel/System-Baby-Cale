@@ -14,8 +14,11 @@
  *   - si el pin se movió más de 30 m después de un «Sí» o de un GPS bueno: «👆 Movió el pin. ¿Es aquí?» (un dedo que
  *     solo quería bajar la página arrastraba el mapa y cambiaba la casa).
  * Si falta algo, no se envía: la página baja hasta el bloque, dice ahí qué falta y lleva el foco. Sin señal, la zona
- * dice «📶 Sin señal. Toque para reintentar»; «Confirmar» (y volver la conexión) la vuelve a pedir. Sin permiso de
- * ubicación, lo que falta es buscar la barriada (o «Escribir») y el foco va al buscador.
+ * dice «📶 Sin señal. Toque para reintentar»; «Confirmar» (y volver la conexión) la vuelve a pedir. Si «Confirmar»
+ * solo esperaba la zona («⏳ Un momento»), sigue solo cuando llega. Sin permiso de
+ * ubicación, lo que falta es buscar la barriada (o «Escribir») y el foco va al buscador. Si lo que falta es un campo
+ * de Odoo (la barriada o calle, la ciudad: el mapa no las llena con un punto «Fuera de nuestra lista»), la página lo
+ * trae al centro de la pantalla y el navegador dice ahí qué falta (no detrás de la barra fija de «Confirmar»).
  *
  * Tras el GPS o una búsqueda, la página se desplaza para que el pin y la tarjeta queden encima de la barra fija de
  * «Confirmar» (188 px en el celular: tapaba la mitad del mapa).
@@ -390,8 +393,8 @@ export class CheckoutUbicacion extends Interaction {
         this.llenarSiVacio("street", [r.barriada, r.corregimiento].filter(Boolean).join(", "));
         this.mostrarBotones();
         this.actualizar();
-        if (this.faltaEspera) {
-            // «Confirmar» esperaba la zona: ya está (si falta otra cosa, lo dirá al tocarlo otra vez).
+        const esperaba = this.faltaEspera;
+        if (esperaba) {
             this.faltaEspera = false;
             this.quitarFalta(this.faltaPunto);
         }
@@ -403,6 +406,21 @@ export class CheckoutUbicacion extends Interaction {
         if (this.alinearTrasPrevia) {
             this.alinearTrasPrevia = false;
             this.alinear();
+        }
+        if (esperaba) this.seguirTrasLaEspera();
+    }
+
+    /** «Confirmar» esperaba la zona y ya llegó: si no falta nada, sigue solo (antes había que tocarlo otra vez y
+     *  parecía que no hacía nada: staging, 2026-11-26); si falta otra cosa, la dice. */
+    seguirTrasLaEspera() {
+        const boton = this.botonQueEspera;
+        this.botonQueEspera = null;
+        if (!boton?.isConnected || !this.el.isConnected) return;
+        const falta = this.loQueFalta();
+        if (falta) {
+            this.mostrarFalta(falta);
+        } else {
+            boton.click();
         }
     }
 
@@ -500,23 +518,48 @@ export class CheckoutUbicacion extends Interaction {
         if (!this.referencia.value.trim()) {
             return { donde: this.faltaCasa, texto: "🏠 Escriba su número de casa", foco: this.referencia };
         }
+        const campo = this.campoVacio();
+        return campo ? { campo } : null;
+    }
+
+    /** El primer campo de Odoo que el navegador no deja pasar (la barriada o calle, la ciudad, el nombre…), o ``null``.
+     *  Con un punto «Fuera de nuestra lista» (o sin la tabla de lugares) el mapa no llena la calle ni la ciudad, y el
+     *  aviso del navegador salía encima de la barra fija de «Confirmar»: la clienta no veía qué le faltaba (staging,
+     *  2026-11-26). Ahora la página lo trae al centro de la pantalla antes de que el navegador lo diga. */
+    campoVacio() {
+        if (!this.form) return null;
+        for (const campo of this.form.querySelectorAll("input, select, textarea")) {
+            if (campo.type === "hidden" || campo.disabled || !campo.willValidate) continue;
+            if (!(campo.offsetParent || campo.getClientRects().length)) continue;
+            if (!campo.checkValidity()) return campo;
+        }
         return null;
     }
 
     alEnviar(ev) {
-        if (!ev.target?.closest?.(BOTON_DE_ODOO) || !this.el.isConnected) return;
+        const boton = ev.target?.closest?.(BOTON_DE_ODOO);
+        if (!boton || !this.el.isConnected) return;
         const falta = this.loQueFalta();
         if (!falta) return; // todo bien: sigue Odoo (valida lo suyo y manda el formulario)
         ev.preventDefault();
         ev.stopPropagation();
+        // Si solo espera la zona, sigue solo cuando llegue (``seguirTrasLaEspera``).
+        this.botonQueEspera = falta.espera ? boton : null;
         this.mostrarFalta(falta);
     }
 
-    mostrarFalta({ donde, texto, foco, destino, espera }) {
+    mostrarFalta({ donde, texto, foco, destino, espera, campo }) {
         this.quitarFalta(this.faltaPunto);
         this.quitarFalta(this.faltaCasa);
         this.quitarFalta(this.faltaTarjeta);
         this.faltaEspera = !!espera;
+        if (campo) {
+            // Al centro (lejos de la barra fija de abajo) y con el aviso del navegador junto al campo.
+            campo.scrollIntoView({ block: "center", behavior: "instant" });
+            campo.focus({ preventScroll: true });
+            campo.reportValidity();
+            return;
+        }
         if (donde) {
             donde.textContent = texto;
             donde.classList.remove("d-none");

@@ -501,11 +501,14 @@ SENAL_Y_PERMISO = """
     s.sin_senal = [visible('.o_dcasa_ubic_reintentar'), $('.o_dcasa_ubic_reintentar').textContent.trim(),
                    visible('.o_dcasa_ubic_zona')];
     window.cortar = false;
+    poner('dcasa_referencia', '');   // así, al llegar la zona, dice lo que falta en lugar de seguir solo
     confirmarOdoo();
     s.confirmar = $('.o_dcasa_ubic_falta_punto').textContent;
     await hasta(() => /Villa/.test($('.o_dcasa_ubic_zona').textContent));
     s.volvio = [$('.o_dcasa_ubic_zona').textContent, visible('.o_dcasa_ubic_falta_punto'),
                 visible('.o_dcasa_ubic_reintentar')];
+    await hasta(() => visible('.o_dcasa_ubic_falta_casa'));
+    s.casa = $('.o_dcasa_ubic_falta_casa').textContent;
     return s;
 })()
 """
@@ -588,6 +591,63 @@ COMPUTADORA = """
     document.querySelector('#o_dcasa_gps').click();
     await new Promise((ok) => setTimeout(ok, 300));
     return [matchMedia('(pointer: coarse)').matches, document.querySelector('#o_dcasa_aviso').textContent];
+})()
+"""
+
+
+# Staging, 2026-11-26: escribió la calle justo después del «sí» y tocó «Confirmar» mientras la página volvía a mirar la
+# zona (con la calle nueva, por si nombra otro distrito). Salía «⏳ Un momento» y había que tocarlo otra vez: parecía
+# que no hacía nada. Ahora sigue solo cuando llega la zona. La red, lenta: la vista previa tarda 700 ms.
+SIGUE_SOLO = """
+(async () => {
+    await llenar();
+    gps(10);
+    $('.o_dcasa_ubic_gps').click();
+    await hasta(() => /Villa/.test($('.o_dcasa_ubic_zona').textContent));
+    poner('dcasa_referencia', 'Casa 5');
+    $('.o_dcasa_ubic_si').click();
+    const abrir = XMLHttpRequest.prototype.open, enviar = XMLHttpRequest.prototype.send;
+    XMLHttpRequest.prototype.open = function (m, url) { this.url_ = String(url); return abrir.apply(this, arguments); };
+    XMLHttpRequest.prototype.send = function () {
+        if (this.url_.includes('/tienda/ubicacion/zona')) {
+            const args = arguments;
+            setTimeout(() => enviar.apply(this, args), 700);
+            return;
+        }
+        return enviar.apply(this, arguments);
+    };
+    poner('street', 'Villa Prueba II, calle 3');
+    await hasta(() => $('[name=dcasa_ubic_confirmada]').value === '');
+    const s = { sin_si: $('[name=dcasa_ubic_confirmada]').value };
+    confirmarOdoo();
+    s.espera = $('.o_dcasa_ubic_falta_punto').textContent;
+    return s;
+})()
+"""
+
+
+# Staging, 2026-11-26: un GPS «Fuera de nuestra lista» (lejos de todos los lugares de la tabla, o sin tabla) no llena la
+# barriada ni la ciudad. «Confirmar» no avanzaba y el aviso del navegador salía encima de la barra fija: la clienta no
+# veía qué faltaba. Ahora la página trae ese campo al centro y le pone el foco.
+CALLE_VACIA = """
+(async () => {
+    await llenar();
+    navigator.geolocation.getCurrentPosition = (ok) =>
+        ok({ coords: { latitude: 8.4273, longitude: -82.4308, accuracy: 10 } });
+    $('.o_dcasa_ubic_gps').click();
+    await hasta(() => !!$('.o_dcasa_ubic_zona').textContent.trim());
+    const s = { zona: $('.o_dcasa_ubic_zona').textContent.trim(), calle: $('[name=street]').value };
+    poner('dcasa_referencia', 'Casa 3');
+    window.scrollTo(0, 0);
+    confirmarOdoo();
+    await esperar(400);
+    const r = $('[name=street]').getBoundingClientRect();
+    s.foco = document.activeElement.name;
+    s.centro = [Math.round(r.top), Math.round(r.bottom), innerHeight];
+    s.confirmada = $('[name=dcasa_ubic_confirmada]').value;
+    poner('street', 'Barriada lejana, calle 2');
+    poner('city', 'David');
+    return s;
 })()
 """
 
@@ -683,6 +743,36 @@ class TestNavegadorAuditoria2(_SinClaves, ChromeMovilCase):
         self.assertEqual(r['confirmar'], '⏳ Un momento: estamos viendo su zona', '«Confirmar» la vuelve a pedir')
         self.assertIn('Villa Prueba II', r['volvio'][0])
         self.assertEqual(r['volvio'][1:], [False, False])
+        self.assertEqual(r['casa'], '🏠 Escriba su número de casa', 'al llegar la zona, «Confirmar» dice lo que falta')
+
+    def test_confirmar_que_esperaba_la_zona_sigue_solo(self):
+        with self._chrome_movil(390) as browser:
+            self.abrir_checkout(browser)
+            r = self._evaluar(browser, SIGUE_SOLO)
+            avanzo = browser._wait_ready("location.pathname === '/shop/checkout'", timeout=15)
+        self.assertEqual(r['sin_si'], '', 'la calle nueva vuelve a mirar la zona')
+        self.assertEqual(r['espera'], '⏳ Un momento: estamos viendo su zona')
+        self.assertTrue(avanzo, 'al llegar la zona, «Confirmar» siguió solo')
+        destino = self.env['res.partner'].search([('email', '=', 'ana.nav2@example.com')], limit=1)
+        self.assertEqual((destino.street, destino.dcasa_ubic_origen), ('Villa Prueba II, calle 3', 'gps'))
+
+    def test_sin_barriada_confirmar_lleva_al_campo_que_falta(self):
+        with self._chrome_movil(390) as browser:
+            self.abrir_checkout(browser)
+            r = self._evaluar(browser, CALLE_VACIA)
+            seguia = self._evaluar(browser, SIGUE_EN_LA_DIRECCION)
+            self._evaluar(browser, 'confirmarOdoo(), true')
+            avanzo = browser._wait_ready("location.pathname === '/shop/checkout'", timeout=15)
+        self.assertEqual(r['calle'], '', 'lejos de la tabla, el mapa no inventa la barriada')
+        self.assertEqual(r['confirmada'], '1', '«Confirmar» contó como el «sí» del punto')
+        self.assertTrue(seguia, 'sin la barriada no se manda')
+        self.assertEqual(r['foco'], 'street', 'el foco va a «Barriada o calle»')
+        arriba, abajo, alto = r['centro']
+        self.assertGreaterEqual(arriba, 0)
+        self.assertLess(abajo, alto * 0.75, 'el campo queda a la vista, lejos de la barra fija de abajo')
+        self.assertTrue(avanzo, 'con la barriada y la ciudad escritas, sigue')
+        destino = self.env['res.partner'].search([('email', '=', 'ana.nav2@example.com')], limit=1)
+        self.assertEqual((destino.street, destino.dcasa_ubic_origen), ('Barriada lejana, calle 2', 'gps'))
 
     def test_14_escribir_pide_la_casa_despues_de_la_ciudad(self):
         with self._chrome_movil(390) as browser:

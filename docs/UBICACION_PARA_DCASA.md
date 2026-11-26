@@ -163,6 +163,10 @@ voz o la marca donde se indica en §4.
   días); en el navegador, «Confirmar» se saltaba el aviso de «su punto está en otro distrito», un dedo al bajar la
   página movía el pin, una caída de señal trababa el checkout y los emojis de wa.me salían como «�» en WhatsApp Web
   (usar `api.whatsapp.com/send`). **Moraleja**: cada arreglo grande merece su propia revisión.
+- **La compra en staging** (después de las dos auditorías): sin la tabla de lugares, el mapa no llenaba la calle y
+  «Confirmar» se quedaba quieto con el aviso del navegador escondido tras la barra fija; y escribir la calle justo
+  antes de «Confirmar» obligaba a tocarlo dos veces. En D'CASA la tabla sí está cargada, pero un punto lejos de todos
+  los lugares («Fuera de nuestra lista») pasa por lo mismo: probarlo comprando en staging con un punto lejano.
 
 ## 8. Lo que falta del lado de Baby Caleb (no bloquea copiarlo)
 

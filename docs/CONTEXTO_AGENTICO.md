@@ -2414,6 +2414,12 @@ dos más sobre los arreglos. Lo que conviene llevarse:
   (2026-11-24) y el robot de D'CASA, que solo conoce el Excel de muebles, las mandó a `descartado/` y dejó otras sueltas
   en la raíz. Ya estaban cargadas a mano en `addons/dcasa_catalogo/data/fotos/`; al unir `main` a la rama no se
   trajeron. Desde que `main` tiene el código de Baby Caleb, el robot deja esas fotos en la bandeja («sin_pedido»).
+- **Comprar de verdad en staging encontró dos fallos que 5.142 pruebas no vieron**: staging no tiene la tabla de
+  lugares (la sube Gerencia; no está en el repositorio), así que todo punto salía «Fuera de nuestra lista», el mapa no
+  llenaba la calle y «Confirmar» se quedaba quieto con el aviso del navegador escondido tras la barra fija; y escribir
+  la calle justo antes de «Confirmar» obligaba a tocarlo dos veces. Las pruebas siempre preparan una tabla y esperan
+  entre pasos; la clienta y el robot no. Probar en staging con los datos que de verdad tiene (y sin esperar entre
+  pasos) antes de decir «sano».
 - **La primera instalación de producción no se traba con el respaldo previo**: `desplegar.yml` solo lo pide si el
   Worker ya existe (`worker_existe`). Sin secretos en el environment `production` de GitHub, el despliegue se omite con
   un aviso y el CI queda en verde: mirar el resumen, no solo el color.
