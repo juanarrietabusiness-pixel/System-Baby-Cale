@@ -60,8 +60,9 @@ def punto_de_salida(valor):
     return ','.join(f'{v:.7f}'.rstrip('0').rstrip('.') for v in (lat, lon))
 
 
-# Ejemplos fijos del HTML para ver el efecto del % (km por carretera desde la tienda).
-EJEMPLOS_DEL_EFECTO = (('Cerca de la tienda', 5.0), ('Ciudad (Santa Ana)', 36.0), ('Santiago', 205.0))
+# Ejemplos fijos del HTML para ver el efecto del % (km por carretera desde la tienda). Sin nombres de lugares: los
+# del HTML de D'CASA («Ciudad (Santa Ana)», «Santiago») quedaban a esos km desde su tienda, no desde la de otro negocio.
+EJEMPLOS_DEL_EFECTO = (('5 km', 5.0), ('36 km', 36.0), ('205 km', 205.0))
 
 
 def numero(valor, defecto=0.0):
@@ -257,6 +258,10 @@ class Tarifa:
         sin_ajuste = Tarifa({**self.como_ajustes(), 'ajustePct': 0})
         ejemplos = [EJEMPLOS_DEL_EFECTO[0], (f'{km_txt(self.a_km)} km', self.a_km), EJEMPLOS_DEL_EFECTO[1],
                     (self.b_nombre or f'{km_txt(self.b_km)} km', self.b_km), EJEMPLOS_DEL_EFECTO[2]]
+        # Solo los que tienen precio (hasta maxKm), de cerca a lejos y sin repetir distancia: un negocio que cotiza
+        # aparte desde 35 km no ve «205 km: $37».
+        ejemplos = sorted((e for e in ejemplos if e[1] <= self.max_km), key=lambda e: e[1])
+        ejemplos = [e for i, e in enumerate(ejemplos) if not i or ejemplos[i - 1][1] != e[1]]
         salida = []
         for nombre, km in ejemplos:
             antes, ahora = sin_ajuste.base(km), self.base(km)

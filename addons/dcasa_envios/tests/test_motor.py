@@ -204,6 +204,14 @@ class TestMotorDetalles(BaseCase):
             with self.subTest(cambio=cambio), self.assertRaises(archivo.ArchivoInvalido):
                 archivo.normalizar_ajustes({**fixture()['ajustes'], **cambio})
 
+    def test_los_ejemplos_del_porcentaje_son_solo_los_que_tienen_precio(self):
+        """Un negocio que cotiza aparte desde 35 km no ve «205 km: $37»: los ejemplos van de cerca a lejos y solo hasta
+        maxKm (cifras de juguete)."""
+        t = tarifa.Tarifa({'minimo': 3, 'anclaA': {'km': 5, 'precio': 3}, 'anclaB': {'km': 27, 'precio': 7},
+                           'paso': 1, 'maxKm': 35, 'ajustePct': 10})
+        self.assertEqual([e['nombre'] for e in t.efecto()], ['5 km', '27 km'])
+        self.assertEqual(t.efecto()[1]['texto'], '27 km: $7 → $8')
+
     def test_el_punto_de_salida_es_de_cada_negocio(self):
         """La ruta de Google Maps sale del punto de la tarifa (lo trae el archivo de cada negocio), no de una tienda
         fija: Baby Caleb sale de otro lugar que D'CASA (2026-11-26)."""
