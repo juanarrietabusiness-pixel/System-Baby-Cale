@@ -2420,6 +2420,12 @@ dos más sobre los arreglos. Lo que conviene llevarse:
   la calle justo antes de «Confirmar» obligaba a tocarlo dos veces. Las pruebas siempre preparan una tabla y esperan
   entre pasos; la clienta y el robot no. Probar en staging con los datos que de verdad tiene (y sin esperar entre
   pasos) antes de decir «sano».
+- **Primera instalación de producción sin repetir la hora de pruebas** (2026-11-26): «Desplegar» a mano desde `main`
+  con `entorno=production`, el `imagen_digest` y el `app_version` del despliegue a staging que se probó comprando
+  (salen en el log del paso «Resumen (para volver atrás)»). Tardó 8 minutos en quedar sana (base nueva).
+- **Claves pegadas en el panel del Worker con el contenedor ya encendido no llegan a Odoo** (otra vez: Google Maps en
+  staging y producción): hace falta un despliegue con imagen nueva. Si se sabe de antemano, pegarlas antes del primer
+  arranque.
 - **La primera instalación de producción no se traba con el respaldo previo**: `desplegar.yml` solo lo pide si el
   Worker ya existe (`worker_existe`). Sin secretos en el environment `production` de GitHub, el despliegue se omite con
   un aviso y el CI queda en verde: mirar el resumen, no solo el color.

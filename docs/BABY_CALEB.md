@@ -94,12 +94,14 @@ del puente. Ya en uso en la cuenta y **no se tocan**: `babycaleb-web`, `babycale
   «Barriada o calle» con el foco. Detalle menor visto: «Código postal» lleva un «*» aunque Panamá no lo pide (la
   compra pasa sin él). **Staging no tiene la
   tabla de lugares ni las claves de Google**: todo punto sale «Fuera de nuestra lista» y el envío «se lo confirmamos».
-- **Producción (2026-11-26)**: `main` ya tiene el código de Baby Caleb (avanzado a `900d7f3`, la versión probada en
-  staging; las fotos que el dueño subió a `main` el 2026-11-24 ya estaban en el catálogo). CI/CD #33 desde `main` con
-  «produccion»: **todas las pruebas en verde, pero el despliegue se omitió** porque el entorno `production` de GitHub
-  todavía no tiene sus claves (`docs/PASO_A_PASO_CLAVES.md`, paso 7.4). El Worker `sistemabk` no existe aún; nace con
-  el primer despliegue. Cuando estén las claves, se despliega sin repetir las pruebas: «Desplegar» a mano con la imagen
-  ya probada en staging (CI/CD #32), o CI/CD desde `main` con «produccion».
+- **Producción instalada el 2026-11-26** (Desplegar #1, 04:38 UTC, desde `main`, con la imagen ya probada en staging:
+  `ebfa000`, `sha256:f0b57c20…`; sin respaldo previo porque el Worker no existía): **sana a las 04:46 UTC** en
+  `https://sistemabk.juanarrietabusiness.workers.dev` (versión `ebfa0005e724`, base al día, humo ok). La portada y la
+  tienda responden con la marca Baby Caleb (5 productos, sin errores, vistos desde un teléfono). Base **nueva y
+  vacía** (sin nada de staging). `babycaleb.com` sigue en la web actual hasta el día del dominio (`docs/DOMINIO.md`).
+  El dueño puso las 10 claves y 4 variables del entorno `production` de GitHub y las dos claves de Google en el
+  Worker `sistemabk` (después de que el contenedor arrancara: Odoo las lee con el próximo despliegue de imagen nueva;
+  igual en staging). CI/CD #33 desde `main` ya había pasado todas las pruebas con ese código.
 
 ## Pendiente (preguntas abiertas y trabajo por hacer)
 
