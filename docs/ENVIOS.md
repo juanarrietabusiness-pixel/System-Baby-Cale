@@ -59,6 +59,41 @@ Volver a cargar es seguro:
   del archivo no cuenta: se aprueba en Odoo.
 - Si la tarifa del archivo trae un número que no sirve, no se cambia nada (ni los lugares).
 - Medido con el archivo real (11 299 lugares): la primera carga tarda unos 2 s y volver a cargarlo, menos de 1 s.
+- **El punto de salida del archivo** (`ajustes.origen`) se guarda aunque no se marque la tarifa: va con los lugares,
+  porque sus km se midieron desde ahí. No cambia precios, así que la tarifa no vuelve a revisión.
+
+### Medir el archivo para otro punto de salida (como se hizo para Baby Caleb, 2026-11-26)
+
+Los lugares, sus nombres y sus coordenadas sirven para cualquier negocio; los **km y el peaje** son de un punto de
+salida. Para otro punto se miden otra vez con el mismo método del archivo de D'CASA. Ni el archivo ni el pin van al
+repositorio: el archivo se entrega a quien lo carga.
+
+1. **Corregimientos con punto: Google** (Routes API, `distanceMatrix/v2:computeRouteMatrix`, `TRAFFIC_UNAWARE`, en
+   tandas de 100). La clave **no pasa por el chat ni por el código**: va como secreto de red del entorno de la sesión
+   (host `routes.googleapis.com`, encabezado `X-Goog-Api-Key`, **«Prefijo» vacío**) y el proxy la pone. Clave temporal,
+   solo con «Routes API», y se borra al terminar.
+2. **Peaje**: en Panamá `travelAdvisory.tollInfo` viene **siempre vacío**. Se pide cada ruta otra vez con
+   `routeModifiers: {"avoidTolls": true}` **en el waypoint de origen** (arriba, en el cuerpo, da HTTP 400): si la
+   distancia cambia más de 0,2 km o el tiempo más de 60 s, la ruta pasa por peaje. Visto paso a paso
+   (`computeRoutes` con `navigationInstruction`): sale «Carretera con peajes» en los ramales del Corredor Norte.
+3. **Lo demás (barrios, edificios, referencias): OSRM** (`router.project-osrm.org/table/v1/driving`, hasta 90 puntos
+   por pedido y 1 s de pausa) **más la mediana de (Google − OSRM) de sus 3 corregimientos más cercanos**. Probado
+   rehaciendo el archivo de D'CASA desde su propio pin: 0,25 km de diferencia típica. El peaje, el de su corregimiento.
+   El OSRM público no acepta `exclude=toll` (HTTP 400).
+4. **Las notas que dependen de la ruta** («más de 300 km», «Otra ruta sin peaje de…», «queda más allá de Yaviza, que
+   ya pasa de 300 km») se rehacen o se quitan: eran desde el pin de D'CASA. Los corregimientos sin punto quedan con su
+   estado, como en D'CASA.
+5. **El HTML**: se copia el de D'CASA y se cambian sus tres bloques JSON, `TIENDA`, el enlace fijo «Abrir Google Maps
+   desde la tienda», la llave del borrador en el navegador (`localStorage` es el mismo para todos los archivos abiertos
+   desde el disco: con la misma llave, el borrador de un negocio aparece en el del otro), el nombre del archivo que
+   descarga, los textos con el nombre y el lugar del negocio y los ejemplos del % (como en Odoo).
+6. Antes de entregarlo: `archivo.leer_archivo` + `normalizar_ajustes` sobre el archivo, y abrirlo en un navegador
+   (buscar, precio, ruta que sale del pin nuevo, sin errores en la consola).
+
+**¿Carro o moto?** La ruta que recomienda Google es la del carro: en la ciudad entra al Corredor Norte hasta para 2,6 km.
+Las motos de reparto, por cilindrada, en general no pueden usar los corredores (la regla exacta la confirma el negocio),
+así que para un negocio que reparte en moto los km salen de la ruta **evitando peajes** (paso 2), sin peaje en ningún
+lugar. No siempre es más larga: Google prefiere la más rápida, y sin corredor a veces hay una más corta.
 
 ## La fórmula (`motor/tarifa.py`)
 

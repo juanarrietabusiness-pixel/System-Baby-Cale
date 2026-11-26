@@ -2430,3 +2430,23 @@ dos más sobre los arreglos. Lo que conviene llevarse:
   Worker ya existe (`worker_existe`). Sin secretos en el environment `production` de GitHub, el despliegue se omite con
   un aviso y el CI queda en verde: mirar el resumen, no solo el color.
 
+
+## Lo que enseñó medir la tabla de envíos de Baby Caleb (2026-11-26)
+
+- **`request_credential` no acepta encabezados propios** (`X-Goog-Api-Key` de Google): la clave va como **secreto de
+  red del entorno** que pone el dueño (host `routes.googleapis.com`, encabezado `X-Goog-Api-Key`, **«Prefijo» vacío**).
+  Con una palabra en «Prefijo» (el dueño escribió «puesta») Google contesta «API key not valid» y parece que la clave
+  está mal. Instrucciones al dueño: pasos numerados, cortos, con los nombres exactos de cada casilla.
+- **Routes API en Panamá: `tollInfo` siempre vacío.** El peaje se saca repitiendo la ruta con `avoidTolls` (en el
+  waypoint de origen de la matriz; en la raíz del cuerpo da HTTP 400) y comparando distancia y tiempo.
+- **La ruta de carro de Google entra a los corredores hasta para 2,6 km** (ramal de la Martín Sosa del Corredor Norte):
+  para un negocio que reparte en moto (sin corredores) los km son los de la ruta evitando peajes. Preguntar cómo
+  reparte el negocio antes de dar por buenos los km «de carro» de D'CASA.
+- **Los archivos de una plantilla traen datos del negocio de origen escondidos en el código**: el pin de la tienda en
+  `TIENDA` y en un enlace fijo, «Ciudad (Santa Ana)» y «Santiago» en los ejemplos del % (también en `motor/tarifa.py`),
+  «La Chorrera» como distrito por defecto, la llave del borrador del navegador y notas de ruta («más allá de Yaviza,
+  que ya pasa de 300 km»: desde el otro pin, Yaviza queda a menos). Buscar el nombre, el pin y los lugares del negocio de
+  origen en TODO el archivo, no solo en los datos.
+- **Después de un reinicio del contenedor, el `python3` del sistema no tiene las librerías de Odoo** (`No module named
+  'babel'`): las pruebas corren con `PYTHON=<scratchpad>/venv/bin/python scripts/test.sh …`. PostgreSQL también hay que
+  revisarlo (`pg_lsclusters`; `pg_ctlcluster 16 main start`).

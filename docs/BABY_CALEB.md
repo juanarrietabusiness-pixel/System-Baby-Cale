@@ -109,6 +109,18 @@ del puente. Ya en uso en la cuenta y **no se tocan**: `babycaleb-web`, `babycale
   respaldo previo): **el mapa carga en los dos** (comprobado desde un teléfono, sin errores; en producción sin crear
   pedidos: solo un carrito anónimo de prueba). Las cuotas diarias de Google quedaron «ilimitadas»: el freno es nuestro
   tope de 800 consultas de Geocoding por día; el dueño puede ponerles un número en Google Cloud.
+- **La tabla de envíos de Baby Caleb (2026-11-26)**: el dueño no quiso precio por zona («No, definitivamente no»):
+  quiere **el mismo sistema de D'CASA** (precio por km), medido desde el pin de salida de Baby Caleb, con **mínimo de
+  $3** (cifra suya). El pin lo confirmó su agente de Chrome en Google Maps; no está en el repositorio (es público): va
+  en el archivo y en *Envíos › Tarifa › Punto de salida*. Medido con el método de `docs/ENVIOS.md` («Medir el archivo
+  para otro punto de salida»): 403 corregimientos con Google (clave temporal de Routes API como secreto de red del
+  entorno de la sesión), los otros 10 817 lugares con OSRM ajustado. Salen **dos versiones** del archivo
+  (`envios-babycaleb.html`, fuera del repositorio, entregado al dueño): **en moto** (ruta sin corredores; es la que se
+  parece más a sus precios por zona de hoy) y **en carro** (por los corredores, como D'CASA). La tarifa del archivo es
+  una **propuesta en revisión**: el mínimo es del dueño; los dos puntos de la recta, el redondeo y la distancia máxima
+  los propuse para parecerse a sus tarifas por zona del sistema (`ver_zonas`), y Gerencia los cambia o aprueba en
+  Odoo. Panamá Oeste y el interior hoy se cotizan a mano; con la propuesta, Arraiján queda dentro de la distancia
+  máxima (decide el dueño). El código para el punto de salida: `4f8a3e3`, `65db073`, `ca3c8a8`.
 
 ## Pendiente (preguntas abiertas y trabajo por hacer)
 
