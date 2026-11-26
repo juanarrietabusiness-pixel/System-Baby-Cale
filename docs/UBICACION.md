@@ -210,7 +210,7 @@ entrega **sí se guarda**, porque sin él no hay QR para el motorizado. Reglas:
 
 | Nombre (Cloudflare, Worker `sistemabk` y `sistemabk-staging`) | Para qué | Límites que se le ponen en Google Cloud |
 |---|---|---|
-| `GOOGLE_MAPS_CLAVE_NAVEGADOR` | El mapa en el navegador (se ve en la página: es normal) | Sitios: `babycaleb.com/*`, `www.babycaleb.com/*`, `sistemabk-staging.juanarrietabusiness.workers.dev/*` · APIs: Maps JavaScript |
+| `GOOGLE_MAPS_CLAVE_NAVEGADOR` | El mapa en el navegador (se ve en la página: es normal) | Sitios: `babycaleb.com/*`, `www.babycaleb.com/*`, `sistemabk.juanarrietabusiness.workers.dev/*` (producción hasta el día del dominio), `sistemabk-staging.juanarrietabusiness.workers.dev/*` · APIs: Maps JavaScript |
 | `GOOGLE_MAPS_CLAVE_SERVIDOR` | La dirección de calle a partir del punto (Geocoding), desde Odoo | APIs: solo Geocoding |
 
 El buscador del mapa **no usa Google**: busca en la tabla de lugares de la calculadora (barriadas, PH, lugares
