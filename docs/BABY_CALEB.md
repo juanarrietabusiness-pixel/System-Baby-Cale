@@ -83,6 +83,14 @@ del puente. Ya en uso en la cuenta y **no se tocan**: `babycaleb-web`, `babycale
   pruebas pasaban: Cloudflare arrancó la imagen nueva con las variables del arranque anterior. Desde `bc086bc` la
   identidad del negocio va dentro de la imagen (`docker/negocio.env`) y el CI la comprueba en la base
   (`docs/CONTEXTO_AGENTICO.md`, «Incidente 2026-11-25»).
+- **Staging con la ubicación exacta (2026-11-26)**: CI/CD #31 (`ada3fe9`): todas las pruebas en verde (Odoo, Juan,
+  borde, puente, integración, simulacro de restauración e imagen) y staging sano con esa versión. **Comprado desde un
+  navegador de teléfono (390 px)**: el bloque «¿Dónde le entregamos?» con «Mi ubicación» (GPS), la casa guardada en la
+  dirección («Casa 12, portón verde»), la entrega «por cotizar», el pago por transferencia y «¡Gracias por tu compra!»
+  (S00059), sin errores en la consola. La compra encontró dos fallos que las pruebas no veían (con un punto «Fuera de
+  nuestra lista» «Confirmar» se quedaba quieto, y tras escribir la calle había que tocarlo dos veces): arreglados en
+  `4524798`/`ebfa000` con sus pruebas (ubicación: 135, 0 fallos) y vueltos a subir a staging. **Staging no tiene la
+  tabla de lugares ni las claves de Google**: todo punto sale «Fuera de nuestra lista» y el envío «se lo confirmamos».
 - **Producción**: no desplegada. `main` sigue siendo el espejo exacto de D'CASA; todas las adecuaciones viven en la rama
   `claude/nifty-keller-k8rcmz`.
 
@@ -146,6 +154,9 @@ del puente. Ya en uso en la cuenta y **no se tocan**: `babycaleb-web`, `babycale
     como `GOOGLE_MAPS_CLAVE_NAVEGADOR`, y Geocoding, solo para el servidor, como `GOOGLE_MAPS_CLAVE_SERVIDOR`. Se pegan
     en Cloudflare › `sistemabk` (y `sistemabk-staging`) › Settings › Variables and Secrets, nunca en el chat. En Google
     Cloud, una cuota diaria y una alerta de presupuesto.
+  - **La tabla de lugares y la tarifa de envíos** (Envíos › Tarifa › «Cargar lugares y tarifa desde el archivo», y
+    «Aprobar la tarifa»; `docs/ENVIOS.md`): sin ella, el mapa no sabe la barriada ni el precio y todo envío sale «se lo
+    confirmamos». No está en el repositorio (es público): la sube Gerencia.
   - **Una plantilla aprobada de Meta** (opcional) para que el asistente pueda escribir por WhatsApp oficial pasadas las
     24 horas; hoy, fuera de la ventana, la vendedora lo manda por WhatsApp con un toque.
   - **Lo que dice la web de los pañales «100 % fibras de bambú»** y los textos de las certificaciones («según el
