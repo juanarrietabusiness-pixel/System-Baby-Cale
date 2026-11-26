@@ -137,6 +137,60 @@ Pasos, en este orden y en el mismo rato:
 6. Después: registrar otra vez el webhook de Telegram de Brian, `URL_SITIO` de Juan al dominio y *Desplegar Juan*,
    Access/Turnstile/Resend con el dominio nuevo (`docs/REPLICAR.md` §6.8 paso 7).
 
+## Instrucciones para Claude en Chrome (preparadas el 2026-11-26)
+
+El dueño pidió tenerlas listas para pegarlas en la extensión de Claude en Chrome. **El 2026-11-26 todavía no era el
+momento** (faltaba: que el dueño revise producción, la tabla de envíos aprobada, las claves de Tilopay y Yappy a mano
+para pegarlas ese día y decidir desde cuándo el equipo atiende los pedidos de la web en el sistema nuevo: hoy los de
+`babycaleb.com` caen en `panel.babycaleb.com`). Cada bloque se pega solo cuando la sesión de Claude Code lo pide.
+
+### Bloque 1 — se puede pegar ya (solo mirar)
+
+```text
+Necesito saber si cambió algo del dominio babycaleb.com desde el 18 de noviembre de 2026. SOLO MIRA: no cambies,
+borres, agregues ni guardes nada; si una pantalla te pide confirmar algo, cancela. Usa la cuenta de Cloudflare de
+Juancito.
+
+Paso 1. Websites › babycaleb.com › DNS › Records: copia la tabla completa (tipo, nombre, contenido, proxy).
+Paso 2. Websites › babycaleb.com › Workers Routes: copia cada ruta con su Worker.
+Paso 3. Workers & Pages › babycaleb-web › Settings › Domains & Routes: copia los dominios y las rutas.
+Paso 4. Workers & Pages › sistemabk › Settings › Domains & Routes: copia los dominios y las rutas.
+Paso 5. Websites › babycaleb.com › SSL/TLS › Edge Certificates: dime si «Always Use HTTPS» está encendido.
+
+Devuélveme todo en tablas. Al final dime qué es distinto de esto: 6 registros DNS (babycaleb.com, panel y ruta como
+«Worker», www como CNAME a babycaleb.com con proxy, un TXT _dmarc y un CNAME _domainconnect), una sola ruta
+(www.babycaleb.com/* → babycaleb-web), sistemabk sin dominio propio, y «Always Use HTTPS» encendido.
+```
+
+### Bloque 2 — el día del cambio, ANTES del despliegue (cuando Claude Code diga «pega el bloque 2»)
+
+```text
+Vamos a cambiar una variable en GitHub. No toques nada más.
+
+Paso 1. Abre github.com/juanarrietabusiness-pixel/System-Baby-Cale › Settings › Environments › production.
+Paso 2. En «Environment variables», busca URL_SITIO y toca el lápiz (Edit).
+Paso 3. Borra lo que tiene y escribe exactamente: https://babycaleb.com
+Paso 4. Toca «Update variable».
+Paso 5. Dime qué valor quedó.
+```
+
+### Bloque 3 — el día del cambio, DESPUÉS del despliegue (cuando Claude Code diga «pega el bloque 3»)
+
+```text
+Vamos a quitarle a la web vieja la dirección www. No toques nada más.
+
+Paso 1. En Cloudflare (cuenta de Juancito): Workers & Pages › babycaleb-web › Settings › Domains & Routes.
+Paso 2. Si aparece la ruta «www.babycaleb.com/*», bórrala (los tres puntos › Delete) y confirma.
+Paso 3. No borres nada de panel.babycaleb.com ni de ruta.babycaleb.com, ni ningún registro DNS.
+Paso 4. Ve a Websites › babycaleb.com › SSL/TLS › Edge Certificates y dime si «Always Use HTTPS» sigue encendido.
+        Si está apagado, NO lo prendas: solo avísame.
+Paso 5. Dime qué rutas y dominios le quedaron a babycaleb-web y cuáles tiene sistemabk.
+```
+
+Después siguen, con sus pasos propios: las claves de Tilopay y Yappy (las pega el dueño en Cloudflare › `sistemabk`,
+nunca en el chat; ver «Cobros en línea» en `docs/BABY_CALEB.md`) y el correo (`docs/CORREO.md` §2-§6). La clave de
+Google del mapa ya acepta `babycaleb.com` y `www` (`docs/UBICACION.md`).
+
 **Volver atrás:** en Workers & Pages › babycaleb-web › Settings › Domains & Routes, agregar de nuevo el dominio propio
 `babycaleb.com` (acepta llevárselo) y la ruta `www.babycaleb.com/*`; en GitHub, `URL_SITIO` de producción a la dirección
 `workers.dev`.

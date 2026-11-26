@@ -120,8 +120,9 @@ del puente. Ya en uso en la cuenta y **no se tocan**: `babycaleb-web`, `babycale
   moto: sus motorizados van sin corredor** (2026-11-26). La tarifa del archivo es
   una **propuesta en revisión**: el mínimo es del dueño; los dos puntos de la recta, el redondeo y la distancia máxima
   los propuse para parecerse a sus tarifas por zona del sistema (`ver_zonas`), y Gerencia los cambia o aprueba en
-  Odoo. Panamá Oeste y el interior hoy se cotizan a mano; con la propuesta, Arraiján queda dentro de la distancia
-  máxima (decide el dueño). El código para el punto de salida: `4f8a3e3`, `65db073`, `ca3c8a8`.
+  Odoo. **Se cotiza hasta 300 km, como D'CASA** (lo pidió el dueño el 2026-11-26: los mismos 11 299 lugares y el mismo
+  límite; 11 161 quedan con precio). Panamá Oeste y el interior (por Ferguson) hoy se cotizan a mano: con la recta de
+  la ciudad, lejos sale caro (Penonomé ≈ $29, Chitré ≈ $45); se ajusta en Odoo antes de aprobar. El código para el punto de salida: `4f8a3e3`, `65db073`, `ca3c8a8`.
 
 ## Pendiente (preguntas abiertas y trabajo por hacer)
 
