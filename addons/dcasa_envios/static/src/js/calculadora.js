@@ -37,7 +37,9 @@ export function aliasEnRenglones(texto) {
 /** La ruta en Google Maps desde la tienda hasta un lugar que todavía no está en la lista (por su nombre). */
 export function rutaPorNombre(tienda, nombre, corr, dist) {
     const destino = `${nombre || ""}, ${corr ? corr + ", " : ""}${dist || ""}, Panamá`;
-    return `https://www.google.com/maps/dir/?api=1&origin=${tienda}&destination=${encodeURIComponent(destino)}`
+    // Sin punto de salida en la tarifa, Google Maps sale de donde esté quien la abre.
+    const desde = tienda ? `&origin=${tienda}` : "";
+    return `https://www.google.com/maps/dir/?api=1${desde}&destination=${encodeURIComponent(destino)}`
         + "&travelmode=driving";
 }
 
@@ -159,7 +161,8 @@ export class CalculadoraEnvios extends Component {
     }
 
     get urlMapaTienda() {
-        return `https://www.google.com/maps/dir/?api=1&origin=${this.datos.tienda}&travelmode=driving`;
+        const desde = this.datos.tienda ? `&origin=${this.datos.tienda}` : "";
+        return `https://www.google.com/maps/dir/?api=1${desde}&travelmode=driving`;
     }
 
     get urlMedirNuevo() {

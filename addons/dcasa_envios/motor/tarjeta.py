@@ -6,25 +6,26 @@ texto que se le copia al cliente salen de aquí.
 from .tarifa import Tarifa
 from .texto import dinero, encode_uri_component, km_txt, numero_js
 
-# La tienda (el pin de Google Maps de D'CASA en La Chorrera): de aquí salen todas las distancias.
-TIENDA = '8.8765881,-79.7867962'
 ETIQUETA_TIPO = {'barrio': 'barrio o urbanización', 'edificio': 'edificio o PH', 'referencia': 'lugar conocido',
                  'corregimiento': 'corregimiento'}
 ATRIBUCION = 'Datos de mapas © colaboradores de OpenStreetMap (ODbL) y GeoNames (CC BY 4.0)'
 
 
-def url_ruta(destino):
-    return ('https://www.google.com/maps/dir/?api=1&origin=' + TIENDA + '&destination='
+def url_ruta(destino, origen=''):
+    """La ruta en carro en Google Maps desde ``origen`` (el punto de salida de la tarifa: ``'lat,lon'``). Sin punto de
+    salida, Google Maps sale de donde esté quien la abre."""
+    desde = '&origin=' + origen if origen else ''
+    return ('https://www.google.com/maps/dir/?api=1' + desde + '&destination='
             + encode_uri_component(destino) + '&travelmode=driving')
 
 
-def mapa_ruta(lugar):
-    """La ruta en carro desde la tienda hasta el lugar (por coordenadas si las tiene; si no, por nombre)."""
+def mapa_ruta(lugar, origen=''):
+    """La ruta en carro desde el punto de salida hasta el lugar (por coordenadas si las tiene; si no, por nombre)."""
     if lugar.get('lat') is not None:
         destino = f"{numero_js(lugar['lat'])},{numero_js(lugar.get('lon'))}"
     else:
         destino = f"{lugar.get('nombre') or ''}, {lugar.get('dist') or ''}, Panamá"
-    return url_ruta(destino)
+    return url_ruta(destino, origen)
 
 
 def desglose(cotizacion):
@@ -117,7 +118,7 @@ def tarjeta(lugar, tarifa):
         'km_txt': f'{km_txt(km)} km' if km is not None else '',
         'google': lugar.get('fuente_km') == 'Google Maps',
         'peaje': bool(lugar.get('peaje')),
-        'url_mapa': mapa_ruta(lugar),
+        'url_mapa': mapa_ruta(lugar, tarifa.origen),
         'con_precio': bool(cotizacion),
     }
     if cotizacion:

@@ -380,7 +380,7 @@ class EnvioLugar(models.Model):
             'corregimientos': {d: orden(c) for d, c in corregimientos.items()},
             'tarifa': Tarifa_._para_la_pantalla(),
             'es_gerencia': es_gerencia(self.env),
-            'tienda': motor_tarjeta.TIENDA,
+            'tienda': Tarifa_._vigente().origen or '',
             'atribucion': motor_tarjeta.ATRIBUCION,
         }
 

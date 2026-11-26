@@ -19,9 +19,10 @@ from odoo.tests.common import JsonRpcException
 
 from ..controllers import choferes as ruta
 from ..motor import choferes
-from ..motor.tarjeta import TIENDA
 from .common import EnviosComun, fixture, importar
 
+# El punto de salida del fixture (ajustes.origen): de ahí salen las rutas de los esperados.
+TIENDA = '8.8765881,-79.7867962'
 VILLA = (8.9011, -79.8011)          # Villa Prueba en el fixture
 LEJOS = (9.3, -79.0)                # en Panamá, pero a más de 3 km de todo el fixture
 

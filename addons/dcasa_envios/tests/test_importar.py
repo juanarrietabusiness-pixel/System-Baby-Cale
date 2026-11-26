@@ -1,7 +1,7 @@
 """«Cargar lugares y tarifa desde el archivo»: idempotente, respeta lo de Odoo y la tarifa vuelve a revisión."""
 import base64
 
-from odoo.exceptions import AccessError, UserError
+from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import tagged
 
 from ..models.lugar import PARAMETRO_VERSION
@@ -151,6 +151,22 @@ class TestImportar(EnviosComun):
         datos['ajustes']['minimo'] = 99
         self.importar(datos, tarifa=False)
         self.assertEqual(tarifa.minimo, 11)
+
+    def test_el_punto_de_salida_viene_del_archivo_y_sale_en_la_ruta(self):
+        datos = fixture()
+        datos['ajustes']['origen'] = '8.974930, -79.543555'
+        self.importar(datos)
+        self.assertEqual(self.tarifa.origen, '8.97493,-79.543555')
+        pantalla = self.env['dcasa.envio.lugar'].with_user(self.gerencia).datos_de_la_calculadora()
+        self.assertEqual(pantalla['tienda'], '8.97493,-79.543555', 'la calculadora traza la ruta desde ahí')
+        # Un archivo sin punto de salida (como el original de D'CASA) no borra el que ya tiene Odoo.
+        sin = fixture()
+        sin['ajustes'].pop('origen')
+        self.importar(sin)
+        self.assertEqual(self.tarifa.origen, '8.97493,-79.543555')
+        # Gerencia lo puede escribir como lo copia Google Maps; uno que no es de Panamá no se guarda.
+        with self.assertRaises(ValidationError):
+            self.tarifa.with_user(self.gerencia).write({'origen': '40.7, -74.0'})
 
     def test_un_archivo_que_no_sirve_no_cambia_nada(self):
         self.importar()

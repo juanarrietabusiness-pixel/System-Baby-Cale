@@ -35,6 +35,31 @@ COMO_SE_COBRA = {
 }
 ESTADOS_CON_PRECIO = ('ok', 'revisar', 'lancha')
 PASOS = {0: 'sin redondear', 1: 'redondeado a $1', 5: 'redondeado a $5', 10: 'redondeado a $10'}
+# Panamá con margen (su mar y sus islas): el punto de salida de los envíos tiene que caer aquí.
+LAT_PANAMA, LON_PANAMA = (7.0, 10.0), (-83.2, -77.0)
+
+
+def punto_de_salida(valor):
+    """El pin de donde salen los envíos como ``'lat,lon'`` (hasta 7 decimales), o ``''`` si no hay o no sirve. Acepta
+    ``'8.97493, -79.543555'`` (lo que copia Google Maps) o ``{'lat': …, 'lon': …}``. No es un dato de fábrica: lo trae
+    el archivo de cada negocio o lo escribe Gerencia (el repositorio es público)."""
+    if isinstance(valor, dict):
+        partes = [valor.get('lat'), valor.get('lon')]
+    elif isinstance(valor, str):
+        partes = [p.strip() for p in valor.replace(';', ',').split(',')]
+    else:
+        return ''
+    if len(partes) != 2:
+        return ''
+    try:
+        lat, lon = (float(p) for p in partes)
+    except (TypeError, ValueError):
+        return ''
+    if not (LAT_PANAMA[0] <= lat <= LAT_PANAMA[1] and LON_PANAMA[0] <= lon <= LON_PANAMA[1]):
+        return ''
+    return ','.join(f'{v:.7f}'.rstrip('0').rstrip('.') for v in (lat, lon))
+
+
 # Ejemplos fijos del HTML para ver el efecto del % (km por carretera desde la tienda).
 EJEMPLOS_DEL_EFECTO = (('Cerca de la tienda', 5.0), ('Ciudad (Santa Ana)', 36.0), ('Santiago', 205.0))
 
@@ -72,6 +97,8 @@ class Tarifa:
         self.max_km = numero(a.get('maxKm'))
         self.aprobada = bool(a.get('aprobada'))
         self.extras = [dict(e) for e in (a.get('extras') or []) if isinstance(e, dict)]
+        # De dónde salen los envíos (la ruta de Google Maps). Vacío: Google Maps sale de donde esté quien la abre.
+        self.origen = punto_de_salida(a.get('origen'))
 
     # --- La forma del HTML -----------------------------------------------------------------------------------------
     def como_ajustes(self):
@@ -80,7 +107,7 @@ class Tarifa:
             'minimo': self.minimo, 'anclaA': {'km': self.a_km, 'precio': self.a_precio},
             'anclaB': {'km': self.b_km, 'precio': self.b_precio, 'nombre': self.b_nombre},
             'ajustePct': self.ajuste_pct, 'paso': self.paso, 'modo': self.modo, 'maxKm': self.max_km,
-            'aprobada': self.aprobada, 'extras': [dict(e) for e in self.extras],
+            'aprobada': self.aprobada, 'extras': [dict(e) for e in self.extras], 'origen': self.origen,
         }
 
     @property

@@ -15,7 +15,7 @@ import math
 import re
 
 from .buscador import TIPOS, sin_tildes
-from .tarifa import COMO_SE_COBRA
+from .tarifa import COMO_SE_COBRA, punto_de_salida
 
 ESTADOS = ('ok', 'revisar', 'lancha', 'sin_carretera', 'no_encontrado', 'fuera', 'sin_dato')
 PASOS_VALIDOS = (0, 1, 5, 10)
@@ -164,6 +164,11 @@ def normalizar_ajustes(ajustes):
     }
     if valores['ancla_b_km'] <= valores['ancla_a_km']:
         raise ArchivoInvalido('En la tarifa del archivo, el segundo punto no está más lejos que el primero.')
+    if ajustes.get('origen') not in (None, ''):
+        # El pin de donde salen los envíos (si el archivo no lo trae, se queda el que tenga Odoo).
+        valores['origen'] = punto_de_salida(ajustes['origen'])
+        if not valores['origen']:
+            raise ArchivoInvalido('El punto de salida del archivo no es un punto de Panamá («lat,lon»).')
     cargos = []
     for posicion, extra in enumerate(ajustes.get('extras') or []):
         if not isinstance(extra, dict) or extra.get('como') not in COMO_SE_COBRA:

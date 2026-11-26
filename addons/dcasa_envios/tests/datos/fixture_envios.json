@@ -1,9 +1,10 @@
 {
- "$comentario": "Datos de PRUEBA, inventados: ningún lugar existe y los precios son de juguete (mínimo $10, $20 a 10 km, $110 a 100 km). Los distritos y provincias son los de Panamá para probar sus sinónimos. Nada de esto es la matriz ni la tarifa de la dueña.",
+ "$comentario": "Datos de PRUEBA, inventados: ningún lugar existe y los precios son de juguete (mínimo $10, $20 a 10 km, $110 a 100 km). Los distritos y provincias son los de Panamá para probar sus sinónimos. Nada de esto es la matriz ni la tarifa de la dueña. El punto de salida (ajustes.origen) es el pin con que se generaron los esperados del HTML.",
  "ajustes": {
   "version": 1, "fecha": "2026-11-06", "aprobada": false,
   "nota": "Tarifa de PRUEBA: cifras inventadas para las pruebas automáticas.",
   "minimo": 10, "anclaA": {"km": 10, "precio": 20}, "anclaB": {"km": 100, "precio": 110, "nombre": "Pueblo Prueba"},
+  "origen": "8.8765881,-79.7867962",
   "ajustePct": 0, "paso": 5, "modo": "arriba", "maxKm": 300,
   "extras": [
    {"id": "viatico", "nombre": "Viático del chofer", "como": "desde_km", "monto": 0, "desde": 0, "ajusta": false, "activo": false},

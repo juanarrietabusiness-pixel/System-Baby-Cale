@@ -60,6 +60,7 @@
                             <field name="paso"/>
                             <field name="modo" invisible="paso == '0'"/>
                             <field name="max_km"/>
+                            <field name="origen" placeholder="8.97493, -79.543555"/>
                             <field name="formula_txt" invisible="not configurada"/>
                             <field name="configurada" invisible="1"/>
                             <field name="aprobada" invisible="1"/>

@@ -204,6 +204,29 @@ class TestMotorDetalles(BaseCase):
             with self.subTest(cambio=cambio), self.assertRaises(archivo.ArchivoInvalido):
                 archivo.normalizar_ajustes({**fixture()['ajustes'], **cambio})
 
+    def test_el_punto_de_salida_es_de_cada_negocio(self):
+        """La ruta de Google Maps sale del punto de la tarifa (lo trae el archivo de cada negocio), no de una tienda
+        fija: Baby Caleb sale de otro lugar que D'CASA (2026-11-26)."""
+        self.assertEqual(tarifa.punto_de_salida('8.974930, -79.543555'), '8.97493,-79.543555')
+        self.assertEqual(tarifa.punto_de_salida({'lat': 9, 'lon': -79.5}), '9,-79.5')
+        for malo in ('40.7,-74.0', 'abc', '', None, '9.1', [9, -79]):
+            with self.subTest(malo=malo):
+                self.assertEqual(tarifa.punto_de_salida(malo), '')
+        lugar = {'nombre': 'Villa Prueba', 'lat': 8.9011, 'lon': -79.8011}
+        self.assertEqual(tarjeta.mapa_ruta(lugar, '8.97493,-79.543555'),
+                         'https://www.google.com/maps/dir/?api=1&origin=8.97493,-79.543555&destination=8.9011%2C-79.8011'
+                         '&travelmode=driving')
+        self.assertNotIn('origin=', tarjeta.mapa_ruta(lugar), 'sin punto de salida, Google Maps sale de donde está')
+        sin_origen = tarifa.Tarifa({**fixture()['ajustes'], 'origen': ''})
+        self.assertNotIn('origin=', tarjeta.tarjeta(lugar | {'km': 1.2, 'estado': 'ok'}, sin_origen)['url_mapa'])
+        self.assertEqual(tarifa.Tarifa(fixture()['ajustes']).como_ajustes()['origen'], '8.8765881,-79.7867962')
+        valores, _cargos = archivo.normalizar_ajustes({**fixture()['ajustes'], 'origen': '8.974930, -79.543555'})
+        self.assertEqual(valores['origen'], '8.97493,-79.543555')
+        self.assertNotIn('origen', archivo.normalizar_ajustes({**fixture()['ajustes'], 'origen': None})[0],
+                         'un archivo sin punto de salida no borra el de Odoo')
+        with self.assertRaises(archivo.ArchivoInvalido):
+            archivo.normalizar_ajustes({**fixture()['ajustes'], 'origen': '40.7,-74.0'})
+
     def test_los_numeros_raros_no_dan_precio(self):
         self.assertIsNone(archivo._numero(math.nan))
         self.assertIsNone(archivo._numero(True))

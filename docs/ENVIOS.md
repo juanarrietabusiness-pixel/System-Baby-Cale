@@ -30,6 +30,11 @@ nuestra propia flota de envíos, el cliente pueda calcular cuánto se le cobrar�
   Ver [Enlace para choferes](#enlace-para-choferes).
 - **Los datos no están en el repositorio** (es público y la dueña no dio su «sí» para subir la matriz ni los precios):
   Gerencia sube el archivo.
+- **El punto de salida** (Envíos › Tarifa, «Punto de salida (pin)», o `ajustes.origen` del archivo, «lat,lon» como lo
+  copia Google Maps): de ahí salen la ruta de «Ver en Google Maps» y la de los choferes. No hay uno fijo en el código
+  (el repositorio es público y cada negocio sale de un lugar distinto: Baby Caleb no sale de La Chorrera). Los km de
+  cada lugar se miden desde ese punto: si cambia, se carga un archivo medido desde el nuevo. Un archivo sin
+  `origen` no borra el que ya tiene Odoo; sin punto de salida, Google Maps sale de donde esté quien abre la ruta.
 
 ## Cargar los datos
 

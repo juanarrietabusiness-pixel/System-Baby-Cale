@@ -24,7 +24,7 @@ from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
 
 from ..motor import tarjeta as motor_tarjeta
-from ..motor.tarifa import COMO_SE_COBRA, Tarifa
+from ..motor.tarifa import COMO_SE_COBRA, Tarifa, punto_de_salida
 from ..motor.texto import dinero, js_round, km_txt
 
 AVISO_EN_REVISION = 'Tarifa en revisión: estos precios todavía no se usan con clientes.'
@@ -63,6 +63,10 @@ class EnvioTarifa(models.Model):
                             required=True, default='arriba', tracking=True)
     max_km = fields.Float('Cotizar aparte desde (km)', tracking=True,
                           help='Más lejos de esto (o sin carretera) el envío se cotiza aparte.')
+    origen = fields.Char('Punto de salida (pin)', tracking=True,
+                         help='De dónde salen los envíos, como lo copia Google Maps («8.97493, -79.543555»): de aquí '
+                              'sale la ruta de «Ver en Google Maps» y la de los choferes. Los km de cada lugar se '
+                              'midieron desde este punto: si cambia, hay que cargar un archivo medido desde el nuevo.')
     cargo_ids = fields.One2many('dcasa.envio.cargo', 'tarifa_id', 'Cargos aparte')
     aprobada = fields.Boolean('Aprobada', readonly=True, tracking=True)
     aprobada_por = fields.Many2one('res.users', 'Aprobada por', readonly=True)
@@ -111,6 +115,19 @@ class EnvioTarifa(models.Model):
             if not AJUSTE_MIN <= tarifa.ajuste_pct <= AJUSTE_MAX:
                 raise ValidationError(self.env._('El ajuste va de −90 % a +300 %.'))
 
+    @api.constrains('origen')
+    def _revisar_origen(self):
+        for tarifa in self:
+            if tarifa.origen and not punto_de_salida(tarifa.origen):
+                raise ValidationError(self.env._(
+                    'El punto de salida va como lo copia Google Maps: «latitud, longitud» de un punto de Panamá.'))
+
+    @api.onchange('origen')
+    def _onchange_origen(self):
+        # Se guarda limpio («8.97493,-79.543555»), aunque lo peguen con espacios o con más decimales.
+        if self.origen and punto_de_salida(self.origen):
+            self.origen = punto_de_salida(self.origen)
+
     # --- Para el motor ---------------------------------------------------------------------------------------------
     def _como_ajustes(self):
         """La tarifa con la forma del HTML (``ajustes``), la que entiende el motor."""
@@ -125,6 +142,7 @@ class EnvioTarifa(models.Model):
             'maxKm': self.max_km,
             'aprobada': self.aprobada,
             'extras': [cargo._como_extra() for cargo in self.cargo_ids.sorted(lambda c: (c.sequence, c.id))],
+            'origen': self.origen or '',
         }
 
     def _motor(self):
