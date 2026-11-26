@@ -102,6 +102,13 @@ del puente. Ya en uso en la cuenta y **no se tocan**: `babycaleb-web`, `babycale
   El dueño puso las 10 claves y 4 variables del entorno `production` de GitHub y las dos claves de Google en el
   Worker `sistemabk` (después de que el contenedor arrancara: Odoo las lee con el próximo despliegue de imagen nueva;
   igual en staging). CI/CD #33 desde `main` ya había pasado todas las pruebas con ese código.
+- **El mapa de Google, en staging y producción (2026-11-26)**: el dueño creó el proyecto «Baby Caleb» en Google Cloud
+  (Maps JavaScript y Geocoding, dos claves con sus límites, presupuesto de $5 al mes con avisos al 50/90/100 %) y pegó
+  `GOOGLE_MAPS_CLAVE_NAVEGADOR` y `GOOGLE_MAPS_CLAVE_SERVIDOR` en `sistemabk-staging` y `sistemabk`. Imagen nueva
+  `8b80a9a` (CI/CD #35, todas las pruebas en verde) a staging y luego a producción (Desplegar #2 desde `main`, con
+  respaldo previo): **el mapa carga en los dos** (comprobado desde un teléfono, sin errores; en producción sin crear
+  pedidos: solo un carrito anónimo de prueba). Las cuotas diarias de Google quedaron «ilimitadas»: el freno es nuestro
+  tope de 800 consultas de Geocoding por día; el dueño puede ponerles un número en Google Cloud.
 
 ## Pendiente (preguntas abiertas y trabajo por hacer)
 
