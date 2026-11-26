@@ -135,6 +135,19 @@ def llave(lugar):
     return '|'.join(' '.join(sin_tildes(p or '').split()) for p in partes)
 
 
+def origen_del_archivo(ajustes):
+    """El pin de donde salen los envíos que trae el archivo (``ajustes.origen``), limpio, o ``''`` si no trae ninguno
+    (entonces se queda el que tenga Odoo). Lanza ArchivoInvalido si trae uno que no es de Panamá. Va con los lugares,
+    no solo con la tarifa: sus km se midieron desde ese punto."""
+    valor = (ajustes or {}).get('origen')
+    if valor in (None, ''):
+        return ''
+    origen = punto_de_salida(valor)
+    if not origen:
+        raise ArchivoInvalido('El punto de salida del archivo no es un punto de Panamá («lat,lon»).')
+    return origen
+
+
 def normalizar_ajustes(ajustes):
     """La tarifa del archivo con los nombres de campo de Odoo: ``(valores, cargos)``. Lanza ArchivoInvalido si un
     número no tiene sentido (los precios no se adivinan)."""
@@ -164,11 +177,9 @@ def normalizar_ajustes(ajustes):
     }
     if valores['ancla_b_km'] <= valores['ancla_a_km']:
         raise ArchivoInvalido('En la tarifa del archivo, el segundo punto no está más lejos que el primero.')
-    if ajustes.get('origen') not in (None, ''):
-        # El pin de donde salen los envíos (si el archivo no lo trae, se queda el que tenga Odoo).
-        valores['origen'] = punto_de_salida(ajustes['origen'])
-        if not valores['origen']:
-            raise ArchivoInvalido('El punto de salida del archivo no es un punto de Panamá («lat,lon»).')
+    origen = origen_del_archivo(ajustes)
+    if origen:
+        valores['origen'] = origen
     cargos = []
     for posicion, extra in enumerate(ajustes.get('extras') or []):
         if not isinstance(extra, dict) or extra.get('como') not in COMO_SE_COBRA:

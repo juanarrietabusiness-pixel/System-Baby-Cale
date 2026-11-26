@@ -97,6 +97,7 @@ class EnvioImportar(models.TransientModel):
             # La tarifa se revisa ANTES de tocar los lugares: si está mal, no cambia nada.
             tarifa_del_archivo = (archivo.normalizar_ajustes(ajustes)
                                   if self.cargar_tarifa and ajustes is not None else None)
+            origen = archivo.origen_del_archivo(ajustes)
         except archivo.ArchivoInvalido as error:
             raise UserError(str(error)) from error
         lineas = []
@@ -104,6 +105,8 @@ class EnvioImportar(models.TransientModel):
             lineas += self._cargar_lugares(lugares, agregados)
         if self.cargar_tarifa:
             lineas += self._cargar_tarifa(tarifa_del_archivo)
+        if origen:
+            lineas += self._cargar_origen(origen)
         resumen = '\n'.join(lineas)
         tarifa = self.env['dcasa.envio.tarifa']._vigente()
         if tarifa:
@@ -205,6 +208,17 @@ class EnvioImportar(models.TransientModel):
                 'unnest(%s::int[]) AS s) AS v WHERE l.id = v.id', [[i for i, _s in tanda], [s for _i, s in tanda]])
         if secuencias:
             Lugar.invalidate_model(['secuencia'])
+
+    # --- Punto de salida -----------------------------------------------------------------------------------------
+    def _cargar_origen(self, origen):
+        """El pin de donde salen los envíos (los km del archivo se midieron desde ahí): de ahí sale la ruta de Google
+        Maps de la calculadora y de los choferes. No cambia ningún precio, así que la tarifa no vuelve a revisión."""
+        Tarifa = self.env['dcasa.envio.tarifa']
+        tarifa = Tarifa.search([], limit=1) or Tarifa.create({})
+        if tarifa.origen == origen:
+            return [self.env._('Punto de salida: igual al de Odoo.')]
+        tarifa.write({'origen': origen})
+        return [self.env._('Punto de salida: el del archivo (la ruta de Google Maps sale de ahí).')]
 
     # --- Tarifa ----------------------------------------------------------------------------------------------------
     def _cargar_tarifa(self, tarifa_del_archivo):
