@@ -162,6 +162,12 @@ Devuélveme todo en tablas. Al final dime qué es distinto de esto: 6 registros 
 (www.babycaleb.com/* → babycaleb-web), sistemabk sin dominio propio, y «Always Use HTTPS» encendido.
 ```
 
+**Resultado del bloque 1 (2026-11-26, Claude en Chrome, solo lectura): nada cambió.** Los 6 registros DNS, la única
+ruta `www.babycaleb.com/*` → `babycaleb-web`, `babycaleb-web` con el dominio propio `babycaleb.com` (su `workers.dev`
+aparece en la lista), `sistemabk` sin dominio propio y «Always Use HTTPS» encendido. Las dos cosas que le llamaron la
+atención al agente ya se sabían: «Always Use HTTPS» dice «modificado hace 8 días» porque se encendió el 2026-11-18
+(Fase A, punto 2), y `panel.` y `ruta.` van a `babycaleb-sistema` (el sistema de hoy, que no se toca).
+
 ### Bloque 2 — el día del cambio, ANTES del despliegue (cuando Claude Code diga «pega el bloque 2»)
 
 ```text
