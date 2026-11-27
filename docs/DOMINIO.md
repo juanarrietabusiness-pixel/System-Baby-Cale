@@ -172,27 +172,37 @@ atención al agente ya se sabían: «Always Use HTTPS» dice «modificado hace 8
 
 ### Bloque 2 — el día del cambio, ANTES del despliegue (cuando Claude Code diga «pega el bloque 2»)
 
+Cambió el 2026-11-27: en vez de poner `URL_SITIO` = `https://babycaleb.com` antes de desplegar (el respaldo previo
+llamaría a la web vieja y habría que saltarlo), se agrega la variable `CANONICAL_HOST`. Así el despliegue respalda y
+comprueba la salud por `workers.dev` (sigue encendido) y Odoo ya arma sus direcciones con `babycaleb.com`. La ruta `www`
+de la web vieja se borra ANTES del despliegue: dos Workers no comparten un mismo patrón.
+
 ```text
-Vamos a cambiar una variable en GitHub. No toques nada más.
+Vamos a hacer dos cambios. No toques nada más.
 
 Paso 1. Abre github.com/juanarrietabusiness-pixel/System-Baby-Cale › Settings › Environments › production.
-Paso 2. En «Environment variables», busca URL_SITIO y toca el lápiz (Edit).
-Paso 3. Borra lo que tiene y escribe exactamente: https://babycaleb.com
-Paso 4. Toca «Update variable».
-Paso 5. Dime qué valor quedó.
+Paso 2. En «Environment variables», si ya existe CANONICAL_HOST, tócale el lápiz (Edit); si no existe, toca «Add variable».
+Paso 3. Nombre: CANONICAL_HOST · Valor: exactamente babycaleb.com (sin https:// y sin barra). Guarda.
+Paso 4. No cambies URL_SITIO ni ninguna otra variable o secreto.
+Paso 5. En Cloudflare (cuenta de Juancito): Workers & Pages › babycaleb-web › Settings › Domains & Routes.
+Paso 6. Borra SOLO la ruta «www.babycaleb.com/*» (los tres puntos › Delete) y confirma. NO borres el dominio
+        babycaleb.com, ni nada de panel.babycaleb.com o ruta.babycaleb.com, ni ningún registro DNS.
+Paso 7. Dime qué valor quedó en CANONICAL_HOST y qué dominios y rutas le quedaron a babycaleb-web.
 ```
 
 ### Bloque 3 — el día del cambio, DESPUÉS del despliegue (cuando Claude Code diga «pega el bloque 3»)
 
 ```text
-Vamos a quitarle a la web vieja la dirección www. No toques nada más.
+Vamos a revisar y terminar. Cambia solo lo que dice cada paso.
 
-Paso 1. En Cloudflare (cuenta de Juancito): Workers & Pages › babycaleb-web › Settings › Domains & Routes.
-Paso 2. Si aparece la ruta «www.babycaleb.com/*», bórrala (los tres puntos › Delete) y confirma.
-Paso 3. No borres nada de panel.babycaleb.com ni de ruta.babycaleb.com, ni ningún registro DNS.
-Paso 4. Ve a Websites › babycaleb.com › SSL/TLS › Edge Certificates y dime si «Always Use HTTPS» sigue encendido.
-        Si está apagado, NO lo prendas: solo avísame.
-Paso 5. Dime qué rutas y dominios le quedaron a babycaleb-web y cuáles tiene sistemabk.
+Paso 1. En Cloudflare: Workers & Pages › sistemabk › Settings › Domains & Routes. Dime qué dominios y rutas tiene
+        (debe tener babycaleb.com y la ruta www.babycaleb.com/*).
+Paso 2. Workers & Pages › babycaleb-web › Settings › Domains & Routes: dime qué le quedó.
+Paso 3. Websites › babycaleb.com › SSL/TLS › Edge Certificates: dime si «Always Use HTTPS» sigue encendido. Si está
+        apagado, NO lo prendas: solo avísame.
+Paso 4. En GitHub, System-Baby-Cale › Settings › Environments › production › Environment variables: cambia URL_SITIO a
+        exactamente https://babycaleb.com (sin barra al final). No toques nada más.
+Paso 5. Devuélveme lo que viste en cada paso.
 ```
 
 Después siguen, con sus pasos propios: las claves de Tilopay y Yappy (las pega el dueño en Cloudflare › `sistemabk`,
