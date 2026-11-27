@@ -2450,3 +2450,24 @@ dos más sobre los arreglos. Lo que conviene llevarse:
 - **Después de un reinicio del contenedor, el `python3` del sistema no tiene las librerías de Odoo** (`No module named
   'babel'`): las pruebas corren con `PYTHON=<scratchpad>/venv/bin/python scripts/test.sh …`. PostgreSQL también hay que
   revisarlo (`pg_lsclusters`; `pg_ctlcluster 16 main start`).
+
+## Lo que enseñó el cambio de dominio de Baby Caleb (2026-11-27)
+
+- **`CANONICAL_HOST` como variable del environment `production` de GitHub, no `URL_SITIO`, el día del cambio.** Con
+  `URL_SITIO` = el dominio nuevo, el respaldo previo y la espera de salud llaman al dominio, que todavía es de la web
+  vieja (había que saltar el respaldo). Con `CANONICAL_HOST` = `babycaleb.com` y `URL_SITIO` todavía en `workers.dev`,
+  el despliegue respalda y comprueba por `workers.dev` (sigue encendido) y Odoo ya arma sus direcciones con el dominio.
+  `URL_SITIO` se cambia después del despliegue.
+- **La llave del robot necesita *Zone › Workers Routes › Edit* en la zona** (Cloudflare la llama «Rutas de Workers ›
+  Editar», en «Añadir política de zona nueva»). Editar los permisos no cambia el valor de la llave: no hay que tocar
+  GitHub. `sistemabk-github-deploy` no lo tenía; se vio leyendo las llaves con el agente de Chrome antes del día.
+- **La ruta `www` de la web vieja se borra ANTES de desplegar** (dos Workers no comparten un patrón). Mientras tanto
+  `www` da 522 (su CNAME proxiado apunta a la raíz, que es un dominio propio de Worker): fueron ~7 minutos.
+- **El orden que funcionó:** variable `CANONICAL_HOST` → borrar la ruta `www` → *Desplegar* (toma `babycaleb.com` con
+  la anulación sin terminal de wrangler) → unir a `main` el cambio de la web vieja (`routes: []`, `workers_dev: true` y
+  su comprobación de salud por `URL_SALUD`) → vigilar que el dominio no vuelva atrás.
+- **Un 403 de `packages.microsoft.com` en `apt-get update` del runner de GitHub tumba el simulacro de restauración** (no
+  es nuestro: TRAMPAS 11 del repositorio Baby-caleb). «Re-run failed jobs» lo repite sin volver a correr la hora de
+  pruebas de Odoo; el despliegue a staging sigue solo.
+- **Antes de mover el dominio, revisar con el MCP del sistema de hoy** (`pagos_por_confirmar`) que no haya pagos a
+  medias: los avisos de las pasarelas llegan a `babycaleb.com`.

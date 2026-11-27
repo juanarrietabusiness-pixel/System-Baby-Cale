@@ -128,6 +128,16 @@ del puente. Ya en uso en la cuenta y **no se tocan**: `babycaleb-web`, `babycale
   sin crear pedidos: el buscador del checkout encuentra Bella Vista, Tocumen, Arraiján y Penonomé, y el GPS en Albrook
   Mall (4,8 km) da «Envío $4». El código para el punto de salida: `4f8a3e3`, `65db073`, `ca3c8a8`.
 
+- **babycaleb.com en el sistema nuevo (2026-11-27, 04:20 UTC; con el «sí» del dueño: «es la exigencia de mi jefe»;
+  el equipo atiende los pedidos de la web en Odoo desde esa noche).** Desplegar #4 a producción con la imagen `3440faa`
+  (CI/CD #37: todas las pruebas en verde; el simulacro de restauración se repitió una vez por un 403 de
+  `packages.microsoft.com` en el runner). Comprobado: `babycaleb.com` responde el sistema nuevo, `/shop` abre, `www` →
+  301 a la raíz, `panel.` y `ruta.` siguen en `babycaleb-sistema`. La web vieja soltó el dominio (Baby-caleb `56ded25`
+  en su `main`, despliegue en verde) y sigue en `babycaleb-web.juanarrietabusiness.workers.dev`. Detalle y cómo volver
+  atrás: `docs/DOMINIO.md`. **Falta:** encender Tilopay y Yappy (el dueño pega sus claves en `sistemabk` y hace falta
+  un despliegue con imagen nueva para que Odoo las lea), el correo (Resend con `babycaleb.com`), `URL_SITIO` de Juan y
+  Search Console.
+
 ## Pendiente (preguntas abiertas y trabajo por hacer)
 
 - **Factura electrónica de la DGI (averiguado el 2026-11-24, con fuentes):**

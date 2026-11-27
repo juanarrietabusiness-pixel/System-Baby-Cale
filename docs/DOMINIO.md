@@ -4,6 +4,14 @@ Escrito el 2026-11-18 para la copia de Baby Caleb (Workers `sistemabk` y `sistem
 Juancito, subdominio `juanarrietabusiness.workers.dev`). Decisión del dueño: **el dominio se mueve un día aparte**, cuando
 producción ya esté revisada en su dirección `workers.dev`. Hasta entonces `edge/wrangler.jsonc` tiene `"routes": []`.
 
+> **Hecho el 2026-11-27 (madrugada UTC; 11:20 p. m. del 26 en Panamá), con el «sí» del dueño («es la exigencia de mi
+> jefe»).** `babycaleb.com` y `www` apuntan a `sistemabk` desde *Desplegar* #4 (imagen `3440faa`, digest
+> `sha256:bfab89bb…`, probada en staging en CI/CD #37). La web vieja soltó el dominio en su `main` (Baby-caleb `56ded25`,
+> su despliegue en verde) y sigue viva en `https://babycaleb-web.juanarrietabusiness.workers.dev` para volver atrás.
+> `panel.` y `ruta.` siguen en `babycaleb-sistema`. Antes se revisó que el sistema de hoy no tuviera pagos a medias.
+> Cómo se hizo, paso por paso, en «Instrucciones para Claude en Chrome» (bloques 2 y 3). Lo que queda: los cobros en
+> línea y el correo (`docs/BABY_CALEB.md`).
+
 ## En palabras sencillas
 
 Hoy `babycaleb.com` es la puerta de la web actual de Baby Caleb, y por esa puerta también vuelven los pagos (Tilopay y
