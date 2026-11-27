@@ -95,8 +95,10 @@ Lo que eso decide para el día del cambio:
 
 Antes, todo esto tiene que ser verdad:
 
-- [ ] **Repositorio Baby-caleb:** `wrangler.jsonc` ya no tiene `babycaleb.com` ni `www.babycaleb.com/*` en su `main`
-      (commit: _poner aquí el enlace_). Se marca con `[x]` solo cuando ese commit ya está en `main` (paso 2).
+- [x] **Repositorio Baby-caleb:** `wrangler.jsonc` ya no tiene `babycaleb.com` ni `www.babycaleb.com/*`
+      (commit [`56ded25`](https://github.com/abrinay1997-stack/Baby-caleb/commit/56ded25b4b3d4481092c7d127084bcfabbfff3fc),
+      en su rama `claude/nifty-keller-k8rcmz`, con sus 429 pruebas en verde). Se une a su `main` en el mismo rato del
+      cambio (paso 2.4), con el «sí» del dueño: hasta entonces la web vieja conserva el dominio.
 
 - [ ] Producción sana en `https://sistemabk.juanarrietabusiness.workers.dev` (`/__edge/health`: 200, la versión
       desplegada, `base_al_dia: true`, `humo: ok`) y revisada por el dueño.

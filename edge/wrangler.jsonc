@@ -59,9 +59,9 @@
   //   recomendados: DCASA_PIN_PEPPER, ODOO_MASTER_PASSWORD, RESPALDO_TOKEN.
   // No se usa `secrets.required`: el CI despliega antes de cargar secretos y fallaría.
   "vars": {
-    // Hasta el día del dominio (docs/DOMINIO.md) Odoo arma sus direcciones con la de workers.dev; el despliegue igual
-    // la toma de URL_SITIO si la variable de GitHub CANONICAL_HOST está vacía (.github/workflows/desplegar.yml).
-    "CANONICAL_HOST": "sistemabk.juanarrietabusiness.workers.dev",
+    // Desde el día del dominio (2026-11-27, docs/DOMINIO.md) Odoo arma sus direcciones con babycaleb.com. El despliegue
+    // igual la toma de URL_SITIO si la variable de GitHub CANONICAL_HOST está vacía (.github/workflows/desplegar.yml).
+    "CANONICAL_HOST": "babycaleb.com",
     "DCASA_ENTORNO": "produccion",
     // Existencias de prueba: en producción SIEMPRE 0 (el entrypoint lo fuerza igual).
     "DCASA_STOCK_PRUEBA": "0",
@@ -116,15 +116,15 @@
   //   { "name": "LIMITE_PDF", "namespace_id": "1105", "simple": { "limit": 6, "period": 60 } }
   // ],
 
-  // Sin dominio propio todavía: producción nace en https://sistemabk.juanarrietabusiness.workers.dev y babycaleb.com sigue en la
-  // web actual (babycaleb-web) hasta el día del cambio, que se hace a propósito y en un solo paso (docs/DOMINIO.md).
-  // Ese día esto pasa a ser [{ "pattern": "babycaleb.com", "custom_domain": true }, { "pattern": "www.babycaleb.com/*",
-  // "zone_name": "babycaleb.com" }] (www como ruta: su CNAME proxiado se queda; el borde lo manda a la raíz). OJO: sin terminal (como en el CI), wrangler 4.158 se lleva SIN PREGUNTAR el dominio que
-  // ya usa otro Worker y pisa los registros DNS que choquen (override_existing_origin/override_existing_dns_record):
-  // ponerlo aquí antes de tiempo se lo quitaría a la web actual (y a sus pagos) en el primer despliegue.
-  // Y al revés: ANTES de ponerlo aquí, quitarlo de Baby-caleb/wrangler.jsonc (esa web se despliega sola en cada push a
-  // su main y se lo volvería a llevar). edge/test/dominio-babycaleb.test.ts no deja pasar sin marcar esa casilla.
-  "routes": [],
+  // El dominio de Baby Caleb (2026-11-27, docs/DOMINIO.md, Fase B): la raíz como dominio propio y www como RUTA (su CNAME
+  // proxiado se queda; el borde lo manda a la raíz). OJO: sin terminal (como en el CI), wrangler 4.158 se lleva SIN
+  // PREGUNTAR el dominio que ya usa otro Worker y pisa los registros DNS que choquen. Por eso, antes de esto, la web vieja
+  // (repositorio Baby-caleb) lo soltó: si su wrangler.jsonc lo volviera a pedir, el siguiente push a su main se lo
+  // quitaría a este sistema. edge/test/dominio-babycaleb.test.ts no deja pasar sin marcar esa casilla.
+  "routes": [
+    { "pattern": "babycaleb.com", "custom_domain": true },
+    { "pattern": "www.babycaleb.com/*", "zone_name": "babycaleb.com" }
+  ],
   // workers.dev SIGUE respondiendo: con `routes` y sin esto, wrangler lo apaga en el siguiente despliegue, y ahí
   // viven el webhook de Telegram de Brian, la entrada /master de siempre y lo que Juan y el puente ya conocen.
   "workers_dev": true,

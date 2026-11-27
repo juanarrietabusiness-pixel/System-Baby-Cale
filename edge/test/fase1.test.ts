@@ -523,9 +523,13 @@ describe("wrangler.jsonc (producción y staging)", () => {
     expect(staging.routes).toEqual([]);
   });
 
-  it("sin dominio propio todavía: producción vive en workers.dev hasta el día del cambio (docs/DOMINIO.md)", () => {
-    // babycaleb.com sigue en la web actual (babycaleb-web): ponerlo aquí antes de tiempo se lo quitaría al desplegar.
-    expect(config.routes).toEqual([]);
+  it("babycaleb.com: la raíz como dominio propio y www como ruta; workers.dev sigue (docs/DOMINIO.md, 2026-11-27)", () => {
+    // www como RUTA: su CNAME proxiado se queda (un dominio propio no se crea sobre un CNAME) y el borde lo manda a la raíz.
+    expect(config.routes).toEqual([
+      { pattern: "babycaleb.com", custom_domain: true },
+      { pattern: "www.babycaleb.com/*", zone_name: "babycaleb.com" },
+    ]);
+    expect(config.vars.CANONICAL_HOST).toBe("babycaleb.com");
     expect(config.vars.DCASA_PUERTA_OBLIGATORIA).toBe("0");
     // Con `routes` y sin `workers_dev`, wrangler apaga workers.dev (webhook de Brian, /master de siempre, Juan).
     expect(config.workers_dev).toBe(true);
